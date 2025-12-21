@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import plotspec as mpr
+import plotspec as ps
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
 
     # === RECORD ===
     print("\n1. Recording figure...")
-    fig, ax = mpr.subplots(figsize=(8, 5))
+    fig, ax = ps.subplots(figsize=(8, 5))
 
     ax.plot(x, y, color='#2ecc71', linewidth=2.5, label='sin(x)')
     ax.fill_between(x, y, alpha=0.3, color='#2ecc71')
@@ -52,13 +52,13 @@ def main():
     # === SAVE RECIPE ===
     print("\n2. Saving recipe...")
     recipe_path = output_dir / '01_basic.yaml'
-    mpr.save(fig, recipe_path)
+    ps.save(fig, recipe_path)
     print(f"   Saved: {recipe_path}")
     plt.close(fig.fig)
 
     # === REPRODUCE ===
     print("\n3. Reproducing from recipe...")
-    fig2, ax2 = mpr.reproduce(recipe_path)
+    fig2, ax2 = ps.reproduce(recipe_path)
     reproduced_path = output_dir / '01_reproduced.png'
     fig2.savefig(reproduced_path, dpi=150, bbox_inches='tight',
                  facecolor='white', edgecolor='none')
@@ -67,7 +67,7 @@ def main():
 
     # === INFO ===
     print("\n4. Recipe info:")
-    info = mpr.info(recipe_path)
+    info = ps.info(recipe_path)
     print(f"   Figure ID: {info['id']}")
     print(f"   Size: {info['figsize']}")
     print(f"   Calls: {len(info['calls'])}")

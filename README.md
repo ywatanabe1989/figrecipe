@@ -13,7 +13,7 @@ plotspec captures matplotlib plotting calls and saves them as human-readable YAM
 - **Automatic tracking**: All plotting calls are recorded automatically
 - **YAML recipes**: Human-readable format for figure specifications
 - **Efficient storage**: Large arrays saved to separate `.npy` files
-- **One-line reproduction**: `fig, ax = mpr.reproduce("figure.yaml")`
+- **One-line reproduction**: `fig, ax = ps.reproduce("figure.yaml")`
 - **Selective replay**: Reproduce only specific plotting calls
 
 ## Installation
@@ -27,7 +27,7 @@ pip install plotspec
 ### Recording a Figure
 
 ```python
-import plotspec as mpr
+import plotspec as ps
 import numpy as np
 
 # Create data
@@ -35,7 +35,7 @@ x = np.linspace(0, 10, 100)
 y = np.sin(x)
 
 # Create figure (drop-in replacement for plt.subplots)
-fig, ax = mpr.subplots()
+fig, ax = ps.subplots()
 
 # Plot as usual - calls are recorded automatically
 ax.plot(x, y, color='red', linewidth=2, id='sine_wave')
@@ -52,25 +52,25 @@ mpr.save(fig, 'sine_wave.yaml')
 ### Reproducing a Figure
 
 ```python
-import plotspec as mpr
+import plotspec as ps
 import matplotlib.pyplot as plt
 
 # Reproduce the entire figure
-fig, ax = mpr.reproduce('sine_wave.yaml')
+fig, ax = ps.reproduce('sine_wave.yaml')
 plt.show()
 
 # Or reproduce only specific calls
-fig, ax = mpr.reproduce('sine_wave.yaml', calls=['sine_wave'])
+fig, ax = ps.reproduce('sine_wave.yaml', calls=['sine_wave'])
 plt.show()
 ```
 
 ### Inspecting a Recipe
 
 ```python
-import plotspec as mpr
+import plotspec as ps
 
 # Get recipe information without reproducing
-info = mpr.info('sine_wave.yaml')
+info = ps.info('sine_wave.yaml')
 print(f"Created: {info['created']}")
 print(f"Figure size: {info['figsize']}")
 print(f"Number of calls: {len(info['calls'])}")
@@ -130,7 +130,7 @@ ax.plot(x, y_fit, color='blue', id='fitted_curve')
 ### Multiple Subplots
 
 ```python
-fig, axes = mpr.subplots(2, 2, figsize=(12, 10))
+fig, axes = ps.subplots(2, 2, figsize=(12, 10))
 axes[0][0].plot(x, y1, id='top_left')
 axes[0][1].scatter(x, y2, id='top_right')
 axes[1][0].bar(categories, values, id='bottom_left')
@@ -141,7 +141,7 @@ mpr.save(fig, 'multi_panel.yaml')
 ### Temporarily Disable Recording
 
 ```python
-fig, ax = mpr.subplots()
+fig, ax = ps.subplots()
 
 # Recorded
 ax.plot(x, y, id='main_data')

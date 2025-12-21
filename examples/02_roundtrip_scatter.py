@@ -13,7 +13,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import plotspec as mpr
+import plotspec as ps
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
     sizes = np.abs(np.random.randn(n)) * 100 + 20
 
     # === ORIGINAL ===
-    fig, ax = mpr.subplots(figsize=(8, 8))
+    fig, ax = ps.subplots(figsize=(8, 8))
 
     ax.scatter(x, y, c=colors, s=sizes, alpha=0.6, cmap='viridis', id='points')
     ax.set_xlabel('X values')
@@ -39,11 +39,11 @@ def main():
     ax.axvline(0, color='gray', linestyle='--', alpha=0.5)
 
     fig.fig.savefig('outputs/02_original.png', dpi=150, bbox_inches='tight', facecolor='white')
-    mpr.save(fig, 'outputs/02_recipe.yaml')
+    ps.save(fig, 'outputs/02_recipe.yaml')
     plt.close(fig.fig)
 
     # === REPRODUCED ===
-    fig2, ax2 = mpr.reproduce('outputs/02_recipe.yaml')
+    fig2, ax2 = ps.reproduce('outputs/02_recipe.yaml')
     fig2.savefig('outputs/02_reproduced.png', dpi=150, bbox_inches='tight', facecolor='white')
     plt.close(fig2)
 

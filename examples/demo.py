@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
 
-import plotspec as mpr
+import plotspec as ps
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
 
     # 1. Record a figure
     print("\n1. Creating and recording a figure...")
-    fig, ax = mpr.subplots(figsize=(10, 6))
+    fig, ax = ps.subplots(figsize=(10, 6))
 
     ax.plot(x, y_sin, color='blue', linewidth=2, label='sin(x)', id='sine')
     ax.plot(x, y_cos, color='red', linewidth=2, linestyle='--', label='cos(x)', id='cosine')
@@ -41,13 +41,13 @@ def main():
 
     # Save the recipe
     recipe_path = output_dir / "demo_figure.yaml"
-    mpr.save(fig, recipe_path)
+    ps.save(fig, recipe_path)
     print(f"   Saved recipe to: {recipe_path}")
     plt.close(fig.fig)
 
     # 2. Inspect the recipe
     print("\n2. Inspecting the recipe...")
-    info = mpr.info(recipe_path)
+    info = ps.info(recipe_path)
     print(f"   Figure ID: {info['id']}")
     print(f"   Created: {info['created']}")
     print(f"   Figure size: {info['figsize']}")
@@ -58,7 +58,7 @@ def main():
 
     # 3. Reproduce the figure
     print("\n3. Reproducing the figure...")
-    fig2, ax2 = mpr.reproduce(recipe_path)
+    fig2, ax2 = ps.reproduce(recipe_path)
     reproduced_path = output_dir / "demo_reproduced.png"
     fig2.savefig(reproduced_path, dpi=150, bbox_inches='tight')
     print(f"   Saved reproduced figure to: {reproduced_path}")
@@ -66,7 +66,7 @@ def main():
 
     # 4. Reproduce only specific calls
     print("\n4. Reproducing only 'sine' call...")
-    fig3, ax3 = mpr.reproduce(recipe_path, calls=['sine'])
+    fig3, ax3 = ps.reproduce(recipe_path, calls=['sine'])
     ax3.set_title('Only Sine Wave')
     sine_only_path = output_dir / "demo_sine_only.png"
     fig3.savefig(sine_only_path, dpi=150, bbox_inches='tight')

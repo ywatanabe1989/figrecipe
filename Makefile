@@ -25,7 +25,7 @@ install-dev:
 test:
 	$(PYTHON) -m pytest tests/ -v
 
-examples: examples-basic examples-demo examples-roundtrip
+examples: examples-basic examples-demo examples-roundtrip examples-seaborn
 
 examples-basic:
 	@echo "Running basic usage example..."
@@ -38,6 +38,10 @@ examples-demo:
 examples-roundtrip:
 	@echo "Running roundtrip tests..."
 	$(PYTHON) examples/roundtrip_all_types.py
+
+examples-seaborn:
+	@echo "Running seaborn example..."
+	$(PYTHON) examples/05_seaborn.py
 
 clean: clean-outputs
 	rm -rf build/

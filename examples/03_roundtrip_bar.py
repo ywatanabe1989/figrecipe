@@ -13,7 +13,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import plotspec as mpr
+import plotspec as ps
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     width = 0.35
 
     # === ORIGINAL ===
-    fig, ax = mpr.subplots(figsize=(10, 6))
+    fig, ax = ps.subplots(figsize=(10, 6))
 
     ax.bar(x - width/2, values1, width, label='Group 1', color='#3498db', id='group1')
     ax.bar(x + width/2, values2, width, label='Group 2', color='#e74c3c', id='group2')
@@ -39,11 +39,11 @@ def main():
     ax.grid(True, axis='y', alpha=0.3)
 
     fig.fig.savefig('outputs/03_original.png', dpi=150, bbox_inches='tight', facecolor='white')
-    mpr.save(fig, 'outputs/03_recipe.yaml')
+    ps.save(fig, 'outputs/03_recipe.yaml')
     plt.close(fig.fig)
 
     # === REPRODUCED ===
-    fig2, ax2 = mpr.reproduce('outputs/03_recipe.yaml')
+    fig2, ax2 = ps.reproduce('outputs/03_recipe.yaml')
     fig2.savefig('outputs/03_reproduced.png', dpi=150, bbox_inches='tight', facecolor='white')
     plt.close(fig2)
 

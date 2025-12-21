@@ -10,26 +10,26 @@ Examples
 --------
 Recording a figure:
 
->>> import plotspec as mpr
+>>> import plotspec as ps
 >>> import numpy as np
 >>>
 >>> x = np.linspace(0, 10, 100)
 >>> y = np.sin(x)
 >>>
->>> fig, ax = mpr.subplots()
+>>> fig, ax = ps.subplots()
 >>> ax.plot(x, y, color='red', linewidth=2, id='sine_wave')
 >>> ax.set_xlabel('Time')
 >>> ax.set_ylabel('Amplitude')
->>> mpr.save(fig, 'my_figure.yaml')
+>>> ps.save(fig, 'my_figure.yaml')
 
 Reproducing a figure:
 
->>> fig, ax = mpr.reproduce('my_figure.yaml')
+>>> fig, ax = ps.reproduce('my_figure.yaml')
 >>> plt.show()
 
 Inspecting a recipe:
 
->>> info = mpr.info('my_figure.yaml')
+>>> info = ps.info('my_figure.yaml')
 >>> print(info['calls'])
 """
 
@@ -47,6 +47,29 @@ from ._serializer import save_recipe, load_recipe, recipe_to_dict
 from ._reproducer import reproduce as _reproduce, get_recipe_info
 from ._utils._numpy_io import DataFormat
 
+# Lazy import for seaborn to avoid hard dependency
+_sns_recorder = None
+
+
+def _get_sns():
+    """Get the seaborn recorder (lazy initialization)."""
+    global _sns_recorder
+    if _sns_recorder is None:
+        from ._seaborn import get_seaborn_recorder
+        _sns_recorder = get_seaborn_recorder()
+    return _sns_recorder
+
+
+class _SeabornProxy:
+    """Proxy object for seaborn access via ps.sns."""
+
+    def __getattr__(self, name: str):
+        return getattr(_get_sns(), name)
+
+
+# Create seaborn proxy
+sns = _SeabornProxy()
+
 __version__ = "0.1.0"
 __all__ = [
     # Main API
@@ -55,6 +78,8 @@ __all__ = [
     "reproduce",
     "info",
     "load",
+    # Seaborn support
+    "sns",
     # Classes (for type hints)
     "RecordingFigure",
     "RecordingAxes",
@@ -93,12 +118,12 @@ def subplots(
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> fig, ax = mpr.subplots()
+    >>> import plotspec as ps
+    >>> fig, ax = ps.subplots()
     >>> ax.plot([1, 2, 3], [4, 5, 6], color='blue')
-    >>> mpr.save(fig, 'simple.yaml')
+    >>> ps.save(fig, 'simple.yaml')
 
-    >>> fig, axes = mpr.subplots(2, 2, figsize=(10, 8))
+    >>> fig, axes = ps.subplots(2, 2, figsize=(10, 8))
     >>> axes[0][0].scatter(x, y)
     >>> axes[1][1].hist(data)
     """
@@ -134,11 +159,11 @@ def save(
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> fig, ax = mpr.subplots()
+    >>> import plotspec as ps
+    >>> fig, ax = ps.subplots()
     >>> ax.plot(x, y, color='red', id='my_data')
-    >>> mpr.save(fig, 'experiment.yaml')  # Uses CSV (default)
-    >>> mpr.save(fig, 'experiment.yaml', data_format='npz')  # Binary
+    >>> ps.save(fig, 'experiment.yaml')  # Uses CSV (default)
+    >>> ps.save(fig, 'experiment.yaml', data_format='npz')  # Binary
 
     Notes
     -----
@@ -153,7 +178,7 @@ def save(
         return fig.save_recipe(path, include_data=include_data, data_format=data_format)
     else:
         raise TypeError(
-            "Expected RecordingFigure. Use mpr.subplots() to create "
+            "Expected RecordingFigure. Use ps.subplots() to create "
             "a recording-enabled figure."
         )
 
@@ -183,12 +208,12 @@ def reproduce(
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> fig, ax = mpr.reproduce('experiment.yaml')
+    >>> import plotspec as ps
+    >>> fig, ax = ps.reproduce('experiment.yaml')
     >>> plt.show()
 
     >>> # Reproduce only specific plots
-    >>> fig, ax = mpr.reproduce('experiment.yaml', calls=['scatter_001'])
+    >>> fig, ax = ps.reproduce('experiment.yaml', calls=['scatter_001'])
     """
     return _reproduce(path, calls=calls, skip_decorations=skip_decorations)
 
@@ -209,8 +234,8 @@ def info(path: Union[str, Path]) -> Dict[str, Any]:
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> recipe_info = mpr.info('experiment.yaml')
+    >>> import plotspec as ps
+    >>> recipe_info = ps.info('experiment.yaml')
     >>> print(f"Created: {recipe_info['created']}")
     >>> print(f"Calls: {len(recipe_info['calls'])}")
     """
@@ -232,11 +257,11 @@ def load(path: Union[str, Path]) -> FigureRecord:
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> record = mpr.load('experiment.yaml')
+    >>> import plotspec as ps
+    >>> record = ps.load('experiment.yaml')
     >>> # Modify the record
     >>> record.axes['ax_0_0'].calls[0].kwargs['color'] = 'blue'
     >>> # Reproduce with modifications
-    >>> fig, ax = mpr.reproduce_from_record(record)
+    >>> fig, ax = ps.reproduce_from_record(record)
     """
     return load_recipe(path)

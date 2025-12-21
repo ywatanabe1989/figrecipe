@@ -29,10 +29,10 @@ class RecordingFigure:
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> fig, ax = mpr.subplots()
+    >>> import plotspec as ps
+    >>> fig, ax = ps.subplots()
     >>> ax.plot([1, 2, 3], [4, 5, 6])
-    >>> mpr.save(fig, "my_figure.yaml")
+    >>> ps.save(fig, "my_figure.yaml")
     """
 
     def __init__(

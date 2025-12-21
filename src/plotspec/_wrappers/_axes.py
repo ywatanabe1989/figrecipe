@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """Wrapped Axes that records all plotting calls."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
@@ -28,8 +29,8 @@ class RecordingAxes:
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> fig, ax = mpr.subplots()
+    >>> import plotspec as ps
+    >>> fig, ax = ps.subplots()
     >>> ax.plot([1, 2, 3], [4, 5, 6], color='red', id='my_line')
     >>> # The call is recorded automatically
     """
@@ -111,6 +112,114 @@ class RecordingAxes:
         ...     ax.plot([1, 2, 3], [4, 5, 6])  # Not recorded
         """
         return _NoRecordContext(self)
+
+    def record_seaborn_call(
+        self,
+        func_name: str,
+        args: tuple,
+        kwargs: Dict[str, Any],
+        data_arrays: Dict[str, np.ndarray],
+        call_id: Optional[str] = None,
+    ) -> None:
+        """Record a seaborn plotting call.
+
+        Parameters
+        ----------
+        func_name : str
+            Name of the seaborn function (e.g., 'scatterplot').
+        args : tuple
+            Processed positional arguments.
+        kwargs : dict
+            Processed keyword arguments.
+        data_arrays : dict
+            Dictionary of array data extracted from DataFrame/arrays.
+        call_id : str, optional
+            Custom ID for this call.
+        """
+        if not self._track:
+            return
+
+        from .._utils._numpy_io import should_store_inline, to_serializable
+
+        # Generate call ID if not provided
+        if call_id is None:
+            call_id = self._recorder._generate_call_id(f"sns_{func_name}")
+
+        # Process data arrays into args format
+        processed_args = []
+        for i, arg in enumerate(args):
+            if arg == "__ARRAY__":
+                key = f"_arg_{i}"
+                if key in data_arrays:
+                    arr = data_arrays[key]
+                    if should_store_inline(arr):
+                        processed_args.append({
+                            "name": f"arg{i}",
+                            "data": to_serializable(arr),
+                            "dtype": str(arr.dtype),
+                        })
+                    else:
+                        processed_args.append({
+                            "name": f"arg{i}",
+                            "data": "__FILE__",
+                            "dtype": str(arr.dtype),
+                            "_array": arr,
+                        })
+            else:
+                processed_args.append({
+                    "name": f"arg{i}",
+                    "data": arg,
+                })
+
+        # Process DataFrame column data
+        for key, arr in data_arrays.items():
+            if key.startswith("_col_"):
+                param_name = key[5:]  # Remove "_col_" prefix
+                col_name = data_arrays.get(f"_colname_{param_name}", param_name)
+                if should_store_inline(arr):
+                    processed_args.append({
+                        "name": col_name,
+                        "param": param_name,
+                        "data": to_serializable(arr),
+                        "dtype": str(arr.dtype),
+                    })
+                else:
+                    processed_args.append({
+                        "name": col_name,
+                        "param": param_name,
+                        "data": "__FILE__",
+                        "dtype": str(arr.dtype),
+                        "_array": arr,
+                    })
+
+        # Process kwarg arrays
+        processed_kwargs = dict(kwargs)
+        for key, value in kwargs.items():
+            if value == "__ARRAY__":
+                arr_key = f"_kwarg_{key}"
+                if arr_key in data_arrays:
+                    arr = data_arrays[arr_key]
+                    if should_store_inline(arr):
+                        processed_kwargs[key] = to_serializable(arr)
+                    else:
+                        # Mark for file storage
+                        processed_kwargs[key] = "__FILE__"
+                        processed_kwargs[f"_array_{key}"] = arr
+
+        # Create call record
+        from .._recorder import CallRecord
+
+        record = CallRecord(
+            id=call_id,
+            function=f"sns.{func_name}",
+            args=processed_args,
+            kwargs=processed_kwargs,
+            ax_position=self._position,
+        )
+
+        # Add to axes record
+        ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+        ax_record.add_call(record)
 
     # Expose common properties directly
     @property

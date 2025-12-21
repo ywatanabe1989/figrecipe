@@ -15,7 +15,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-import plotspec as mpr
+import plotspec as ps
 from plotspec._utils._image_diff import compare_images, create_comparison_figure
 
 
@@ -103,7 +103,7 @@ def run_roundtrip_test(plot_type: str, test_config: dict, output_dir: Path) -> d
 
     try:
         # === ORIGINAL ===
-        fig, ax = mpr.subplots(figsize=(6, 4))
+        fig, ax = ps.subplots(figsize=(6, 4))
         method = getattr(ax, plot_type)
         args = test_config['args']()
         kwargs = test_config['kwargs'].copy()
@@ -112,11 +112,11 @@ def run_roundtrip_test(plot_type: str, test_config: dict, output_dir: Path) -> d
         ax.set_title(f'{plot_type}()')
 
         fig.fig.savefig(original_path, dpi=100, bbox_inches='tight', facecolor='white')
-        mpr.save(fig, recipe_path)
+        ps.save(fig, recipe_path)
         plt.close(fig.fig)
 
         # === REPRODUCED ===
-        fig2, ax2 = mpr.reproduce(recipe_path)
+        fig2, ax2 = ps.reproduce(recipe_path)
         fig2.savefig(reproduced_path, dpi=100, bbox_inches='tight', facecolor='white')
         plt.close(fig2)
 
