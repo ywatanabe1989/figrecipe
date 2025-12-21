@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "plotspec"
-version = "0.3.2"
+version = "0.3.3"
 description = "Record and reproduce matplotlib figures"
 readme = "README.md"
 license = "MIT"

@@ -71,7 +71,7 @@ class _SeabornProxy:
 # Create seaborn proxy
 sns = _SeabornProxy()
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 __all__ = [
     # Main API
     "subplots",
