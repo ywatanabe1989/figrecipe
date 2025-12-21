@@ -242,11 +242,14 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
         ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
 
-    # Apply color palette via rcParams if provided
+    # Apply color palette to both rcParams and this specific axes
     color_palette = style.get("color_palette")
     if color_palette is not None:
         import matplotlib as mpl
+        # Set rcParams for future axes
         mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=color_palette)
+        # Also set the color cycle on this specific axes (axes cache cycler at creation)
+        ax.set_prop_cycle(color=color_palette)
 
     # Store style in axes for reference
     if not hasattr(ax, "_plotspec_style"):
