@@ -46,6 +46,7 @@ from ._wrappers._figure import create_recording_subplots
 from ._serializer import save_recipe, load_recipe, recipe_to_dict
 from ._reproducer import reproduce as _reproduce, get_recipe_info
 from ._utils._numpy_io import DataFormat
+from ._utils._units import mm_to_inch, mm_to_pt, inch_to_mm, pt_to_mm
 
 # Lazy import for seaborn to avoid hard dependency
 _sns_recorder = None
@@ -70,7 +71,7 @@ class _SeabornProxy:
 # Create seaborn proxy
 sns = _SeabornProxy()
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 __all__ = [
     # Main API
     "subplots",
@@ -78,6 +79,15 @@ __all__ = [
     "reproduce",
     "info",
     "load",
+    # Style system
+    "load_style",
+    "STYLE",
+    "apply_style",
+    # Unit conversions
+    "mm_to_inch",
+    "mm_to_pt",
+    "inch_to_mm",
+    "pt_to_mm",
     # Seaborn support
     "sns",
     # Classes (for type hints)
@@ -90,9 +100,96 @@ __all__ = [
 ]
 
 
+# Lazy imports for style system
+_style_cache = None
+
+
+def load_style(path=None):
+    """Load style configuration from YAML file.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to YAML style file. If None, uses default PLOTSPEC_STYLE.yaml
+
+    Returns
+    -------
+    DotDict
+        Style configuration with dot-notation access.
+
+    Examples
+    --------
+    >>> import plotspec as ps
+    >>> style = ps.load_style()
+    >>> style.axes.width_mm
+    40
+    >>> fig, ax = ps.subplots(**style.to_subplots_kwargs())
+    """
+    from .styles import load_style as _load_style
+    return _load_style(path)
+
+
+def apply_style(ax, style=None):
+    """Apply mm-based styling to an axes.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes to apply styling to.
+    style : dict or DotDict, optional
+        Style configuration. If None, uses default PLOTSPEC_STYLE.
+
+    Returns
+    -------
+    float
+        Trace line width in points.
+
+    Examples
+    --------
+    >>> import plotspec as ps
+    >>> import matplotlib.pyplot as plt
+    >>> fig, ax = plt.subplots()
+    >>> trace_lw = ps.apply_style(ax)
+    >>> ax.plot(x, y, lw=trace_lw)
+    """
+    from .styles import apply_style_mm, get_style, to_subplots_kwargs
+    if style is None:
+        style = to_subplots_kwargs(get_style())
+    elif hasattr(style, 'to_subplots_kwargs'):
+        style = style.to_subplots_kwargs()
+    return apply_style_mm(ax, style)
+
+
+class _StyleProxy:
+    """Proxy object for lazy style loading."""
+
+    def __getattr__(self, name):
+        from .styles import STYLE
+        return getattr(STYLE, name)
+
+    def to_subplots_kwargs(self):
+        from .styles import to_subplots_kwargs
+        return to_subplots_kwargs()
+
+
+STYLE = _StyleProxy()
+
+
 def subplots(
     nrows: int = 1,
     ncols: int = 1,
+    # MM-control parameters
+    axes_width_mm: Optional[float] = None,
+    axes_height_mm: Optional[float] = None,
+    margin_left_mm: Optional[float] = None,
+    margin_right_mm: Optional[float] = None,
+    margin_bottom_mm: Optional[float] = None,
+    margin_top_mm: Optional[float] = None,
+    space_w_mm: Optional[float] = None,
+    space_h_mm: Optional[float] = None,
+    # Style parameters
+    style: Optional[Dict[str, Any]] = None,
+    apply_style_mm: bool = False,
     **kwargs,
 ) -> Tuple[RecordingFigure, Union[RecordingAxes, List[RecordingAxes]]]:
     """Create a figure with recording-enabled axes.
@@ -100,14 +197,43 @@ def subplots(
     This is a drop-in replacement for plt.subplots() that wraps the
     returned figure and axes with recording capabilities.
 
+    Supports mm-based layout control for publication-quality figures.
+
     Parameters
     ----------
     nrows : int
         Number of rows of subplots.
     ncols : int
         Number of columns of subplots.
+
+    MM-Control Parameters
+    ---------------------
+    axes_width_mm : float, optional
+        Axes width in mm. If provided, overrides figsize.
+    axes_height_mm : float, optional
+        Axes height in mm.
+    margin_left_mm : float, optional
+        Left margin in mm (default: 15).
+    margin_right_mm : float, optional
+        Right margin in mm (default: 5).
+    margin_bottom_mm : float, optional
+        Bottom margin in mm (default: 12).
+    margin_top_mm : float, optional
+        Top margin in mm (default: 8).
+    space_w_mm : float, optional
+        Horizontal spacing between axes in mm (default: 8).
+    space_h_mm : float, optional
+        Vertical spacing between axes in mm (default: 10).
+
+    Style Parameters
+    ----------------
+    style : dict, optional
+        Style configuration dictionary or result of load_style().
+    apply_style_mm : bool
+        If True, apply PLOTSPEC_STYLE to axes after creation.
+
     **kwargs
-        Additional arguments passed to plt.subplots().
+        Additional arguments passed to plt.subplots() (e.g., figsize, dpi).
 
     Returns
     -------
@@ -118,16 +244,103 @@ def subplots(
 
     Examples
     --------
+    Basic usage:
+
     >>> import plotspec as ps
     >>> fig, ax = ps.subplots()
     >>> ax.plot([1, 2, 3], [4, 5, 6], color='blue')
     >>> ps.save(fig, 'simple.yaml')
 
-    >>> fig, axes = ps.subplots(2, 2, figsize=(10, 8))
-    >>> axes[0][0].scatter(x, y)
-    >>> axes[1][1].hist(data)
+    MM-based layout:
+
+    >>> fig, ax = ps.subplots(
+    ...     axes_width_mm=40,
+    ...     axes_height_mm=28,
+    ...     margin_left_mm=15,
+    ...     margin_bottom_mm=12,
+    ... )
+
+    With style:
+
+    >>> style = ps.load_style()
+    >>> fig, ax = ps.subplots(**style.to_subplots_kwargs())
     """
-    return create_recording_subplots(nrows, ncols, **kwargs)
+    # Check if mm-based layout is requested
+    use_mm_layout = any([
+        axes_width_mm is not None,
+        axes_height_mm is not None,
+        margin_left_mm is not None,
+        margin_right_mm is not None,
+        margin_bottom_mm is not None,
+        margin_top_mm is not None,
+        space_w_mm is not None,
+        space_h_mm is not None,
+    ])
+
+    if use_mm_layout and 'figsize' not in kwargs:
+        # Calculate figsize from mm parameters
+        aw = axes_width_mm if axes_width_mm is not None else 40
+        ah = axes_height_mm if axes_height_mm is not None else 28
+        ml = margin_left_mm if margin_left_mm is not None else 15
+        mr = margin_right_mm if margin_right_mm is not None else 5
+        mb = margin_bottom_mm if margin_bottom_mm is not None else 12
+        mt = margin_top_mm if margin_top_mm is not None else 8
+        sw = space_w_mm if space_w_mm is not None else 8
+        sh = space_h_mm if space_h_mm is not None else 10
+
+        # Calculate total figure size
+        total_width_mm = ml + (ncols * aw) + ((ncols - 1) * sw) + mr
+        total_height_mm = mb + (nrows * ah) + ((nrows - 1) * sh) + mt
+
+        # Convert to inches and set figsize
+        kwargs['figsize'] = (mm_to_inch(total_width_mm), mm_to_inch(total_height_mm))
+
+        # Store mm metadata for recording (will be extracted by create_recording_subplots)
+        mm_layout = {
+            'axes_width_mm': aw,
+            'axes_height_mm': ah,
+            'margin_left_mm': ml,
+            'margin_right_mm': mr,
+            'margin_bottom_mm': mb,
+            'margin_top_mm': mt,
+            'space_w_mm': sw,
+            'space_h_mm': sh,
+        }
+    else:
+        mm_layout = None
+
+    # Handle style parameter
+    if style is not None:
+        if hasattr(style, 'to_subplots_kwargs'):
+            # Merge style kwargs (style values are overridden by explicit params)
+            style_kwargs = style.to_subplots_kwargs()
+            for key, value in style_kwargs.items():
+                if key not in kwargs:
+                    kwargs[key] = value
+
+    # Create the recording subplots
+    fig, axes = create_recording_subplots(nrows, ncols, **kwargs)
+
+    # Store mm_layout metadata on figure for serialization
+    if mm_layout is not None:
+        fig._mm_layout = mm_layout
+
+    # Apply styling if requested
+    if apply_style_mm or style is not None:
+        from .styles import apply_style_mm as _apply_style, to_subplots_kwargs, get_style
+        style_dict = to_subplots_kwargs(get_style()) if style is None else (
+            style.to_subplots_kwargs() if hasattr(style, 'to_subplots_kwargs') else style
+        )
+        if nrows == 1 and ncols == 1:
+            _apply_style(axes._ax, style_dict)
+        else:
+            # Handle 2D array of axes
+            import numpy as np
+            axes_array = np.array(axes)
+            for ax in axes_array.flat:
+                _apply_style(ax._ax if hasattr(ax, '_ax') else ax, style_dict)
+
+    return fig, axes
 
 
 def save(

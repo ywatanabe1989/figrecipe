@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-12-21
+
+### Added
+- **MM-based layout system** for publication-quality figures
+  - `axes_width_mm`, `axes_height_mm` parameters for precise axes sizing
+  - `margin_left_mm`, `margin_right_mm`, `margin_bottom_mm`, `margin_top_mm` for margins
+  - `space_w_mm`, `space_h_mm` for spacing between axes in multi-panel figures
+- **Style system** inspired by SciTeX
+  - `ps.load_style()` to load style configuration from YAML
+  - `ps.apply_style()` to apply publication-quality styling to axes
+  - `ps.STYLE` proxy for quick access to default style
+  - `PLOTSPEC_STYLE.yaml` default configuration with:
+    - Font sizes (axis labels, tick labels, title, legend)
+    - Line thicknesses in mm
+    - Tick parameters in mm
+    - Theme support (light/dark mode)
+- **Unit conversion utilities**
+  - `ps.mm_to_inch()`, `ps.inch_to_mm()`
+  - `ps.mm_to_pt()`, `ps.pt_to_mm()`
+- Example `06_mm_layout_and_style.py` demonstrating new features
+
+### Changed
+- `ps.subplots()` now accepts mm-based layout parameters
+- `ps.subplots()` accepts `apply_style_mm=True` for automatic style application
+- Version updated to 0.3.0
+
 ## [0.2.0] - 2025-12-21
 
 ### Added
@@ -51,5 +77,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.3.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ywatanabe1989/plotspec/releases/tag/v0.1.0
