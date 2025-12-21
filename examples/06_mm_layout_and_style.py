@@ -58,20 +58,20 @@ def main():
     figsize_mm = (figsize_in[0] * 25.4, figsize_in[1] * 25.4)
     print(f"   Figure size: {figsize_mm[0]:.1f} x {figsize_mm[1]:.1f} mm")
 
-    # Plot with style-aware line width
+    # Plot with style-aware line width (colors auto-cycle from SCITEX palette)
     trace_lw = ps.mm_to_pt(style.lines.trace_mm)
-    ax.plot(x, y_sin, color='#2ecc71', linewidth=trace_lw, label='sin(x)', id='sine')
-    ax.plot(x, y_cos, color='#e74c3c', linewidth=trace_lw, label='cos(x)', id='cosine')
+    ax.plot(x, y_sin, linewidth=trace_lw, label='sin(x)', id='sine')  # Auto: blue
+    ax.plot(x, y_cos, linewidth=trace_lw, label='cos(x)', id='cosine')  # Auto: orange
 
     ax.set_xlabel('x (radians)')
     ax.set_ylabel('y')
     ax.set_title('Trigonometric Functions')
     ax.legend(loc='upper right')
 
-    # Save original
+    # Save original (transparent background)
     original_path = output_dir / '06_mm_layout_original.png'
     fig.fig.savefig(original_path, dpi=300, bbox_inches='tight',
-                    facecolor='white', edgecolor='none')
+                    transparent=True, edgecolor='none')
     print(f"   Saved: {original_path}")
 
     # === Save recipe ===
@@ -90,13 +90,14 @@ def main():
 
     reproduced_path = output_dir / '06_mm_layout_reproduced.png'
     fig2.savefig(reproduced_path, dpi=300, bbox_inches='tight',
-                 facecolor='white', edgecolor='none')
+                 transparent=True, edgecolor='none')
     print(f"   Saved: {reproduced_path}")
     plt.close(fig2)
 
     # === Multi-panel figure with mm layout ===
     print("\n5. Creating multi-panel figure...")
 
+    # Colors will auto-cycle from SCITEX palette (set via apply_style_mm=True)
     fig3, axes = ps.subplots(
         nrows=2,
         ncols=2,
@@ -104,10 +105,10 @@ def main():
         axes_height_mm=25,
         margin_left_mm=12,
         margin_right_mm=3,
-        margin_bottom_mm=10,
-        margin_top_mm=5,
-        space_w_mm=12,          # Horizontal spacing
-        space_h_mm=12,          # Vertical spacing
+        margin_bottom_mm=12,    # More space for x labels
+        margin_top_mm=8,        # More space for titles
+        space_w_mm=15,          # Horizontal spacing (for y labels)
+        space_h_mm=18,          # Vertical spacing (for titles + x labels)
         apply_style_mm=True,
     )
 
@@ -118,31 +119,43 @@ def main():
     # Fill panels
     np.random.seed(42)
 
-    # Panel A: Line plot
-    axes[0][0].plot(x, y_sin, color='#3498db', lw=trace_lw, id='panel_a')
+    # Get first 4 colors from the auto-set palette for consistency across panels
+    import matplotlib as mpl
+    palette = mpl.rcParams['axes.prop_cycle'].by_key()['color']
+
+    # Panel A: Line plot (auto blue)
+    axes[0][0].plot(x, y_sin, lw=trace_lw, id='panel_a')  # Uses first color
+    axes[0][0].set_xlabel('Time (s)')
+    axes[0][0].set_ylabel('Amplitude')
     axes[0][0].set_title('A) Sine Wave')
 
-    # Panel B: Scatter plot
+    # Panel B: Scatter plot (use palette[1] for orange)
     scatter_x = np.random.randn(50)
     scatter_y = np.random.randn(50)
-    axes[0][1].scatter(scatter_x, scatter_y, s=10, alpha=0.7, color='#e74c3c', id='panel_b')
+    axes[0][1].scatter(scatter_x, scatter_y, s=10, alpha=0.7, color=palette[1], id='panel_b')
+    axes[0][1].set_xlabel('X')
+    axes[0][1].set_ylabel('Y')
     axes[0][1].set_title('B) Scatter')
 
-    # Panel C: Bar plot
+    # Panel C: Bar plot (use palette[2] for green)
     categories = ['A', 'B', 'C', 'D']
     values = [23, 45, 56, 78]
-    axes[1][0].bar(categories, values, color='#2ecc71', edgecolor='black', linewidth=0.5, id='panel_c')
+    axes[1][0].bar(categories, values, color=palette[2], edgecolor='black', linewidth=0.5, id='panel_c')
+    axes[1][0].set_xlabel('Category')
+    axes[1][0].set_ylabel('Count')
     axes[1][0].set_title('C) Bar Chart')
 
-    # Panel D: Histogram
+    # Panel D: Histogram (use palette[3] for purple)
     data = np.random.randn(200)
-    axes[1][1].hist(data, bins=20, color='#9b59b6', edgecolor='black', linewidth=0.5, id='panel_d')
+    axes[1][1].hist(data, bins=20, color=palette[3], edgecolor='black', linewidth=0.5, id='panel_d')
+    axes[1][1].set_xlabel('Value')
+    axes[1][1].set_ylabel('Frequency')
     axes[1][1].set_title('D) Histogram')
 
-    # Save
+    # Save (transparent background)
     multi_path = output_dir / '06_mm_layout_multi.png'
     fig3.fig.savefig(multi_path, dpi=300, bbox_inches='tight',
-                     facecolor='white', edgecolor='none')
+                     transparent=True, edgecolor='none')
     print(f"   Saved: {multi_path}")
 
     # Save recipe

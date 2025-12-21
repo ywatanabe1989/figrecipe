@@ -75,7 +75,7 @@ ticks:
   length_mm: 1.0         # Tick mark length
   thickness_mm: 0.2      # Tick mark thickness
   direction: "out"       # Tick direction: "in", "out", or "inout"
-  n_ticks: 5             # Target number of ticks per axis
+  n_ticks: 4             # Target number of ticks per axis (3-4 for clean look)
 
 # =============================================================================
 # MARKERS (in mm)
@@ -90,7 +90,7 @@ markers:
 # =============================================================================
 output:
   dpi: 300               # Resolution for saving
-  transparent: false     # Transparent background
+  transparent: true      # Transparent background (SCITEX default)
   format: "png"          # Default output format
 
 # =============================================================================
@@ -117,11 +117,42 @@ theme:
     tick: "#e8e8e8"
     grid: "#3a3a4a"
 
-  # Light mode color palette (default)
+  # Light mode color palette (default - with transparent background)
   light:
-    background: "white"
-    axes_bg: "white"
+    background: "none"     # Transparent figure background
+    axes_bg: "none"        # Transparent axes background
     text: "black"
     spine: "black"
     tick: "black"
     grid: "#cccccc"
+
+# =============================================================================
+# COLOR PALETTE (Scientific/Publication-quality colors)
+# =============================================================================
+# Colorblind-friendly palette inspired by scientific publications
+colors:
+  # Primary categorical colors (colorblind-safe)
+  palette:
+    - "#0072B2"          # Blue
+    - "#D55E00"          # Vermillion/Orange
+    - "#009E73"          # Bluish green
+    - "#CC79A7"          # Reddish purple
+    - "#F0E442"          # Yellow
+    - "#56B4E9"          # Sky blue
+    - "#E69F00"          # Orange
+    - "#000000"          # Black
+
+  # Named colors for direct access
+  blue: "#0072B2"
+  orange: "#D55E00"
+  green: "#009E73"
+  purple: "#CC79A7"
+  yellow: "#F0E442"
+  cyan: "#56B4E9"
+  amber: "#E69F00"
+  black: "#000000"
+
+  # Semantic colors
+  positive: "#009E73"    # Green for positive/success
+  negative: "#D55E00"    # Orange/red for negative/error
+  neutral: "#0072B2"     # Blue for neutral

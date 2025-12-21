@@ -25,8 +25,8 @@ THEME_COLORS = {
         "grid": "#3a3a4a",
     },
     "light": {
-        "background": "white",
-        "axes_bg": "white",
+        "background": "none",  # Transparent
+        "axes_bg": "none",     # Transparent
         "text": "black",
         "spine": "black",
         "tick": "black",
@@ -63,13 +63,23 @@ def apply_theme_colors(
     if custom_colors:
         colors.update(custom_colors)
 
-    # Apply axes background
-    ax.set_facecolor(colors["axes_bg"])
+    # Apply axes background (handle "none" for transparency)
+    axes_bg = colors["axes_bg"]
+    if axes_bg.lower() == "none":
+        ax.set_facecolor("none")
+        ax.patch.set_alpha(0)
+    else:
+        ax.set_facecolor(axes_bg)
 
-    # Apply figure background if accessible
+    # Apply figure background if accessible (handle "none" for transparency)
     fig = ax.get_figure()
     if fig is not None:
-        fig.patch.set_facecolor(colors["background"])
+        fig_bg = colors["background"]
+        if fig_bg.lower() == "none":
+            fig.patch.set_facecolor("none")
+            fig.patch.set_alpha(0)
+        else:
+            fig.patch.set_facecolor(fig_bg)
 
     # Apply text colors (labels, titles)
     ax.xaxis.label.set_color(colors["text"])
@@ -231,6 +241,12 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         from matplotlib.ticker import MaxNLocator
         ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
         ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+
+    # Apply color palette via rcParams if provided
+    color_palette = style.get("color_palette")
+    if color_palette is not None:
+        import matplotlib as mpl
+        mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=color_palette)
 
     # Store style in axes for reference
     if not hasattr(ax, "_plotspec_style"):

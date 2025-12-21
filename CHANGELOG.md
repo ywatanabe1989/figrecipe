@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-12-21
+
+### Added
+- **SCITEX color palette** - Colorblind-friendly scientific color palette automatically applied via rcParams
+  - Blue (#0072B2), Orange (#D55E00), Green (#009E73), Purple (#CC79A7), etc.
+  - Access via `style.colors.palette` or auto-cycling in plots
+- **Transparent background** - Default light theme now uses transparent background
+
+### Fixed
+- **Title overlap in multi-panel figures** - Added proper `subplots_adjust()` based on mm layout parameters
+- **n_ticks** - Changed default from 5 to 4 for cleaner tick labels
+
+### Changed
+- Style applier now sets matplotlib color cycle from PLOTSPEC_STYLE palette
+
 ## [0.3.1] - 2025-12-21
 
 ### Fixed
@@ -83,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.3.2]: https://github.com/ywatanabe1989/plotspec/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/ywatanabe1989/plotspec/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.1.0...v0.2.0

@@ -194,7 +194,7 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     if style is None:
         style = get_style()
 
-    return {
+    result = {
         # Axes dimensions
         "axes_width_mm": style.axes.width_mm,
         "axes_height_mm": style.axes.height_mm,
@@ -231,6 +231,12 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
         # Theme
         "theme": style.theme.mode,
     }
+
+    # Add color palette if available
+    if "colors" in style and "palette" in style.colors:
+        result["color_palette"] = list(style.colors.palette)
+
+    return result
 
 
 # Lazy-loaded global STYLE object

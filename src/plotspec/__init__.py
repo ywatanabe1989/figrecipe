@@ -71,7 +71,7 @@ class _SeabornProxy:
 # Create seaborn proxy
 sns = _SeabornProxy()
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __all__ = [
     # Main API
     "subplots",
@@ -324,6 +324,29 @@ def subplots(
     # Store mm_layout metadata on figure for serialization
     if mm_layout is not None:
         fig._mm_layout = mm_layout
+
+        # Apply subplots_adjust to position axes correctly
+        total_width_mm = ml + (ncols * aw) + ((ncols - 1) * sw) + mr
+        total_height_mm = mb + (nrows * ah) + ((nrows - 1) * sh) + mt
+
+        # Calculate relative positions (0-1 range)
+        left = ml / total_width_mm
+        right = 1 - (mr / total_width_mm)
+        bottom = mb / total_height_mm
+        top = 1 - (mt / total_height_mm)
+
+        # Calculate spacing as fraction of figure size
+        wspace = sw / aw if ncols > 1 else 0
+        hspace = sh / ah if nrows > 1 else 0
+
+        fig.fig.subplots_adjust(
+            left=left,
+            right=right,
+            bottom=bottom,
+            top=top,
+            wspace=wspace,
+            hspace=hspace,
+        )
 
     # Apply styling if requested
     if apply_style_mm or style is not None:
