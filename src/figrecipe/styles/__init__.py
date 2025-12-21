@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Style management for plotspec.
+"""Style management for figrecipe.
 
 Provides style loading, application, and management for publication-quality figures.
 
 Usage:
-    from plotspec.styles import load_style, STYLE
+    from figrecipe.styles import load_style, STYLE
 
     # Load default style
     style = load_style()
@@ -22,18 +22,27 @@ from ._style_loader import (
     load_style,
     get_style,
     reload_style,
+    list_presets,
     STYLE,
     to_subplots_kwargs,
 )
 
-from ._style_applier import apply_style_mm, apply_theme_colors
+from ._style_applier import (
+    apply_style_mm,
+    apply_theme_colors,
+    check_font,
+    list_available_fonts,
+)
 
 __all__ = [
     "load_style",
     "get_style",
     "reload_style",
+    "list_presets",
     "STYLE",
     "to_subplots_kwargs",
     "apply_style_mm",
     "apply_theme_colors",
+    "check_font",
+    "list_available_fonts",
 ]

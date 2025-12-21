@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Utility modules for plotspec."""
+"""Utility modules for figrecipe."""
 
 from ._numpy_io import load_array, save_array
 from ._diff import get_non_default_kwargs, is_default_value

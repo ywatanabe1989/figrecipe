@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Style loader for plotspec.
+"""Style loader for figrecipe.
 
 Loads style configuration from YAML file and provides centralized access
 to all style parameters.
 
 Usage:
-    from plotspec.styles import load_style, get_style, STYLE
+    from figrecipe.styles import load_style, get_style, STYLE
 
     # Load default style
     style = load_style()
@@ -16,19 +16,48 @@ Usage:
     line_width = STYLE.lines.trace_mm
 """
 
-__all__ = ["load_style", "get_style", "reload_style", "STYLE", "to_subplots_kwargs"]
+__all__ = [
+    "load_style",
+    "get_style",
+    "reload_style",
+    "list_presets",
+    "STYLE",
+    "to_subplots_kwargs",
+]
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from ruamel.yaml import YAML
 
 
-# Path to default style file
-_DEFAULT_STYLE_PATH = Path(__file__).parent / "PLOTSPEC_STYLE.yaml"
+# Path to presets directory
+_PRESETS_DIR = Path(__file__).parent / "presets"
+
+# Path to default style file (for backwards compatibility)
+_DEFAULT_STYLE_PATH = Path(__file__).parent / "FIGRECIPE_STYLE.yaml"
 
 # Global style cache
 _STYLE_CACHE: Optional["DotDict"] = None
+_CURRENT_STYLE_NAME: Optional[str] = None
+
+
+def list_presets() -> List[str]:
+    """List available style presets.
+
+    Returns
+    -------
+    list of str
+        Names of available presets (e.g., ['DEFAULT', 'SCIENTIFIC'])
+
+    Examples
+    --------
+    >>> ps.list_presets()
+    ['DEFAULT', 'SCIENTIFIC']
+    """
+    if not _PRESETS_DIR.exists():
+        return []
+    return sorted([p.stem for p in _PRESETS_DIR.glob("*.yaml")])
 
 
 class DotDict(dict):
@@ -96,31 +125,36 @@ def _load_yaml(path: Union[str, Path]) -> Dict:
         return dict(yaml.load(f))
 
 
-def reload_style(path: Optional[Union[str, Path]] = None) -> DotDict:
+def reload_style(style: Optional[Union[str, Path]] = None) -> DotDict:
     """Reload style from YAML file (clears cache).
 
     Parameters
     ----------
-    path : str or Path, optional
-        Path to YAML style file. If None, uses default PLOTSPEC_STYLE.yaml
+    style : str or Path, optional
+        Style preset name (e.g., "SCIENTIFIC") or path to YAML file.
+        If None, uses default SCIENTIFIC preset.
 
     Returns
     -------
     DotDict
         Style configuration as DotDict for dot-access
     """
-    global _STYLE_CACHE
+    global _STYLE_CACHE, _CURRENT_STYLE_NAME
     _STYLE_CACHE = None
-    return load_style(path)
+    _CURRENT_STYLE_NAME = None
+    return load_style(style)
 
 
-def load_style(path: Optional[Union[str, Path]] = None) -> DotDict:
-    """Load style configuration from YAML file.
+def load_style(style: Optional[Union[str, Path]] = None) -> DotDict:
+    """Load style configuration from preset or YAML file.
 
     Parameters
     ----------
-    path : str or Path, optional
-        Path to YAML style file. If None, uses default PLOTSPEC_STYLE.yaml
+    style : str or Path, optional
+        One of:
+        - Preset name: "DEFAULT", "SCIENTIFIC"
+        - Path to custom YAML file: "/path/to/my_style.yaml"
+        - None: uses default SCIENTIFIC preset
 
     Returns
     -------
@@ -129,33 +163,66 @@ def load_style(path: Optional[Union[str, Path]] = None) -> DotDict:
 
     Examples
     --------
-    >>> style = load_style()
-    >>> style.fonts.axis_label_pt
-    8
-    >>> style.lines.trace_mm
-    0.3
-    """
-    global _STYLE_CACHE
+    >>> # Load default (SCIENTIFIC preset)
+    >>> style = ps.load_style()
 
-    # Use cache if available and no custom path
-    if _STYLE_CACHE is not None and path is None:
+    >>> # Load a specific preset
+    >>> style = ps.load_style("DEFAULT")
+    >>> style = ps.load_style("SCIENTIFIC")
+
+    >>> # Load custom YAML file
+    >>> style = ps.load_style("/path/to/my_style.yaml")
+
+    >>> # Access style values
+    >>> style.fonts.axis_label_pt
+    7
+    >>> style.colors.palette  # RGB format
+    [[0, 128, 192], [255, 70, 50], ...]
+    """
+    global _STYLE_CACHE, _CURRENT_STYLE_NAME
+
+    # Use cache if available and same style requested
+    if _STYLE_CACHE is not None and style == _CURRENT_STYLE_NAME:
         return _STYLE_CACHE
 
-    # Load from file
-    style_path = Path(path) if path else _DEFAULT_STYLE_PATH
+    # Determine the style path
+    if style is None:
+        # Default: SCIENTIFIC preset
+        style_path = _PRESETS_DIR / "SCIENTIFIC.yaml"
+        style_name = "SCIENTIFIC"
+    elif isinstance(style, Path) or (isinstance(style, str) and ("/" in style or "\\" in style or style.endswith(".yaml"))):
+        # Explicit file path
+        style_path = Path(style)
+        style_name = str(style)
+    else:
+        # Preset name (e.g., "SCIENTIFIC", "MINIMAL")
+        style_path = _PRESETS_DIR / f"{style.upper()}.yaml"
+        style_name = style.upper()
+
+    # Check if file exists
     if not style_path.exists():
-        raise FileNotFoundError(f"Style file not found: {style_path}")
+        # Fallback to legacy FIGRECIPE_STYLE.yaml for backwards compatibility
+        if _DEFAULT_STYLE_PATH.exists() and style is None:
+            style_path = _DEFAULT_STYLE_PATH
+            style_name = "FIGRECIPE_STYLE"
+        else:
+            available = list_presets()
+            raise FileNotFoundError(
+                f"Style not found: {style}\n"
+                f"Available presets: {available}\n"
+                f"Or provide a path to a custom YAML file."
+            )
 
     style_dict = _load_yaml(style_path)
 
     # Convert to DotDict for convenient access
-    style = DotDict(style_dict)
+    result = DotDict(style_dict)
 
-    # Cache if using default
-    if path is None:
-        _STYLE_CACHE = style
+    # Cache the style
+    _STYLE_CACHE = result
+    _CURRENT_STYLE_NAME = style_name
 
-    return style
+    return result
 
 
 def get_style() -> DotDict:

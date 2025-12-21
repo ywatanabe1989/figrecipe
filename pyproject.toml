@@ -3,11 +3,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "plotspec"
-version = "0.3.3"
-description = "Record and reproduce matplotlib figures"
+name = "figrecipe"
+version = "0.4.0"
+description = "Record and reproduce matplotlib figures with YAML recipes"
 readme = "README.md"
-license = "MIT"
+license = "AGPL-3.0"
 requires-python = ">=3.9"
 authors = [
     { name = "Yusuke Watanabe", email = "ywatanabe@scitex.ai" },
@@ -22,7 +22,7 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
@@ -58,13 +58,13 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ywatanabe1989/plotspec"
-Documentation = "https://github.com/ywatanabe1989/plotspec#readme"
-Repository = "https://github.com/ywatanabe1989/plotspec.git"
-Issues = "https://github.com/ywatanabe1989/plotspec/issues"
+Homepage = "https://github.com/ywatanabe1989/figrecipe"
+Documentation = "https://github.com/ywatanabe1989/figrecipe#readme"
+Repository = "https://github.com/ywatanabe1989/figrecipe.git"
+Issues = "https://github.com/ywatanabe1989/figrecipe/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/plotspec"]
+packages = ["src/figrecipe"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

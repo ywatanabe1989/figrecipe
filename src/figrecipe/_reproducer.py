@@ -39,7 +39,7 @@ def reproduce(
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> fig, ax = ps.reproduce("experiment_001.yaml")
     >>> plt.show()
     """

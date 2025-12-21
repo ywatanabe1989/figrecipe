@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Core recording functionality for plotspec."""
+"""Core recording functionality for figrecipe."""
 
 from collections import OrderedDict
 from dataclasses import dataclass, field
@@ -99,7 +99,7 @@ class FigureRecord:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         result = {
-            "plotspec": "1.0",
+            "figrecipe": "1.0",
             "id": self.id,
             "created": self.created,
             "matplotlib_version": self.matplotlib_version,

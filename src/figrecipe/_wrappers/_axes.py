@@ -29,7 +29,7 @@ class RecordingAxes:
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> fig, ax = ps.subplots()
     >>> ax.plot([1, 2, 3], [4, 5, 6], color='red', id='my_line')
     >>> # The call is recorded automatically

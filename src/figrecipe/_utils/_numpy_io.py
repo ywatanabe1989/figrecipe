@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""NumPy array I/O utilities for plotspec."""
+"""NumPy array I/O utilities for figrecipe."""
 
 import csv
 from pathlib import Path

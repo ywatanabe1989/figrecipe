@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Unit conversion utilities for plotspec.
+"""Unit conversion utilities for figrecipe.
 
 Provides conversions between millimeters, inches, and points for precise
 figure layout control.
@@ -11,7 +11,9 @@ Constants:
     - 1 mm = 72/25.4 points
 """
 
-__all__ = ["mm_to_inch", "inch_to_mm", "mm_to_pt", "pt_to_mm"]
+__all__ = ["mm_to_inch", "inch_to_mm", "mm_to_pt", "pt_to_mm", "normalize_color"]
+
+from typing import List, Tuple, Union
 
 # Conversion constants
 MM_PER_INCH = 25.4
@@ -106,6 +108,47 @@ def pt_to_mm(pt: float) -> float:
     return pt * MM_PER_INCH / PT_PER_INCH
 
 
+def normalize_color(
+    color: Union[List[int], Tuple[int, ...], str]
+) -> Union[Tuple[float, ...], str]:
+    """Normalize color to matplotlib-compatible format.
+
+    Converts RGB [0-255] values to normalized [0-1] tuples.
+    Hex strings and named colors are passed through unchanged.
+
+    Parameters
+    ----------
+    color : list, tuple, or str
+        Color in various formats:
+        - RGB list/tuple [0-255]: [0, 128, 192] -> (0.0, 0.5, 0.75)
+        - Hex string: "#0080C0" -> "#0080C0"
+        - Named color: "blue" -> "blue"
+
+    Returns
+    -------
+    tuple or str
+        Matplotlib-compatible color specification
+
+    Examples
+    --------
+    >>> normalize_color([0, 128, 192])
+    (0.0, 0.5019607843137255, 0.7529411764705882)
+    >>> normalize_color("#0080C0")
+    '#0080C0'
+    >>> normalize_color("blue")
+    'blue'
+    """
+    if isinstance(color, str):
+        return color
+    if isinstance(color, (list, tuple)):
+        # Check if already normalized (values <= 1)
+        if all(c <= 1.0 for c in color):
+            return tuple(color)
+        # Normalize 0-255 to 0-1
+        return tuple(c / 255.0 for c in color)
+    return color
+
+
 if __name__ == "__main__":
     # Test conversions
     print("Unit conversion tests:")
@@ -113,3 +156,6 @@ if __name__ == "__main__":
     print(f"  1 inch = {inch_to_mm(1.0):.1f} mm")
     print(f"  0.2 mm = {mm_to_pt(0.2):.4f} pt")
     print(f"  1 pt = {pt_to_mm(1.0):.4f} mm")
+    print(f"\nColor normalization:")
+    print(f"  [0, 128, 192] -> {normalize_color([0, 128, 192])}")
+    print(f"  '#0080C0' -> {normalize_color('#0080C0')}")

@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 
-from plotspec._recorder import Recorder, CallRecord, AxesRecord, FigureRecord
+from figrecipe._recorder import Recorder, CallRecord, AxesRecord, FigureRecord
 
 
 class TestCallRecord:

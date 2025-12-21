@@ -1,16 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-plotspec - Record and reproduce matplotlib figures.
+figrecipe - Record and reproduce matplotlib figures.
 
 A lightweight library for capturing matplotlib plotting calls and
 reproducing figures from saved recipes.
+
+Usage
+-----
+Option 1: Import as module (recommended for explicit usage)
+
+>>> import figrecipe as ps
+>>> fig, ax = ps.subplots()
+>>> ax.plot(x, y, id='my_data')
+>>> ps.save(fig, 'recipe.yaml')
+
+Option 2: Drop-in replacement for matplotlib.pyplot
+
+>>> import figrecipe.pyplot as plt  # Instead of: import matplotlib.pyplot as plt
+>>> fig, ax = plt.subplots()  # Automatically recording-enabled
+>>> ax.plot(x, y, id='my_data')
+>>> fig.save_recipe('recipe.yaml')
 
 Examples
 --------
 Recording a figure:
 
->>> import plotspec as ps
+>>> import figrecipe as ps
 >>> import numpy as np
 >>>
 >>> x = np.linspace(0, 10, 100)
@@ -46,7 +62,8 @@ from ._wrappers._figure import create_recording_subplots
 from ._serializer import save_recipe, load_recipe, recipe_to_dict
 from ._reproducer import reproduce as _reproduce, get_recipe_info
 from ._utils._numpy_io import DataFormat
-from ._utils._units import mm_to_inch, mm_to_pt, inch_to_mm, pt_to_mm
+from ._utils._units import mm_to_inch, mm_to_pt, inch_to_mm, pt_to_mm, normalize_color
+from .styles._style_applier import list_available_fonts, check_font
 
 # Lazy import for seaborn to avoid hard dependency
 _sns_recorder = None
@@ -71,7 +88,7 @@ class _SeabornProxy:
 # Create seaborn proxy
 sns = _SeabornProxy()
 
-__version__ = "0.3.3"
+__version__ = "0.4.0"
 __all__ = [
     # Main API
     "subplots",
@@ -79,9 +96,11 @@ __all__ = [
     "reproduce",
     "info",
     "load",
+    "extract_data",
     "validate",
     # Style system
     "load_style",
+    "list_presets",
     "STYLE",
     "apply_style",
     # Unit conversions
@@ -89,6 +108,10 @@ __all__ = [
     "mm_to_pt",
     "inch_to_mm",
     "pt_to_mm",
+    "normalize_color",
+    # Font utilities
+    "list_available_fonts",
+    "check_font",
     # Seaborn support
     "sns",
     # Classes (for type hints)
@@ -106,13 +129,16 @@ __all__ = [
 _style_cache = None
 
 
-def load_style(path=None):
-    """Load style configuration from YAML file.
+def load_style(style=None):
+    """Load style configuration from preset or YAML file.
 
     Parameters
     ----------
-    path : str or Path, optional
-        Path to YAML style file. If None, uses default PLOTSPEC_STYLE.yaml
+    style : str or Path, optional
+        One of:
+        - Preset name: "SCIENTIFIC", "MINIMAL", "PRESENTATION"
+        - Path to custom YAML file: "/path/to/my_style.yaml"
+        - None: uses default SCIENTIFIC preset
 
     Returns
     -------
@@ -121,14 +147,47 @@ def load_style(path=None):
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
+
+    >>> # Load default (SCIENTIFIC preset)
     >>> style = ps.load_style()
+
+    >>> # Load a specific preset
+    >>> style = ps.load_style("MINIMAL")
+    >>> style = ps.load_style("PRESENTATION")
+
+    >>> # Load custom YAML file
+    >>> style = ps.load_style("/path/to/my_style.yaml")
+
+    >>> # Access style values
     >>> style.axes.width_mm
     40
+    >>> style.colors.palette
+    ['#0072B2', '#D55E00', ...]
+
+    >>> # Use with subplots
     >>> fig, ax = ps.subplots(**style.to_subplots_kwargs())
     """
     from .styles import load_style as _load_style
-    return _load_style(path)
+    return _load_style(style)
+
+
+def list_presets():
+    """List available style presets.
+
+    Returns
+    -------
+    list of str
+        Names of available presets.
+
+    Examples
+    --------
+    >>> import figrecipe as ps
+    >>> ps.list_presets()
+    ['MINIMAL', 'PRESENTATION', 'SCIENTIFIC']
+    """
+    from .styles import list_presets as _list_presets
+    return _list_presets()
 
 
 def apply_style(ax, style=None):
@@ -139,7 +198,7 @@ def apply_style(ax, style=None):
     ax : matplotlib.axes.Axes
         Target axes to apply styling to.
     style : dict or DotDict, optional
-        Style configuration. If None, uses default PLOTSPEC_STYLE.
+        Style configuration. If None, uses default FIGRECIPE_STYLE.
 
     Returns
     -------
@@ -148,7 +207,7 @@ def apply_style(ax, style=None):
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> import matplotlib.pyplot as plt
     >>> fig, ax = plt.subplots()
     >>> trace_lw = ps.apply_style(ax)
@@ -232,7 +291,7 @@ def subplots(
     style : dict, optional
         Style configuration dictionary or result of load_style().
     apply_style_mm : bool
-        If True, apply PLOTSPEC_STYLE to axes after creation.
+        If True, apply FIGRECIPE_STYLE to axes after creation.
 
     **kwargs
         Additional arguments passed to plt.subplots() (e.g., figsize, dpi).
@@ -248,7 +307,7 @@ def subplots(
     --------
     Basic usage:
 
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> fig, ax = ps.subplots()
     >>> ax.plot([1, 2, 3], [4, 5, 6], color='blue')
     >>> ps.save(fig, 'simple.yaml')
@@ -387,7 +446,7 @@ def save(
     path: Union[str, Path],
     include_data: bool = True,
     data_format: DataFormat = "csv",
-    validate: bool = False,
+    validate: bool = True,
     validate_mse_threshold: float = 100.0,
 ):
     """Save a figure's recipe to file.
@@ -406,8 +465,8 @@ def save(
         - 'npz': Compressed numpy binary format (efficient)
         - 'inline': Store all data directly in YAML
     validate : bool
-        If True, validate reproducibility after saving by reproducing
-        the figure and comparing it to the original.
+        If True (default), validate reproducibility after saving by
+        reproducing the figure and comparing it to the original.
     validate_mse_threshold : float
         Maximum acceptable MSE for validation (default: 100).
 
@@ -419,7 +478,7 @@ def save(
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> fig, ax = ps.subplots()
     >>> ax.plot(x, y, color='red', id='my_data')
     >>> ps.save(fig, 'experiment.yaml')  # Uses CSV (default)
@@ -444,8 +503,11 @@ def save(
         if validate:
             from ._validator import validate_on_save
             result = validate_on_save(fig, saved_path, mse_threshold=validate_mse_threshold)
+            status = "PASSED" if result.valid else "FAILED"
+            print(f"Saved: {saved_path} (Validation: {status})")
             return saved_path, result
 
+        print(f"Saved: {saved_path}")
         return saved_path
     else:
         raise TypeError(
@@ -479,7 +541,7 @@ def reproduce(
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> fig, ax = ps.reproduce('experiment.yaml')
     >>> plt.show()
 
@@ -505,7 +567,7 @@ def info(path: Union[str, Path]) -> Dict[str, Any]:
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> recipe_info = ps.info('experiment.yaml')
     >>> print(f"Created: {recipe_info['created']}")
     >>> print(f"Calls: {len(recipe_info['calls'])}")
@@ -528,7 +590,7 @@ def load(path: Union[str, Path]) -> FigureRecord:
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> record = ps.load('experiment.yaml')
     >>> # Modify the record
     >>> record.axes['ax_0_0'].calls[0].kwargs['color'] = 'blue'
@@ -536,6 +598,116 @@ def load(path: Union[str, Path]) -> FigureRecord:
     >>> fig, ax = ps.reproduce_from_record(record)
     """
     return load_recipe(path)
+
+
+def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
+    """Extract data arrays from a saved recipe.
+
+    This function allows you to import/recover the data that was
+    plotted in a figure from its recipe file.
+
+    Parameters
+    ----------
+    path : str or Path
+        Path to .yaml recipe file.
+
+    Returns
+    -------
+    dict
+        Nested dictionary: {call_id: {'x': array, 'y': array, ...}}
+        Each call's data is stored under its ID with keys for each argument.
+
+    Examples
+    --------
+    >>> import figrecipe as ps
+    >>> import numpy as np
+    >>>
+    >>> # Create and save a figure
+    >>> x = np.linspace(0, 10, 100)
+    >>> y = np.sin(x)
+    >>> fig, ax = ps.subplots()
+    >>> ax.plot(x, y, id='sine_wave')
+    >>> ps.save(fig, 'figure.yaml')
+    >>>
+    >>> # Later, extract the data
+    >>> data = ps.extract_data('figure.yaml')
+    >>> x_recovered = data['sine_wave']['x']
+    >>> y_recovered = data['sine_wave']['y']
+    >>> np.allclose(x, x_recovered)
+    True
+
+    Notes
+    -----
+    - Data is extracted from all plot calls (plot, scatter, bar, etc.)
+    - For plot() calls: 'x' and 'y' contain the coordinates
+    - For scatter(): 'x', 'y', and optionally 'c' (colors), 's' (sizes)
+    - For bar(): 'x' (categories) and 'height' (values)
+    - For hist(): 'x' (data array)
+    """
+    import numpy as np
+
+    record = load_recipe(path)
+    result = {}
+
+    # Decoration functions to skip
+    decoration_funcs = {
+        "set_xlabel", "set_ylabel", "set_title", "set_xlim", "set_ylim",
+        "legend", "grid", "axhline", "axvline", "text", "annotate",
+    }
+
+    for ax_key, ax_record in record.axes.items():
+        for call in ax_record.calls:
+            # Skip decoration calls
+            if call.function in decoration_funcs:
+                continue
+
+            call_data = {}
+
+            def to_array(data):
+                """Convert data to numpy array, handling YAML types."""
+                # Handle dict with 'data' key (serialized array format)
+                if isinstance(data, dict) or (hasattr(data, "keys") and "data" in data):
+                    return np.array(data["data"])
+                if hasattr(data, "tolist"):  # Already array-like
+                    return np.array(data)
+                return np.array(list(data) if hasattr(data, "__iter__") and not isinstance(data, str) else data)
+
+            # Extract positional arguments based on function type
+            if call.function in ("plot", "scatter", "fill_between"):
+                if len(call.args) >= 1:
+                    call_data["x"] = to_array(call.args[0])
+                if len(call.args) >= 2:
+                    call_data["y"] = to_array(call.args[1])
+
+            elif call.function == "bar":
+                if len(call.args) >= 1:
+                    call_data["x"] = to_array(call.args[0])
+                if len(call.args) >= 2:
+                    call_data["height"] = to_array(call.args[1])
+
+            elif call.function == "hist":
+                if len(call.args) >= 1:
+                    call_data["x"] = to_array(call.args[0])
+
+            elif call.function == "errorbar":
+                if len(call.args) >= 1:
+                    call_data["x"] = to_array(call.args[0])
+                if len(call.args) >= 2:
+                    call_data["y"] = to_array(call.args[1])
+
+            # Extract relevant kwargs
+            for key in ("c", "s", "yerr", "xerr", "weights", "bins"):
+                if key in call.kwargs:
+                    val = call.kwargs[key]
+                    if isinstance(val, (list, tuple)) or hasattr(val, "__iter__") and not isinstance(val, str):
+                        call_data[key] = to_array(val)
+                    else:
+                        call_data[key] = val
+
+            if call_data:
+                result[call.id] = call_data
+
+    return result
 
 
 # Import ValidationResult for type hints
@@ -565,7 +737,7 @@ def validate(
 
     Examples
     --------
-    >>> import plotspec as ps
+    >>> import figrecipe as ps
     >>> result = ps.validate('experiment.yaml')
     >>> print(result.summary())
     >>> if result.valid:

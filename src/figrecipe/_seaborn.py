@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Seaborn wrapper for plotspec recording."""
+"""Seaborn wrapper for figrecipe recording."""
 
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING

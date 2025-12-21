@@ -5,10 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2025-12-21
+
+### Added
+- **Style presets** - Built-in style presets for easy switching:
+  - `SCIENTIFIC` (default): Publication-quality with colorblind-friendly Wong 2011 palette
+  - `MINIMAL`: Clean, minimal design with grayscale emphasis
+  - `PRESENTATION`: Large fonts and bold lines for slides
+- **`ps.list_presets()`** - List all available style presets
+- **Custom YAML styles** - Load your own style files: `ps.load_style("/path/to/style.yaml")`
+- **Reproducibility validation** - Validate recipe reproduces original figure:
+  - `ps.save(fig, path, validate=True)` - Validate on save
+  - `ps.validate(path)` - Standalone validation
+  - Returns `ValidationResult` with MSE, dimensions, PSNR
+- **Layout recording** - `subplots_adjust` parameters now recorded for pixel-perfect reproduction
+- **Style recording** - Style parameters recorded and re-applied during reproduction
+
+### Changed
+- Renamed brand-specific "SCITEX" references to generic "SCIENTIFIC" preset
+- `ps.load_style()` now accepts preset names: `ps.load_style("MINIMAL")`
+- Default style is now the SCIENTIFIC preset
+
+### Fixed
+- **Pixel-perfect reproduction** - MM-layout and styled figures now reproduce with MSE=0
+
 ## [0.3.2] - 2025-12-21
 
 ### Added
-- **SCITEX color palette** - Colorblind-friendly scientific color palette automatically applied via rcParams
+- **Colorblind-friendly color palette** - Scientific color palette automatically applied via rcParams
   - Blue (#0072B2), Orange (#D55E00), Green (#009E73), Purple (#CC79A7), etc.
   - Access via `style.colors.palette` or auto-cycling in plots
 - **Transparent background** - Default light theme now uses transparent background
@@ -18,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **n_ticks** - Changed default from 5 to 4 for cleaner tick labels
 
 ### Changed
-- Style applier now sets matplotlib color cycle from PLOTSPEC_STYLE palette
+- Style applier now sets matplotlib color cycle from style palette
 
 ## [0.3.1] - 2025-12-21
 
@@ -37,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ps.load_style()` to load style configuration from YAML
   - `ps.apply_style()` to apply publication-quality styling to axes
   - `ps.STYLE` proxy for quick access to default style
-  - `PLOTSPEC_STYLE.yaml` default configuration with:
+  - `FIGRECIPE_STYLE.yaml` default configuration with:
     - Font sizes (axis labels, tick labels, title, legend)
     - Line thicknesses in mm
     - Tick parameters in mm
@@ -98,8 +122,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
-[0.3.2]: https://github.com/ywatanabe1989/plotspec/compare/v0.3.1...v0.3.2
-[0.3.1]: https://github.com/ywatanabe1989/plotspec/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/ywatanabe1989/plotspec/releases/tag/v0.1.0
+[0.3.4]: https://github.com/ywatanabe1989/figrecipe/compare/v0.3.2...v0.3.4
+[0.3.2]: https://github.com/ywatanabe1989/figrecipe/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/ywatanabe1989/figrecipe/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Reproducibility validation for plotspec recipes."""
+"""Reproducibility validation for figrecipe recipes."""
 
 import tempfile
 from dataclasses import dataclass
@@ -94,6 +94,7 @@ def validate_recipe(
     ValidationResult
         Detailed comparison results.
     """
+    import matplotlib.pyplot as plt
     from ._reproducer import reproduce
     from ._utils._image_diff import compare_images
 
@@ -112,6 +113,9 @@ def validate_recipe(
         # Save reproduced figure
         reproduced_path = tmpdir / "reproduced.png"
         reproduced_fig.savefig(reproduced_path, dpi=dpi)
+
+        # Close reproduced figure to prevent double display in notebooks
+        plt.close(reproduced_fig)
 
         # Compare images
         diff = compare_images(original_path, reproduced_path)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Integration tests for plotspec."""
+"""Integration tests for figrecipe."""
 
 import tempfile
 from pathlib import Path
@@ -18,7 +18,7 @@ class TestSubplotsAndSave:
 
     def test_subplots_single(self):
         """Test creating a single subplot."""
-        import plotspec as ps
+        import figrecipe as ps
 
         fig, ax = ps.subplots()
 
@@ -29,7 +29,7 @@ class TestSubplotsAndSave:
 
     def test_subplots_multiple(self):
         """Test creating multiple subplots."""
-        import plotspec as ps
+        import figrecipe as ps
 
         fig, axes = ps.subplots(2, 2)
 
@@ -40,7 +40,7 @@ class TestSubplotsAndSave:
 
     def test_plot_and_save(self):
         """Test plotting and saving a recipe."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             x = np.linspace(0, 10, 50)
@@ -50,7 +50,7 @@ class TestSubplotsAndSave:
             ax.plot(x, y, color='red', linewidth=2)
 
             recipe_path = Path(tmpdir) / "test_recipe.yaml"
-            saved_path = ps.save(fig, recipe_path)
+            saved_path = ps.save(fig, recipe_path, validate=False)
 
             assert saved_path.exists()
             assert saved_path.suffix == ".yaml"
@@ -59,14 +59,14 @@ class TestSubplotsAndSave:
 
     def test_save_with_custom_id(self):
         """Test saving with custom call ID."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             fig, ax = ps.subplots()
             ax.plot([1, 2, 3], [4, 5, 6], id='my_line')
 
             recipe_path = Path(tmpdir) / "custom_id.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
 
             # Check the recipe contains our custom ID
             info = ps.info(recipe_path)
@@ -81,7 +81,7 @@ class TestReproduce:
 
     def test_reproduce_simple(self):
         """Test reproducing a simple figure."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create and save
@@ -92,7 +92,7 @@ class TestReproduce:
             ax1.plot(x, y, color='blue')
 
             recipe_path = Path(tmpdir) / "simple.yaml"
-            ps.save(fig1, recipe_path)
+            ps.save(fig1, recipe_path, validate=False)
             plt.close(fig1.fig)
 
             # Reproduce
@@ -106,7 +106,7 @@ class TestReproduce:
 
     def test_reproduce_multiple_calls(self):
         """Test reproducing figure with multiple calls."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             fig1, ax1 = ps.subplots()
@@ -114,7 +114,7 @@ class TestReproduce:
             ax1.scatter([1, 2, 3], [3, 2, 1], s=50)
 
             recipe_path = Path(tmpdir) / "multi.yaml"
-            ps.save(fig1, recipe_path)
+            ps.save(fig1, recipe_path, validate=False)
             plt.close(fig1.fig)
 
             # Reproduce
@@ -128,7 +128,7 @@ class TestReproduce:
 
     def test_reproduce_with_decorations(self):
         """Test reproducing figure with decorations."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             fig1, ax1 = ps.subplots()
@@ -138,7 +138,7 @@ class TestReproduce:
             ax1.set_title('Title')
 
             recipe_path = Path(tmpdir) / "decorated.yaml"
-            ps.save(fig1, recipe_path)
+            ps.save(fig1, recipe_path, validate=False)
             plt.close(fig1.fig)
 
             # Reproduce
@@ -156,14 +156,14 @@ class TestInfo:
 
     def test_info_basic(self):
         """Test getting recipe info."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             fig, ax = ps.subplots(figsize=(10, 6))
             ax.plot([1, 2, 3], [4, 5, 6], id='test_plot')
 
             recipe_path = Path(tmpdir) / "info_test.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             info = ps.info(recipe_path)
@@ -180,7 +180,7 @@ class TestLargeArrays:
 
     def test_large_array_saved_to_file(self):
         """Test that large arrays are saved to separate files."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create large arrays (> INLINE_THRESHOLD)
@@ -191,7 +191,7 @@ class TestLargeArrays:
             ax.plot(x, y)
 
             recipe_path = Path(tmpdir) / "large.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # Check that data directory was created
@@ -204,7 +204,7 @@ class TestLargeArrays:
 
     def test_large_array_reproduced_correctly(self):
         """Test that large arrays are reproduced correctly."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             x = np.linspace(0, 100, 500)
@@ -214,7 +214,7 @@ class TestLargeArrays:
             ax1.plot(x, y, color='green')
 
             recipe_path = Path(tmpdir) / "large_repro.yaml"
-            ps.save(fig1, recipe_path)
+            ps.save(fig1, recipe_path, validate=False)
             plt.close(fig1.fig)
 
             # Reproduce

@@ -1,17 +1,81 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Style application utilities for plotspec.
+"""Style application utilities for figrecipe.
 
 Applies mm-based styling to matplotlib axes for publication-quality figures.
 """
 
-__all__ = ["apply_style_mm", "apply_theme_colors"]
+__all__ = ["apply_style_mm", "apply_theme_colors", "check_font", "list_available_fonts"]
 
-from typing import Any, Dict, Optional
+import warnings
+from typing import Any, Dict, List, Optional
 
 from matplotlib.axes import Axes
 
 from .._utils._units import mm_to_pt
+
+
+def list_available_fonts() -> List[str]:
+    """List all available font families.
+
+    Returns
+    -------
+    list of str
+        Sorted list of available font family names.
+
+    Examples
+    --------
+    >>> fonts = ps.list_available_fonts()
+    >>> print(fonts[:5])
+    ['Arial', 'Courier New', 'DejaVu Sans', ...]
+    """
+    import matplotlib.font_manager as fm
+    fonts = set()
+    for font in fm.fontManager.ttflist:
+        fonts.add(font.name)
+    return sorted(fonts)
+
+
+def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
+    """Check if font is available, with fallback and helpful error message.
+
+    Parameters
+    ----------
+    font_family : str
+        Requested font family name.
+    fallback : str
+        Fallback font if requested font is not available.
+
+    Returns
+    -------
+    str
+        The font to use (original if available, fallback otherwise).
+
+    Examples
+    --------
+    >>> font = check_font("Arial")  # Returns "Arial" if available
+    >>> font = check_font("NonExistentFont")  # Returns fallback with warning
+    """
+    import matplotlib.font_manager as fm
+
+    available = list_available_fonts()
+
+    if font_family in available:
+        return font_family
+
+    # Font not found - show helpful message
+    similar = [f for f in available if font_family.lower() in f.lower()]
+
+    msg = f"Font '{font_family}' not found.\n"
+    if similar:
+        msg += f"  Similar fonts available: {similar[:5]}\n"
+    msg += f"  Using fallback: '{fallback}'\n"
+    msg += f"  To see all available fonts: ps.list_available_fonts()\n"
+    msg += f"  To install Arial on Linux: sudo apt install ttf-mscorefonts-installer"
+
+    warnings.warn(msg, UserWarning)
+
+    return fallback if fallback in available else "DejaVu Sans"
 
 
 # Default theme color palettes
@@ -197,13 +261,14 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         right=False,
     )
 
-    # Apply font sizes and family
+    # Apply font sizes and family (with font availability check)
     axis_fs = style.get("axis_font_size_pt", 8)
     tick_fs = style.get("tick_font_size_pt", 7)
     title_fs = style.get("title_font_size_pt", 9)
     legend_fs = style.get("legend_font_size_pt", 7)
     label_pad_pt = style.get("label_pad_pt", 2.0)
-    font_family = style.get("font_family", "Arial")
+    requested_font = style.get("font_family", "Arial")
+    font_family = check_font(requested_font)
 
     ax.xaxis.label.set_fontsize(axis_fs)
     ax.xaxis.label.set_fontfamily(font_family)
@@ -246,15 +311,26 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     color_palette = style.get("color_palette")
     if color_palette is not None:
         import matplotlib as mpl
+        # Normalize colors (RGB 0-255 to 0-1)
+        normalized_palette = []
+        for c in color_palette:
+            if isinstance(c, (list, tuple)) and len(c) >= 3:
+                # Check if already normalized
+                if all(v <= 1.0 for v in c):
+                    normalized_palette.append(tuple(c))
+                else:
+                    normalized_palette.append(tuple(v / 255.0 for v in c))
+            else:
+                normalized_palette.append(c)
         # Set rcParams for future axes
-        mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=color_palette)
+        mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=normalized_palette)
         # Also set the color cycle on this specific axes (axes cache cycler at creation)
-        ax.set_prop_cycle(color=color_palette)
+        ax.set_prop_cycle(color=normalized_palette)
 
     # Store style in axes for reference
-    if not hasattr(ax, "_plotspec_style"):
-        ax._plotspec_style = {}
-    ax._plotspec_style.update(style)
+    if not hasattr(ax, "_figrecipe_style"):
+        ax._figrecipe_style = {}
+    ax._figrecipe_style.update(style)
 
     return trace_lw_pt
 

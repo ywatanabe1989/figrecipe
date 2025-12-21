@@ -24,7 +24,7 @@ class TestSeabornRecording:
 
     def test_scatterplot_record_and_reproduce(self):
         """Test recording and reproducing a scatterplot."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create data
@@ -40,7 +40,7 @@ class TestSeabornRecording:
             ps.sns.scatterplot(data=df, x='x', y='y', hue='category', ax=ax, id='test_scatter')
 
             recipe_path = Path(tmpdir) / "scatter.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # Reproduce
@@ -53,7 +53,7 @@ class TestSeabornRecording:
 
     def test_lineplot_record_and_reproduce(self):
         """Test recording and reproducing a lineplot."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create data
@@ -68,7 +68,7 @@ class TestSeabornRecording:
             ps.sns.lineplot(data=df, x='x', y='y', ax=ax, id='test_line')
 
             recipe_path = Path(tmpdir) / "line.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # Reproduce
@@ -81,7 +81,7 @@ class TestSeabornRecording:
 
     def test_seaborn_call_in_recipe_info(self):
         """Test that seaborn calls appear in recipe info."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             df = pd.DataFrame({
@@ -93,7 +93,7 @@ class TestSeabornRecording:
             ps.sns.scatterplot(data=df, x='x', y='y', ax=ax, id='my_scatter')
 
             recipe_path = Path(tmpdir) / "test.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # Check info
@@ -106,7 +106,7 @@ class TestSeabornRecording:
 
     def test_seaborn_with_hue(self):
         """Test seaborn plots with hue parameter."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             np.random.seed(42)
@@ -120,7 +120,7 @@ class TestSeabornRecording:
             ps.sns.scatterplot(data=df, x='x', y='y', hue='group', ax=ax)
 
             recipe_path = Path(tmpdir) / "hue.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # Reproduce and check
@@ -134,7 +134,7 @@ class TestSeabornDataSerialization:
 
     def test_csv_data_created(self):
         """Test that CSV files are created for large DataFrame columns."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create large data
@@ -149,7 +149,7 @@ class TestSeabornDataSerialization:
             ps.sns.scatterplot(data=df, x='x', y='y', ax=ax)
 
             recipe_path = Path(tmpdir) / "large.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # Check data files created
@@ -160,7 +160,7 @@ class TestSeabornDataSerialization:
 
     def test_small_data_inline(self):
         """Test that small data is stored inline in YAML."""
-        import plotspec as ps
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Small data (< 100 elements)
@@ -173,7 +173,7 @@ class TestSeabornDataSerialization:
             ps.sns.scatterplot(data=df, x='x', y='y', ax=ax)
 
             recipe_path = Path(tmpdir) / "small.yaml"
-            ps.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # No data directory should be created for small data
