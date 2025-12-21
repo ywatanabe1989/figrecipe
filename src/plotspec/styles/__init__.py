@@ -26,7 +26,7 @@ from ._style_loader import (
     to_subplots_kwargs,
 )
 
-from ._style_applier import apply_style_mm
+from ._style_applier import apply_style_mm, apply_theme_colors
 
 __all__ = [
     "load_style",
@@ -35,4 +35,5 @@ __all__ = [
     "STYLE",
     "to_subplots_kwargs",
     "apply_style_mm",
+    "apply_theme_colors",
 ]
