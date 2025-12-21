@@ -79,6 +79,7 @@ __all__ = [
     "reproduce",
     "info",
     "load",
+    "validate",
     # Style system
     "load_style",
     "STYLE",
@@ -95,6 +96,7 @@ __all__ = [
     "RecordingAxes",
     "FigureRecord",
     "CallRecord",
+    "ValidationResult",
     # Version
     "__version__",
 ]
@@ -371,7 +373,9 @@ def save(
     path: Union[str, Path],
     include_data: bool = True,
     data_format: DataFormat = "csv",
-) -> Path:
+    validate: bool = False,
+    validate_mse_threshold: float = 100.0,
+):
     """Save a figure's recipe to file.
 
     Parameters
@@ -387,11 +391,17 @@ def save(
         - 'csv': Human-readable CSV files with dtype header
         - 'npz': Compressed numpy binary format (efficient)
         - 'inline': Store all data directly in YAML
+    validate : bool
+        If True, validate reproducibility after saving by reproducing
+        the figure and comparing it to the original.
+    validate_mse_threshold : float
+        Maximum acceptable MSE for validation (default: 100).
 
     Returns
     -------
-    Path
-        Path to saved file.
+    Path or tuple
+        If validate=False: Path to saved file.
+        If validate=True: (Path, ValidationResult) tuple.
 
     Examples
     --------
@@ -400,6 +410,10 @@ def save(
     >>> ax.plot(x, y, color='red', id='my_data')
     >>> ps.save(fig, 'experiment.yaml')  # Uses CSV (default)
     >>> ps.save(fig, 'experiment.yaml', data_format='npz')  # Binary
+    >>>
+    >>> # With validation
+    >>> path, result = ps.save(fig, 'experiment.yaml', validate=True)
+    >>> print(result.summary())
 
     Notes
     -----
@@ -411,7 +425,14 @@ def save(
     path = Path(path)
 
     if isinstance(fig, RecordingFigure):
-        return fig.save_recipe(path, include_data=include_data, data_format=data_format)
+        saved_path = fig.save_recipe(path, include_data=include_data, data_format=data_format)
+
+        if validate:
+            from ._validator import validate_on_save
+            result = validate_on_save(fig, saved_path, mse_threshold=validate_mse_threshold)
+            return saved_path, result
+
+        return saved_path
     else:
         raise TypeError(
             "Expected RecordingFigure. Use ps.subplots() to create "
@@ -501,3 +522,91 @@ def load(path: Union[str, Path]) -> FigureRecord:
     >>> fig, ax = ps.reproduce_from_record(record)
     """
     return load_recipe(path)
+
+
+# Import ValidationResult for type hints
+from ._validator import ValidationResult, validate_recipe
+
+
+def validate(
+    path: Union[str, Path],
+    mse_threshold: float = 100.0,
+) -> ValidationResult:
+    """Validate that a saved recipe can reproduce its original figure.
+
+    This is a standalone validation function for existing recipes.
+    For validation during save, use `ps.save(..., validate=True)`.
+
+    Parameters
+    ----------
+    path : str or Path
+        Path to .yaml recipe file.
+    mse_threshold : float
+        Maximum acceptable MSE for validation to pass (default: 100).
+
+    Returns
+    -------
+    ValidationResult
+        Detailed comparison results including MSE, dimensions, etc.
+
+    Examples
+    --------
+    >>> import plotspec as ps
+    >>> result = ps.validate('experiment.yaml')
+    >>> print(result.summary())
+    >>> if result.valid:
+    ...     print("Recipe is reproducible!")
+
+    Notes
+    -----
+    This function reproduces the figure from the recipe and compares
+    the result to re-rendering the recipe. It cannot compare to the
+    original figure unless you use `ps.save(..., validate=True)` which
+    performs validation before closing the original figure.
+    """
+    # For standalone validation, we reproduce twice and compare
+    # (This validates the recipe is self-consistent)
+    from ._reproducer import reproduce
+    from ._utils._image_diff import compare_images
+    import tempfile
+    import numpy as np
+
+    path = Path(path)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        # Reproduce twice
+        fig1, _ = reproduce(path)
+        img1_path = tmpdir / "render1.png"
+        fig1.savefig(img1_path, dpi=150)
+
+        fig2, _ = reproduce(path)
+        img2_path = tmpdir / "render2.png"
+        fig2.savefig(img2_path, dpi=150)
+
+        # Compare
+        diff = compare_images(img1_path, img2_path)
+
+        mse = diff["mse"]
+        if np.isnan(mse):
+            valid = False
+            message = f"Image dimensions differ: {diff['size1']} vs {diff['size2']}"
+        elif mse > mse_threshold:
+            valid = False
+            message = f"MSE ({mse:.2f}) exceeds threshold ({mse_threshold})"
+        else:
+            valid = True
+            message = "Recipe produces consistent output"
+
+        return ValidationResult(
+            valid=valid,
+            mse=mse if not np.isnan(mse) else float("inf"),
+            psnr=diff["psnr"],
+            max_diff=diff["max_diff"] if not np.isnan(diff["max_diff"]) else float("inf"),
+            size_original=diff["size1"],
+            size_reproduced=diff["size2"],
+            same_size=diff["same_size"],
+            file_size_diff=diff["file_size2"] - diff["file_size1"],
+            message=message,
+        )

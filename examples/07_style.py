@@ -73,9 +73,11 @@ def main():
     fig.fig.savefig(styled_path, dpi=300, bbox_inches='tight', transparent=True)
     print(f"   Saved: {styled_path}")
 
+    # Save with validation
     recipe_path = output_dir / '07_style_colors.yaml'
-    ps.save(fig, recipe_path)
+    path, validation = ps.save(fig, recipe_path, validate=True)
     print(f"   Recipe: {recipe_path}")
+    print(f"   Validation: {'PASSED' if validation.valid else 'FAILED'} (MSE: {validation.mse:.2f})")
     plt.close(fig.fig)
 
     # === Dark theme ===

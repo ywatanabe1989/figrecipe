@@ -59,10 +59,11 @@ def main():
     fig.fig.savefig(original_path, dpi=300)  # No bbox_inches='tight' for exact size
     print(f"   Saved: {original_path}")
 
-    # Save recipe
+    # Save recipe with validation
     recipe_path = output_dir / '06_mm_layout.yaml'
-    ps.save(fig, recipe_path)
+    path, validation = ps.save(fig, recipe_path, validate=True)
     print(f"   Recipe: {recipe_path}")
+    print(f"\n   {validation.summary()}")
     plt.close(fig.fig)
 
     # === Reproduce from recipe ===
@@ -78,15 +79,6 @@ def main():
     print(f"   Original size: {figsize_mm[0]:.1f} x {figsize_mm[1]:.1f} mm")
     print(f"   Reproduced size: {reproduced_size[0]*25.4:.1f} x {reproduced_size[1]*25.4:.1f} mm")
     plt.close(fig2)
-
-    # Image diff validation
-    from plotspec._utils import compare_images
-    diff = compare_images(original_path, reproduced_path)
-    print(f"\n   Image comparison:")
-    print(f"   - Dimensions: {diff['size1']} vs {diff['size2']} ({'match' if diff['same_size'] else 'DIFFER'})")
-    print(f"   - File sizes: {diff['file_size1']//1024}K vs {diff['file_size2']//1024}K")
-    print(f"   - Pixel MSE: {diff['mse']:.2f}")
-    print(f"   - Identical: {diff['identical']}")
 
     # === Multi-panel with mm spacing ===
     print("\n3. Multi-panel with mm spacing...")
