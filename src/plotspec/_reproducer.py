@@ -94,6 +94,10 @@ def reproduce_from_record(
         dpi=record.dpi,
     )
 
+    # Apply layout if recorded
+    if record.layout is not None:
+        fig.subplots_adjust(**record.layout)
+
     # Ensure axes is 2D array
     if nrows == 1 and ncols == 1:
         axes_2d = np.array([[mpl_axes]])
@@ -103,6 +107,14 @@ def reproduce_from_record(
             axes_2d = axes_2d.reshape(1, -1)
         elif ncols == 1:
             axes_2d = axes_2d.reshape(-1, 1)
+
+    # Apply style BEFORE replaying calls (to match original order:
+    # style is applied during subplots(), then user creates plots/decorations)
+    if record.style is not None:
+        from .styles import apply_style_mm
+        for row in range(nrows):
+            for col in range(ncols):
+                apply_style_mm(axes_2d[row, col], record.style)
 
     # Replay calls on each axes
     for ax_key, ax_record in record.axes.items():

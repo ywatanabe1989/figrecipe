@@ -80,6 +80,10 @@ class FigureRecord:
     figsize: Tuple[float, float] = (6.4, 4.8)
     dpi: int = 100
     axes: Dict[str, AxesRecord] = field(default_factory=dict)
+    # Layout parameters (subplots_adjust)
+    layout: Optional[Dict[str, float]] = None
+    # Style parameters
+    style: Optional[Dict[str, Any]] = None
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -94,7 +98,7 @@ class FigureRecord:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
+        result = {
             "plotspec": "1.0",
             "id": self.id,
             "created": self.created,
@@ -105,6 +109,13 @@ class FigureRecord:
             },
             "axes": {k: v.to_dict() for k, v in self.axes.items()},
         }
+        # Add layout if set
+        if self.layout is not None:
+            result["figure"]["layout"] = self.layout
+        # Add style if set
+        if self.style is not None:
+            result["figure"]["style"] = self.style
+        return result
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "FigureRecord":
@@ -116,6 +127,8 @@ class FigureRecord:
             matplotlib_version=data.get("matplotlib_version", ""),
             figsize=tuple(fig_data.get("figsize", [6.4, 4.8])),
             dpi=fig_data.get("dpi", 100),
+            layout=fig_data.get("layout"),
+            style=fig_data.get("style"),
         )
 
         # Reconstruct axes

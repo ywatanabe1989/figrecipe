@@ -350,7 +350,18 @@ def subplots(
             hspace=hspace,
         )
 
+        # Record layout in figure record for reproduction
+        fig.record.layout = {
+            'left': left,
+            'right': right,
+            'bottom': bottom,
+            'top': top,
+            'wspace': wspace,
+            'hspace': hspace,
+        }
+
     # Apply styling if requested
+    style_dict = None
     if apply_style_mm or style is not None:
         from .styles import apply_style_mm as _apply_style, to_subplots_kwargs, get_style
         style_dict = to_subplots_kwargs(get_style()) if style is None else (
@@ -364,6 +375,9 @@ def subplots(
             axes_array = np.array(axes)
             for ax in axes_array.flat:
                 _apply_style(ax._ax if hasattr(ax, '_ax') else ax, style_dict)
+
+        # Record style in figure record for reproduction
+        fig.record.style = style_dict
 
     return fig, axes
 
