@@ -88,20 +88,80 @@ class RecordingAxes:
             Wrapped method that records calls.
         """
         def wrapper(*args, id: Optional[str] = None, track: bool = True, **kwargs):
+            # Call the original method first (without our custom kwargs)
+            result = method(*args, **kwargs)
+
             # Record the call if tracking is enabled
             if self._track and track:
+                # Capture actual colors from result for plotting methods
+                # that use matplotlib's color cycle
+                recorded_kwargs = kwargs.copy()
+                if method_name in ('plot', 'scatter', 'bar', 'barh', 'step', 'fill_between'):
+                    if 'color' not in recorded_kwargs and 'c' not in recorded_kwargs:
+                        actual_color = self._extract_color_from_result(method_name, result)
+                        if actual_color is not None:
+                            recorded_kwargs['color'] = actual_color
+
                 self._recorder.record_call(
                     ax_position=self._position,
                     method_name=method_name,
                     args=args,
-                    kwargs=kwargs,
+                    kwargs=recorded_kwargs,
                     call_id=id,
                 )
 
-            # Call the original method (without our custom kwargs)
-            return method(*args, **kwargs)
+            return result
 
         return wrapper
+
+    def _extract_color_from_result(self, method_name: str, result) -> Optional[str]:
+        """Extract actual color used from plot result.
+
+        Parameters
+        ----------
+        method_name : str
+            Name of the plotting method.
+        result : Any
+            Return value from the plotting method.
+
+        Returns
+        -------
+        str or None
+            The color used, or None if not extractable.
+        """
+        try:
+            if method_name == 'plot':
+                # plot() returns list of Line2D
+                if result and hasattr(result[0], 'get_color'):
+                    return result[0].get_color()
+            elif method_name == 'scatter':
+                # scatter() returns PathCollection
+                if hasattr(result, 'get_facecolor'):
+                    fc = result.get_facecolor()
+                    if len(fc) > 0:
+                        # Convert RGBA to hex
+                        import matplotlib.colors as mcolors
+                        return mcolors.to_hex(fc[0])
+            elif method_name in ('bar', 'barh'):
+                # bar() returns BarContainer
+                if hasattr(result, 'patches') and result.patches:
+                    fc = result.patches[0].get_facecolor()
+                    import matplotlib.colors as mcolors
+                    return mcolors.to_hex(fc)
+            elif method_name == 'step':
+                # step() returns list of Line2D
+                if result and hasattr(result[0], 'get_color'):
+                    return result[0].get_color()
+            elif method_name == 'fill_between':
+                # fill_between() returns PolyCollection
+                if hasattr(result, 'get_facecolor'):
+                    fc = result.get_facecolor()
+                    if len(fc) > 0:
+                        import matplotlib.colors as mcolors
+                        return mcolors.to_hex(fc[0])
+        except Exception:
+            pass
+        return None
 
     def no_record(self):
         """Context manager to temporarily disable recording.
