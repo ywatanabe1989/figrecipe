@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-12-21
+
+### Fixed
+- **Seaborn duplicate recording** - Seaborn calls no longer record underlying matplotlib calls (e.g., `ax.scatter()` from `sns.scatterplot()`)
+- **Seaborn sizes parameter** - `sizes=(min, max)` tuples now correctly serialize and deserialize, fixing the legend reproduction issue where all size values were listed instead of grouped ranges
+
 ## [0.3.0] - 2025-12-21
 
 ### Added
@@ -77,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.3.1]: https://github.com/ywatanabe1989/plotspec/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ywatanabe1989/plotspec/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ywatanabe1989/plotspec/releases/tag/v0.1.0

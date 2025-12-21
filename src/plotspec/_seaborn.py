@@ -266,17 +266,19 @@ class SeabornRecorder:
         # Get the axes
         ax = kwargs.get("ax")
 
-        # Call the actual seaborn function
-        result = func(*args, **kwargs)
-
-        # If we have a RecordingAxes, record the call
+        # If we have a RecordingAxes, disable recording during seaborn call
+        # to prevent recording the underlying matplotlib calls (e.g., scatter)
+        # that seaborn makes internally. We only want to record the seaborn call.
         if isinstance(ax, RecordingAxes):
+            with ax.no_record():
+                result = func(*args, **kwargs)
+
             # Serialize arguments
             proc_args, proc_kwargs, data_arrays = _serialize_seaborn_args(
                 func_name, args, kwargs
             )
 
-            # Record as a seaborn call
+            # Record as a seaborn call (outside no_record context)
             ax.record_seaborn_call(
                 func_name=func_name,
                 args=proc_args,
@@ -284,6 +286,9 @@ class SeabornRecorder:
                 data_arrays=data_arrays,
                 call_id=call_id,
             )
+        else:
+            # No recording axes, just call the function
+            result = func(*args, **kwargs)
 
         return result
 

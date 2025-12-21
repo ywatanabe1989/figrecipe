@@ -253,6 +253,11 @@ def _replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
     # Add the axes
     kwargs["ax"] = ax
 
+    # Convert certain list parameters back to tuples (YAML serializes tuples as lists)
+    # 'sizes' in seaborn expects a tuple (min, max) for range, not a list
+    if "sizes" in kwargs and isinstance(kwargs["sizes"], list):
+        kwargs["sizes"] = tuple(kwargs["sizes"])
+
     # Call the seaborn function
     try:
         return func(**kwargs)
