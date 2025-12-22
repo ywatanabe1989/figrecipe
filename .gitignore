@@ -88,3 +88,4 @@ outputs/
 *.npy
 *.npz
 *.csv
+GITIGNORED/
