@@ -77,10 +77,14 @@ Thumbs.db
 
 # Project specific
 outputs/
+!outputs/notebook/
 *.png
 !docs/figrecipe_logo.png
+!outputs/notebook/*.png
 *.yaml
 !pyproject.toml
+!outputs/notebook/*.yaml
+!src/figrecipe/styles/presets/*.yaml
 *.npy
 *.npz
 *.csv
