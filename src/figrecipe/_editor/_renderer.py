@@ -46,7 +46,7 @@ def render_preview(
         (width, height) in pixels.
     """
     # Get underlying matplotlib figure
-    mpl_fig = fig.fig if hasattr(fig, 'fig') else fig
+    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
 
     # Apply style overrides
     if overrides:
@@ -56,20 +56,29 @@ def render_preview(
     if dark_mode:
         _apply_dark_mode(mpl_fig)
 
-    # Render to buffer
+    # Render to buffer first
     buf = io.BytesIO()
-    mpl_fig.savefig(buf, format='png', dpi=dpi, bbox_inches='tight')
+    mpl_fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight")
     buf.seek(0)
     png_bytes = buf.read()
 
     # Get image dimensions
     from PIL import Image
+
     buf.seek(0)
     img = Image.open(buf)
     img_width, img_height = img.size
 
-    # Extract bounding boxes
+    # Set figure DPI to match render DPI and force canvas redraw for accurate bbox extraction
+    original_dpi = mpl_fig.dpi
+    mpl_fig.set_dpi(dpi)
+    mpl_fig.canvas.draw()
+
+    # Extract bounding boxes (with figure DPI matching render DPI)
     bboxes = extract_bboxes(mpl_fig, img_width, img_height)
+
+    # Restore original DPI
+    mpl_fig.set_dpi(original_dpi)
 
     return png_bytes, bboxes, (img_width, img_height)
 
@@ -106,7 +115,7 @@ def render_to_base64(
     import base64
 
     png_bytes, bboxes, img_size = render_preview(fig, overrides, dpi, dark_mode)
-    base64_str = base64.b64encode(png_bytes).decode('utf-8')
+    base64_str = base64.b64encode(png_bytes).decode("utf-8")
 
     return base64_str, bboxes, img_size
 
@@ -135,73 +144,96 @@ def _apply_overrides(fig: Figure, overrides: Dict[str, Any]) -> None:
         apply_style_mm(ax, overrides)
 
         # Apply specific overrides that aren't handled by apply_style_mm
+        # YAML-compatible keys are canonical, legacy keys supported for backwards compatibility
 
-        # Font sizes
-        if 'fonts_axis_label_pt' in overrides:
-            fontsize = overrides['fonts_axis_label_pt']
-            ax.xaxis.label.set_fontsize(fontsize)
-            ax.yaxis.label.set_fontsize(fontsize)
+        # Font sizes (YAML: fonts_axis_label_pt, legacy: axis_font_size_pt)
+        axis_fs = overrides.get(
+            "fonts_axis_label_pt", overrides.get("axis_font_size_pt")
+        )
+        if axis_fs is not None:
+            ax.xaxis.label.set_fontsize(axis_fs)
+            ax.yaxis.label.set_fontsize(axis_fs)
 
-        if 'fonts_tick_label_pt' in overrides:
-            fontsize = overrides['fonts_tick_label_pt']
-            ax.tick_params(labelsize=fontsize)
+        tick_fs = overrides.get(
+            "fonts_tick_label_pt", overrides.get("tick_font_size_pt")
+        )
+        if tick_fs is not None:
+            ax.tick_params(labelsize=tick_fs)
 
-        if 'fonts_title_pt' in overrides:
-            ax.title.set_fontsize(overrides['fonts_title_pt'])
+        title_fs = overrides.get("fonts_title_pt", overrides.get("title_font_size_pt"))
+        if title_fs is not None:
+            ax.title.set_fontsize(title_fs)
 
-        if 'fonts_family' in overrides:
-            family = overrides['fonts_family']
+        family = overrides.get("fonts_family", overrides.get("font_family"))
+        if family is not None:
             ax.xaxis.label.set_fontfamily(family)
             ax.yaxis.label.set_fontfamily(family)
             ax.title.set_fontfamily(family)
             for label in ax.get_xticklabels() + ax.get_yticklabels():
                 label.set_fontfamily(family)
 
-        # Ticks
-        if 'ticks_direction' in overrides:
-            ax.tick_params(direction=overrides['ticks_direction'])
+        # Ticks (YAML: ticks_direction, legacy: tick_direction)
+        tick_dir = overrides.get("ticks_direction", overrides.get("tick_direction"))
+        if tick_dir is not None:
+            ax.tick_params(direction=tick_dir)
 
-        if 'ticks_length_mm' in overrides:
+        tick_len = overrides.get("ticks_length_mm", overrides.get("tick_length_mm"))
+        if tick_len is not None:
             from .._utils._units import mm_to_pt
-            length = mm_to_pt(overrides['ticks_length_mm'])
+
+            length = mm_to_pt(tick_len)
             ax.tick_params(length=length)
 
-        # Grid
-        if 'behavior_grid' in overrides:
-            if overrides['behavior_grid']:
+        # Grid (YAML: behavior_grid, legacy: grid)
+        grid_value = overrides.get("behavior_grid", overrides.get("grid"))
+        if grid_value is not None:
+            if grid_value:
                 ax.grid(True, alpha=0.3)
             else:
                 ax.grid(False)
 
-        # Spines
-        if 'behavior_hide_top_spine' in overrides:
-            ax.spines['top'].set_visible(not overrides['behavior_hide_top_spine'])
+        # Spines (YAML: behavior_hide_top_spine, legacy: hide_top_spine)
+        hide_top = overrides.get(
+            "behavior_hide_top_spine", overrides.get("hide_top_spine")
+        )
+        if hide_top is not None:
+            ax.spines["top"].set_visible(not hide_top)
 
-        if 'behavior_hide_right_spine' in overrides:
-            ax.spines['right'].set_visible(not overrides['behavior_hide_right_spine'])
+        hide_right = overrides.get(
+            "behavior_hide_right_spine", overrides.get("hide_right_spine")
+        )
+        if hide_right is not None:
+            ax.spines["right"].set_visible(not hide_right)
 
         # Legend
         legend = ax.get_legend()
         if legend is not None:
-            if 'legend_frameon' in overrides:
-                legend.set_frame_on(overrides['legend_frameon'])
+            if "legend_frameon" in overrides:
+                legend.set_frame_on(overrides["legend_frameon"])
 
-            if 'legend_alpha' in overrides:
+            if "legend_alpha" in overrides:
                 frame = legend.get_frame()
                 fc = frame.get_facecolor()
-                frame.set_facecolor((*fc[:3], overrides['legend_alpha']))
+                frame.set_facecolor((*fc[:3], overrides["legend_alpha"]))
 
-        # Line widths (for existing lines)
-        if 'lines_trace_mm' in overrides:
+        # Line widths (YAML: lines_trace_mm, legacy: trace_thickness_mm)
+        trace_mm = overrides.get("lines_trace_mm", overrides.get("trace_thickness_mm"))
+        if trace_mm is not None:
             from .._utils._units import mm_to_pt
-            lw = mm_to_pt(overrides['lines_trace_mm'])
+
+            lw = mm_to_pt(trace_mm)
             for line in ax.get_lines():
                 line.set_linewidth(lw)
 
-        # Marker sizes
-        if 'markers_scatter_mm' in overrides:
+        # Marker sizes (YAML: markers_scatter_mm, legacy: marker_size_mm)
+        scatter_mm = overrides.get(
+            "markers_scatter_mm",
+            overrides.get("markers_size_mm", overrides.get("marker_size_mm")),
+        )
+        if scatter_mm is not None:
             from .._utils._units import mm_to_scatter_size
-            size = mm_to_scatter_size(overrides['markers_scatter_mm'])
+
+            size = mm_to_scatter_size(scatter_mm)
             for coll in ax.collections:
                 try:
                     coll.set_sizes([size])
@@ -219,9 +251,8 @@ def _apply_dark_mode(fig: Figure) -> None:
         Matplotlib figure.
     """
     # Dark theme colors
-    bg_color = '#1a1a1a'
-    text_color = '#e8e8e8'
-    grid_color = '#404040'
+    bg_color = "#1a1a1a"
+    text_color = "#e8e8e8"
 
     # Figure background
     fig.patch.set_facecolor(bg_color)
@@ -257,7 +288,7 @@ def _apply_dark_mode(fig: Figure) -> None:
 
 def render_download(
     fig: RecordingFigure,
-    fmt: str = 'png',
+    fmt: str = "png",
     dpi: int = 300,
     overrides: Optional[Dict[str, Any]] = None,
     dark_mode: bool = False,
@@ -283,7 +314,7 @@ def render_download(
     bytes
         File content.
     """
-    mpl_fig = fig.fig if hasattr(fig, 'fig') else fig
+    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
 
     if overrides:
         _apply_overrides(mpl_fig, overrides)
@@ -292,14 +323,14 @@ def render_download(
         _apply_dark_mode(mpl_fig)
 
     buf = io.BytesIO()
-    mpl_fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches='tight')
+    mpl_fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches="tight")
     buf.seek(0)
 
     return buf.read()
 
 
 __all__ = [
-    'render_preview',
-    'render_to_base64',
-    'render_download',
+    "render_preview",
+    "render_to_base64",
+    "render_download",
 ]

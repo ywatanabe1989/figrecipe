@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 from .._wrappers import RecordingFigure
+from ._flask_app import FigureEditor
 
 
 def edit(
@@ -79,15 +80,18 @@ def edit(
 
     >>> overrides = fr.edit(fig, style='SCITEX_DARK')
     """
-    try:
-        from flask import Flask
-    except ImportError:
+    import importlib.util
+
+    if importlib.util.find_spec("flask") is None:
         raise ImportError(
             "Flask is required for the GUI editor. "
             "Install with: pip install figrecipe[editor] or pip install flask"
         )
 
+    import tempfile
+
     from ._flask_app import FigureEditor
+    from ._hitmap import generate_hitmap, hitmap_to_base64
 
     # Handle different input types
     fig, recipe_path = _resolve_source(source)
@@ -95,12 +99,24 @@ def edit(
     # Load style if string preset name provided
     style_dict = _resolve_style(style)
 
-    # Create and run editor
+    # Save static PNG FIRST - this is the source of truth for initial display
+    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+    static_png_path = Path(tempfile.mktemp(suffix="_figrecipe_static.png"))
+    mpl_fig.savefig(static_png_path, format="png", dpi=150, bbox_inches="tight")
+
+    # Generate hitmap ONCE at this point
+    hitmap, color_map = generate_hitmap(mpl_fig)
+    hitmap_base64 = hitmap_to_base64(hitmap)
+
+    # Create and run editor with pre-rendered static PNG
     editor = FigureEditor(
         fig=fig,
         recipe_path=recipe_path,
         style=style_dict,
         port=port,
+        static_png_path=static_png_path,
+        hitmap_base64=hitmap_base64,
+        color_map=color_map,
     )
 
     return editor.run(open_browser=open_browser)
@@ -128,7 +144,7 @@ def _resolve_source(source: Union[RecordingFigure, str, Path]):
     if not path.exists():
         raise FileNotFoundError(f"Recipe file not found: {path}")
 
-    if path.suffix.lower() not in ('.yaml', '.yml'):
+    if path.suffix.lower() not in (".yaml", ".yml"):
         raise ValueError(f"Expected .yaml or .yml file, got: {path.suffix}")
 
     # Load recipe and reproduce figure
@@ -139,11 +155,13 @@ def _resolve_source(source: Union[RecordingFigure, str, Path]):
     # Wrap in RecordingFigure if needed
     if not isinstance(fig, RecordingFigure):
         from .._wrappers._figure import RecordingFigure as RF
+
         # Create a minimal wrapper
         wrapped_fig = RF.__new__(RF)
         wrapped_fig.fig = fig
         wrapped_fig._axes = axes if isinstance(axes, list) else [axes]
         from .._recorder import FigureRecord
+
         wrapped_fig.record = FigureRecord(
             figsize=fig.get_size_inches().tolist(),
             dpi=fig.dpi,
@@ -153,7 +171,9 @@ def _resolve_source(source: Union[RecordingFigure, str, Path]):
     return fig, path
 
 
-def _resolve_style(style: Optional[Union[str, Dict[str, Any]]]) -> Optional[Dict[str, Any]]:
+def _resolve_style(
+    style: Optional[Union[str, Dict[str, Any]]],
+) -> Optional[Dict[str, Any]]:
     """
     Resolve style to dictionary.
 
@@ -170,8 +190,10 @@ def _resolve_style(style: Optional[Union[str, Dict[str, Any]]]) -> Optional[Dict
     if style is None:
         # Use global style if loaded
         from ..styles._style_loader import _STYLE_CACHE
+
         if _STYLE_CACHE is not None:
             from ..styles import to_subplots_kwargs
+
             return to_subplots_kwargs(_STYLE_CACHE)
         return None
 
@@ -180,10 +202,11 @@ def _resolve_style(style: Optional[Union[str, Dict[str, Any]]]) -> Optional[Dict
 
     if isinstance(style, str):
         from ..styles import load_style, to_subplots_kwargs
+
         loaded = load_style(style)
         return to_subplots_kwargs(loaded) if loaded else None
 
     raise TypeError(f"style must be str, dict, or None, got {type(style)}")
 
 
-__all__ = ["edit"]
+__all__ = ["edit", "FigureEditor"]

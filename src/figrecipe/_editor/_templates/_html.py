@@ -51,6 +51,10 @@ HTML_TEMPLATE = """
                     <button id="btn-save" class="btn-primary">Save</button>
                 </div>
             </div>
+            <div class="style-info">
+                <span class="style-label">Applied Theme:</span>
+                <span id="style-name" class="style-name">STYLE_NAME_PLACEHOLDER</span>
+            </div>
             <div id="override-status" class="override-status" style="display: none;">
                 <span class="override-indicator">Manual overrides active</span>
                 <span id="override-timestamp" class="override-timestamp"></span>
@@ -65,15 +69,15 @@ HTML_TEMPLATE = """
                             <h4>Axes</h4>
                             <div class="form-row">
                                 <label>Width (mm)</label>
-                                <input type="number" id="axes_width_mm" step="1" min="10" max="200">
+                                <input type="number" id="axes_width_mm" step="1" min="10" max="200" placeholder="80">
                             </div>
                             <div class="form-row">
                                 <label>Height (mm)</label>
-                                <input type="number" id="axes_height_mm" step="1" min="10" max="200">
+                                <input type="number" id="axes_height_mm" step="1" min="10" max="200" placeholder="55">
                             </div>
                             <div class="form-row">
                                 <label>Thickness (mm)</label>
-                                <input type="number" id="axes_thickness_mm" step="0.05" min="0.1" max="2">
+                                <input type="number" id="axes_thickness_mm" step="0.05" min="0.1" max="2" placeholder="0.35">
                             </div>
                         </div>
                         <div class="subsection">
@@ -81,19 +85,19 @@ HTML_TEMPLATE = """
                             <div class="form-grid">
                                 <div class="form-row">
                                     <label>Left</label>
-                                    <input type="number" id="margins_left_mm" step="1" min="0" max="50">
+                                    <input type="number" id="margins_left_mm" step="1" min="0" max="50" placeholder="12">
                                 </div>
                                 <div class="form-row">
                                     <label>Right</label>
-                                    <input type="number" id="margins_right_mm" step="1" min="0" max="50">
+                                    <input type="number" id="margins_right_mm" step="1" min="0" max="50" placeholder="3">
                                 </div>
                                 <div class="form-row">
                                     <label>Bottom</label>
-                                    <input type="number" id="margins_bottom_mm" step="1" min="0" max="50">
+                                    <input type="number" id="margins_bottom_mm" step="1" min="0" max="50" placeholder="10">
                                 </div>
                                 <div class="form-row">
                                     <label>Top</label>
-                                    <input type="number" id="margins_top_mm" step="1" min="0" max="50">
+                                    <input type="number" id="margins_top_mm" step="1" min="0" max="50" placeholder="6">
                                 </div>
                             </div>
                         </div>
@@ -101,11 +105,11 @@ HTML_TEMPLATE = """
                             <h4>Spacing</h4>
                             <div class="form-row">
                                 <label>Horizontal (mm)</label>
-                                <input type="number" id="spacing_horizontal_mm" step="1" min="0" max="30">
+                                <input type="number" id="spacing_horizontal_mm" step="1" min="0" max="30" placeholder="8">
                             </div>
                             <div class="form-row">
                                 <label>Vertical (mm)</label>
-                                <input type="number" id="spacing_vertical_mm" step="1" min="0" max="30">
+                                <input type="number" id="spacing_vertical_mm" step="1" min="0" max="30" placeholder="8">
                             </div>
                         </div>
                     </div>
@@ -299,7 +303,7 @@ HTML_TEMPLATE = """
                 </details>
 
                 <!-- Download Section -->
-                <details class="section" open>
+                <details class="section" id="section-download" open>
                     <summary>Download</summary>
                     <div class="section-content">
                         <div class="download-buttons">
@@ -327,4 +331,4 @@ HTML_TEMPLATE = """
 </html>
 """
 
-__all__ = ['HTML_TEMPLATE']
+__all__ = ["HTML_TEMPLATE"]

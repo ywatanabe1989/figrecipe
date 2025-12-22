@@ -18,7 +18,6 @@ Manual overrides are stored separately in `.overrides.json` files,
 allowing restoration to original programmatic styles.
 """
 
-import json
 import socket
 import webbrowser
 from pathlib import Path
@@ -26,7 +25,6 @@ from typing import Any, Dict, Optional
 
 from .._wrappers import RecordingFigure
 from ._overrides import (
-    StyleOverrides,
     create_overrides_from_style,
     load_overrides,
     save_overrides,
@@ -52,6 +50,9 @@ class FigureEditor:
         recipe_path: Optional[Path] = None,
         style: Optional[Dict[str, Any]] = None,
         port: int = 5050,
+        static_png_path: Optional[Path] = None,
+        hitmap_base64: Optional[str] = None,
+        color_map: Optional[Dict] = None,
     ):
         """
         Initialize figure editor.
@@ -66,19 +67,33 @@ class FigureEditor:
             Initial style configuration (programmatic).
         port : int
             Flask server port.
+        static_png_path : Path, optional
+            Path to pre-rendered static PNG (source of truth for initial display).
+        hitmap_base64 : str, optional
+            Pre-generated hitmap as base64.
+        color_map : dict, optional
+            Pre-generated color map for hitmap.
         """
         self.fig = fig
         self.recipe_path = Path(recipe_path) if recipe_path else None
         self.port = port
         self.dark_mode = False
 
+        # Pre-rendered static PNG (source of truth)
+        self._static_png_path = static_png_path
+        self._initial_base64 = None
+        if static_png_path and static_png_path.exists():
+            import base64
+
+            with open(static_png_path, "rb") as f:
+                self._initial_base64 = base64.b64encode(f.read()).decode("utf-8")
+
         # Initialize style overrides system
         self._init_style_overrides(style)
 
-        # Cache for hitmap and color_map
-        self._hitmap = None
-        self._color_map = None
-        self._hitmap_base64 = None
+        # Pre-generated hitmap and color_map
+        self._hitmap_base64 = hitmap_base64
+        self._color_map = color_map
 
     def _init_style_overrides(self, programmatic_style: Optional[Dict[str, Any]]):
         """Initialize the layered style override system."""
@@ -92,15 +107,32 @@ class FigureEditor:
                     self.style_overrides.programmatic_style = programmatic_style
                 return
 
-        # Get base style from global preset
+        # Get base style from global preset (always ensure we have a base style)
         base_style = {}
+        style_name = "SCITEX"  # Default
         try:
+            from ..styles._style_loader import (
+                _CURRENT_STYLE_NAME,
+                _STYLE_CACHE,
+                load_style,
+                to_subplots_kwargs,
+            )
+
+            # If no style is loaded, load the default SCITEX style
+            if _STYLE_CACHE is None:
+                load_style("SCITEX")
+
+            # Get the style cache (now guaranteed to exist)
             from ..styles._style_loader import _STYLE_CACHE
+
             if _STYLE_CACHE is not None:
-                from ..styles import to_subplots_kwargs
                 base_style = to_subplots_kwargs(_STYLE_CACHE)
+                style_name = _CURRENT_STYLE_NAME or "SCITEX"
         except Exception:
             pass
+
+        # Store the style name for UI display
+        self._style_name = style_name
 
         # Create new overrides
         self.style_overrides = create_overrides_from_style(
@@ -143,31 +175,56 @@ class FigureEditor:
         """
         from flask import Flask, jsonify, render_template_string, request, send_file
 
+        from ._bbox import extract_bboxes
         from ._hitmap import generate_hitmap, hitmap_to_base64
-        from ._renderer import render_download, render_to_base64
+        from ._renderer import render_download
         from ._templates import build_html_template
 
         # Find available port
         self.port = _find_available_port(self.port)
 
-        # Generate initial hitmap
-        mpl_fig = self.fig.fig if hasattr(self.fig, 'fig') else self.fig
-        self._hitmap, self._color_map = generate_hitmap(mpl_fig)
-        self._hitmap_base64 = hitmap_to_base64(self._hitmap)
+        # Use pre-generated hitmap or generate now
+        if self._hitmap_base64 is None or self._color_map is None:
+            mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
+            hitmap, self._color_map = generate_hitmap(mpl_fig)
+            self._hitmap_base64 = hitmap_to_base64(hitmap)
 
         # Create Flask app
         app = Flask(__name__)
         editor = self
 
-        @app.route('/')
+        @app.route("/")
         def index():
             """Main editor page."""
-            # Render initial preview
-            base64_img, bboxes, img_size = render_to_base64(
-                editor.fig,
-                overrides=editor.overrides,
-                dark_mode=editor.dark_mode,
-            )
+            # Use pre-rendered static PNG (source of truth - same as static save)
+            if editor._initial_base64 and not editor.overrides:
+                base64_img = editor._initial_base64
+                # Get image size from the static PNG
+                import base64
+                import io
+
+                from PIL import Image
+
+                img_data = base64.b64decode(base64_img)
+                img = Image.open(io.BytesIO(img_data))
+                img_size = img.size
+                # Extract bboxes from original figure
+                mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+                original_dpi = mpl_fig.dpi
+                mpl_fig.set_dpi(150)
+                mpl_fig.canvas.draw()
+                bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
+                mpl_fig.set_dpi(original_dpi)
+            else:
+                # Re-render with overrides using reproduce pipeline
+                base64_img, bboxes, img_size = _render_with_overrides(
+                    editor.fig,
+                    editor.overrides,
+                    editor.dark_mode,
+                )
+
+            # Get style name (default to SCITEX if not set)
+            style_name = getattr(editor, "_style_name", "SCITEX")
 
             # Build HTML template
             html = build_html_template(
@@ -177,148 +234,197 @@ class FigureEditor:
                 style=editor.style,
                 overrides=editor.overrides,
                 img_size=img_size,
+                style_name=style_name,
             )
 
             return render_template_string(html)
 
-        @app.route('/preview')
+        @app.route("/preview")
         def preview():
             """Get current preview image."""
-            base64_img, bboxes, img_size = render_to_base64(
-                editor.fig,
-                overrides=editor.overrides,
-                dark_mode=editor.dark_mode,
+            # Use pre-rendered static PNG if no overrides
+            if editor._initial_base64 and not editor.overrides and not editor.dark_mode:
+                base64_img = editor._initial_base64
+                import base64 as b64
+                import io
+
+                from PIL import Image
+
+                img_data = b64.b64decode(base64_img)
+                img = Image.open(io.BytesIO(img_data))
+                img_size = img.size
+                mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+                original_dpi = mpl_fig.dpi
+                mpl_fig.set_dpi(150)
+                mpl_fig.canvas.draw()
+                bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
+                mpl_fig.set_dpi(original_dpi)
+            else:
+                # Re-render with overrides using reproduce pipeline
+                base64_img, bboxes, img_size = _render_with_overrides(
+                    editor.fig,
+                    editor.overrides,
+                    editor.dark_mode,
+                )
+
+            return jsonify(
+                {
+                    "image": base64_img,
+                    "bboxes": bboxes,
+                    "img_size": {"width": img_size[0], "height": img_size[1]},
+                }
             )
 
-            return jsonify({
-                'image': base64_img,
-                'bboxes': bboxes,
-                'img_size': {'width': img_size[0], 'height': img_size[1]},
-            })
-
-        @app.route('/update', methods=['POST'])
+        @app.route("/update", methods=["POST"])
         def update():
             """Update preview with new style overrides."""
             data = request.get_json() or {}
 
-            # Update overrides
-            editor.overrides.update(data.get('overrides', {}))
-            editor.dark_mode = data.get('dark_mode', editor.dark_mode)
+            # Update manual overrides
+            editor.overrides.update(data.get("overrides", {}))
+            editor.dark_mode = data.get("dark_mode", editor.dark_mode)
 
-            # Render with new overrides
-            base64_img, bboxes, img_size = render_to_base64(
+            # Re-render with overrides using reproduce pipeline
+            base64_img, bboxes, img_size = _render_with_overrides(
                 editor.fig,
-                overrides=editor.overrides,
-                dark_mode=editor.dark_mode,
+                editor.overrides,
+                editor.dark_mode,
             )
 
-            # Regenerate hitmap to match new preview
-            mpl_fig = editor.fig.fig if hasattr(editor.fig, 'fig') else editor.fig
-            editor._hitmap, editor._color_map = generate_hitmap(mpl_fig)
-            editor._hitmap_base64 = hitmap_to_base64(editor._hitmap)
+            return jsonify(
+                {
+                    "image": base64_img,
+                    "bboxes": bboxes,
+                    "img_size": {"width": img_size[0], "height": img_size[1]},
+                }
+            )
 
-            return jsonify({
-                'image': base64_img,
-                'bboxes': bboxes,
-                'img_size': {'width': img_size[0], 'height': img_size[1]},
-            })
-
-        @app.route('/hitmap')
+        @app.route("/hitmap")
         def hitmap():
             """Get hitmap image and color map."""
-            return jsonify({
-                'image': editor._hitmap_base64,
-                'color_map': editor._color_map,
-            })
+            return jsonify(
+                {
+                    "image": editor._hitmap_base64,
+                    "color_map": editor._color_map,
+                }
+            )
 
-        @app.route('/style')
+        @app.route("/style")
         def get_style():
             """Get current style configuration."""
-            return jsonify({
-                'base_style': editor.style_overrides.base_style,
-                'programmatic_style': editor.style_overrides.programmatic_style,
-                'manual_overrides': editor.style_overrides.manual_overrides,
-                'effective_style': editor.get_effective_style(),
-                'has_overrides': editor.style_overrides.has_manual_overrides(),
-                'manual_timestamp': editor.style_overrides.manual_timestamp,
-            })
+            return jsonify(
+                {
+                    "base_style": editor.style_overrides.base_style,
+                    "programmatic_style": editor.style_overrides.programmatic_style,
+                    "manual_overrides": editor.style_overrides.manual_overrides,
+                    "effective_style": editor.get_effective_style(),
+                    "has_overrides": editor.style_overrides.has_manual_overrides(),
+                    "manual_timestamp": editor.style_overrides.manual_timestamp,
+                }
+            )
 
-        @app.route('/save', methods=['POST'])
+        @app.route("/save", methods=["POST"])
         def save():
             """Save style overrides (stored separately from recipe)."""
             data = request.get_json() or {}
-            editor.style_overrides.update_manual_overrides(data.get('overrides', {}))
+            editor.style_overrides.update_manual_overrides(data.get("overrides", {}))
 
             # Save to .overrides.json file
             if editor.recipe_path:
                 path = save_overrides(editor.style_overrides, editor.recipe_path)
-                return jsonify({
-                    'success': True,
-                    'path': str(path),
-                    'has_overrides': editor.style_overrides.has_manual_overrides(),
-                    'timestamp': editor.style_overrides.manual_timestamp,
-                })
+                return jsonify(
+                    {
+                        "success": True,
+                        "path": str(path),
+                        "has_overrides": editor.style_overrides.has_manual_overrides(),
+                        "timestamp": editor.style_overrides.manual_timestamp,
+                    }
+                )
 
-            return jsonify({
-                'success': True,
-                'overrides': editor.overrides,
-                'has_overrides': editor.style_overrides.has_manual_overrides(),
-            })
+            return jsonify(
+                {
+                    "success": True,
+                    "overrides": editor.overrides,
+                    "has_overrides": editor.style_overrides.has_manual_overrides(),
+                }
+            )
 
-        @app.route('/restore', methods=['POST'])
+        @app.route("/restore", methods=["POST"])
         def restore():
             """Restore to original style (clear manual overrides)."""
             editor.style_overrides.clear_manual_overrides()
 
-            # Re-render with original style
-            base64_img, bboxes, img_size = render_to_base64(
-                editor.fig,
-                overrides={},  # No manual overrides
-                dark_mode=editor.dark_mode,
+            # Use pre-rendered static PNG (source of truth)
+            if editor._initial_base64 and not editor.dark_mode:
+                base64_img = editor._initial_base64
+                import base64 as b64
+                import io
+
+                from PIL import Image
+
+                img_data = b64.b64decode(base64_img)
+                img = Image.open(io.BytesIO(img_data))
+                img_size = img.size
+                mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+                original_dpi = mpl_fig.dpi
+                mpl_fig.set_dpi(150)
+                mpl_fig.canvas.draw()
+                bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
+                mpl_fig.set_dpi(original_dpi)
+            else:
+                # Fallback: re-render with reproduce pipeline
+                base64_img, bboxes, img_size = _render_with_overrides(
+                    editor.fig,
+                    None,
+                    editor.dark_mode,
+                )
+
+            return jsonify(
+                {
+                    "success": True,
+                    "image": base64_img,
+                    "bboxes": bboxes,
+                    "img_size": {"width": img_size[0], "height": img_size[1]},
+                    "original_style": editor.style,
+                }
             )
 
-            return jsonify({
-                'success': True,
-                'image': base64_img,
-                'bboxes': bboxes,
-                'img_size': {'width': img_size[0], 'height': img_size[1]},
-                'original_style': editor.style,
-            })
-
-        @app.route('/diff')
+        @app.route("/diff")
         def get_diff():
             """Get differences between original and manual overrides."""
-            return jsonify({
-                'diff': editor.style_overrides.get_diff(),
-                'has_overrides': editor.style_overrides.has_manual_overrides(),
-            })
+            return jsonify(
+                {
+                    "diff": editor.style_overrides.get_diff(),
+                    "has_overrides": editor.style_overrides.has_manual_overrides(),
+                }
+            )
 
-        @app.route('/download/<fmt>')
+        @app.route("/download/<fmt>")
         def download(fmt: str):
             """Download figure in specified format."""
             import io
 
             fmt = fmt.lower()
-            if fmt not in ('png', 'svg', 'pdf'):
-                return jsonify({'error': f'Unsupported format: {fmt}'}), 400
+            if fmt not in ("png", "svg", "pdf"):
+                return jsonify({"error": f"Unsupported format: {fmt}"}), 400
 
             content = render_download(
                 editor.fig,
                 fmt=fmt,
                 dpi=300,
-                overrides=editor.overrides,
+                overrides=editor.overrides if editor.overrides else None,
                 dark_mode=editor.dark_mode,
             )
 
             mimetype = {
-                'png': 'image/png',
-                'svg': 'image/svg+xml',
-                'pdf': 'application/pdf',
+                "png": "image/png",
+                "svg": "image/svg+xml",
+                "pdf": "application/pdf",
             }[fmt]
 
-            filename = f'figure.{fmt}'
+            filename = f"figure.{fmt}"
             if editor.recipe_path:
-                filename = f'{editor.recipe_path.stem}.{fmt}'
+                filename = f"{editor.recipe_path.stem}.{fmt}"
 
             return send_file(
                 io.BytesIO(content),
@@ -327,28 +433,97 @@ class FigureEditor:
                 download_name=filename,
             )
 
-        @app.route('/shutdown', methods=['POST'])
+        @app.route("/shutdown", methods=["POST"])
         def shutdown():
             """Shutdown the server."""
-            func = request.environ.get('werkzeug.server.shutdown')
+            func = request.environ.get("werkzeug.server.shutdown")
             if func:
                 func()
-            return jsonify({'success': True})
+            return jsonify({"success": True})
 
         # Start server
-        url = f'http://127.0.0.1:{self.port}'
-        print(f'Figure Editor running at {url}')
-        print('Press Ctrl+C to stop and return overrides')
+        url = f"http://127.0.0.1:{self.port}"
+        print(f"Figure Editor running at {url}")
+        print("Press Ctrl+C to stop and return overrides")
 
         if open_browser:
             webbrowser.open(url)
 
         try:
-            app.run(host='127.0.0.1', port=self.port, debug=False, use_reloader=False)
+            app.run(host="127.0.0.1", port=self.port, debug=False, use_reloader=False)
         except KeyboardInterrupt:
-            print('\nEditor closed')
+            print("\nEditor closed")
 
         return self.overrides
+
+
+def _render_with_overrides(
+    fig, overrides: Optional[Dict[str, Any]], dark_mode: bool = False
+):
+    """
+    Re-render figure with overrides using the reproduce pipeline.
+
+    This ensures identical rendering to fr.reproduce() and fr.save().
+    """
+    import base64
+    import io
+
+    from PIL import Image
+
+    from ._bbox import extract_bboxes
+    from ._renderer import _apply_dark_mode
+
+    # Get the record from RecordingFigure
+    if hasattr(fig, "record"):
+        record = fig.record
+        # Merge overrides into record style
+        if overrides:
+            merged_style = (record.style or {}).copy()
+            merged_style.update(overrides)
+            record.style = merged_style
+
+        # Reproduce using the same pipeline as fr.reproduce()
+        from .._reproducer import reproduce_from_record
+
+        new_fig, _ = reproduce_from_record(record)
+    else:
+        # Fallback: apply overrides directly
+        new_fig = fig.fig if hasattr(fig, "fig") else fig
+        if overrides:
+            from ._renderer import _apply_overrides
+
+            _apply_overrides(new_fig, overrides)
+
+    # Apply dark mode if requested
+    if dark_mode:
+        _apply_dark_mode(new_fig)
+
+    # Save to PNG using same params as static save
+    buf = io.BytesIO()
+    new_fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+    buf.seek(0)
+    png_bytes = buf.read()
+    base64_str = base64.b64encode(png_bytes).decode("utf-8")
+
+    # Get image size
+    buf.seek(0)
+    img = Image.open(buf)
+    img_size = img.size
+
+    # Extract bboxes
+    original_dpi = new_fig.dpi
+    new_fig.set_dpi(150)
+    new_fig.canvas.draw()
+    bboxes = extract_bboxes(new_fig, img_size[0], img_size[1])
+    new_fig.set_dpi(original_dpi)
+
+    # Close the reproduced figure if it's different from original
+    if hasattr(fig, "record") and new_fig is not fig.fig:
+        import matplotlib.pyplot as plt
+
+        plt.close(new_fig)
+
+    return base64_str, bboxes, img_size
 
 
 def _find_available_port(start_port: int = 5050, max_attempts: int = 100) -> int:
@@ -375,12 +550,14 @@ def _find_available_port(start_port: int = 5050, max_attempts: int = 100) -> int
     for port in range(start_port, start_port + max_attempts):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(('127.0.0.1', port))
+                s.bind(("127.0.0.1", port))
                 return port
         except OSError:
             continue
 
-    raise RuntimeError(f'No available ports found in range {start_port}-{start_port + max_attempts}')
+    raise RuntimeError(
+        f"No available ports found in range {start_port}-{start_port + max_attempts}"
+    )
 
 
-__all__ = ['FigureEditor']
+__all__ = ["FigureEditor"]

@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from ._recorder import FigureRecord, CallRecord
+from ._recorder import CallRecord, FigureRecord
 from ._serializer import load_recipe
 
 
@@ -18,6 +18,7 @@ def reproduce(
     path: Union[str, Path],
     calls: Optional[List[str]] = None,
     skip_decorations: bool = False,
+    apply_overrides: bool = True,
 ) -> Tuple[Figure, Union[Axes, List[Axes]]]:
     """Reproduce a figure from a recipe file.
 
@@ -29,6 +30,9 @@ def reproduce(
         If provided, only reproduce these specific call IDs.
     skip_decorations : bool
         If True, skip decoration calls (labels, legends, etc.).
+    apply_overrides : bool
+        If True (default), apply .overrides.json if it exists.
+        This preserves manual GUI editor changes.
 
     Returns
     -------
@@ -43,7 +47,24 @@ def reproduce(
     >>> fig, ax = ps.reproduce("experiment_001.yaml")
     >>> plt.show()
     """
+    path = Path(path)
     record = load_recipe(path)
+
+    # Check for override file and merge if exists
+    if apply_overrides:
+        overrides_path = path.with_suffix(".overrides.json")
+        if overrides_path.exists():
+            import json
+
+            with open(overrides_path) as f:
+                data = json.load(f)
+            manual_overrides = data.get("manual_overrides", {})
+            if manual_overrides:
+                # Merge overrides into record style
+                if record.style is None:
+                    record.style = {}
+                record.style.update(manual_overrides)
+
     return reproduce_from_record(
         record,
         calls=calls,
@@ -113,6 +134,7 @@ def reproduce_from_record(
     # style is applied during subplots(), then user creates plots/decorations)
     if record.style is not None:
         from .styles import apply_style_mm
+
         for row in range(nrows):
             for col in range(ncols):
                 apply_style_mm(axes_2d[row, col], record.style)
@@ -193,6 +215,7 @@ def _replay_call(ax: Axes, call: CallRecord) -> Any:
     except Exception as e:
         # Log warning but continue
         import warnings
+
         warnings.warn(f"Failed to replay {method_name}: {e}")
         return None
 
@@ -213,10 +236,11 @@ def _replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
         Result of the seaborn call.
     """
     try:
-        import seaborn as sns
         import pandas as pd
+        import seaborn as sns
     except ImportError:
         import warnings
+
         warnings.warn("seaborn/pandas required to replay seaborn calls")
         return None
 
@@ -226,6 +250,7 @@ def _replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
 
     if func is None:
         import warnings
+
         warnings.warn(f"Seaborn function {func_name} not found")
         return None
 
@@ -276,6 +301,7 @@ def _replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
         return func(**kwargs)
     except Exception as e:
         import warnings
+
         warnings.warn(f"Failed to replay sns.{func_name}: {e}")
         return None
 
@@ -334,18 +360,22 @@ def get_recipe_info(path: Union[str, Path]) -> Dict[str, Any]:
     all_calls = []
     for ax_record in record.axes.values():
         for call in ax_record.calls:
-            all_calls.append({
-                "id": call.id,
-                "function": call.function,
-                "n_args": len(call.args),
-                "kwargs": list(call.kwargs.keys()),
-            })
+            all_calls.append(
+                {
+                    "id": call.id,
+                    "function": call.function,
+                    "n_args": len(call.args),
+                    "kwargs": list(call.kwargs.keys()),
+                }
+            )
         for call in ax_record.decorations:
-            all_calls.append({
-                "id": call.id,
-                "function": call.function,
-                "type": "decoration",
-            })
+            all_calls.append(
+                {
+                    "id": call.id,
+                    "function": call.function,
+                    "type": "decoration",
+                }
+            )
 
     return {
         "id": record.id,
