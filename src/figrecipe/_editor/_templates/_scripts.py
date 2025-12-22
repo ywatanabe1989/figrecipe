@@ -13,6 +13,9 @@ let hitmapLoaded = false;
 let hitmapCtx = null;
 let hitmapImg = null;
 let updateTimeout = null;
+let currentImgWidth = imgWidth;    // Track current preview dimensions
+let currentImgHeight = imgHeight;
+let hitmapVisible = true;          // Hitmap overlay visibility (default visible for development)
 const UPDATE_DEBOUNCE = 500;  // ms
 
 // Initialize
@@ -20,6 +23,26 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeValues();
     initializeEventListeners();
     loadHitmap();
+
+    // Update hit regions on window resize
+    window.addEventListener('resize', updateHitRegions);
+
+    // Update hit regions when preview image loads
+    const previewImg = document.getElementById('preview-image');
+    previewImg.addEventListener('load', updateHitRegions);
+
+    // Initialize hit regions visibility state
+    if (hitmapVisible) {
+        const overlay = document.getElementById('hitregion-overlay');
+        const btn = document.getElementById('btn-show-hitmap');
+        if (overlay) overlay.classList.add('visible');
+        if (btn) {
+            btn.classList.add('active');
+            btn.textContent = 'Hide Hit Regions';
+        }
+        // Draw hit regions on initial load
+        setTimeout(() => drawHitRegions(), 100);
+    }
 });
 
 // Initialize form values from server data
@@ -77,6 +100,7 @@ function initializeEventListeners() {
     document.getElementById('btn-reset').addEventListener('click', resetValues);
     document.getElementById('btn-save').addEventListener('click', saveOverrides);
     document.getElementById('btn-restore').addEventListener('click', restoreOriginal);
+    document.getElementById('btn-show-hitmap').addEventListener('click', toggleHitmapOverlay);
 
     // Download buttons
     document.getElementById('btn-download-png').addEventListener('click', () => downloadFigure('png'));
@@ -94,6 +118,7 @@ async function loadHitmap() {
         const data = await response.json();
 
         colorMap = data.color_map;
+        console.log('Loaded colorMap:', Object.keys(colorMap));
 
         // Create canvas for hitmap
         const canvas = document.getElementById('hitmap-canvas');
@@ -106,10 +131,171 @@ async function loadHitmap() {
             canvas.height = hitmapImg.height;
             hitmapCtx.drawImage(hitmapImg, 0, 0);
             hitmapLoaded = true;
+            console.log('Hitmap loaded:', hitmapImg.width, 'x', hitmapImg.height);
+
+            // Update overlay image source
+            const overlay = document.getElementById('hitmap-overlay');
+            overlay.src = hitmapImg.src;
         };
         hitmapImg.src = 'data:image/png;base64,' + data.image;
     } catch (error) {
         console.error('Failed to load hitmap:', error);
+    }
+}
+
+// Toggle hit regions overlay visibility
+function toggleHitmapOverlay() {
+    hitmapVisible = !hitmapVisible;
+    const overlay = document.getElementById('hitregion-overlay');
+    const btn = document.getElementById('btn-show-hitmap');
+
+    if (hitmapVisible) {
+        overlay.classList.add('visible');
+        btn.classList.add('active');
+        btn.textContent = 'Hide Hit Regions';
+        drawHitRegions();
+    } else {
+        overlay.classList.remove('visible');
+        btn.classList.remove('active');
+        btn.textContent = 'Show Hit Regions';
+    }
+}
+
+// Draw hit region shapes from bboxes (polylines for lines, rectangles for others)
+function drawHitRegions() {
+    const overlay = document.getElementById('hitregion-overlay');
+    overlay.innerHTML = '';
+
+    const img = document.getElementById('preview-image');
+    const imgRect = img.getBoundingClientRect();
+    const wrapperRect = img.parentElement.getBoundingClientRect();
+
+    // Calculate offset of image within wrapper
+    const offsetX = imgRect.left - wrapperRect.left;
+    const offsetY = imgRect.top - wrapperRect.top;
+
+    // Scale factors from image natural size to display size
+    const scaleX = imgRect.width / img.naturalWidth;
+    const scaleY = imgRect.height / img.naturalHeight;
+
+    console.log('Drawing hit regions:', Object.keys(currentBboxes).length, 'elements');
+    console.log('Image natural:', img.naturalWidth, 'x', img.naturalHeight);
+    console.log('Image display:', imgRect.width, 'x', imgRect.height);
+    console.log('Scale:', scaleX, scaleY);
+
+    // Draw shapes for each bbox
+    for (const [key, bbox] of Object.entries(currentBboxes)) {
+        if (key === '_meta') continue;
+        if (!bbox || typeof bbox.x === 'undefined') continue;
+
+        // Create group for shape and label
+        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        group.setAttribute('class', 'hitregion-group');
+        group.setAttribute('data-key', key);
+
+        let shape;
+        let labelX, labelY;
+
+        // Use polyline for lines/scatter with points, rectangle for others
+        if ((bbox.type === 'line' || bbox.type === 'scatter') && bbox.points && bbox.points.length > 1) {
+            // Create polyline from points
+            const points = bbox.points.map(pt => {
+                const x = offsetX + pt[0] * scaleX;
+                const y = offsetY + pt[1] * scaleY;
+                return `${x},${y}`;
+            }).join(' ');
+
+            shape = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            shape.setAttribute('points', points);
+            shape.setAttribute('class', 'hitregion-polyline');
+            shape.setAttribute('data-key', key);
+
+            // Label position at first point
+            const firstPt = bbox.points[0];
+            labelX = offsetX + firstPt[0] * scaleX + 5;
+            labelY = offsetY + firstPt[1] * scaleY - 5;
+        } else {
+            // Determine region type for styling (rectangles only)
+            let regionClass = 'hitregion-rect';
+            if (bbox.type === 'line' || bbox.type === 'scatter') {
+                regionClass += ' line-region';
+            } else if (bbox.type === 'title' || bbox.type === 'xlabel' || bbox.type === 'ylabel') {
+                regionClass += ' text-region';
+            } else if (bbox.type === 'legend') {
+                regionClass += ' legend-region';
+            } else if (bbox.type === 'xticks' || bbox.type === 'yticks') {
+                regionClass += ' tick-region';
+            }
+
+            // Create rectangle for other elements
+            const x = offsetX + bbox.x * scaleX;
+            const y = offsetY + bbox.y * scaleY;
+            const width = bbox.width * scaleX;
+            const height = bbox.height * scaleY;
+
+            shape = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            shape.setAttribute('x', x);
+            shape.setAttribute('y', y);
+            shape.setAttribute('width', Math.max(width, 5));
+            shape.setAttribute('height', Math.max(height, 5));
+            shape.setAttribute('class', regionClass);
+            shape.setAttribute('data-key', key);
+
+            labelX = x + 2;
+            labelY = y - 3;
+        }
+
+        // Add hover and click handlers
+        shape.addEventListener('mouseenter', () => handleHitRegionHover(key, bbox));
+        shape.addEventListener('mouseleave', () => handleHitRegionLeave());
+        shape.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectElement({ key, ...bbox });
+        });
+
+        group.appendChild(shape);
+
+        // Create label
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        label.setAttribute('x', labelX);
+        label.setAttribute('y', labelY);
+        label.setAttribute('class', 'hitregion-label');
+        label.textContent = `${bbox.type || 'element'}: ${bbox.label || key}`;
+        group.appendChild(label);
+
+        overlay.appendChild(group);
+    }
+
+    // Also draw colorMap elements (from hitmap)
+    for (const [key, info] of Object.entries(colorMap)) {
+        // Skip if already in bboxes
+        if (currentBboxes[key]) continue;
+
+        // ColorMap entries without bboxes - show as small indicator
+        console.log('ColorMap element without bbox:', key, info);
+    }
+}
+
+// Handle hover on hit region
+function handleHitRegionHover(key, bbox) {
+    const info = document.getElementById('selected-info');
+    info.textContent = `Hover: ${bbox.type || 'element'} (${bbox.label || key})`;
+}
+
+// Handle leaving hit region
+function handleHitRegionLeave() {
+    const info = document.getElementById('selected-info');
+    if (selectedElement) {
+        info.textContent = `Selected: ${selectedElement.type} (${selectedElement.label || selectedElement.key})`;
+    } else {
+        info.textContent = 'Click on an element to select it';
+    }
+}
+
+// Update hit regions when image loads or resizes
+function updateHitRegions() {
+    if (hitmapVisible) {
+        drawHitRegions();
     }
 }
 
@@ -140,43 +326,65 @@ function handlePreviewClick(event) {
 
 // Get element at image position using hitmap
 function getElementAtPosition(imgX, imgY) {
-    if (!hitmapLoaded) return null;
+    if (!hitmapLoaded) {
+        console.log('Hitmap not loaded yet');
+        return null;
+    }
 
-    // Scale to hitmap coordinates
-    const scaleX = hitmapImg.width / imgWidth;
-    const scaleY = hitmapImg.height / imgHeight;
+    // Scale to hitmap coordinates (use current dimensions)
+    const scaleX = hitmapImg.width / currentImgWidth;
+    const scaleY = hitmapImg.height / currentImgHeight;
     const hitmapX = Math.floor(imgX * scaleX);
     const hitmapY = Math.floor(imgY * scaleY);
+
+    console.log(`Click: img(${imgX},${imgY}) -> hitmap(${hitmapX},${hitmapY}), scale(${scaleX.toFixed(2)},${scaleY.toFixed(2)})`);
+    console.log(`Hitmap size: ${hitmapImg.width}x${hitmapImg.height}, Current img: ${currentImgWidth}x${currentImgHeight}`);
 
     // Get pixel color
     try {
         const pixel = hitmapCtx.getImageData(hitmapX, hitmapY, 1, 1).data;
         const [r, g, b, a] = pixel;
 
+        console.log(`Pixel color: rgb(${r},${g},${b}) alpha=${a}`);
+
         // Skip transparent or background
-        if (a < 128) return null;
-        if (r === 26 && g === 26 && b === 26) return null;  // Background
-        if (r === 64 && g === 64 && b === 64) return null;  // Axes
+        if (a < 128) {
+            console.log('Skipping: transparent pixel');
+            return null;
+        }
+        if (r === 26 && g === 26 && b === 26) {
+            console.log('Skipping: background color');
+            return null;
+        }
+        if (r === 64 && g === 64 && b === 64) {
+            console.log('Skipping: axes color');
+            return null;
+        }
 
         // Find element by RGB color
         for (const [key, info] of Object.entries(colorMap)) {
             if (info.rgb[0] === r && info.rgb[1] === g && info.rgb[2] === b) {
+                console.log(`Found element via hitmap: ${key} (${info.type})`);
                 return { key, ...info };
             }
         }
+        console.log('No matching element in colorMap for this color');
     } catch (error) {
         console.error('Hitmap pixel read error:', error);
     }
 
     // Fallback: check bboxes
+    console.log('Falling back to bbox detection...');
     for (const [key, bbox] of Object.entries(currentBboxes)) {
         if (key === '_meta') continue;
         if (imgX >= bbox.x && imgX <= bbox.x + bbox.width &&
             imgY >= bbox.y && imgY <= bbox.y + bbox.height) {
+            console.log(`Found element via bbox: ${key}`);
             return { key, ...bbox };
         }
     }
 
+    console.log('No element found');
     return null;
 }
 
@@ -289,6 +497,12 @@ async function updatePreview() {
         const img = document.getElementById('preview-image');
         img.src = 'data:image/png;base64,' + data.image;
 
+        // Update dimensions for hitmap scaling
+        if (data.img_size) {
+            currentImgWidth = data.img_size.width;
+            currentImgHeight = data.img_size.height;
+        }
+
         // Update bboxes
         currentBboxes = data.bboxes;
 
@@ -301,6 +515,9 @@ async function updatePreview() {
 
         // Reload hitmap
         loadHitmap();
+
+        // Redraw hit regions if visible
+        updateHitRegions();
 
     } catch (error) {
         console.error('Update failed:', error);

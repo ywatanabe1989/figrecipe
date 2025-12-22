@@ -69,18 +69,22 @@ def extract_bboxes(
     if tight_bbox is None:
         tight_bbox = Bbox.from_bounds(0, 0, fig.get_figwidth(), fig.get_figheight())
 
-    # Calculate scale factors
-    fig_width_inches = tight_bbox.width
-    fig_height_inches = tight_bbox.height
-    scale_x = img_width / fig_width_inches if fig_width_inches > 0 else 1
-    scale_y = img_height / fig_height_inches if fig_height_inches > 0 else 1
+    # bbox_inches='tight' adds pad_inches (default 0.1) around the tight bbox
+    pad_inches = 0.1
+    saved_width_inches = tight_bbox.width + 2 * pad_inches
+    saved_height_inches = tight_bbox.height + 2 * pad_inches
+
+    # Calculate scale factors from saved image size to pixel size
+    scale_x = img_width / saved_width_inches if saved_width_inches > 0 else 1
+    scale_y = img_height / saved_height_inches if saved_height_inches > 0 else 1
 
     # Process each axes
     axes_list = fig.get_axes()
     for ax_idx, ax in enumerate(axes_list):
         # Axes bounding box
         ax_bbox = _get_element_bbox(
-            ax, fig, renderer, tight_bbox, img_width, img_height, scale_x, scale_y
+            ax, fig, renderer, tight_bbox, img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches
         )
         if ax_bbox:
             bboxes[f"ax{ax_idx}_axes"] = {
@@ -98,6 +102,7 @@ def extract_bboxes(
             bbox = _get_line_bbox(
                 line, ax, fig, renderer, tight_bbox,
                 img_width, img_height, scale_x, scale_y,
+                pad_inches, saved_height_inches,
                 include_points=include_points,
             )
             if bbox:
@@ -119,6 +124,7 @@ def extract_bboxes(
                 bbox = _get_collection_bbox(
                     coll, ax, fig, renderer, tight_bbox,
                     img_width, img_height, scale_x, scale_y,
+                    pad_inches, saved_height_inches,
                     include_points=include_points,
                 )
                 if bbox:
@@ -138,6 +144,7 @@ def extract_bboxes(
                 bbox = _get_collection_bbox(
                     coll, ax, fig, renderer, tight_bbox,
                     img_width, img_height, scale_x, scale_y,
+                    pad_inches, saved_height_inches,
                     include_points=False,  # Fills use bbox only
                 )
                 if bbox:
@@ -162,6 +169,7 @@ def extract_bboxes(
                 bbox = _get_patch_bbox(
                     patch, ax, fig, renderer, tight_bbox,
                     img_width, img_height, scale_x, scale_y,
+                    pad_inches, saved_height_inches,
                 )
                 if bbox:
                     bboxes[key] = {
@@ -179,6 +187,7 @@ def extract_bboxes(
             bbox = _get_text_bbox(
                 ax.title, fig, renderer, tight_bbox,
                 img_width, img_height, scale_x, scale_y,
+                pad_inches, saved_height_inches,
             )
             if bbox:
                 bboxes[key] = {
@@ -189,13 +198,14 @@ def extract_bboxes(
                     'text': title,
                 }
 
-        # X label
+        # X label (just the label text)
         xlabel = ax.get_xlabel()
         if xlabel:
             key = f"ax{ax_idx}_xlabel"
             bbox = _get_text_bbox(
                 ax.xaxis.label, fig, renderer, tight_bbox,
                 img_width, img_height, scale_x, scale_y,
+                pad_inches, saved_height_inches,
             )
             if bbox:
                 bboxes[key] = {
@@ -206,13 +216,28 @@ def extract_bboxes(
                     'text': xlabel,
                 }
 
-        # Y label
+        # X tick labels (separate hit region)
+        xtick_bbox = _get_tick_labels_bbox(
+            ax.xaxis, 'x', fig, renderer, tight_bbox,
+            img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
+        )
+        if xtick_bbox:
+            bboxes[f"ax{ax_idx}_xticks"] = {
+                **xtick_bbox,
+                'type': 'xticks',
+                'label': 'x tick labels',
+                'ax_index': ax_idx,
+            }
+
+        # Y label (just the label text)
         ylabel = ax.get_ylabel()
         if ylabel:
             key = f"ax{ax_idx}_ylabel"
             bbox = _get_text_bbox(
                 ax.yaxis.label, fig, renderer, tight_bbox,
                 img_width, img_height, scale_x, scale_y,
+                pad_inches, saved_height_inches,
             )
             if bbox:
                 bboxes[key] = {
@@ -222,6 +247,20 @@ def extract_bboxes(
                     'ax_index': ax_idx,
                     'text': ylabel,
                 }
+
+        # Y tick labels (separate hit region)
+        ytick_bbox = _get_tick_labels_bbox(
+            ax.yaxis, 'y', fig, renderer, tight_bbox,
+            img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
+        )
+        if ytick_bbox:
+            bboxes[f"ax{ax_idx}_yticks"] = {
+                **ytick_bbox,
+                'type': 'yticks',
+                'label': 'y tick labels',
+                'ax_index': ax_idx,
+            }
 
         # Legend
         legend = ax.get_legend()
@@ -233,6 +272,7 @@ def extract_bboxes(
                     bbox = _transform_bbox(
                         legend_bbox, fig, tight_bbox,
                         img_width, img_height, scale_x, scale_y,
+                        pad_inches, saved_height_inches,
                     )
                     if bbox:
                         bboxes[key] = {
@@ -254,6 +294,7 @@ def extract_bboxes(
                         bbox = _transform_bbox(
                             spine_bbox, fig, tight_bbox,
                             img_width, img_height, scale_x, scale_y,
+                            pad_inches, saved_height_inches,
                         )
                         if bbox:
                             bboxes[key] = {
@@ -286,6 +327,8 @@ def _get_element_bbox(
     img_height: int,
     scale_x: float,
     scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
 ) -> Optional[Dict[str, float]]:
     """Get bbox for a general element."""
     try:
@@ -295,6 +338,7 @@ def _get_element_bbox(
         return _transform_bbox(
             window_extent, fig, tight_bbox,
             img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
         )
     except Exception:
         return None
@@ -310,6 +354,8 @@ def _get_line_bbox(
     img_height: int,
     scale_x: float,
     scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
     include_points: bool = True,
 ) -> Optional[Dict[str, Any]]:
     """Get bbox and points for a line."""
@@ -322,6 +368,7 @@ def _get_line_bbox(
         bbox = _transform_bbox(
             window_extent, fig, tight_bbox,
             img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
         )
         if bbox is None:
             return None
@@ -346,6 +393,7 @@ def _get_line_bbox(
                         img_coords = _display_to_image(
                             display_coords[0], display_coords[1],
                             fig, tight_bbox, img_width, img_height, scale_x, scale_y,
+                            pad_inches, saved_height_inches,
                         )
                         if img_coords:
                             points.append(img_coords)
@@ -371,6 +419,8 @@ def _get_collection_bbox(
     img_height: int,
     scale_x: float,
     scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
     include_points: bool = True,
 ) -> Optional[Dict[str, Any]]:
     """Get bbox and points for a collection (scatter, fill)."""
@@ -383,6 +433,7 @@ def _get_collection_bbox(
         bbox = _transform_bbox(
             window_extent, fig, tight_bbox,
             img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
         )
         if bbox is None:
             return None
@@ -405,6 +456,7 @@ def _get_collection_bbox(
                         img_coords = _display_to_image(
                             display_coords[0], display_coords[1],
                             fig, tight_bbox, img_width, img_height, scale_x, scale_y,
+                            pad_inches, saved_height_inches,
                         )
                         if img_coords:
                             points.append(img_coords)
@@ -430,6 +482,8 @@ def _get_patch_bbox(
     img_height: int,
     scale_x: float,
     scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
 ) -> Optional[Dict[str, float]]:
     """Get bbox for a patch (bar, rectangle)."""
     try:
@@ -439,6 +493,7 @@ def _get_patch_bbox(
         return _transform_bbox(
             window_extent, fig, tight_bbox,
             img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
         )
     except Exception:
         return None
@@ -453,6 +508,8 @@ def _get_text_bbox(
     img_height: int,
     scale_x: float,
     scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
 ) -> Optional[Dict[str, float]]:
     """Get bbox for a text element."""
     try:
@@ -462,7 +519,80 @@ def _get_text_bbox(
         return _transform_bbox(
             window_extent, fig, tight_bbox,
             img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
         )
+    except Exception:
+        return None
+
+
+def _get_tick_labels_bbox(
+    axis,
+    axis_type: str,  # 'x' or 'y'
+    fig: Figure,
+    renderer,
+    tight_bbox: Bbox,
+    img_width: int,
+    img_height: int,
+    scale_x: float,
+    scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
+) -> Optional[Dict[str, float]]:
+    """
+    Get bbox for tick labels, extended to span the full axis dimension.
+
+    For x-axis: tick labels bbox spans the full width of the plot area.
+    For y-axis: tick labels bbox spans the full height of the plot area.
+    """
+    try:
+        all_bboxes = []
+
+        # Get all tick label bboxes
+        for tick in axis.get_major_ticks():
+            tick_label = tick.label1 if hasattr(tick, 'label1') else tick.label
+            if tick_label and tick_label.get_visible():
+                try:
+                    tick_extent = tick_label.get_window_extent(renderer)
+                    if tick_extent is not None and tick_extent.width > 0:
+                        all_bboxes.append(tick_extent)
+                except Exception:
+                    pass
+
+        if not all_bboxes:
+            return None
+
+        # Merge all tick label bboxes
+        merged = all_bboxes[0]
+        for bbox in all_bboxes[1:]:
+            merged = Bbox.union([merged, bbox])
+
+        # Get the axes extent to extend the tick labels region
+        ax = axis.axes
+        ax_bbox = ax.get_window_extent(renderer)
+
+        if axis_type == 'x':
+            # For x-axis: extend width to match axes width, keep tick labels height
+            merged = Bbox.from_extents(
+                ax_bbox.x0,     # Align left with axes
+                merged.y0,      # Keep tick labels y position
+                ax_bbox.x1,     # Align right with axes
+                merged.y1,      # Keep tick labels height
+            )
+        else:  # y-axis
+            # For y-axis: extend height to match axes height, keep tick labels width
+            merged = Bbox.from_extents(
+                merged.x0,      # Keep tick labels x position
+                ax_bbox.y0,     # Align bottom with axes
+                merged.x1,      # Keep tick labels width
+                ax_bbox.y1,     # Align top with axes
+            )
+
+        return _transform_bbox(
+            merged, fig, tight_bbox,
+            img_width, img_height, scale_x, scale_y,
+            pad_inches, saved_height_inches,
+        )
+
     except Exception:
         return None
 
@@ -475,6 +605,8 @@ def _transform_bbox(
     img_height: int,
     scale_x: float,
     scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
 ) -> Optional[Dict[str, float]]:
     """
     Transform matplotlib window extent to image pixel coordinates.
@@ -491,6 +623,10 @@ def _transform_bbox(
         Output image dimensions.
     scale_x, scale_y : float
         Scale factors from inches to pixels.
+    pad_inches : float
+        Padding added by bbox_inches='tight' (default 0.1).
+    saved_height_inches : float
+        Total saved image height including padding.
 
     Returns
     -------
@@ -506,11 +642,14 @@ def _transform_bbox(
         x1_inches = window_extent.x1 / dpi
         y1_inches = window_extent.y1 / dpi
 
-        # Subtract tight bbox origin
-        x0_rel = x0_inches - tight_bbox.x0
-        y0_rel = y0_inches - tight_bbox.y0
-        x1_rel = x1_inches - tight_bbox.x0
-        y1_rel = y1_inches - tight_bbox.y0
+        # Transform to saved image coordinates
+        # Account for tight bbox origin and padding
+        x0_rel = x0_inches - tight_bbox.x0 + pad_inches
+        x1_rel = x1_inches - tight_bbox.x0 + pad_inches
+
+        # Y coordinate flip: matplotlib Y=0 at bottom, image Y=0 at top
+        y0_rel = saved_height_inches - (y1_inches - tight_bbox.y0 + pad_inches)
+        y1_rel = saved_height_inches - (y0_inches - tight_bbox.y0 + pad_inches)
 
         # Scale to image pixels
         x0_px = x0_rel * scale_x
@@ -518,25 +657,21 @@ def _transform_bbox(
         x1_px = x1_rel * scale_x
         y1_px = y1_rel * scale_y
 
-        # Flip y (image origin is top-left, matplotlib is bottom-left)
-        y0_px_flipped = img_height - y1_px
-        y1_px_flipped = img_height - y0_px
-
         # Clamp to bounds
         x0_px = max(0, min(x0_px, img_width))
         x1_px = max(0, min(x1_px, img_width))
-        y0_px_flipped = max(0, min(y0_px_flipped, img_height))
-        y1_px_flipped = max(0, min(y1_px_flipped, img_height))
+        y0_px = max(0, min(y0_px, img_height))
+        y1_px = max(0, min(y1_px, img_height))
 
         width = x1_px - x0_px
-        height = y1_px_flipped - y0_px_flipped
+        height = y1_px - y0_px
 
         if width <= 0 or height <= 0:
             return None
 
         return {
             'x': float(x0_px),
-            'y': float(y0_px_flipped),
+            'y': float(y0_px),
             'width': float(width),
             'height': float(height),
         }
@@ -554,6 +689,8 @@ def _display_to_image(
     img_height: int,
     scale_x: float,
     scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
 ) -> Optional[List[float]]:
     """
     Transform display coordinates to image pixel coordinates.
@@ -570,22 +707,21 @@ def _display_to_image(
         x_inches = display_x / dpi
         y_inches = display_y / dpi
 
-        # Subtract tight bbox origin
-        x_rel = x_inches - tight_bbox.x0
-        y_rel = y_inches - tight_bbox.y0
+        # Transform to saved image coordinates with padding
+        x_rel = x_inches - tight_bbox.x0 + pad_inches
+
+        # Y coordinate flip: matplotlib Y=0 at bottom, image Y=0 at top
+        y_rel = saved_height_inches - (y_inches - tight_bbox.y0 + pad_inches)
 
         # Scale to image pixels
         x_px = x_rel * scale_x
         y_px = y_rel * scale_y
 
-        # Flip y
-        y_px_flipped = img_height - y_px
-
         # Clamp
         x_px = max(0, min(x_px, img_width))
-        y_px_flipped = max(0, min(y_px_flipped, img_height))
+        y_px = max(0, min(y_px, img_height))
 
-        return [float(x_px), float(y_px_flipped)]
+        return [float(x_px), float(y_px)]
 
     except Exception:
         return None

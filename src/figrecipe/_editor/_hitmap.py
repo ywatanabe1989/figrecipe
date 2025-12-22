@@ -414,9 +414,9 @@ def generate_hitmap(
     for ax in axes_list:
         ax.set_facecolor(_normalize_color(BACKGROUND_COLOR))
 
-    # Render to buffer
+    # Render to buffer (use bbox_inches='tight' to match preview rendering)
     buf = io.BytesIO()
-    fig.savefig(buf, format='png', dpi=dpi, facecolor=fig.get_facecolor())
+    fig.savefig(buf, format='png', dpi=dpi, facecolor=fig.get_facecolor(), bbox_inches='tight')
     buf.seek(0)
 
     # Load as PIL Image

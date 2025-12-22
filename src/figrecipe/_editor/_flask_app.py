@@ -212,6 +212,11 @@ class FigureEditor:
                 dark_mode=editor.dark_mode,
             )
 
+            # Regenerate hitmap to match new preview
+            mpl_fig = editor.fig.fig if hasattr(editor.fig, 'fig') else editor.fig
+            editor._hitmap, editor._color_map = generate_hitmap(mpl_fig)
+            editor._hitmap_base64 = hitmap_to_base64(editor._hitmap)
+
             return jsonify({
                 'image': base64_img,
                 'bboxes': bboxes,

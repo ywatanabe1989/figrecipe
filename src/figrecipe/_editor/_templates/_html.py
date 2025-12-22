@@ -23,6 +23,7 @@ HTML_TEMPLATE = """
                 <h2>Preview</h2>
                 <div class="preview-controls">
                     <button id="btn-refresh" title="Refresh preview">Refresh</button>
+                    <button id="btn-show-hitmap" title="Toggle hitmap overlay for debugging">Show Hit Regions</button>
                     <label class="theme-toggle">
                         <input type="checkbox" id="dark-mode-toggle">
                         <span>Dark Mode</span>
@@ -31,6 +32,7 @@ HTML_TEMPLATE = """
             </div>
             <div class="preview-wrapper">
                 <img id="preview-image" src="data:image/png;base64,IMAGE_BASE64_PLACEHOLDER" alt="Figure preview">
+                <svg id="hitregion-overlay" class="hitregion-overlay"></svg>
                 <svg id="selection-overlay" class="selection-overlay"></svg>
                 <canvas id="hitmap-canvas" style="display: none;"></canvas>
             </div>

@@ -118,6 +118,114 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.hitregion-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    display: none;
+}
+
+.hitregion-overlay.visible {
+    display: block;
+}
+
+.hitregion-rect {
+    fill: transparent;
+    stroke: rgba(100, 180, 255, 0.5);
+    stroke-width: 2;
+    stroke-dasharray: 6, 3;
+    pointer-events: all;
+    cursor: pointer;
+    transition: fill 0.2s, stroke 0.2s, filter 0.2s;
+}
+
+.hitregion-rect:hover {
+    fill: rgba(100, 180, 255, 0.15);
+    stroke: rgba(100, 180, 255, 1);
+    stroke-width: 2;
+    filter: drop-shadow(0 0 3px rgba(100, 180, 255, 0.6));
+}
+
+.hitregion-polyline {
+    fill: none !important;
+    stroke: rgba(255, 200, 100, 0.6);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: stroke;
+    cursor: pointer;
+    transition: stroke 0.2s, stroke-width 0.2s, filter 0.2s;
+}
+
+.hitregion-polyline:hover {
+    fill: none !important;
+    stroke: rgba(255, 200, 50, 0.95);
+    stroke-width: 12;
+    filter: drop-shadow(0 0 6px rgba(255, 200, 50, 0.9));
+}
+
+.hitregion-rect.line-region {
+    stroke: rgba(255, 200, 100, 0.6);
+}
+
+.hitregion-rect.line-region:hover {
+    fill: rgba(255, 200, 100, 0.15);
+    stroke: rgba(255, 200, 100, 1);
+    filter: drop-shadow(0 0 3px rgba(255, 200, 100, 0.6));
+}
+
+.hitregion-rect.text-region {
+    stroke: rgba(100, 220, 150, 0.6);
+}
+
+.hitregion-rect.text-region:hover {
+    fill: rgba(100, 220, 150, 0.15);
+    stroke: rgba(100, 220, 150, 1);
+    filter: drop-shadow(0 0 3px rgba(100, 220, 150, 0.6));
+}
+
+.hitregion-rect.legend-region {
+    stroke: rgba(220, 180, 100, 0.6);
+}
+
+.hitregion-rect.legend-region:hover {
+    fill: rgba(220, 180, 100, 0.15);
+    stroke: rgba(220, 180, 100, 1);
+    filter: drop-shadow(0 0 3px rgba(220, 180, 100, 0.6));
+}
+
+.hitregion-rect.tick-region {
+    stroke: rgba(180, 100, 220, 0.6);
+}
+
+.hitregion-rect.tick-region:hover {
+    fill: rgba(180, 100, 220, 0.15);
+    stroke: rgba(180, 100, 220, 1);
+    filter: drop-shadow(0 0 3px rgba(180, 100, 220, 0.6));
+}
+
+.hitregion-label {
+    font-size: 10px;
+    fill: var(--text-primary);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.hitregion-rect:hover + .hitregion-label,
+.hitregion-group:hover .hitregion-label {
+    opacity: 1;
+}
+
+#btn-show-hitmap.active {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
 .selection-overlay {
     position: absolute;
     top: 0;
