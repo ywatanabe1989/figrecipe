@@ -41,7 +41,7 @@ allowing figures to be:
 
 ## Key Features
 
-- ✅ Drop-in replacement for `matplotlib.pyplot`
+- ✅ Drop-in replacement for `matplotlib.pyplot` (use `fr.subplots()` to enable recording)
 - ✅ Automatic recording of plotting calls
 - ✅ Reproduce figures from a YAML recipe
 - ✅ Extract plotted data programmatically
@@ -59,11 +59,17 @@ allowing figures to be:
 ```bash
 pip install figrecipe
 
+# Optional extras
+pip install figrecipe[seaborn]   # seaborn + pandas support
+pip install figrecipe[imaging]   # image cropping (Pillow)
+pip install figrecipe[all]       # all extras
+
 # Optional: for PDF export from notebooks (SVG → PDF)
 sudo apt install inkscape  # Linux
 brew install inkscape      # macOS
-
 ```
+
+**Requirements:** Python >= 3.9
 
 ## Basic Usage
 
@@ -277,7 +283,7 @@ It focuses on recording, reproduction, and layout fidelity.
 
 Higher-level workflows (figures, tables, statistics, GUIs) are handled in:
 
-FTS (Figure-Table-Statics Bundle) in SciTeX ecosystem (https://scitex.ai/vis/)
+FTS (Figure-Table-Statistics Bundle) in SciTeX ecosystem (https://scitex.ai/vis/)
 
 
 ## License
