@@ -58,7 +58,7 @@ HTML_TEMPLATE = """
 
             <div class="controls-sections">
                 <!-- Dimensions Section -->
-                <details class="section" open>
+                <details class="section" id="section-dimensions" open>
                     <summary>Dimensions</summary>
                     <div class="section-content">
                         <div class="subsection">
@@ -112,7 +112,7 @@ HTML_TEMPLATE = """
                 </details>
 
                 <!-- Fonts Section -->
-                <details class="section">
+                <details class="section" id="section-fonts">
                     <summary>Fonts</summary>
                     <div class="section-content">
                         <div class="form-row">
@@ -154,7 +154,7 @@ HTML_TEMPLATE = """
                 </details>
 
                 <!-- Lines & Markers Section -->
-                <details class="section">
+                <details class="section" id="section-lines">
                     <summary>Lines & Markers</summary>
                     <div class="section-content">
                         <div class="subsection">
@@ -191,7 +191,7 @@ HTML_TEMPLATE = """
                 </details>
 
                 <!-- Ticks Section -->
-                <details class="section">
+                <details class="section" id="section-ticks">
                     <summary>Ticks</summary>
                     <div class="section-content">
                         <div class="form-row">
@@ -218,7 +218,7 @@ HTML_TEMPLATE = """
                 </details>
 
                 <!-- Legend Section -->
-                <details class="section">
+                <details class="section" id="section-legend">
                     <summary>Legend</summary>
                     <div class="section-content">
                         <div class="form-row">
@@ -253,7 +253,7 @@ HTML_TEMPLATE = """
                 </details>
 
                 <!-- Behavior Section -->
-                <details class="section">
+                <details class="section" id="section-behavior">
                     <summary>Behavior</summary>
                     <div class="section-content">
                         <div class="form-row">

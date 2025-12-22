@@ -284,7 +284,8 @@ def extract_bboxes(
             except Exception:
                 pass
 
-        # Spines
+        # Spines (with padding for easier clicking)
+        spine_min_size = 8  # Minimum hit region size in pixels
         for spine_name, spine in ax.spines.items():
             if spine.get_visible():
                 key = f"ax{ax_idx}_spine_{spine_name}"
@@ -297,6 +298,15 @@ def extract_bboxes(
                             pad_inches, saved_height_inches,
                         )
                         if bbox:
+                            # Expand thin spines for easier clicking
+                            if bbox['width'] < spine_min_size:
+                                expand = (spine_min_size - bbox['width']) / 2
+                                bbox['x'] -= expand
+                                bbox['width'] = spine_min_size
+                            if bbox['height'] < spine_min_size:
+                                expand = (spine_min_size - bbox['height']) / 2
+                                bbox['y'] -= expand
+                                bbox['height'] = spine_min_size
                             bboxes[key] = {
                                 **bbox,
                                 'type': 'spine',

@@ -199,10 +199,31 @@ function drawHitRegions() {
     console.log('Image display:', imgRect.width, 'x', imgRect.height);
     console.log('Scale:', scaleX, scaleY);
 
-    // Draw shapes for each bbox
-    for (const [key, bbox] of Object.entries(currentBboxes)) {
-        if (key === '_meta') continue;
-        if (!bbox || typeof bbox.x === 'undefined') continue;
+    // Sort by z-order: background first, foreground last (so foreground is on top)
+    // Higher z-order = drawn later = on top = can be clicked first
+    const zOrderPriority = {
+        'axes': 0,     // Background - lowest priority, drawn first
+        'spine': 1,
+        'fill': 2,
+        'bar': 3,
+        'xticks': 4,
+        'yticks': 4,
+        'line': 5,     // Foreground
+        'scatter': 6,
+        'title': 7,
+        'xlabel': 7,
+        'ylabel': 7,
+        'legend': 8,   // Topmost - highest priority, drawn last
+    };
+
+    // Convert to array, filter, and sort by z-order
+    // Skip 'axes' type - users should click on individual elements or spines instead
+    const sortedEntries = Object.entries(currentBboxes)
+        .filter(([key, bbox]) => key !== '_meta' && bbox && typeof bbox.x !== 'undefined' && bbox.type !== 'axes')
+        .sort((a, b) => (zOrderPriority[a[1].type] || 5) - (zOrderPriority[b[1].type] || 5));
+
+    // Draw shapes for each bbox (in z-order)
+    for (const [key, bbox] of sortedEntries) {
 
         // Create group for shape and label
         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -313,8 +334,10 @@ function handleHitRegionLeave() {
 // Handle click on hit region with Alt+Click cycling support
 function handleHitRegionClick(event, key, bbox) {
     event.stopPropagation();
+    event.preventDefault();  // Prevent browser default Alt+Click behavior
 
     const element = { key, ...bbox };
+    console.log('Hit region click:', key, 'altKey:', event.altKey);
 
     if (event.altKey) {
         // Alt+Click: cycle through overlapping elements at this position
@@ -500,6 +523,91 @@ function selectElement(element) {
 
     // Draw selection overlay
     drawSelection(element.key);
+
+    // Sync properties panel to show relevant section
+    syncPropertiesToElement(element);
+}
+
+// Sync properties panel to selected element
+function syncPropertiesToElement(element) {
+    // Map element types to section IDs
+    const sectionMap = {
+        'axes': 'section-dimensions',
+        'line': 'section-lines',
+        'scatter': 'section-lines',
+        'bar': 'section-lines',
+        'fill': 'section-lines',
+        'title': 'section-fonts',
+        'xlabel': 'section-fonts',
+        'ylabel': 'section-fonts',
+        'xticks': 'section-ticks',
+        'yticks': 'section-ticks',
+        'legend': 'section-legend',
+        'spine': 'section-dimensions',
+    };
+
+    // Get the relevant section ID
+    const sectionId = sectionMap[element.type] || 'section-dimensions';
+
+    // Remove highlight from all sections
+    document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('section-highlighted');
+    });
+
+    // Find and highlight the relevant section
+    const section = document.getElementById(sectionId);
+    if (section) {
+        // Open the section if closed
+        section.setAttribute('open', '');
+        // Add highlight class
+        section.classList.add('section-highlighted');
+        // Scroll to section
+        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Update displayed values for the selected element type
+    updateElementProperties(element);
+}
+
+// Update property values for selected element
+function updateElementProperties(element) {
+    // Clear previous field highlights
+    document.querySelectorAll('.form-row').forEach(row => {
+        row.classList.remove('field-highlighted');
+    });
+
+    // Map element types to relevant form field IDs
+    const fieldMap = {
+        'line': ['lines_trace_mm', 'lines_errorbar_mm', 'lines_errorbar_cap_mm'],
+        'scatter': ['markers_size_mm', 'markers_scatter_mm', 'markers_edge_width_mm'],
+        'bar': ['lines_trace_mm'],
+        'fill': ['lines_trace_mm'],
+        'title': ['fonts_title_pt', 'fonts_family'],
+        'xlabel': ['fonts_axis_label_pt', 'fonts_family'],
+        'ylabel': ['fonts_axis_label_pt', 'fonts_family'],
+        'xticks': ['fonts_tick_label_pt', 'ticks_length_mm', 'ticks_thickness_mm', 'ticks_direction'],
+        'yticks': ['fonts_tick_label_pt', 'ticks_length_mm', 'ticks_thickness_mm', 'ticks_direction'],
+        'legend': ['fonts_legend_pt', 'legend_frameon', 'legend_loc', 'legend_alpha', 'legend_bg', 'legend_edgecolor'],
+        'spine': ['axes_thickness_mm'],
+        'axes': ['axes_width_mm', 'axes_height_mm', 'axes_thickness_mm', 'margins_left_mm', 'margins_right_mm', 'margins_bottom_mm', 'margins_top_mm'],
+    };
+
+    // Get relevant fields for this element type
+    const relevantFields = fieldMap[element.type] || [];
+
+    // Highlight relevant form fields
+    relevantFields.forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (input) {
+            const formRow = input.closest('.form-row');
+            if (formRow) {
+                formRow.classList.add('field-highlighted');
+            }
+        }
+    });
+
+    console.log('Selected element:', element.type, element.key);
+    console.log('Relevant fields:', relevantFields);
 }
 
 // Clear selection
@@ -507,6 +615,10 @@ function clearSelection() {
     selectedElement = null;
     document.getElementById('selected-info').textContent = 'Click on an element to select it';
     clearSelectionOverlay();
+
+    // Clear section and field highlights
+    document.querySelectorAll('.section-highlighted').forEach(s => s.classList.remove('section-highlighted'));
+    document.querySelectorAll('.field-highlighted').forEach(f => f.classList.remove('field-highlighted'));
 }
 
 // Draw selection rectangle

@@ -125,6 +125,7 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
+    z-index: 10;  /* Above the preview image */
 }
 
 /* Always display overlay for hover detection, but control visibility via children */
@@ -324,6 +325,42 @@ body {
 
 .section[open] summary::before {
     transform: rotate(90deg);
+}
+
+.section-highlighted {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.section-highlighted summary {
+    background: rgba(37, 99, 235, 0.1);
+    border-left: 3px solid var(--accent-color);
+}
+
+[data-theme="dark"] .section-highlighted {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .section-highlighted summary {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+/* Field highlighting for selected element */
+.field-highlighted {
+    background: rgba(37, 99, 235, 0.08);
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin: -6px -8px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--accent-color);
+}
+
+.field-highlighted:last-child {
+    margin-bottom: 0;
+}
+
+[data-theme="dark"] .field-highlighted {
+    background: rgba(59, 130, 246, 0.12);
 }
 
 .section-content {
