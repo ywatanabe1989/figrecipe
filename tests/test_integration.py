@@ -49,11 +49,13 @@ class TestSubplotsAndSave:
             fig, ax = ps.subplots()
             ax.plot(x, y, color='red', linewidth=2)
 
-            recipe_path = Path(tmpdir) / "test_recipe.yaml"
-            saved_path = ps.save(fig, recipe_path, validate=False)
+            recipe_path = Path(tmpdir) / "test_recipe.png"
+            img_path, yaml_path, result = ps.save(fig, recipe_path, validate=False)
 
-            assert saved_path.exists()
-            assert saved_path.suffix == ".yaml"
+            assert img_path.exists()
+            assert yaml_path.exists()
+            assert img_path.suffix == ".png"
+            assert yaml_path.suffix == ".yaml"
 
             plt.close(fig.fig)
 
@@ -65,11 +67,11 @@ class TestSubplotsAndSave:
             fig, ax = ps.subplots()
             ax.plot([1, 2, 3], [4, 5, 6], id='my_line')
 
-            recipe_path = Path(tmpdir) / "custom_id.yaml"
-            ps.save(fig, recipe_path, validate=False)
+            recipe_path = Path(tmpdir) / "custom_id.png"
+            img_path, yaml_path, result = ps.save(fig, recipe_path, validate=False)
 
             # Check the recipe contains our custom ID
-            info = ps.info(recipe_path)
+            info = ps.info(yaml_path)
             call_ids = [c['id'] for c in info['calls']]
             assert 'my_line' in call_ids
 
