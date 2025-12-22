@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2025-12-22 13:01:11
+!-- Timestamp: 2025-12-22 13:36:01
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -19,6 +19,7 @@ Part of **SciTeX™ – Research OS for reproducible science**
 https://scitex.ai
 
 [![PyPI version](https://badge.fury.io/py/figrecipe.svg)](https://badge.fury.io/py/figrecipe)
+[![Tests](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 ---
@@ -41,7 +42,7 @@ allowing figures to be:
 
 ## Key Features
 
-- ✅ Drop-in replacement for `matplotlib.pyplot` (use `fr.subplots()` to enable recording)
+- ✅ Drop-in replacement for `matplotlib.pyplot` (use `figrecipe.pyplot` to enable recording)
 - ✅ Automatic recording of plotting calls
 - ✅ Reproduce figures from a YAML recipe
 - ✅ Extract plotted data programmatically
@@ -53,6 +54,14 @@ allowing figures to be:
 - ✅ Crop figures to content with mm margins
 
 ---
+
+## Examples
+
+📓 **[View Demo Notebook on nbviewer](https://nbviewer.org/github/ywatanabe1989/figrecipe/blob/main/examples/figrecipe_demo.ipynb)** (recommended)
+
+The notebook includes side-by-side comparisons of original and reproduced figures.
+
+Source: [examples/figrecipe_demo.ipynb](examples/figrecipe_demo.ipynb)
 
 ## Installation
 
@@ -77,12 +86,13 @@ brew install inkscape      # macOS
 
 ``` python
 import figrecipe as fr
+# import figrecipe.pyplot as plt
 import numpy as np
 
 x = np.linspace(0, 10, 100)
 y = np.sin(x)
 
-fig, ax = fr.subplots()
+fig, ax = fr.subplots() # or plt.subplots()
 ax.plot(x, y, color='red', linewidth=2, id='sine_wave')
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Amplitude')
@@ -141,149 +151,167 @@ fr.load_style('/path/to/my_style.yaml')
 
 See docs/EXAMPLE_RECIPE.yaml for a full style template.
 
-### Recipe Format (YAML)
+### Style Format (YAML)
 
 ``` yaml
-# Timestamp: "2025-12-22 11:53:14 (ywatanabe)"
-# File: ./docs/EXAMPLE_RECIPE.yaml
-# MATPLOTLIB Style Preset
-# =======================
-# Vanilla matplotlib defaults - minimal customization.
-# Use this to reset to standard matplotlib behavior.
+# Timestamp: "2025-12-22 12:40:36 (ywatanabe)"
+# File: ./src/figrecipe/styles/presets/SCITEX.yaml
+# FIGRECIPE Style Preset
+# ======================
+# Publication-quality settings for scientific figures.
+# Optimized for scientific journals with Arial font.
 
 axes:
-  width_mm: null   # Use matplotlib default (auto)
-  height_mm: null  # Use matplotlib default (auto)
-  thickness_mm: null  # Use matplotlib default
+  width_mm: 40
+  height_mm: 28
+  thickness_mm: 0.2
 
 margins:
-  left_mm: null
-  right_mm: null
-  bottom_mm: null
-  top_mm: null
+  left_mm: 1
+  right_mm: 1
+  bottom_mm: 1
+  top_mm: 1
 
 spacing:
-  horizontal_mm: null
-  vertical_mm: null
+  horizontal_mm: 8
+  vertical_mm: 10
 
 fonts:
-  family: null  # matplotlib default (DejaVu Sans)
-  axis_label_pt: null
-  tick_label_pt: null
-  title_pt: null
-  suptitle_pt: null
-  legend_pt: null
-  annotation_pt: null
+  family: "Arial"
+  axis_label_pt: 7
+  tick_label_pt: 7
+  title_pt: 8
+  suptitle_pt: 8
+  legend_pt: 6
+  annotation_pt: 6
 
 padding:
-  label_pt: null
-  tick_pt: null
-  title_pt: null
+  label_pt: 2.0
+  tick_pt: 2.0
+  title_pt: 4.0
 
 lines:
-  trace_mm: null
-  errorbar_mm: null
-  errorbar_cap_mm: null
+  trace_mm: 0.2
+  errorbar_mm: 0.2
+  errorbar_cap_mm: 0.8
 
 ticks:
-  length_mm: null
-  thickness_mm: null
-  direction: null
-  n_ticks: null
+  length_mm: 0.8
+  thickness_mm: 0.2
+  direction: "out"
+  n_ticks: 4
 
 markers:
-  size_mm: null
-  scatter_mm: null
-  edge_width_mm: null
+  size_mm: 0.8
+  scatter_mm: 0.8
+  edge_width_mm: null  # None = no border (cleaner than 0)
 
 legend:
-  frameon: null          # matplotlib default (True)
-  bg: null               # matplotlib default
-  edgecolor: null        # matplotlib default
-  alpha: null            # matplotlib default
-  loc: null              # matplotlib default
+  frameon: false         # No frame for clean look
+  bg: null               # Background (null = use theme.legend_bg)
+  edgecolor: null        # Frame edge color
+  alpha: 1.0             # Transparency
+  loc: "best"
 
 output:
   dpi: 300
-  transparent: false
-  format: "png"
+  transparent: true
+  format: "pdf"
 
 behavior:
-  auto_scale_axes: false
-  hide_top_spine: false
-  hide_right_spine: false
+  auto_scale_axes: true
+  hide_top_spine: true
+  hide_right_spine: true
   grid: false
 
 theme:
   mode: "light"
   dark:
-    figure_bg: "#1e1e1e"
-    axes_bg: "#1e1e1e"
-    legend_bg: "#1e1e1e"
-    text: "#d4d4d4"
-    spine: "#3c3c3c"
-    tick: "#d4d4d4"
+    figure_bg: "transparent"
+    axes_bg: "transparent"
+    legend_bg: "transparent"
+    text: "#3c33c"
+    spine: "#3c33c"
+    tick: "#3c3c3c"
     grid: "#3a3a3a"
   light:
-    figure_bg: "white"
-    axes_bg: "white"
-    legend_bg: "white"
+    figure_bg: "transparent"
+    axes_bg: "transparent"
+    legend_bg: "transparent"
     text: "black"
     spine: "black"
     tick: "black"
     grid: "#cccccc"
 
-# Standard matplotlib color cycle (tab10)
+# SciTeX Color Palette (RGB format)
 colors:
   palette:
-    - [31, 119, 180]     # tab:blue
-    - [255, 127, 14]     # tab:orange
-    - [44, 160, 44]      # tab:green
-    - [214, 39, 40]      # tab:red
-    - [148, 103, 189]    # tab:purple
-    - [140, 86, 75]      # tab:brown
-    - [227, 119, 194]    # tab:pink
-    - [127, 127, 127]    # tab:gray
-    - [188, 189, 34]     # tab:olive
-    - [23, 190, 207]     # tab:cyan
+    - [0, 128, 192]      # blue
+    - [255, 70, 50]      # red
+    - [20, 180, 20]      # green
+    - [230, 160, 20]     # yellow
+    - [200, 50, 255]     # purple
+    - [20, 200, 200]     # lightblue
+    - [228, 94, 50]      # orange
+    - [255, 150, 200]    # pink
+
+  # Named colors
+  white: [255, 255, 255]
+  black: [0, 0, 0]
+  blue: [0, 128, 192]
+  red: [255, 70, 50]
+  pink: [255, 150, 200]
+  green: [20, 180, 20]
+  yellow: [230, 160, 20]
+  gray: [128, 128, 128]
+  grey: [128, 128, 128]
+  purple: [200, 50, 255]
+  lightblue: [20, 200, 200]
+  brown: [128, 0, 0]
+  navy: [0, 0, 100]
+  orange: [228, 94, 50]
+
+  # Semantic
+  primary: [0, 128, 192]
+  secondary: [255, 70, 50]
+  accent: [20, 180, 20]
 
 # EOF
 ```
 
-The recipe is human-readable, version-controllable, and inspectable.
+See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for full examples.
 
 
 ### API Overview
 
-| Function                      | Description                       |
-| ----------------------------- | --------------------------------- |
-| `fr.subplots()`               | Create a recording-enabled figure |
-| `fr.save(fig, 'fig.png')`     | Save image + recipe               |
-| `fr.reproduce('fig.yaml')`    | Reproduce figure from recipe      |
-| `fr.extract_data('fig.yaml')` | Extract plotted data              |
-| `fr.info('fig.yaml')`         | Inspect recipe metadata           |
-| `fr.load_style()`             | Load style preset (global)        |
-| `fr.list_presets()`           | List available presets            |
-| `fr.crop('fig.png')`          | Crop to content with mm margin    |
-
-
-### Examples
-- 📓 Interactive demo notebook:
-  examples/figrecipe_demo.ipynb
-
-- 🌐 View on nbviewer:
-  https://nbviewer.org/github/ywatanabe1989/figrecipe/blob/main/examples/figrecipe_demo.ipynb
-
-The notebook includes side-by-side comparisons of original and reproduced figures.
+| Import                           | Description                                       |
+|----------------------------------|---------------------------------------------------|
+| `import figrecipe.pyplot as plt` | Drop-in replacement of `matplotlib.pyplot as plt` |
+| `import figrecipe as fr`         | Import figrecipe package                          |
+|----------------------------------|---------------------------------------------------|
+| Function                         |                                                   |
+|----------------------------------|---------------------------------------------------|
+| `fr.subplots()`                  | Create a recording-enabled figure                 |
+| `fr.save(fig, 'fig.png')`        | Save image + recipe                               |
+| `fr.reproduce('fig.yaml')`       | Reproduce figure from recipe                      |
+| `fr.extract_data('fig.yaml')`    | Extract plotted data                              |
+| `fr.info('fig.yaml')`            | Inspect recipe metadata                           |
+| `fr.load_style()`                | Load style preset (global)                        |
+| `fr.list_presets()`              | List available presets                            |
+| `fr.crop('fig.png')`             | Crop to content with mm margin                    |
 
 ## Positioning
 
-FigRecipe is intentionally minimal.
-It focuses on recording, reproduction, and layout fidelity.
+FigRecipe focuses on *how* figures are constructed, not *what* they represent.
 
-Higher-level workflows (figures, tables, statistics, GUIs) are handled in:
+FigRecipe is intentionally minimal, focusing on recording, reproduction, and layout fidelity.
 
-FTS (Figure-Table-Statistics Bundle) in SciTeX ecosystem (https://scitex.ai/vis/)
+Higher-level workflows (figures–tables–statistics bundle, GUI editor, and integration with manuscript Writing) are handled in:
+
+FTS (Figure-Table-Statistics Bundle) in SciTeX Ecosystem:
+https://github.com/ywatanabe1989/scitex-code
+https://scitex.ai/vis/
+https://scitex.ai/writer/
 
 
 ## License
