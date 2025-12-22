@@ -18,21 +18,20 @@ Usage:
     fig, ax = ps.subplots(**style.to_subplots_kwargs())
 """
 
-from ._style_loader import (
-    load_style,
-    unload_style,
-    get_style,
-    reload_style,
-    list_presets,
-    STYLE,
-    to_subplots_kwargs,
-)
-
 from ._style_applier import (
     apply_style_mm,
     apply_theme_colors,
     check_font,
     list_available_fonts,
+)
+from ._style_loader import (
+    STYLE,
+    get_style,
+    list_presets,
+    load_style,
+    reload_style,
+    to_subplots_kwargs,
+    unload_style,
 )
 
 __all__ = [

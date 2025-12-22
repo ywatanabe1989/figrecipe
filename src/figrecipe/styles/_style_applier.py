@@ -30,6 +30,7 @@ def list_available_fonts() -> List[str]:
     ['Arial', 'Courier New', 'DejaVu Sans', ...]
     """
     import matplotlib.font_manager as fm
+
     fonts = set()
     for font in fm.fontManager.ttflist:
         fonts.add(font.name)
@@ -56,7 +57,6 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
     >>> font = check_font("Arial")  # Returns "Arial" if available
     >>> font = check_font("NonExistentFont")  # Returns fallback with warning
     """
-    import matplotlib.font_manager as fm
 
     available = list_available_fonts()
 
@@ -70,8 +70,8 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
     if similar:
         msg += f"  Similar fonts available: {similar[:5]}\n"
     msg += f"  Using fallback: '{fallback}'\n"
-    msg += f"  To see all available fonts: ps.list_available_fonts()\n"
-    msg += f"  To install Arial on Linux: sudo apt install ttf-mscorefonts-installer"
+    msg += "  To see all available fonts: ps.list_available_fonts()\n"
+    msg += "  To install Arial on Linux: sudo apt install ttf-mscorefonts-installer"
 
     warnings.warn(msg, UserWarning)
 
@@ -81,18 +81,18 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
 # Default theme color palettes (Monaco/VS Code style for dark)
 THEME_COLORS = {
     "dark": {
-        "figure_bg": "#1e1e1e",     # VS Code main background
-        "axes_bg": "#252526",       # VS Code panel background
-        "legend_bg": "#252526",     # Same as axes
-        "text": "#d4d4d4",          # VS Code default text
-        "spine": "#3c3c3c",         # Subtle border color
-        "tick": "#d4d4d4",          # Match text
-        "grid": "#3a3a3a",          # Subtle grid
+        "figure_bg": "#1e1e1e",  # VS Code main background
+        "axes_bg": "#252526",  # VS Code panel background
+        "legend_bg": "#252526",  # Same as axes
+        "text": "#d4d4d4",  # VS Code default text
+        "spine": "#3c3c3c",  # Subtle border color
+        "tick": "#d4d4d4",  # Match text
+        "grid": "#3a3a3a",  # Subtle grid
     },
     "light": {
-        "figure_bg": "none",        # Transparent
-        "axes_bg": "none",          # Transparent
-        "legend_bg": "none",        # Transparent
+        "figure_bg": "none",  # Transparent
+        "axes_bg": "none",  # Transparent
+        "legend_bg": "none",  # Transparent
         "text": "black",
         "spine": "black",
         "tick": "black",
@@ -262,8 +262,24 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     marker_size_mm = style.get("marker_size_mm")
     if marker_size_mm is not None:
         import matplotlib as mpl
+
         marker_size_pt = mm_to_pt(marker_size_mm)
         mpl.rcParams["lines.markersize"] = marker_size_pt
+
+    # Set boxplot flier (outlier) marker size
+    flier_mm = style.get("markers_flier_mm", style.get("flier_mm"))
+    if flier_mm is not None:
+        import matplotlib as mpl
+
+        flier_size_pt = mm_to_pt(flier_mm)
+        mpl.rcParams["boxplot.flierprops.markersize"] = flier_size_pt
+
+    # Set boxplot median color
+    median_color = style.get("boxplot_median_color")
+    if median_color is not None:
+        import matplotlib as mpl
+
+        mpl.rcParams["boxplot.medianprops.color"] = median_color
 
     # Configure tick parameters
     tick_pad_pt = style.get("tick_pad_pt", 2.0)
@@ -305,8 +321,9 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
 
     # Set legend font size and background via rcParams (for future legends)
     import matplotlib as mpl
-    mpl.rcParams['legend.fontsize'] = legend_fs
-    mpl.rcParams['legend.title_fontsize'] = legend_fs
+
+    mpl.rcParams["legend.fontsize"] = legend_fs
+    mpl.rcParams["legend.title_fontsize"] = legend_fs
 
     # Set legend colors from theme
     theme = style.get("theme", "light")
@@ -323,15 +340,15 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
 
     # Handle transparent backgrounds
     if str(legend_bg).lower() in ("none", "transparent"):
-        mpl.rcParams['legend.facecolor'] = 'none'
-        mpl.rcParams['legend.framealpha'] = 0
+        mpl.rcParams["legend.facecolor"] = "none"
+        mpl.rcParams["legend.framealpha"] = 0
     else:
-        mpl.rcParams['legend.facecolor'] = legend_bg
-        mpl.rcParams['legend.framealpha'] = 1.0
+        mpl.rcParams["legend.facecolor"] = legend_bg
+        mpl.rcParams["legend.framealpha"] = 1.0
 
     # Set legend text and edge colors
-    mpl.rcParams['legend.edgecolor'] = spine_color
-    mpl.rcParams['legend.labelcolor'] = text_color
+    mpl.rcParams["legend.edgecolor"] = spine_color
+    mpl.rcParams["legend.labelcolor"] = text_color
 
     legend = ax.get_legend()
     if legend is not None:
@@ -349,6 +366,7 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     n_ticks = style.get("n_ticks")
     if n_ticks is not None:
         from matplotlib.ticker import MaxNLocator
+
         ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
         ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
 
@@ -356,6 +374,7 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     color_palette = style.get("color_palette")
     if color_palette is not None:
         import matplotlib as mpl
+
         # Normalize colors (RGB 0-255 to 0-1)
         normalized_palette = []
         for c in color_palette:
@@ -368,7 +387,7 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
             else:
                 normalized_palette.append(c)
         # Set rcParams for future axes
-        mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=normalized_palette)
+        mpl.rcParams["axes.prop_cycle"] = mpl.cycler(color=normalized_palette)
         # Also set the color cycle on this specific axes (axes cache cycler at creation)
         ax.set_prop_cycle(color=normalized_palette)
 

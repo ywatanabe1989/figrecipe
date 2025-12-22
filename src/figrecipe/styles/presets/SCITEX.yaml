@@ -48,7 +48,11 @@ ticks:
 markers:
   size_mm: 0.8
   scatter_mm: 0.8
+  flier_mm: 0.8        # Boxplot outlier marker size
   edge_width_mm: null  # None = no border (cleaner than 0)
+
+boxplot:
+  median_color: "black"  # Median line color
 
 legend:
   frameon: false         # No frame for clean look
