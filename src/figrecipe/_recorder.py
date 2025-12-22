@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Core recording functionality for plotspec."""
+"""Core recording functionality for figrecipe."""
 
 from collections import OrderedDict
 from dataclasses import dataclass, field
@@ -78,8 +78,14 @@ class FigureRecord:
     created: str = field(default_factory=lambda: datetime.now().isoformat())
     matplotlib_version: str = field(default_factory=lambda: matplotlib.__version__)
     figsize: Tuple[float, float] = (6.4, 4.8)
-    dpi: int = 100
+    dpi: int = 300
     axes: Dict[str, AxesRecord] = field(default_factory=dict)
+    # Layout parameters (subplots_adjust)
+    layout: Optional[Dict[str, float]] = None
+    # Style parameters
+    style: Optional[Dict[str, Any]] = None
+    # Constrained layout flag
+    constrained_layout: bool = False
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -94,8 +100,8 @@ class FigureRecord:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
-            "plotspec": "1.0",
+        result = {
+            "figrecipe": "1.0",
             "id": self.id,
             "created": self.created,
             "matplotlib_version": self.matplotlib_version,
@@ -105,6 +111,16 @@ class FigureRecord:
             },
             "axes": {k: v.to_dict() for k, v in self.axes.items()},
         }
+        # Add layout if set
+        if self.layout is not None:
+            result["figure"]["layout"] = self.layout
+        # Add style if set
+        if self.style is not None:
+            result["figure"]["style"] = self.style
+        # Add constrained_layout if True
+        if self.constrained_layout:
+            result["figure"]["constrained_layout"] = True
+        return result
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "FigureRecord":
@@ -115,7 +131,10 @@ class FigureRecord:
             created=data.get("created", ""),
             matplotlib_version=data.get("matplotlib_version", ""),
             figsize=tuple(fig_data.get("figsize", [6.4, 4.8])),
-            dpi=fig_data.get("dpi", 100),
+            dpi=fig_data.get("dpi", 300),
+            layout=fig_data.get("layout"),
+            style=fig_data.get("style"),
+            constrained_layout=fig_data.get("constrained_layout", False),
         )
 
         # Reconstruct axes
@@ -169,7 +188,7 @@ class Recorder:
     def start_figure(
         self,
         figsize: Tuple[float, float] = (6.4, 4.8),
-        dpi: int = 100,
+        dpi: int = 300,
     ) -> FigureRecord:
         """Start recording a new figure."""
         self._figure_record = FigureRecord(figsize=figsize, dpi=dpi)

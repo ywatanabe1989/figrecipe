@@ -3,11 +3,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "plotspec"
-version = "0.1.0"
-description = "Record and reproduce matplotlib figures"
+name = "figrecipe"
+version = "0.5.0"
+description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
-license = "MIT"
+license = "AGPL-3.0"
 requires-python = ">=3.9"
 authors = [
     { name = "Yusuke Watanabe", email = "ywatanabe@scitex.ai" },
@@ -18,11 +18,15 @@ keywords = [
     "visualization",
     "scientific",
     "plotting",
+    "publication",
+    "recipe",
+    "yaml",
+    "millimeter",
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
@@ -45,20 +49,26 @@ dev = [
 imaging = [
     "Pillow>=9.0.0",
 ]
+seaborn = [
+    "seaborn>=0.12.0",
+    "pandas>=1.3.0",
+]
 all = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "Pillow>=9.0.0",
+    "seaborn>=0.12.0",
+    "pandas>=1.3.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/ywatanabe1989/plotspec"
-Documentation = "https://github.com/ywatanabe1989/plotspec#readme"
-Repository = "https://github.com/ywatanabe1989/plotspec.git"
-Issues = "https://github.com/ywatanabe1989/plotspec/issues"
+Homepage = "https://github.com/ywatanabe1989/figrecipe"
+Documentation = "https://github.com/ywatanabe1989/figrecipe#readme"
+Repository = "https://github.com/ywatanabe1989/figrecipe.git"
+Issues = "https://github.com/ywatanabe1989/figrecipe/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/plotspec"]
+packages = ["src/figrecipe"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

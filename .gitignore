@@ -78,6 +78,7 @@ Thumbs.db
 # Project specific
 outputs/
 *.png
+!docs/figrecipe_logo.png
 *.yaml
 !pyproject.toml
 *.npy

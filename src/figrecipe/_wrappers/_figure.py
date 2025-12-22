@@ -29,10 +29,10 @@ class RecordingFigure:
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> fig, ax = mpr.subplots()
+    >>> import figrecipe as ps
+    >>> fig, ax = ps.subplots()
     >>> ax.plot([1, 2, 3], [4, 5, 6])
-    >>> mpr.save(fig, "my_figure.yaml")
+    >>> ps.save(fig, "my_figure.yaml")
     """
 
     def __init__(
@@ -83,9 +83,54 @@ class RecordingFigure:
         """Delegate attribute access to underlying figure."""
         return getattr(self._fig, name)
 
-    def savefig(self, fname, **kwargs):
-        """Save the figure image (delegates to matplotlib)."""
-        return self._fig.savefig(fname, **kwargs)
+    def savefig(
+        self,
+        fname,
+        save_recipe: bool = True,
+        recipe_format: Literal["csv", "npz", "inline"] = "csv",
+        **kwargs,
+    ):
+        """Save the figure image and optionally the recipe.
+
+        Parameters
+        ----------
+        fname : str or Path
+            Output path for the image file.
+        save_recipe : bool
+            If True (default), also save a YAML recipe alongside the image.
+            Recipe will be saved with same name but .yaml extension.
+        recipe_format : str
+            Format for data in recipe: 'csv' (default), 'npz', or 'inline'.
+        **kwargs
+            Passed to matplotlib's savefig().
+
+        Returns
+        -------
+        Path or tuple
+            If save_recipe=False: image path.
+            If save_recipe=True: (image_path, recipe_path) tuple.
+
+        Examples
+        --------
+        >>> fig, ax = ps.subplots()
+        >>> ax.plot(x, y, id='data')
+        >>> fig.savefig('figure.png')  # Saves both figure.png and figure.yaml
+        >>> fig.savefig('figure.png', save_recipe=False)  # Image only
+        """
+        # Handle file-like objects (BytesIO, etc.) - just pass through
+        if hasattr(fname, 'write'):
+            self._fig.savefig(fname, **kwargs)
+            return fname
+
+        fname = Path(fname)
+        self._fig.savefig(fname, **kwargs)
+
+        if save_recipe:
+            recipe_path = fname.with_suffix(".yaml")
+            self.save_recipe(recipe_path, include_data=True, data_format=recipe_format)
+            return fname, recipe_path
+
+        return fname
 
     def save_recipe(
         self,

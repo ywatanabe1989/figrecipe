@@ -39,8 +39,8 @@ def reproduce(
 
     Examples
     --------
-    >>> import plotspec as mpr
-    >>> fig, ax = mpr.reproduce("experiment_001.yaml")
+    >>> import figrecipe as ps
+    >>> fig, ax = ps.reproduce("experiment_001.yaml")
     >>> plt.show()
     """
     record = load_recipe(path)
@@ -92,7 +92,12 @@ def reproduce_from_record(
         ncols,
         figsize=record.figsize,
         dpi=record.dpi,
+        constrained_layout=record.constrained_layout,
     )
+
+    # Apply layout if recorded
+    if record.layout is not None:
+        fig.subplots_adjust(**record.layout)
 
     # Ensure axes is 2D array
     if nrows == 1 and ncols == 1:
@@ -103,6 +108,14 @@ def reproduce_from_record(
             axes_2d = axes_2d.reshape(1, -1)
         elif ncols == 1:
             axes_2d = axes_2d.reshape(-1, 1)
+
+    # Apply style BEFORE replaying calls (to match original order:
+    # style is applied during subplots(), then user creates plots/decorations)
+    if record.style is not None:
+        from .styles import apply_style_mm
+        for row in range(nrows):
+            for col in range(ncols):
+                apply_style_mm(axes_2d[row, col], record.style)
 
     # Replay calls on each axes
     for ax_key, ax_record in record.axes.items():
@@ -154,6 +167,11 @@ def _replay_call(ax: Axes, call: CallRecord) -> Any:
         Result of the matplotlib call.
     """
     method_name = call.function
+
+    # Check if it's a seaborn call
+    if method_name.startswith("sns."):
+        return _replay_seaborn_call(ax, call)
+
     method = getattr(ax, method_name, None)
 
     if method is None:
@@ -176,6 +194,89 @@ def _replay_call(ax: Axes, call: CallRecord) -> Any:
         # Log warning but continue
         import warnings
         warnings.warn(f"Failed to replay {method_name}: {e}")
+        return None
+
+
+def _replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
+    """Replay a seaborn call on an axes.
+
+    Parameters
+    ----------
+    ax : Axes
+        The matplotlib axes.
+    call : CallRecord
+        The seaborn call to replay.
+
+    Returns
+    -------
+    Any
+        Result of the seaborn call.
+    """
+    try:
+        import seaborn as sns
+        import pandas as pd
+    except ImportError:
+        import warnings
+        warnings.warn("seaborn/pandas required to replay seaborn calls")
+        return None
+
+    # Get the seaborn function name (remove "sns." prefix)
+    func_name = call.function[4:]  # Remove "sns."
+    func = getattr(sns, func_name, None)
+
+    if func is None:
+        import warnings
+        warnings.warn(f"Seaborn function {func_name} not found")
+        return None
+
+    # Reconstruct data from args
+    # Args contain column data with "param" field indicating the parameter name
+    data_dict = {}
+    param_mapping = {}  # Maps param name to column name
+
+    for arg_data in call.args:
+        param = arg_data.get("param")
+        name = arg_data.get("name")
+        value = _reconstruct_value(arg_data)
+
+        if param is not None:
+            # This is a DataFrame column
+            col_name = name if name else param
+            data_dict[col_name] = value
+            param_mapping[param] = col_name
+
+    # Build kwargs
+    kwargs = call.kwargs.copy()
+
+    # Remove internal keys
+    internal_keys = [k for k in kwargs.keys() if k.startswith("_")]
+    for key in internal_keys:
+        kwargs.pop(key, None)
+
+    # If we have data columns, create a DataFrame
+    if data_dict:
+        df = pd.DataFrame(data_dict)
+        kwargs["data"] = df
+
+        # Update column name references in kwargs
+        for param, col_name in param_mapping.items():
+            if param in ["x", "y", "hue", "size", "style", "row", "col"]:
+                kwargs[param] = col_name
+
+    # Add the axes
+    kwargs["ax"] = ax
+
+    # Convert certain list parameters back to tuples (YAML serializes tuples as lists)
+    # 'sizes' in seaborn expects a tuple (min, max) for range, not a list
+    if "sizes" in kwargs and isinstance(kwargs["sizes"], list):
+        kwargs["sizes"] = tuple(kwargs["sizes"])
+
+    # Call the seaborn function
+    try:
+        return func(**kwargs)
+    except Exception as e:
+        import warnings
+        warnings.warn(f"Failed to replay sns.{func_name}: {e}")
         return None
 
 

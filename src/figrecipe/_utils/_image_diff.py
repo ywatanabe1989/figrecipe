@@ -86,23 +86,47 @@ def compare_images(
         - mse: float (mean squared error)
         - psnr: float (peak signal-to-noise ratio, inf if identical)
         - max_diff: float (maximum pixel difference)
+        - size1: tuple (H, W) of first image
+        - size2: tuple (H, W) of second image
+        - same_size: bool (True if dimensions match)
+        - file_size1: int (file size in bytes)
+        - file_size2: int (file size in bytes)
     """
+    import os
+
     img1 = load_image(path1)
     img2 = load_image(path2)
 
-    mse, diff_img = compute_diff(img1, img2)
+    # File sizes
+    file_size1 = os.path.getsize(path1)
+    file_size2 = os.path.getsize(path2)
+
+    # Check if same size
+    same_size = img1.shape == img2.shape
+
+    if same_size:
+        mse, diff_img = compute_diff(img1, img2)
+    else:
+        # Can't compute pixel diff for different sizes
+        mse = float('nan')
+        diff_img = None
 
     # Peak signal-to-noise ratio
     if mse == 0:
         psnr = float('inf')
+    elif np.isnan(mse):
+        psnr = float('nan')
     else:
         psnr = 10 * np.log10(255**2 / mse)
 
     # Max difference
-    max_diff = np.max(np.abs(img1.astype(float) - img2.astype(float)))
+    if same_size:
+        max_diff = np.max(np.abs(img1.astype(float) - img2.astype(float)))
+    else:
+        max_diff = float('nan')
 
     # Save diff image if requested
-    if diff_path is not None:
+    if diff_path is not None and diff_img is not None:
         from PIL import Image
         Image.fromarray(diff_img).save(diff_path)
 
@@ -111,6 +135,11 @@ def compare_images(
         'mse': float(mse),
         'psnr': float(psnr),
         'max_diff': float(max_diff),
+        'size1': (img1.shape[0], img1.shape[1]),
+        'size2': (img2.shape[0], img2.shape[1]),
+        'same_size': img1.shape == img2.shape,
+        'file_size1': file_size1,
+        'file_size2': file_size2,
     }
 
 
