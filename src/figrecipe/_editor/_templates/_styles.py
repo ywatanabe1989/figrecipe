@@ -125,11 +125,23 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    display: none;
 }
 
-.hitregion-overlay.visible {
-    display: block;
+/* Always display overlay for hover detection, but control visibility via children */
+.hitregion-overlay.visible .hitregion-rect,
+.hitregion-overlay.visible .hitregion-polyline {
+    opacity: 1;
+}
+
+/* Hover-only mode: invisible until hovered */
+.hitregion-overlay.hover-mode .hitregion-rect,
+.hitregion-overlay.hover-mode .hitregion-polyline {
+    opacity: 0;
+}
+
+.hitregion-overlay.hover-mode .hitregion-rect:hover,
+.hitregion-overlay.hover-mode .hitregion-polyline:hover {
+    opacity: 1;
 }
 
 .hitregion-rect {
@@ -139,14 +151,14 @@ body {
     stroke-dasharray: 6, 3;
     pointer-events: all;
     cursor: pointer;
-    transition: fill 0.2s, stroke 0.2s, filter 0.2s;
+    transition: fill 0.2s, stroke 0.2s, filter 0.2s, opacity 0.15s;
 }
 
 .hitregion-rect:hover {
     fill: rgba(100, 180, 255, 0.15);
     stroke: rgba(100, 180, 255, 1);
-    stroke-width: 2;
-    filter: drop-shadow(0 0 3px rgba(100, 180, 255, 0.6));
+    stroke-width: 3;
+    filter: drop-shadow(0 0 4px rgba(100, 180, 255, 0.8));
 }
 
 .hitregion-polyline {
@@ -157,14 +169,14 @@ body {
     stroke-linejoin: round;
     pointer-events: stroke;
     cursor: pointer;
-    transition: stroke 0.2s, stroke-width 0.2s, filter 0.2s;
+    transition: stroke 0.2s, stroke-width 0.2s, filter 0.2s, opacity 0.15s;
 }
 
 .hitregion-polyline:hover {
     fill: none !important;
     stroke: rgba(255, 200, 50, 0.95);
-    stroke-width: 12;
-    filter: drop-shadow(0 0 6px rgba(255, 200, 50, 0.9));
+    stroke-width: 14;
+    filter: drop-shadow(0 0 8px rgba(255, 200, 50, 0.9));
 }
 
 .hitregion-rect.line-region {

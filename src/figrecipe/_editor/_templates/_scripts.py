@@ -18,6 +18,12 @@ let currentImgHeight = imgHeight;
 let hitmapVisible = true;          // Hitmap overlay visibility (default visible for development)
 const UPDATE_DEBOUNCE = 500;  // ms
 
+// Overlapping element cycling state
+let lastClickPosition = null;
+let overlappingElements = [];
+let cycleIndex = 0;
+let hoveredElement = null;  // Track currently hovered element for click priority
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initializeValues();
@@ -32,17 +38,22 @@ document.addEventListener('DOMContentLoaded', function() {
     previewImg.addEventListener('load', updateHitRegions);
 
     // Initialize hit regions visibility state
+    const overlay = document.getElementById('hitregion-overlay');
+    const btn = document.getElementById('btn-show-hitmap');
+
     if (hitmapVisible) {
-        const overlay = document.getElementById('hitregion-overlay');
-        const btn = document.getElementById('btn-show-hitmap');
         if (overlay) overlay.classList.add('visible');
         if (btn) {
             btn.classList.add('active');
             btn.textContent = 'Hide Hit Regions';
         }
-        // Draw hit regions on initial load
-        setTimeout(() => drawHitRegions(), 100);
+    } else {
+        // Hover-only mode when hidden
+        if (overlay) overlay.classList.add('hover-mode');
     }
+
+    // Always draw hit regions for hover detection
+    setTimeout(() => drawHitRegions(), 100);
 });
 
 // Initialize form values from server data
@@ -143,22 +154,27 @@ async function loadHitmap() {
     }
 }
 
-// Toggle hit regions overlay visibility
+// Toggle hit regions overlay visibility mode
 function toggleHitmapOverlay() {
     hitmapVisible = !hitmapVisible;
     const overlay = document.getElementById('hitregion-overlay');
     const btn = document.getElementById('btn-show-hitmap');
 
     if (hitmapVisible) {
+        // Show all hit regions
         overlay.classList.add('visible');
+        overlay.classList.remove('hover-mode');
         btn.classList.add('active');
         btn.textContent = 'Hide Hit Regions';
-        drawHitRegions();
     } else {
+        // Hover-only mode: hit regions visible only on hover
         overlay.classList.remove('visible');
+        overlay.classList.add('hover-mode');
         btn.classList.remove('active');
         btn.textContent = 'Show Hit Regions';
     }
+    // Always draw hit regions for hover detection
+    drawHitRegions();
 }
 
 // Draw hit region shapes from bboxes (polylines for lines, rectangles for others)
@@ -248,10 +264,7 @@ function drawHitRegions() {
         // Add hover and click handlers
         shape.addEventListener('mouseenter', () => handleHitRegionHover(key, bbox));
         shape.addEventListener('mouseleave', () => handleHitRegionLeave());
-        shape.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectElement({ key, ...bbox });
-        });
+        shape.addEventListener('click', (e) => handleHitRegionClick(e, key, bbox));
 
         group.appendChild(shape);
 
@@ -278,12 +291,17 @@ function drawHitRegions() {
 
 // Handle hover on hit region
 function handleHitRegionHover(key, bbox) {
+    // Track hovered element for click priority
+    hoveredElement = { key, ...bbox };
+
     const info = document.getElementById('selected-info');
     info.textContent = `Hover: ${bbox.type || 'element'} (${bbox.label || key})`;
 }
 
 // Handle leaving hit region
 function handleHitRegionLeave() {
+    hoveredElement = null;
+
     const info = document.getElementById('selected-info');
     if (selectedElement) {
         info.textContent = `Selected: ${selectedElement.type} (${selectedElement.label || selectedElement.key})`;
@@ -292,11 +310,95 @@ function handleHitRegionLeave() {
     }
 }
 
+// Handle click on hit region with Alt+Click cycling support
+function handleHitRegionClick(event, key, bbox) {
+    event.stopPropagation();
+
+    const element = { key, ...bbox };
+
+    if (event.altKey) {
+        // Alt+Click: cycle through overlapping elements at this position
+        const clickPos = { x: event.clientX, y: event.clientY };
+
+        // Check if same position as last click
+        const samePosition = lastClickPosition &&
+            Math.abs(lastClickPosition.x - clickPos.x) < 5 &&
+            Math.abs(lastClickPosition.y - clickPos.y) < 5;
+
+        if (samePosition && overlappingElements.length > 1) {
+            // Cycle to next overlapping element
+            cycleIndex = (cycleIndex + 1) % overlappingElements.length;
+            selectElement(overlappingElements[cycleIndex]);
+        } else {
+            // Find all overlapping elements at this position
+            overlappingElements = findOverlappingElements(clickPos);
+            cycleIndex = 0;
+            lastClickPosition = clickPos;
+
+            if (overlappingElements.length > 0) {
+                selectElement(overlappingElements[0]);
+            } else {
+                selectElement(element);
+            }
+        }
+    } else {
+        // Normal click: select the hovered element (topmost in z-order)
+        selectElement(element);
+        // Reset cycling state
+        lastClickPosition = null;
+        overlappingElements = [];
+        cycleIndex = 0;
+    }
+}
+
+// Find all elements overlapping at a given screen position
+function findOverlappingElements(screenPos) {
+    const img = document.getElementById('preview-image');
+    const imgRect = img.getBoundingClientRect();
+
+    // Convert to image coordinates
+    const imgX = (screenPos.x - imgRect.left) * (img.naturalWidth / imgRect.width);
+    const imgY = (screenPos.y - imgRect.top) * (img.naturalHeight / imgRect.height);
+
+    const overlapping = [];
+
+    // Check all bboxes for overlap
+    for (const [key, bbox] of Object.entries(currentBboxes)) {
+        if (key === '_meta') continue;
+
+        // Check if point is inside bbox
+        if (imgX >= bbox.x && imgX <= bbox.x + bbox.width &&
+            imgY >= bbox.y && imgY <= bbox.y + bbox.height) {
+            overlapping.push({ key, ...bbox });
+        }
+
+        // For lines with points, check proximity
+        if (bbox.points && bbox.points.length > 1) {
+            for (const pt of bbox.points) {
+                const dist = Math.sqrt(Math.pow(imgX - pt[0], 2) + Math.pow(imgY - pt[1], 2));
+                if (dist < 15) {  // 15 pixel tolerance
+                    if (!overlapping.find(e => e.key === key)) {
+                        overlapping.push({ key, ...bbox });
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // Sort by z-order priority (foreground elements first)
+    // Priority: line > scatter > legend > text > ticks > spines > axes
+    const priority = { 'line': 0, 'scatter': 1, 'legend': 2, 'title': 3, 'xlabel': 4, 'ylabel': 4,
+                       'xticks': 5, 'yticks': 5, 'spine': 6, 'bar': 3, 'fill': 4, 'axes': 7 };
+    overlapping.sort((a, b) => (priority[a.type] || 5) - (priority[b.type] || 5));
+
+    return overlapping;
+}
+
 // Update hit regions when image loads or resizes
 function updateHitRegions() {
-    if (hitmapVisible) {
-        drawHitRegions();
-    }
+    // Always draw hit regions (for hover detection in both modes)
+    drawHitRegions();
 }
 
 // Handle click on preview image
