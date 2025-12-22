@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2025-12-22 13:36:01
+!-- Timestamp: 2025-12-22 13:51:22
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -149,7 +149,7 @@ fr.load_style('SCITEX_DARK')
 fr.load_style('/path/to/my_style.yaml')
 ```
 
-See docs/EXAMPLE_RECIPE.yaml for a full style template.
+See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for full examples.
 
 ### Style Format (YAML)
 
@@ -230,9 +230,9 @@ theme:
     figure_bg: "transparent"
     axes_bg: "transparent"
     legend_bg: "transparent"
-    text: "#3c33c"
-    spine: "#3c33c"
-    tick: "#3c3c3c"
+    text: "#d4d4d4"
+    spine: "#d4d4d4"
+    tick: "#d4d4d4"
     grid: "#3a3a3a"
   light:
     figure_bg: "transparent"
@@ -278,8 +278,6 @@ colors:
 
 # EOF
 ```
-
-See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for full examples.
 
 
 ### API Overview

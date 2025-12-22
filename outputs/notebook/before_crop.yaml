@@ -1,0 +1,51 @@
+figrecipe: '1.0'
+id: fig_c6a2eeeb
+created: '2025-12-22T13:46:41.115966'
+matplotlib_version: 3.10.8
+figure:
+  figsize:
+    - 6.4
+    - 4.8
+  dpi: 100
+  constrained_layout: true
+axes:
+  ax_0_0:
+    calls:
+      - id: triangle
+        function: plot
+        args:
+          - name: x
+            data:
+              - 0
+              - 1
+              - 2
+          - name: y
+            data:
+              - 0
+              - 1
+              - 0
+        kwargs:
+          color: '#1f77b4'
+        timestamp: '2025-12-22T13:46:41.118829'
+    decorations:
+      - id: set_xlabel_000
+        function: set_xlabel
+        args:
+          - name: arg0
+            data: X
+        kwargs: {}
+        timestamp: '2025-12-22T13:46:41.119697'
+      - id: set_ylabel_000
+        function: set_ylabel
+        args:
+          - name: arg0
+            data: Y
+        kwargs: {}
+        timestamp: '2025-12-22T13:46:41.120276'
+      - id: set_title_000
+        function: set_title
+        args:
+          - name: arg0
+            data: Triangle
+        kwargs: {}
+        timestamp: '2025-12-22T13:46:41.121138'

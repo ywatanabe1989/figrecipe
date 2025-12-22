@@ -1,0 +1,123 @@
+# Timestamp: "2025-12-22 13:49:08 (ywatanabe)"
+# File: ./src/figrecipe/styles/presets/SCITEX.yaml
+# FIGRECIPE Style Preset
+# ======================
+# Publication-quality settings for scientific figures.
+# Optimized for scientific journals with Arial font.
+
+axes:
+  width_mm: 40
+  height_mm: 28
+  thickness_mm: 0.2
+
+margins:
+  left_mm: 1
+  right_mm: 1
+  bottom_mm: 1
+  top_mm: 1
+
+spacing:
+  horizontal_mm: 8
+  vertical_mm: 10
+
+fonts:
+  family: "Arial"
+  axis_label_pt: 7
+  tick_label_pt: 7
+  title_pt: 8
+  suptitle_pt: 8
+  legend_pt: 6
+  annotation_pt: 6
+
+padding:
+  label_pt: 2.0
+  tick_pt: 2.0
+  title_pt: 4.0
+
+lines:
+  trace_mm: 0.2
+  errorbar_mm: 0.2
+  errorbar_cap_mm: 0.8
+
+ticks:
+  length_mm: 0.8
+  thickness_mm: 0.2
+  direction: "out"
+  n_ticks: 4
+
+markers:
+  size_mm: 0.8
+  scatter_mm: 0.8
+  edge_width_mm: null  # None = no border (cleaner than 0)
+
+legend:
+  frameon: false         # No frame for clean look
+  bg: null               # Background (null = use theme.legend_bg)
+  edgecolor: null        # Frame edge color
+  alpha: 1.0             # Transparency
+  loc: "best"
+
+output:
+  dpi: 300
+  transparent: true
+  format: "pdf"
+
+behavior:
+  auto_scale_axes: true
+  hide_top_spine: true
+  hide_right_spine: true
+  grid: false
+
+theme:
+  mode: "light"
+  dark:
+    figure_bg: "transparent"
+    axes_bg: "transparent"
+    legend_bg: "transparent"
+    text: "#d4d4d4"
+    spine: "#d4d4d4"
+    tick: "#d4d4d4"
+    grid: "#3a3a3a"
+  light:
+    figure_bg: "transparent"
+    axes_bg: "transparent"
+    legend_bg: "transparent"
+    text: "black"
+    spine: "black"
+    tick: "black"
+    grid: "#cccccc"
+
+# SciTeX Color Palette (RGB format)
+colors:
+  palette:
+    - [0, 128, 192]      # blue
+    - [255, 70, 50]      # red
+    - [20, 180, 20]      # green
+    - [230, 160, 20]     # yellow
+    - [200, 50, 255]     # purple
+    - [20, 200, 200]     # lightblue
+    - [228, 94, 50]      # orange
+    - [255, 150, 200]    # pink
+
+  # Named colors
+  white: [255, 255, 255]
+  black: [0, 0, 0]
+  blue: [0, 128, 192]
+  red: [255, 70, 50]
+  pink: [255, 150, 200]
+  green: [20, 180, 20]
+  yellow: [230, 160, 20]
+  gray: [128, 128, 128]
+  grey: [128, 128, 128]
+  purple: [200, 50, 255]
+  lightblue: [20, 200, 200]
+  brown: [128, 0, 0]
+  navy: [0, 0, 100]
+  orange: [228, 94, 50]
+
+  # Semantic
+  primary: [0, 128, 192]
+  secondary: [255, 70, 50]
+  accent: [20, 180, 20]
+
+# EOF
