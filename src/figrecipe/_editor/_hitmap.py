@@ -14,39 +14,33 @@ The color encoding uses 24-bit RGB:
 """
 
 import io
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Tuple
 
-import numpy as np
-from matplotlib.artist import Artist
-from matplotlib.axes import Axes
-from matplotlib.collections import PathCollection, PolyCollection, LineCollection
+from matplotlib.collections import PathCollection, PolyCollection
 from matplotlib.figure import Figure
 from matplotlib.image import AxesImage
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch, Rectangle
-from matplotlib.text import Text
+from matplotlib.patches import Rectangle
 from PIL import Image
-
 
 # Hand-picked distinct colors for first 12 elements (maximum visual distinction)
 DISTINCT_COLORS = [
-    (255, 0, 0),      # Red
-    (0, 200, 0),      # Green
-    (0, 100, 255),    # Blue
-    (255, 200, 0),    # Yellow
-    (255, 0, 255),    # Magenta
-    (0, 255, 255),    # Cyan
-    (255, 128, 0),    # Orange
-    (128, 0, 255),    # Purple
-    (0, 255, 128),    # Spring green
-    (255, 0, 128),    # Rose
-    (128, 255, 0),    # Lime
-    (0, 128, 255),    # Sky blue
+    (255, 0, 0),  # Red
+    (0, 200, 0),  # Green
+    (0, 100, 255),  # Blue
+    (255, 200, 0),  # Yellow
+    (255, 0, 255),  # Magenta
+    (0, 255, 255),  # Cyan
+    (255, 128, 0),  # Orange
+    (128, 0, 255),  # Purple
+    (0, 255, 128),  # Spring green
+    (255, 0, 128),  # Rose
+    (128, 255, 0),  # Lime
+    (0, 128, 255),  # Sky blue
 ]
 
 # Reserved colors
-BACKGROUND_COLOR = (26, 26, 26)      # Dark gray for background
-AXES_COLOR = (64, 64, 64)            # Medium gray for non-selectable axes elements
+BACKGROUND_COLOR = (26, 26, 26)  # Dark gray for background
+AXES_COLOR = (64, 64, 64)  # Medium gray for non-selectable axes elements
 
 
 def id_to_rgb(element_id: int) -> Tuple[int, int, int]:
@@ -82,7 +76,7 @@ def id_to_rgb(element_id: int) -> Tuple[int, int, int]:
 
     # High saturation and value for visibility
     saturation = 0.7 + (element_id % 3) * 0.1  # 0.7-0.9
-    value = 0.75 + (element_id % 4) * 0.0625   # 0.75-0.9375
+    value = 0.75 + (element_id % 4) * 0.0625  # 0.75-0.9375
 
     # HSV to RGB conversion
     return _hsv_to_rgb(hue, saturation, value)
@@ -149,6 +143,49 @@ def _normalize_color(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     return (rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0)
 
 
+def _mpl_color_to_hex(color) -> str:
+    """
+    Convert matplotlib color to hex string for CSS.
+
+    Parameters
+    ----------
+    color : str, tuple, or array-like
+        Matplotlib color (name, hex, RGB/RGBA tuple 0-1 or 0-255).
+
+    Returns
+    -------
+    str
+        Hex color string like '#ff0000'.
+    """
+    import matplotlib.colors as mcolors
+
+    try:
+        # Handle named colors and hex strings
+        if isinstance(color, str):
+            rgba = mcolors.to_rgba(color)
+        # Handle RGBA/RGB arrays (0-1 range from matplotlib)
+        elif hasattr(color, "__len__"):
+            if len(color) >= 3:
+                # Check if it's 0-1 or 0-255 range
+                if all(0 <= c <= 1 for c in color[:3]):
+                    rgba = (
+                        tuple(color[:3]) + (1.0,) if len(color) == 3 else tuple(color)
+                    )
+                else:
+                    # Assume 0-255 range
+                    rgba = (color[0] / 255, color[1] / 255, color[2] / 255, 1.0)
+            else:
+                return "#888888"  # fallback
+        else:
+            return "#888888"  # fallback
+
+        # Convert to hex
+        r, g, b = int(rgba[0] * 255), int(rgba[1] * 255), int(rgba[2] * 255)
+        return f"#{r:02x}{g:02x}{b:02x}"
+    except Exception:
+        return "#888888"  # fallback gray
+
+
 def generate_hitmap(
     fig: Figure,
     dpi: int = 150,
@@ -201,9 +238,9 @@ def generate_hitmap(
             rgb = id_to_rgb(element_id)
 
             original_props[key] = {
-                'color': line.get_color(),
-                'markerfacecolor': line.get_markerfacecolor(),
-                'markeredgecolor': line.get_markeredgecolor(),
+                "color": line.get_color(),
+                "markerfacecolor": line.get_markerfacecolor(),
+                "markeredgecolor": line.get_markeredgecolor(),
             }
 
             line.set_color(_normalize_color(rgb))
@@ -211,11 +248,12 @@ def generate_hitmap(
             line.set_markeredgecolor(_normalize_color(rgb))
 
             color_map[key] = {
-                'id': element_id,
-                'type': 'line',
-                'label': line.get_label() or f'line_{i}',
-                'ax_index': ax_idx,
-                'rgb': list(rgb),
+                "id": element_id,
+                "type": "line",
+                "label": line.get_label() or f"line_{i}",
+                "ax_index": ax_idx,
+                "rgb": list(rgb),
+                "original_color": _mpl_color_to_hex(original_props[key]["color"]),
             }
             element_id += 1
 
@@ -229,19 +267,24 @@ def generate_hitmap(
                 rgb = id_to_rgb(element_id)
 
                 original_props[key] = {
-                    'facecolors': coll.get_facecolors().copy(),
-                    'edgecolors': coll.get_edgecolors().copy(),
+                    "facecolors": coll.get_facecolors().copy(),
+                    "edgecolors": coll.get_edgecolors().copy(),
                 }
 
                 coll.set_facecolors([_normalize_color(rgb)])
                 coll.set_edgecolors([_normalize_color(rgb)])
 
+                # Get original facecolor for hover effect
+                orig_fc = original_props[key]["facecolors"]
+                orig_color = orig_fc[0] if len(orig_fc) > 0 else [0.5, 0.5, 0.5, 1]
+
                 color_map[key] = {
-                    'id': element_id,
-                    'type': 'scatter',
-                    'label': coll.get_label() or f'scatter_{i}',
-                    'ax_index': ax_idx,
-                    'rgb': list(rgb),
+                    "id": element_id,
+                    "type": "scatter",
+                    "label": coll.get_label() or f"scatter_{i}",
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
+                    "original_color": _mpl_color_to_hex(orig_color),
                 }
                 element_id += 1
 
@@ -254,19 +297,24 @@ def generate_hitmap(
                 rgb = id_to_rgb(element_id)
 
                 original_props[key] = {
-                    'facecolors': coll.get_facecolors().copy(),
-                    'edgecolors': coll.get_edgecolors().copy(),
+                    "facecolors": coll.get_facecolors().copy(),
+                    "edgecolors": coll.get_edgecolors().copy(),
                 }
 
                 coll.set_facecolors([_normalize_color(rgb)])
                 coll.set_edgecolors([_normalize_color(rgb)])
 
+                # Get original facecolor for hover effect
+                orig_fc = original_props[key]["facecolors"]
+                orig_color = orig_fc[0] if len(orig_fc) > 0 else [0.5, 0.5, 0.5, 1]
+
                 color_map[key] = {
-                    'id': element_id,
-                    'type': 'fill',
-                    'label': coll.get_label() or f'fill_{i}',
-                    'ax_index': ax_idx,
-                    'rgb': list(rgb),
+                    "id": element_id,
+                    "type": "fill",
+                    "label": coll.get_label() or f"fill_{i}",
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
+                    "original_color": _mpl_color_to_hex(orig_color),
                 }
                 element_id += 1
 
@@ -283,19 +331,22 @@ def generate_hitmap(
                 rgb = id_to_rgb(element_id)
 
                 original_props[key] = {
-                    'facecolor': patch.get_facecolor(),
-                    'edgecolor': patch.get_edgecolor(),
+                    "facecolor": patch.get_facecolor(),
+                    "edgecolor": patch.get_edgecolor(),
                 }
 
                 patch.set_facecolor(_normalize_color(rgb))
                 patch.set_edgecolor(_normalize_color(rgb))
 
                 color_map[key] = {
-                    'id': element_id,
-                    'type': 'bar',
-                    'label': patch.get_label() or f'bar_{i}',
-                    'ax_index': ax_idx,
-                    'rgb': list(rgb),
+                    "id": element_id,
+                    "type": "bar",
+                    "label": patch.get_label() or f"bar_{i}",
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
+                    "original_color": _mpl_color_to_hex(
+                        original_props[key]["facecolor"]
+                    ),
                 }
                 element_id += 1
 
@@ -308,11 +359,11 @@ def generate_hitmap(
                 key = f"ax{ax_idx}_image{i}"
                 # Images can't be recolored, just track their bbox
                 color_map[key] = {
-                    'id': element_id,
-                    'type': 'image',
-                    'label': f'image_{i}',
-                    'ax_index': ax_idx,
-                    'rgb': list(id_to_rgb(element_id)),
+                    "id": element_id,
+                    "type": "image",
+                    "label": f"image_{i}",
+                    "ax_index": ax_idx,
+                    "rgb": list(id_to_rgb(element_id)),
                 }
                 element_id += 1
 
@@ -325,15 +376,15 @@ def generate_hitmap(
                 rgb = id_to_rgb(element_id)
                 title_obj = ax.title
 
-                original_props[key] = {'color': title_obj.get_color()}
+                original_props[key] = {"color": title_obj.get_color()}
                 title_obj.set_color(_normalize_color(rgb))
 
                 color_map[key] = {
-                    'id': element_id,
-                    'type': 'title',
-                    'label': 'title',
-                    'ax_index': ax_idx,
-                    'rgb': list(rgb),
+                    "id": element_id,
+                    "type": "title",
+                    "label": "title",
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
                 }
                 element_id += 1
 
@@ -344,15 +395,15 @@ def generate_hitmap(
                 rgb = id_to_rgb(element_id)
                 xlabel_obj = ax.xaxis.label
 
-                original_props[key] = {'color': xlabel_obj.get_color()}
+                original_props[key] = {"color": xlabel_obj.get_color()}
                 xlabel_obj.set_color(_normalize_color(rgb))
 
                 color_map[key] = {
-                    'id': element_id,
-                    'type': 'xlabel',
-                    'label': 'xlabel',
-                    'ax_index': ax_idx,
-                    'rgb': list(rgb),
+                    "id": element_id,
+                    "type": "xlabel",
+                    "label": "xlabel",
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
                 }
                 element_id += 1
 
@@ -363,15 +414,15 @@ def generate_hitmap(
                 rgb = id_to_rgb(element_id)
                 ylabel_obj = ax.yaxis.label
 
-                original_props[key] = {'color': ylabel_obj.get_color()}
+                original_props[key] = {"color": ylabel_obj.get_color()}
                 ylabel_obj.set_color(_normalize_color(rgb))
 
                 color_map[key] = {
-                    'id': element_id,
-                    'type': 'ylabel',
-                    'label': 'ylabel',
-                    'ax_index': ax_idx,
-                    'rgb': list(rgb),
+                    "id": element_id,
+                    "type": "ylabel",
+                    "label": "ylabel",
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
                 }
                 element_id += 1
 
@@ -384,19 +435,19 @@ def generate_hitmap(
             # Store original frame color
             frame = legend.get_frame()
             original_props[key] = {
-                'facecolor': frame.get_facecolor(),
-                'edgecolor': frame.get_edgecolor(),
+                "facecolor": frame.get_facecolor(),
+                "edgecolor": frame.get_edgecolor(),
             }
 
             frame.set_facecolor(_normalize_color(rgb))
             frame.set_edgecolor(_normalize_color(rgb))
 
             color_map[key] = {
-                'id': element_id,
-                'type': 'legend',
-                'label': 'legend',
-                'ax_index': ax_idx,
-                'rgb': list(rgb),
+                "id": element_id,
+                "type": "legend",
+                "label": "legend",
+                "ax_index": ax_idx,
+                "rgb": list(rgb),
             }
             element_id += 1
 
@@ -416,11 +467,13 @@ def generate_hitmap(
 
     # Render to buffer (use bbox_inches='tight' to match preview rendering)
     buf = io.BytesIO()
-    fig.savefig(buf, format='png', dpi=dpi, facecolor=fig.get_facecolor(), bbox_inches='tight')
+    fig.savefig(
+        buf, format="png", dpi=dpi, facecolor=fig.get_facecolor(), bbox_inches="tight"
+    )
     buf.seek(0)
 
     # Load as PIL Image
-    hitmap = Image.open(buf).convert('RGB')
+    hitmap = Image.open(buf).convert("RGB")
 
     # Restore original properties
     for ax_idx, ax in enumerate(axes_list):
@@ -429,9 +482,9 @@ def generate_hitmap(
             key = f"ax{ax_idx}_line{i}"
             if key in original_props:
                 props = original_props[key]
-                line.set_color(props['color'])
-                line.set_markerfacecolor(props['markerfacecolor'])
-                line.set_markeredgecolor(props['markeredgecolor'])
+                line.set_color(props["color"])
+                line.set_markerfacecolor(props["markerfacecolor"])
+                line.set_markeredgecolor(props["markeredgecolor"])
 
         # Restore collections
         for i, coll in enumerate(ax.collections):
@@ -444,30 +497,30 @@ def generate_hitmap(
 
             if key in original_props:
                 props = original_props[key]
-                coll.set_facecolors(props['facecolors'])
-                coll.set_edgecolors(props['edgecolors'])
+                coll.set_facecolors(props["facecolors"])
+                coll.set_edgecolors(props["edgecolors"])
 
         # Restore patches
         for i, patch in enumerate(ax.patches):
             key = f"ax{ax_idx}_bar{i}"
             if key in original_props:
                 props = original_props[key]
-                patch.set_facecolor(props['facecolor'])
-                patch.set_edgecolor(props['edgecolor'])
+                patch.set_facecolor(props["facecolor"])
+                patch.set_edgecolor(props["edgecolor"])
 
         # Restore text
         if include_text:
             key = f"ax{ax_idx}_title"
             if key in original_props:
-                ax.title.set_color(original_props[key]['color'])
+                ax.title.set_color(original_props[key]["color"])
 
             key = f"ax{ax_idx}_xlabel"
             if key in original_props:
-                ax.xaxis.label.set_color(original_props[key]['color'])
+                ax.xaxis.label.set_color(original_props[key]["color"])
 
             key = f"ax{ax_idx}_ylabel"
             if key in original_props:
-                ax.yaxis.label.set_color(original_props[key]['color'])
+                ax.yaxis.label.set_color(original_props[key]["color"])
 
         # Restore legend
         key = f"ax{ax_idx}_legend"
@@ -476,20 +529,20 @@ def generate_hitmap(
             if legend:
                 frame = legend.get_frame()
                 props = original_props[key]
-                frame.set_facecolor(props['facecolor'])
-                frame.set_edgecolor(props['edgecolor'])
+                frame.set_facecolor(props["facecolor"])
+                frame.set_edgecolor(props["edgecolor"])
 
         # Restore spines
         for spine in ax.spines.values():
-            spine.set_color('black')  # Default
+            spine.set_color("black")  # Default
 
         # Restore tick colors
-        ax.tick_params(colors='black')
+        ax.tick_params(colors="black")
 
     # Restore backgrounds
-    fig.patch.set_facecolor('white')
+    fig.patch.set_facecolor("white")
     for ax in axes_list:
-        ax.set_facecolor('white')
+        ax.set_facecolor("white")
 
     return hitmap, color_map
 
@@ -511,14 +564,14 @@ def hitmap_to_base64(hitmap: Image.Image) -> str:
     import base64
 
     buf = io.BytesIO()
-    hitmap.save(buf, format='PNG')
+    hitmap.save(buf, format="PNG")
     buf.seek(0)
-    return base64.b64encode(buf.read()).decode('utf-8')
+    return base64.b64encode(buf.read()).decode("utf-8")
 
 
 __all__ = [
-    'generate_hitmap',
-    'hitmap_to_base64',
-    'id_to_rgb',
-    'rgb_to_id',
+    "generate_hitmap",
+    "hitmap_to_base64",
+    "id_to_rgb",
+    "rgb_to_id",
 ]

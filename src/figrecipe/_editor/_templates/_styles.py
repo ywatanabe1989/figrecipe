@@ -116,6 +116,8 @@ body {
     object-fit: contain;
     cursor: crosshair;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1;  /* Below the hit region overlay */
 }
 
 .hitregion-overlay {
@@ -146,8 +148,9 @@ body {
 }
 
 .hitregion-rect {
+    --element-color: #888888;  /* Default fallback */
     fill: transparent;
-    stroke: rgba(100, 180, 255, 0.5);
+    stroke: transparent;
     stroke-width: 2;
     stroke-dasharray: 6, 3;
     pointer-events: all;
@@ -156,68 +159,84 @@ body {
 }
 
 .hitregion-rect:hover {
-    fill: rgba(100, 180, 255, 0.15);
-    stroke: rgba(100, 180, 255, 1);
-    stroke-width: 3;
-    filter: drop-shadow(0 0 4px rgba(100, 180, 255, 0.8));
+    fill: var(--element-color);
+    fill-opacity: 0.15;
+    stroke: var(--element-color);
+    stroke-opacity: 0.6;
+    stroke-width: 2;
+    filter: none;
 }
 
 .hitregion-polyline {
+    --element-color: #888888;  /* Default fallback */
     fill: none !important;
-    stroke: rgba(255, 200, 100, 0.6);
+    stroke: transparent;
     stroke-width: 8;
     stroke-linecap: round;
     stroke-linejoin: round;
     pointer-events: stroke;
     cursor: pointer;
-    transition: stroke 0.2s, stroke-width 0.2s, filter 0.2s, opacity 0.15s;
+    transition: stroke 0.15s, opacity 0.15s;
 }
 
 .hitregion-polyline:hover {
     fill: none !important;
-    stroke: rgba(255, 200, 50, 0.95);
-    stroke-width: 14;
-    filter: drop-shadow(0 0 8px rgba(255, 200, 50, 0.9));
+    stroke: var(--element-color);
+    stroke-width: 8;
+    stroke-opacity: 0.4;
+    filter: none;
 }
 
-.hitregion-rect.line-region {
-    stroke: rgba(255, 200, 100, 0.6);
+/* Scatter point circles */
+.scatter-group {
+    --element-color: #888888;  /* Default fallback */
+    pointer-events: all;
 }
 
-.hitregion-rect.line-region:hover {
-    fill: rgba(255, 200, 100, 0.15);
-    stroke: rgba(255, 200, 100, 1);
-    filter: drop-shadow(0 0 3px rgba(255, 200, 100, 0.6));
+.hitregion-circle {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 1;
+    pointer-events: all;
+    cursor: pointer;
+    opacity: 1;  /* Explicit default */
+    transition: fill 0.15s, stroke 0.15s, opacity 0.15s;
 }
 
-.hitregion-rect.text-region {
-    stroke: rgba(100, 220, 150, 0.6);
+.hitregion-circle:hover,
+.hitregion-circle.hovered {
+    fill: var(--element-color);
+    fill-opacity: 0.2;
+    stroke: var(--element-color);
+    stroke-opacity: 0.5;
+    stroke-width: 1;
+    filter: none;
 }
 
-.hitregion-rect.text-region:hover {
-    fill: rgba(100, 220, 150, 0.15);
-    stroke: rgba(100, 220, 150, 1);
-    filter: drop-shadow(0 0 3px rgba(100, 220, 150, 0.6));
+/* When any circle in the group is hovered, highlight ALL circles in the group */
+.scatter-group:hover .hitregion-circle,
+.scatter-group.hovered .hitregion-circle {
+    fill: var(--element-color);
+    fill-opacity: 0.15;
+    stroke: var(--element-color);
+    stroke-opacity: 0.4;
+    stroke-width: 1;
+    filter: none;
 }
 
-.hitregion-rect.legend-region {
-    stroke: rgba(220, 180, 100, 0.6);
+/* Scatter circles visibility modes */
+.hitregion-overlay.visible .hitregion-circle,
+.hitregion-overlay.visible .scatter-group {
+    opacity: 1;
 }
 
-.hitregion-rect.legend-region:hover {
-    fill: rgba(220, 180, 100, 0.15);
-    stroke: rgba(220, 180, 100, 1);
-    filter: drop-shadow(0 0 3px rgba(220, 180, 100, 0.6));
+.hitregion-overlay.hover-mode .hitregion-circle {
+    opacity: 0;
 }
 
-.hitregion-rect.tick-region {
-    stroke: rgba(180, 100, 220, 0.6);
-}
-
-.hitregion-rect.tick-region:hover {
-    fill: rgba(180, 100, 220, 0.15);
-    stroke: rgba(180, 100, 220, 1);
-    filter: drop-shadow(0 0 3px rgba(180, 100, 220, 0.6));
+.hitregion-overlay.hover-mode .scatter-group:hover .hitregion-circle,
+.hitregion-overlay.hover-mode .hitregion-circle:hover {
+    opacity: 1;
 }
 
 .hitregion-label {
@@ -229,7 +248,11 @@ body {
 }
 
 .hitregion-rect:hover + .hitregion-label,
-.hitregion-group:hover .hitregion-label {
+.hitregion-group:hover .hitregion-label,
+.hitregion-group.hovered .hitregion-label,
+.scatter-group:hover ~ .hitregion-label,
+.scatter-group.hovered ~ .hitregion-label,
+.hitregion-polyline:hover + .hitregion-label {
     opacity: 1;
 }
 
@@ -422,6 +445,26 @@ body {
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
+/* Override indicator for modified values */
+.form-row.value-modified input,
+.form-row.value-modified select {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.form-row.value-modified label::after {
+    content: '●';
+    color: #f59e0b;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+[data-theme="dark"] .form-row.value-modified input,
+[data-theme="dark"] .form-row.value-modified select {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+
 .form-row input[type="checkbox"] {
     width: 18px;
     height: 18px;
@@ -499,6 +542,26 @@ button:hover {
 .btn-warning:hover {
     background: #d97706;
     border-color: #d97706;
+}
+
+.style-info {
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.style-label {
+    color: var(--text-secondary);
+}
+
+.style-name {
+    color: var(--accent-color);
+    font-weight: 600;
+    font-family: monospace;
 }
 
 .override-status {
@@ -587,4 +650,4 @@ button:hover {
 }
 """
 
-__all__ = ['STYLES']
+__all__ = ["STYLES"]

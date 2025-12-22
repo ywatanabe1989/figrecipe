@@ -56,8 +56,18 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => drawHitRegions(), 100);
 });
 
-// Initialize form values from server data
+// Theme values are passed from server via initialValues
+// These come from the applied theme (SCITEX, MATPLOTLIB, etc.)
+// initialValues is populated by the server from the loaded style preset
+
+// Store original theme defaults for comparison
+const themeDefaults = {...initialValues};
+
+// Initialize form values and placeholders from applied theme
 function initializeValues() {
+    // initialValues contains the theme's default values from the server
+    // These are the actual values from the applied style preset (not hardcoded)
+
     for (const [key, value] of Object.entries(initialValues)) {
         const element = document.getElementById(key);
         if (element) {
@@ -68,10 +78,52 @@ function initializeValues() {
                 const valueSpan = document.getElementById(key + '_value');
                 if (valueSpan) valueSpan.textContent = value;
             } else {
+                // Set the value
                 element.value = value;
+                // Set placeholder to show theme default (visible when field is cleared)
+                if (element.type === 'number' || element.type === 'text') {
+                    element.placeholder = value;
+                }
             }
         }
     }
+
+    // Log applied theme info
+    const styleNameEl = document.getElementById('style-name');
+    if (styleNameEl) {
+        console.log('Applied theme:', styleNameEl.textContent);
+    }
+}
+
+// Check if a field value differs from the theme default
+function updateModifiedState(element) {
+    const key = element.id;
+    const defaultValue = themeDefaults[key];
+    const formRow = element.closest('.form-row');
+    if (!formRow || defaultValue === undefined) return;
+
+    let currentValue;
+    if (element.type === 'checkbox') {
+        currentValue = element.checked;
+    } else if (element.type === 'number') {
+        currentValue = parseFloat(element.value);
+    } else {
+        currentValue = element.value;
+    }
+
+    // Compare values (handle type conversion)
+    const isModified = String(currentValue) !== String(defaultValue);
+    formRow.classList.toggle('value-modified', isModified);
+}
+
+// Update all modified states
+function updateAllModifiedStates() {
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.id && input.id !== 'dark-mode-toggle') {
+            updateModifiedState(input);
+        }
+    });
 }
 
 // Initialize event listeners
@@ -92,9 +144,16 @@ function initializeEventListeners() {
     inputs.forEach(input => {
         if (input.id === 'dark-mode-toggle') return;
 
-        input.addEventListener('change', scheduleUpdate);
+        // Update modified state and trigger preview update
+        input.addEventListener('change', function() {
+            updateModifiedState(this);
+            scheduleUpdate();
+        });
         if (input.type === 'number' || input.type === 'text') {
-            input.addEventListener('input', scheduleUpdate);
+            input.addEventListener('input', function() {
+                updateModifiedState(this);
+                scheduleUpdate();
+            });
         }
 
         // Range slider value display
@@ -102,6 +161,7 @@ function initializeEventListeners() {
             input.addEventListener('input', function() {
                 const valueSpan = document.getElementById(this.id + '_value');
                 if (valueSpan) valueSpan.textContent = this.value;
+                updateModifiedState(this);
             });
         }
     });
@@ -120,6 +180,9 @@ function initializeEventListeners() {
 
     // Check initial override status
     checkOverrideStatus();
+
+    // Check modified states after initial values are set
+    setTimeout(updateAllModifiedStates, 100);
 }
 
 // Load hitmap for element detection
@@ -233,9 +296,9 @@ function drawHitRegions() {
         let shape;
         let labelX, labelY;
 
-        // Use polyline for lines/scatter with points, rectangle for others
-        if ((bbox.type === 'line' || bbox.type === 'scatter') && bbox.points && bbox.points.length > 1) {
-            // Create polyline from points
+        // Use polyline for lines with points, circles for scatter, rectangle for others
+        if (bbox.type === 'line' && bbox.points && bbox.points.length > 1) {
+            // Create polyline from points for lines
             const points = bbox.points.map(pt => {
                 const x = offsetX + pt[0] * scaleX;
                 const y = offsetY + pt[1] * scaleY;
@@ -246,6 +309,59 @@ function drawHitRegions() {
             shape.setAttribute('points', points);
             shape.setAttribute('class', 'hitregion-polyline');
             shape.setAttribute('data-key', key);
+            // Set element color as CSS custom property for hover effect
+            if (bbox.original_color) {
+                shape.style.setProperty('--element-color', bbox.original_color);
+            }
+
+            // Label position at first point
+            const firstPt = bbox.points[0];
+            labelX = offsetX + firstPt[0] * scaleX + 5;
+            labelY = offsetY + firstPt[1] * scaleY - 5;
+        } else if (bbox.type === 'scatter' && bbox.points && bbox.points.length > 0) {
+            // Create circles at each scatter point
+            shape = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            shape.setAttribute('class', 'scatter-group');
+            shape.setAttribute('data-key', key);
+            // Set element color as CSS custom property for hover effect
+            if (bbox.original_color) {
+                shape.style.setProperty('--element-color', bbox.original_color);
+            }
+
+            const hitRadius = 5;  // Hit region radius in display pixels
+            const allCircles = [];  // Track all circles for group hover effect
+
+            bbox.points.forEach((pt, idx) => {
+                const cx = offsetX + pt[0] * scaleX;
+                const cy = offsetY + pt[1] * scaleY;
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', hitRadius);
+                circle.setAttribute('class', 'hitregion-circle');
+                circle.setAttribute('data-key', key);
+                circle.setAttribute('data-point-index', idx);
+
+                allCircles.push(circle);
+                shape.appendChild(circle);
+            });
+
+            // Add event handlers to the scatter group (not individual circles)
+            // This ensures all circles highlight together
+            shape.addEventListener('mouseenter', () => {
+                handleHitRegionHover(key, bbox);
+                // Add hovered class to all circles for visual effect
+                allCircles.forEach(c => c.classList.add('hovered'));
+                shape.classList.add('hovered');
+            });
+            shape.addEventListener('mouseleave', () => {
+                handleHitRegionLeave();
+                // Remove hovered class from all circles
+                allCircles.forEach(c => c.classList.remove('hovered'));
+                shape.classList.remove('hovered');
+            });
+            shape.addEventListener('click', (e) => handleHitRegionClick(e, key, bbox));
 
             // Label position at first point
             const firstPt = bbox.points[0];
@@ -277,6 +393,10 @@ function drawHitRegions() {
             shape.setAttribute('height', Math.max(height, 5));
             shape.setAttribute('class', regionClass);
             shape.setAttribute('data-key', key);
+            // Set element color as CSS custom property for hover effect
+            if (bbox.original_color) {
+                shape.style.setProperty('--element-color', bbox.original_color);
+            }
 
             labelX = x + 2;
             labelY = y - 3;
@@ -549,20 +669,26 @@ function syncPropertiesToElement(element) {
     // Get the relevant section ID
     const sectionId = sectionMap[element.type] || 'section-dimensions';
 
-    // Remove highlight from all sections
+    // Close all sections and remove highlights (accordion behavior)
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('section-highlighted');
+        // Close all sections except Download (which should stay open)
+        if (section.id && section.id !== 'section-download') {
+            section.removeAttribute('open');
+        }
     });
 
     // Find and highlight the relevant section
     const section = document.getElementById(sectionId);
     if (section) {
-        // Open the section if closed
+        // Open the section
         section.setAttribute('open', '');
         // Add highlight class
         section.classList.add('section-highlighted');
-        // Scroll to section
-        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Scroll to section with small delay to allow animation
+        setTimeout(() => {
+            section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 50);
     }
 
     // Update displayed values for the selected element type
@@ -882,4 +1008,4 @@ async function updateOverrideStatusAfterSave(data) {
 }
 """
 
-__all__ = ['SCRIPTS']
+__all__ = ["SCRIPTS"]
