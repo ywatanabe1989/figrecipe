@@ -1,16 +1,17 @@
-.PHONY: help install install-dev test examples clean clean-outputs lint format
+.PHONY: help install install-dev test notebook pdf clean clean-outputs lint format
 
 PYTHON := python3
 PIP := pip3
 
 help:
-	@echo "plotspec - Record and reproduce matplotlib figures"
+	@echo "figrecipe - Record and reproduce matplotlib figures"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make install       Install package"
 	@echo "  make install-dev   Install package with dev dependencies"
 	@echo "  make test          Run tests"
-	@echo "  make examples      Run all examples"
+	@echo "  make notebook      Execute demo notebook"
+	@echo "  make pdf           Generate PDF from notebook"
 	@echo "  make clean         Clean build artifacts and outputs"
 	@echo "  make clean-outputs Clean only outputs directory"
 	@echo "  make lint          Run linter"
@@ -25,19 +26,15 @@ install-dev:
 test:
 	$(PYTHON) -m pytest tests/ -v
 
-examples: examples-basic examples-demo examples-roundtrip
+notebook:
+	@echo "Executing demo notebook..."
+	$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace examples/figrecipe_demo.ipynb --ExecutePreprocessor.timeout=120
 
-examples-basic:
-	@echo "Running basic usage example..."
-	$(PYTHON) examples/01_basic_usage.py
-
-examples-demo:
-	@echo "Running demo..."
-	$(PYTHON) examples/demo.py
-
-examples-roundtrip:
-	@echo "Running roundtrip tests..."
-	$(PYTHON) examples/roundtrip_all_types.py
+pdf: notebook
+	@echo "Generating PDF from notebook..."
+	jupyter nbconvert --to pdf examples/figrecipe_demo.ipynb --output-dir=examples
+	@rm -rf plotspec_demo_files notebook.* 2>/dev/null || true
+	@echo "PDF generated: examples/figrecipe_demo.pdf"
 
 clean: clean-outputs
 	rm -rf build/
@@ -54,7 +51,7 @@ clean-outputs:
 	rm -rf outputs/
 
 lint:
-	$(PYTHON) -m ruff check src/ tests/ examples/
+	$(PYTHON) -m ruff check src/ tests/
 
 format:
-	$(PYTHON) -m ruff format src/ tests/ examples/
+	$(PYTHON) -m ruff format src/ tests/

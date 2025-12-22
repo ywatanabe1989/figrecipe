@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Roundtrip tests for plotspec - verify original and reproduced figures match."""
+"""Roundtrip tests for figrecipe - verify original and reproduced figures match."""
 
 import tempfile
 from pathlib import Path
@@ -70,24 +70,24 @@ class TestRoundtrip:
     @pytest.mark.parametrize("method_name,args_func,kwargs", ROUNDTRIP_TESTS)
     def test_roundtrip_plot_types(self, method_name, args_func, kwargs):
         """Test roundtrip for various plot types."""
-        import plotspec as mpr
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             recipe_path = Path(tmpdir) / f"{method_name}.yaml"
 
             # === RECORD ===
             np.random.seed(42)
-            fig, ax = mpr.subplots(figsize=(6, 4))
+            fig, ax = ps.subplots(figsize=(6, 4))
 
             method = getattr(ax, method_name)
             args = args_func()
             method(*args, **kwargs, id=f'{method_name}_test')
 
-            mpr.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # === REPRODUCE ===
-            fig2, ax2 = mpr.reproduce(recipe_path)
+            fig2, ax2 = ps.reproduce(recipe_path)
 
             # Verify the reproduced figure has content
             assert fig2 is not None
@@ -106,24 +106,24 @@ class TestRoundtrip:
 
     def test_roundtrip_with_decorations(self):
         """Test that decorations (labels, title, legend) are preserved."""
-        import plotspec as mpr
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             recipe_path = Path(tmpdir) / "decorated.yaml"
 
             # === RECORD ===
-            fig, ax = mpr.subplots()
+            fig, ax = ps.subplots()
             ax.plot([1, 2, 3], [1, 4, 9], label='quadratic')
             ax.set_xlabel('X Axis')
             ax.set_ylabel('Y Axis')
             ax.set_title('Test Title')
             ax.legend()
 
-            mpr.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # === REPRODUCE ===
-            fig2, ax2 = mpr.reproduce(recipe_path)
+            fig2, ax2 = ps.reproduce(recipe_path)
 
             assert ax2.get_xlabel() == 'X Axis'
             assert ax2.get_ylabel() == 'Y Axis'
@@ -133,7 +133,7 @@ class TestRoundtrip:
 
     def test_roundtrip_multiple_plots(self):
         """Test figure with multiple plotting calls."""
-        import plotspec as mpr
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             recipe_path = Path(tmpdir) / "multi.yaml"
@@ -141,16 +141,16 @@ class TestRoundtrip:
             x = np.linspace(0, 10, 50)
 
             # === RECORD ===
-            fig, ax = mpr.subplots()
+            fig, ax = ps.subplots()
             ax.plot(x, np.sin(x), color='blue', id='sin')
             ax.plot(x, np.cos(x), color='red', id='cos')
             ax.scatter(x[::5], np.sin(x[::5]), s=50, id='points')
 
-            mpr.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # === REPRODUCE ===
-            fig2, ax2 = mpr.reproduce(recipe_path)
+            fig2, ax2 = ps.reproduce(recipe_path)
 
             # Should have 2 lines and 1 collection (scatter)
             assert len(ax2.lines) >= 2
@@ -160,7 +160,7 @@ class TestRoundtrip:
 
     def test_roundtrip_data_integrity(self):
         """Test that data values are preserved in roundtrip."""
-        import plotspec as mpr
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             recipe_path = Path(tmpdir) / "data_check.yaml"
@@ -169,14 +169,14 @@ class TestRoundtrip:
             y = np.array([2.0, 4.0, 6.0, 8.0, 10.0])
 
             # === RECORD ===
-            fig, ax = mpr.subplots()
+            fig, ax = ps.subplots()
             ax.plot(x, y, id='linear')
 
-            mpr.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # === REPRODUCE ===
-            fig2, ax2 = mpr.reproduce(recipe_path)
+            fig2, ax2 = ps.reproduce(recipe_path)
 
             # Check data matches
             line = ax2.lines[0]
@@ -187,7 +187,7 @@ class TestRoundtrip:
 
     def test_roundtrip_large_array(self):
         """Test roundtrip with large arrays (saved to .npy)."""
-        import plotspec as mpr
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             recipe_path = Path(tmpdir) / "large.yaml"
@@ -197,10 +197,10 @@ class TestRoundtrip:
             y = np.sin(x) * np.exp(-x / 50)
 
             # === RECORD ===
-            fig, ax = mpr.subplots()
+            fig, ax = ps.subplots()
             ax.plot(x, y, id='damped_sine')
 
-            mpr.save(fig, recipe_path)
+            ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
             # Check data files were created (CSV by default)
@@ -209,7 +209,7 @@ class TestRoundtrip:
             assert len(list(data_dir.glob("*.csv"))) > 0
 
             # === REPRODUCE ===
-            fig2, ax2 = mpr.reproduce(recipe_path)
+            fig2, ax2 = ps.reproduce(recipe_path)
 
             # Check data matches
             line = ax2.lines[0]
@@ -225,11 +225,11 @@ class TestPixelComparison:
     def test_identical_images(self):
         """Test that identical images are detected as identical."""
         try:
-            from plotspec._utils._image_diff import compare_images
+            from figrecipe._utils._image_diff import compare_images
         except ImportError:
             pytest.skip("PIL not installed")
 
-        import plotspec as mpr
+        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             img1 = Path(tmpdir) / "img1.png"
@@ -249,7 +249,7 @@ class TestPixelComparison:
     def test_different_images(self):
         """Test that different images are detected as different."""
         try:
-            from plotspec._utils._image_diff import compare_images
+            from figrecipe._utils._image_diff import compare_images
         except ImportError:
             pytest.skip("PIL not installed")
 
