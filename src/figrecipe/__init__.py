@@ -62,8 +62,56 @@ from ._wrappers._figure import create_recording_subplots
 from ._serializer import save_recipe, load_recipe, recipe_to_dict
 from ._reproducer import reproduce as _reproduce, get_recipe_info
 from ._utils._numpy_io import DataFormat
-from ._utils._units import mm_to_inch, mm_to_pt, inch_to_mm, pt_to_mm, normalize_color
+from ._utils._units import mm_to_inch, mm_to_pt, inch_to_mm, pt_to_mm, mm_to_scatter_size, normalize_color
 from .styles._style_applier import list_available_fonts, check_font
+
+# Notebook display format flag (set once per session)
+_notebook_format_set = False
+
+
+def _enable_notebook_svg():
+    """Enable SVG format for Jupyter notebook display.
+
+    This provides crisp vector graphics at any zoom level.
+    Called automatically when load_style() or subplots() is used.
+    """
+    global _notebook_format_set
+    if _notebook_format_set:
+        return
+
+    try:
+        # Method 1: matplotlib_inline (IPython 7.0+, JupyterLab)
+        from matplotlib_inline.backend_inline import set_matplotlib_formats
+        set_matplotlib_formats('svg')
+        _notebook_format_set = True
+    except (ImportError, Exception):
+        try:
+            # Method 2: IPython config (older IPython)
+            from IPython import get_ipython
+            ipython = get_ipython()
+            if ipython is not None and hasattr(ipython, 'kernel'):
+                # Only run in actual Jupyter kernel, not IPython console
+                ipython.run_line_magic('config', "InlineBackend.figure_formats = ['svg']")
+                _notebook_format_set = True
+        except Exception:
+            pass  # Not in Jupyter environment or method not available
+
+
+def enable_svg():
+    """Manually enable SVG format for Jupyter notebook display.
+
+    Call this if figures appear pixelated in notebooks.
+
+    Examples
+    --------
+    >>> import figrecipe as fr
+    >>> fr.enable_svg()  # Enable SVG rendering
+    >>> fig, ax = fr.subplots()  # Now renders as crisp SVG
+    """
+    global _notebook_format_set
+    _notebook_format_set = False  # Force re-application
+    _enable_notebook_svg()
+
 
 # Lazy import for seaborn to avoid hard dependency
 _sns_recorder = None
@@ -100,6 +148,7 @@ __all__ = [
     "validate",
     # Style system
     "load_style",
+    "unload_style",
     "list_presets",
     "STYLE",
     "apply_style",
@@ -108,10 +157,13 @@ __all__ = [
     "mm_to_pt",
     "inch_to_mm",
     "pt_to_mm",
+    "mm_to_scatter_size",
     "normalize_color",
     # Font utilities
     "list_available_fonts",
     "check_font",
+    # Notebook utilities
+    "enable_svg",
     # Seaborn support
     "sns",
     # Classes (for type hints)
@@ -120,6 +172,8 @@ __all__ = [
     "FigureRecord",
     "CallRecord",
     "ValidationResult",
+    # Image utilities
+    "crop",
     # Version
     "__version__",
 ]
@@ -129,47 +183,72 @@ __all__ = [
 _style_cache = None
 
 
-def load_style(style=None):
-    """Load style configuration from preset or YAML file.
+def load_style(style="SCITEX", dark=False):
+    """Load style configuration and apply it globally.
+
+    After calling this function, subsequent `subplots()` calls will
+    automatically use the loaded style (fonts, colors, theme, etc.).
 
     Parameters
     ----------
-    style : str or Path, optional
+    style : str, Path, bool, or None
         One of:
-        - Preset name: "SCIENTIFIC", "MINIMAL", "PRESENTATION"
+        - "SCITEX" / "FIGRECIPE": Scientific publication style (default)
+        - "MATPLOTLIB": Vanilla matplotlib defaults
         - Path to custom YAML file: "/path/to/my_style.yaml"
-        - None: uses default SCIENTIFIC preset
+        - None or False: Unload style (reset to matplotlib defaults)
+    dark : bool, optional
+        If True, apply dark theme transformation (default: False).
+        Equivalent to appending "_DARK" to preset name.
 
     Returns
     -------
-    DotDict
+    DotDict or None
         Style configuration with dot-notation access.
+        Returns None if style is unloaded.
 
     Examples
     --------
-    >>> import figrecipe as ps
+    >>> import figrecipe as fr
 
-    >>> # Load default (SCIENTIFIC preset)
-    >>> style = ps.load_style()
+    >>> # Load scientific style (default)
+    >>> fr.load_style()
+    >>> fr.load_style("SCITEX")  # explicit
 
-    >>> # Load a specific preset
-    >>> style = ps.load_style("MINIMAL")
-    >>> style = ps.load_style("PRESENTATION")
+    >>> # Load dark theme
+    >>> fr.load_style("SCITEX_DARK")
+    >>> fr.load_style("SCITEX", dark=True)  # equivalent
 
-    >>> # Load custom YAML file
-    >>> style = ps.load_style("/path/to/my_style.yaml")
+    >>> # Reset to vanilla matplotlib
+    >>> fr.load_style(None)    # unload
+    >>> fr.load_style(False)   # unload
+    >>> fr.load_style("MATPLOTLIB")  # explicit vanilla
 
     >>> # Access style values
+    >>> style = fr.load_style("SCITEX")
     >>> style.axes.width_mm
     40
-    >>> style.colors.palette
-    ['#0072B2', '#D55E00', ...]
-
-    >>> # Use with subplots
-    >>> fig, ax = ps.subplots(**style.to_subplots_kwargs())
     """
     from .styles import load_style as _load_style
-    return _load_style(style)
+    return _load_style(style, dark=dark)
+
+
+def unload_style():
+    """Unload the current style and reset to matplotlib defaults.
+
+    After calling this, subsequent `subplots()` calls will use vanilla
+    matplotlib behavior without FigRecipe styling.
+
+    Examples
+    --------
+    >>> import figrecipe as fr
+    >>> fr.load_style("SCITEX")  # Apply scientific style
+    >>> fig, ax = fr.subplots()  # Styled
+    >>> fr.unload_style()        # Reset to matplotlib defaults
+    >>> fig, ax = fr.subplots()  # Vanilla matplotlib
+    """
+    from .styles import unload_style as _unload_style
+    _unload_style()
 
 
 def list_presets():
@@ -250,7 +329,7 @@ def subplots(
     space_h_mm: Optional[float] = None,
     # Style parameters
     style: Optional[Dict[str, Any]] = None,
-    apply_style_mm: bool = False,
+    apply_style_mm: bool = True,
     **kwargs,
 ) -> Tuple[RecordingFigure, Union[RecordingAxes, List[RecordingAxes]]]:
     """Create a figure with recording-enabled axes.
@@ -291,7 +370,8 @@ def subplots(
     style : dict, optional
         Style configuration dictionary or result of load_style().
     apply_style_mm : bool
-        If True, apply FIGRECIPE_STYLE to axes after creation.
+        If True (default), apply loaded style to axes after creation.
+        Set to False to disable automatic style application.
 
     **kwargs
         Additional arguments passed to plt.subplots() (e.g., figsize, dpi).
@@ -321,13 +401,34 @@ def subplots(
     ...     margin_bottom_mm=12,
     ... )
 
-    With style:
+    With style (automatically applied):
 
-    >>> style = ps.load_style()
-    >>> fig, ax = ps.subplots(**style.to_subplots_kwargs())
+    >>> ps.load_style("FIGRECIPE_DARK")  # Load dark theme
+    >>> fig, ax = ps.subplots()  # Style applied automatically
     """
-    # Check if mm-based layout is requested
-    use_mm_layout = any([
+    # Get global style for default values (if loaded)
+    from .styles._style_loader import _STYLE_CACHE
+    global_style = _STYLE_CACHE
+
+    # Helper to get value with priority: explicit > global style > hardcoded default
+    def _get_mm(explicit, style_path, default):
+        if explicit is not None:
+            return explicit
+        if global_style is not None:
+            try:
+                val = global_style
+                for key in style_path:
+                    val = val.get(key) if isinstance(val, dict) else getattr(val, key, None)
+                    if val is None:
+                        break
+                if val is not None:
+                    return val
+            except (KeyError, AttributeError):
+                pass
+        return default
+
+    # Check if mm-based layout is requested (explicit OR from global style)
+    has_explicit_mm = any([
         axes_width_mm is not None,
         axes_height_mm is not None,
         margin_left_mm is not None,
@@ -338,16 +439,29 @@ def subplots(
         space_h_mm is not None,
     ])
 
+    # Also use mm layout if global style has mm values
+    has_style_mm = False
+    if global_style is not None:
+        try:
+            has_style_mm = (
+                global_style.get('axes', {}).get('width_mm') is not None or
+                getattr(getattr(global_style, 'axes', None), 'width_mm', None) is not None
+            )
+        except (KeyError, AttributeError):
+            pass
+
+    use_mm_layout = has_explicit_mm or has_style_mm
+
     if use_mm_layout and 'figsize' not in kwargs:
-        # Calculate figsize from mm parameters
-        aw = axes_width_mm if axes_width_mm is not None else 40
-        ah = axes_height_mm if axes_height_mm is not None else 28
-        ml = margin_left_mm if margin_left_mm is not None else 15
-        mr = margin_right_mm if margin_right_mm is not None else 5
-        mb = margin_bottom_mm if margin_bottom_mm is not None else 12
-        mt = margin_top_mm if margin_top_mm is not None else 8
-        sw = space_w_mm if space_w_mm is not None else 8
-        sh = space_h_mm if space_h_mm is not None else 10
+        # Get mm values: explicit params > global style > hardcoded defaults
+        aw = _get_mm(axes_width_mm, ['axes', 'width_mm'], 40)
+        ah = _get_mm(axes_height_mm, ['axes', 'height_mm'], 28)
+        ml = _get_mm(margin_left_mm, ['margins', 'left_mm'], 15)
+        mr = _get_mm(margin_right_mm, ['margins', 'right_mm'], 5)
+        mb = _get_mm(margin_bottom_mm, ['margins', 'bottom_mm'], 12)
+        mt = _get_mm(margin_top_mm, ['margins', 'top_mm'], 8)
+        sw = _get_mm(space_w_mm, ['spacing', 'horizontal_mm'], 8)
+        sh = _get_mm(space_h_mm, ['spacing', 'vertical_mm'], 10)
 
         # Calculate total figure size
         total_width_mm = ml + (ncols * aw) + ((ncols - 1) * sw) + mr
@@ -370,6 +484,20 @@ def subplots(
     else:
         mm_layout = None
 
+    # Apply DPI from global style if not explicitly provided
+    if 'dpi' not in kwargs and global_style is not None:
+        # Try figure.dpi first, then output.dpi
+        style_dpi = None
+        try:
+            if hasattr(global_style, 'figure') and hasattr(global_style.figure, 'dpi'):
+                style_dpi = global_style.figure.dpi
+            elif hasattr(global_style, 'output') and hasattr(global_style.output, 'dpi'):
+                style_dpi = global_style.output.dpi
+        except (KeyError, AttributeError):
+            pass
+        if style_dpi is not None:
+            kwargs['dpi'] = style_dpi
+
     # Handle style parameter
     if style is not None:
         if hasattr(style, 'to_subplots_kwargs'):
@@ -379,8 +507,16 @@ def subplots(
                 if key not in kwargs:
                     kwargs[key] = value
 
+    # Use constrained_layout by default for non-mm layouts (better auto-spacing)
+    # Don't use it with mm-based layout since we manually control positioning
+    if not use_mm_layout and 'constrained_layout' not in kwargs:
+        kwargs['constrained_layout'] = True
+
     # Create the recording subplots
     fig, axes = create_recording_subplots(nrows, ncols, **kwargs)
+
+    # Record constrained_layout setting for reproduction
+    fig.record.constrained_layout = kwargs.get('constrained_layout', False)
 
     # Store mm_layout metadata on figure for serialization
     if mm_layout is not None:
@@ -419,13 +555,24 @@ def subplots(
             'hspace': hspace,
         }
 
-    # Apply styling if requested
+    # Apply styling if requested and a style is actually loaded
     style_dict = None
-    if apply_style_mm or style is not None:
-        from .styles import apply_style_mm as _apply_style, to_subplots_kwargs, get_style
-        style_dict = to_subplots_kwargs(get_style()) if style is None else (
-            style.to_subplots_kwargs() if hasattr(style, 'to_subplots_kwargs') else style
-        )
+    should_apply_style = False
+
+    if style is not None:
+        # Explicit style parameter provided
+        should_apply_style = True
+        style_dict = style.to_subplots_kwargs() if hasattr(style, 'to_subplots_kwargs') else style
+    elif apply_style_mm and global_style is not None:
+        # Use global style if loaded and has meaningful values (not MATPLOTLIB)
+        from .styles import to_subplots_kwargs
+        style_dict = to_subplots_kwargs(global_style)
+        # Only apply if style has essential mm values (skip MATPLOTLIB which has all None)
+        if style_dict and style_dict.get('axes_thickness_mm') is not None:
+            should_apply_style = True
+
+    if should_apply_style and style_dict:
+        from .styles import apply_style_mm as _apply_style
         if nrows == 1 and ncols == 1:
             _apply_style(axes._ax, style_dict)
         else:
@@ -448,15 +595,25 @@ def save(
     data_format: DataFormat = "csv",
     validate: bool = True,
     validate_mse_threshold: float = 100.0,
+    validate_error_level: str = "error",
+    verbose: bool = True,
+    dpi: Optional[int] = None,
+    image_format: Optional[str] = None,
 ):
-    """Save a figure's recipe to file.
+    """Save a figure as image and recipe.
+
+    Automatically saves both the image file and the YAML recipe for
+    reproducibility. Specify either image or YAML path - the other
+    will be created with the same base name.
 
     Parameters
     ----------
     fig : RecordingFigure or Figure
         The figure to save. Must be a RecordingFigure for recipe saving.
     path : str or Path
-        Output path. Use .yaml extension for recipe format.
+        Output path. Can be:
+        - Image path (.png, .pdf, .svg, .jpg): Saves image + YAML recipe
+        - YAML path (.yaml, .yml): Saves recipe + image
     include_data : bool
         If True, save large arrays to separate files.
     data_format : str
@@ -469,24 +626,39 @@ def save(
         reproducing the figure and comparing it to the original.
     validate_mse_threshold : float
         Maximum acceptable MSE for validation (default: 100).
+    validate_error_level : str
+        How to handle validation failures: 'error' (default), 'warning', or 'debug'.
+        - 'error': Raise ValueError on failure
+        - 'warning': Emit UserWarning on failure
+        - 'debug': Silent (check result.valid manually)
+    verbose : bool
+        If True (default), print save status. Set False for CI/scripts.
+    dpi : int, optional
+        DPI for image output. Uses style DPI or 300 if not specified.
+    image_format : str, optional
+        Image format when path is YAML ('png', 'pdf', 'svg').
+        Uses style's output.format or 'png' if not specified.
 
     Returns
     -------
-    Path or tuple
-        If validate=False: Path to saved file.
-        If validate=True: (Path, ValidationResult) tuple.
+    tuple
+        (image_path, yaml_path, ValidationResult or None) tuple.
+        ValidationResult is None when validate=False.
 
     Examples
     --------
-    >>> import figrecipe as ps
-    >>> fig, ax = ps.subplots()
+    >>> import figrecipe as fr
+    >>> fig, ax = fr.subplots()
     >>> ax.plot(x, y, color='red', id='my_data')
-    >>> ps.save(fig, 'experiment.yaml')  # Uses CSV (default)
-    >>> ps.save(fig, 'experiment.yaml', data_format='npz')  # Binary
     >>>
-    >>> # With validation
-    >>> path, result = ps.save(fig, 'experiment.yaml', validate=True)
-    >>> print(result.summary())
+    >>> # Save as PNG (also creates experiment.yaml)
+    >>> img_path, yaml_path, result = fr.save(fig, 'experiment.png')
+    >>>
+    >>> # Save as YAML (also creates experiment.png)
+    >>> img_path, yaml_path, result = fr.save(fig, 'experiment.yaml')
+    >>>
+    >>> # Save as PDF with custom DPI
+    >>> fr.save(fig, 'experiment.pdf', dpi=600)
 
     Notes
     -----
@@ -497,23 +669,102 @@ def save(
     """
     path = Path(path)
 
-    if isinstance(fig, RecordingFigure):
-        saved_path = fig.save_recipe(path, include_data=include_data, data_format=data_format)
-
-        if validate:
-            from ._validator import validate_on_save
-            result = validate_on_save(fig, saved_path, mse_threshold=validate_mse_threshold)
-            status = "PASSED" if result.valid else "FAILED"
-            print(f"Saved: {saved_path} (Validation: {status})")
-            return saved_path, result
-
-        print(f"Saved: {saved_path}")
-        return saved_path
-    else:
+    if not isinstance(fig, RecordingFigure):
         raise TypeError(
-            "Expected RecordingFigure. Use ps.subplots() to create "
+            "Expected RecordingFigure. Use fr.subplots() to create "
             "a recording-enabled figure."
         )
+
+    # Determine image and YAML paths based on extension
+    IMAGE_EXTENSIONS = {'.png', '.pdf', '.svg', '.jpg', '.jpeg', '.eps', '.tiff', '.tif'}
+    YAML_EXTENSIONS = {'.yaml', '.yml'}
+
+    suffix_lower = path.suffix.lower()
+
+    if suffix_lower in IMAGE_EXTENSIONS:
+        # User provided image path
+        image_path = path
+        yaml_path = path.with_suffix('.yaml')
+        img_format = suffix_lower[1:]  # Remove leading dot
+    elif suffix_lower in YAML_EXTENSIONS:
+        # User provided YAML path
+        yaml_path = path
+        # Determine image format from style or default
+        if image_format is not None:
+            img_format = image_format.lower().lstrip('.')
+        else:
+            # Check global style for preferred format
+            from .styles._style_loader import _STYLE_CACHE
+            if _STYLE_CACHE is not None:
+                try:
+                    img_format = _STYLE_CACHE.output.format.lower()
+                except (KeyError, AttributeError):
+                    img_format = 'png'
+            else:
+                img_format = 'png'
+        image_path = path.with_suffix(f'.{img_format}')
+    else:
+        # Unknown extension - treat as base name, add both extensions
+        yaml_path = path.with_suffix('.yaml')
+        if image_format is not None:
+            img_format = image_format.lower().lstrip('.')
+        else:
+            from .styles._style_loader import _STYLE_CACHE
+            if _STYLE_CACHE is not None:
+                try:
+                    img_format = _STYLE_CACHE.output.format.lower()
+                except (KeyError, AttributeError):
+                    img_format = 'png'
+            else:
+                img_format = 'png'
+        image_path = path.with_suffix(f'.{img_format}')
+
+    # Get DPI from style if not specified
+    if dpi is None:
+        from .styles._style_loader import _STYLE_CACHE
+        if _STYLE_CACHE is not None:
+            try:
+                dpi = _STYLE_CACHE.output.dpi
+            except (KeyError, AttributeError):
+                dpi = 300
+        else:
+            dpi = 300
+
+    # Get transparency setting from style
+    transparent = False
+    from .styles._style_loader import _STYLE_CACHE
+    if _STYLE_CACHE is not None:
+        try:
+            transparent = _STYLE_CACHE.output.transparent
+        except (KeyError, AttributeError):
+            pass
+
+    # Save the image
+    fig.fig.savefig(image_path, dpi=dpi, bbox_inches='tight', transparent=transparent)
+
+    # Save the recipe
+    saved_yaml = fig.save_recipe(yaml_path, include_data=include_data, data_format=data_format)
+
+    # Validate if requested
+    if validate:
+        from ._validator import validate_on_save
+        result = validate_on_save(fig, saved_yaml, mse_threshold=validate_mse_threshold)
+        status = "PASSED" if result.valid else "FAILED"
+        if verbose:
+            print(f"Saved: {image_path} + {yaml_path} (Reproducible Validation: {status})")
+        if not result.valid:
+            msg = f"Reproducibility validation failed (MSE={result.mse:.1f}): {result.message}"
+            if validate_error_level == "error":
+                raise ValueError(msg)
+            elif validate_error_level == "warning":
+                import warnings
+                warnings.warn(msg, UserWarning)
+            # "debug" level: silent, just return the result
+        return image_path, yaml_path, result
+
+    if verbose:
+        print(f"Saved: {image_path} + {yaml_path}")
+    return image_path, yaml_path, None
 
 
 def reproduce(
@@ -796,3 +1047,44 @@ def validate(
             file_size_diff=diff["file_size2"] - diff["file_size1"],
             message=message,
         )
+
+
+def crop(input_path, output_path=None, margin_mm=1.0, margin_px=None, overwrite=False, verbose=False):
+    """Crop a figure image to its content area with a specified margin.
+
+    Automatically detects background color (from corners) and crops to
+    content, leaving only the specified margin around it.
+
+    Parameters
+    ----------
+    input_path : str or Path
+        Path to the input image (PNG, JPEG, etc.)
+    output_path : str or Path, optional
+        Path to save the cropped image. If None and overwrite=True,
+        overwrites the input. If None and overwrite=False, adds '_cropped' suffix.
+    margin_mm : float, optional
+        Margin in millimeters to keep around content (default: 1.0mm).
+        Converted to pixels using image DPI (or 300 DPI if not available).
+    margin_px : int, optional
+        Margin in pixels (overrides margin_mm if provided).
+    overwrite : bool, optional
+        Whether to overwrite the input file (default: False)
+    verbose : bool, optional
+        Whether to print detailed information (default: False)
+
+    Returns
+    -------
+    Path
+        Path to the saved cropped image.
+
+    Examples
+    --------
+    >>> import figrecipe as fr
+    >>> fig, ax = fr.subplots(axes_width_mm=60, axes_height_mm=40)
+    >>> ax.plot([1, 2, 3], [1, 2, 3], id='line')
+    >>> fig.savefig("figure.png", dpi=300)
+    >>> fr.crop("figure.png", overwrite=True)  # 1mm margin
+    >>> fr.crop("figure.png", margin_mm=2.0)   # 2mm margin
+    """
+    from ._utils._crop import crop as _crop
+    return _crop(input_path, output_path, margin_mm, margin_px, overwrite, verbose)

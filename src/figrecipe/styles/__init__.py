@@ -20,6 +20,7 @@ Usage:
 
 from ._style_loader import (
     load_style,
+    unload_style,
     get_style,
     reload_style,
     list_presets,
@@ -36,6 +37,7 @@ from ._style_applier import (
 
 __all__ = [
     "load_style",
+    "unload_style",
     "get_style",
     "reload_style",
     "list_presets",

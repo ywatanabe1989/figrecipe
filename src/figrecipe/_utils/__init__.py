@@ -23,3 +23,10 @@ try:
     __all__.extend(["compare_images", "create_comparison_figure"])
 except ImportError:
     pass
+
+# Optional: crop utility (requires PIL)
+try:
+    from ._crop import crop, find_content_area
+    __all__.extend(["crop", "find_content_area"])
+except ImportError:
+    pass

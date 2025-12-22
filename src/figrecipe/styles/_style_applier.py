@@ -78,19 +78,21 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
     return fallback if fallback in available else "DejaVu Sans"
 
 
-# Default theme color palettes
+# Default theme color palettes (Monaco/VS Code style for dark)
 THEME_COLORS = {
     "dark": {
-        "background": "#1a1a2e",
-        "axes_bg": "#1a1a2e",
-        "text": "#e8e8e8",
-        "spine": "#4a4a5a",
-        "tick": "#e8e8e8",
-        "grid": "#3a3a4a",
+        "figure_bg": "#1e1e1e",     # VS Code main background
+        "axes_bg": "#252526",       # VS Code panel background
+        "legend_bg": "#252526",     # Same as axes
+        "text": "#d4d4d4",          # VS Code default text
+        "spine": "#3c3c3c",         # Subtle border color
+        "tick": "#d4d4d4",          # Match text
+        "grid": "#3a3a3a",          # Subtle grid
     },
     "light": {
-        "background": "none",  # Transparent
-        "axes_bg": "none",     # Transparent
+        "figure_bg": "none",        # Transparent
+        "axes_bg": "none",          # Transparent
+        "legend_bg": "none",        # Transparent
         "text": "black",
         "spine": "black",
         "tick": "black",
@@ -113,7 +115,7 @@ def apply_theme_colors(
     theme : str
         Color theme: "light" or "dark" (default: "light")
     custom_colors : dict, optional
-        Custom color overrides. Keys: background, axes_bg, text, spine, tick, grid
+        Custom color overrides. Keys: figure_bg, axes_bg, legend_bg, text, spine, tick, grid
 
     Examples
     --------
@@ -125,21 +127,30 @@ def apply_theme_colors(
 
     # Apply custom overrides
     if custom_colors:
+        # Handle legacy key name (background -> figure_bg)
+        if "background" in custom_colors and "figure_bg" not in custom_colors:
+            custom_colors["figure_bg"] = custom_colors.pop("background")
         colors.update(custom_colors)
 
-    # Apply axes background (handle "none" for transparency)
-    axes_bg = colors["axes_bg"]
-    if axes_bg.lower() == "none":
+    # Helper to check for transparent/none
+    def is_transparent(color):
+        if color is None:
+            return False
+        return str(color).lower() in ("none", "transparent")
+
+    # Apply axes background (handle "none"/"transparent" for transparency)
+    axes_bg = colors.get("axes_bg", "none")
+    if is_transparent(axes_bg):
         ax.set_facecolor("none")
         ax.patch.set_alpha(0)
     else:
         ax.set_facecolor(axes_bg)
 
-    # Apply figure background if accessible (handle "none" for transparency)
+    # Apply figure background if accessible
     fig = ax.get_figure()
     if fig is not None:
-        fig_bg = colors["background"]
-        if fig_bg.lower() == "none":
+        fig_bg = colors.get("figure_bg", "none")
+        if is_transparent(fig_bg):
             fig.patch.set_facecolor("none")
             fig.patch.set_alpha(0)
         else:
@@ -169,7 +180,12 @@ def apply_theme_colors(
             title.set_color(colors["text"])
         frame = legend.get_frame()
         if frame:
-            frame.set_facecolor(colors["axes_bg"])
+            legend_bg = colors.get("legend_bg", colors.get("axes_bg", "none"))
+            if is_transparent(legend_bg):
+                frame.set_facecolor("none")
+                frame.set_alpha(0)
+            else:
+                frame.set_facecolor(legend_bg)
             frame.set_edgecolor(colors["spine"])
 
 
@@ -287,7 +303,36 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     title_pad_pt = style.get("title_pad_pt", 4.0)
     ax.set_title(ax.get_title(), pad=title_pad_pt)
 
-    # Set legend font size if legend exists
+    # Set legend font size and background via rcParams (for future legends)
+    import matplotlib as mpl
+    mpl.rcParams['legend.fontsize'] = legend_fs
+    mpl.rcParams['legend.title_fontsize'] = legend_fs
+
+    # Set legend colors from theme
+    theme = style.get("theme", "light")
+    theme_colors = style.get("theme_colors", None)
+    if theme_colors:
+        legend_bg = theme_colors.get("legend_bg", theme_colors.get("axes_bg", "white"))
+        text_color = theme_colors.get("text", "black")
+        spine_color = theme_colors.get("spine", "black")
+    else:
+        theme_dict = THEME_COLORS.get(theme, THEME_COLORS["light"])
+        legend_bg = theme_dict.get("legend_bg", "white")
+        text_color = theme_dict.get("text", "black")
+        spine_color = theme_dict.get("spine", "black")
+
+    # Handle transparent backgrounds
+    if str(legend_bg).lower() in ("none", "transparent"):
+        mpl.rcParams['legend.facecolor'] = 'none'
+        mpl.rcParams['legend.framealpha'] = 0
+    else:
+        mpl.rcParams['legend.facecolor'] = legend_bg
+        mpl.rcParams['legend.framealpha'] = 1.0
+
+    # Set legend text and edge colors
+    mpl.rcParams['legend.edgecolor'] = spine_color
+    mpl.rcParams['legend.labelcolor'] = text_color
+
     legend = ax.get_legend()
     if legend is not None:
         for text in legend.get_texts():

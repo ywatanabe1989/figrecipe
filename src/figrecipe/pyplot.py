@@ -90,7 +90,23 @@ def save(fig, path, **kwargs):
 # Expose commonly used functions explicitly for IDE support
 show = _plt.show
 savefig = _plt.savefig
-close = _plt.close
+
+
+def close(fig=None):
+    """Close a figure window.
+
+    Parameters
+    ----------
+    fig : None, int, str, Figure, or RecordingFigure
+        The figure to close. See matplotlib.pyplot.close() for details.
+        RecordingFigure is automatically unwrapped to the underlying Figure.
+    """
+    if isinstance(fig, RecordingFigure):
+        _plt.close(fig.fig)
+    else:
+        _plt.close(fig)
+
+
 clf = _plt.clf
 cla = _plt.cla
 gcf = _plt.gcf

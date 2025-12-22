@@ -92,6 +92,7 @@ def reproduce_from_record(
         ncols,
         figsize=record.figsize,
         dpi=record.dpi,
+        constrained_layout=record.constrained_layout,
     )
 
     # Apply layout if recorded

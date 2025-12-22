@@ -117,6 +117,11 @@ class RecordingFigure:
         >>> fig.savefig('figure.png')  # Saves both figure.png and figure.yaml
         >>> fig.savefig('figure.png', save_recipe=False)  # Image only
         """
+        # Handle file-like objects (BytesIO, etc.) - just pass through
+        if hasattr(fname, 'write'):
+            self._fig.savefig(fname, **kwargs)
+            return fname
+
         fname = Path(fname)
         self._fig.savefig(fname, **kwargs)
 

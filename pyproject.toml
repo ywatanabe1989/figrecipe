@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "figrecipe"
 version = "0.4.0"
-description = "Record and reproduce matplotlib figures with YAML recipes"
+description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
 requires-python = ">=3.9"
@@ -18,6 +18,10 @@ keywords = [
     "visualization",
     "scientific",
     "plotting",
+    "publication",
+    "recipe",
+    "yaml",
+    "millimeter",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

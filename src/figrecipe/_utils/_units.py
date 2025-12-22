@@ -11,7 +11,7 @@ Constants:
     - 1 mm = 72/25.4 points
 """
 
-__all__ = ["mm_to_inch", "inch_to_mm", "mm_to_pt", "pt_to_mm", "normalize_color"]
+__all__ = ["mm_to_inch", "inch_to_mm", "mm_to_pt", "pt_to_mm", "mm_to_scatter_size", "normalize_color"]
 
 from typing import List, Tuple, Union
 
@@ -106,6 +106,45 @@ def pt_to_mm(pt: float) -> float:
     0.3527777777777778
     """
     return pt * MM_PER_INCH / PT_PER_INCH
+
+
+def mm_to_scatter_size(diameter_mm: float) -> float:
+    """Convert mm diameter to matplotlib scatter 's' parameter.
+
+    matplotlib's scatter() uses 's' as marker AREA in points².
+    This function converts a desired diameter in mm to the correct
+    's' value for circular markers.
+
+    Parameters
+    ----------
+    diameter_mm : float
+        Desired marker diameter in millimeters
+
+    Returns
+    -------
+    float
+        Value for scatter's 's' parameter (area in points²)
+
+    Examples
+    --------
+    >>> import figrecipe as fr
+    >>> # 0.8mm diameter markers (matches tick length)
+    >>> s = fr.mm_to_scatter_size(0.8)
+    >>> ax.scatter(x, y, s=s)
+
+    >>> # Use style's marker size
+    >>> style = fr.load_style()
+    >>> s = fr.mm_to_scatter_size(style.markers.size_mm)
+    >>> ax.scatter(x, y, s=s)
+
+    Notes
+    -----
+    For a circle: area = π * r² = π * (d/2)²
+    where d is diameter in points.
+    """
+    import math
+    diameter_pt = mm_to_pt(diameter_mm)
+    return math.pi * (diameter_pt / 2) ** 2
 
 
 def normalize_color(
