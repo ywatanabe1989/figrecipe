@@ -50,20 +50,28 @@ Inspecting a recipe:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from ._recorder import Recorder, FigureRecord, CallRecord
+from ._recorder import CallRecord, FigureRecord
+from ._reproducer import get_recipe_info
+from ._reproducer import reproduce as _reproduce
+from ._serializer import load_recipe
+from ._utils._numpy_io import DataFormat
+from ._utils._units import (
+    inch_to_mm,
+    mm_to_inch,
+    mm_to_pt,
+    mm_to_scatter_size,
+    normalize_color,
+    pt_to_mm,
+)
+from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from ._wrappers._figure import create_recording_subplots
-from ._serializer import save_recipe, load_recipe, recipe_to_dict
-from ._reproducer import reproduce as _reproduce, get_recipe_info
-from ._utils._numpy_io import DataFormat
-from ._utils._units import mm_to_inch, mm_to_pt, inch_to_mm, pt_to_mm, mm_to_scatter_size, normalize_color
-from .styles._style_applier import list_available_fonts, check_font
+from .styles._style_applier import check_font, list_available_fonts
 
 # Notebook display format flag (set once per session)
 _notebook_format_set = False
@@ -146,6 +154,8 @@ __all__ = [
     "load",
     "extract_data",
     "validate",
+    # GUI Editor
+    "edit",
     # Style system
     "load_style",
     "unload_style",
@@ -961,9 +971,6 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
     return result
 
 
-# Import ValidationResult for type hints
-from ._validator import ValidationResult, validate_recipe
-
 
 def validate(
     path: Union[str, Path],
@@ -1003,10 +1010,12 @@ def validate(
     """
     # For standalone validation, we reproduce twice and compare
     # (This validates the recipe is self-consistent)
+    import tempfile
+
+    import numpy as np
+
     from ._reproducer import reproduce
     from ._utils._image_diff import compare_images
-    import tempfile
-    import numpy as np
 
     path = Path(path)
 
@@ -1088,3 +1097,59 @@ def crop(input_path, output_path=None, margin_mm=1.0, margin_px=None, overwrite=
     """
     from ._utils._crop import crop as _crop
     return _crop(input_path, output_path, margin_mm, margin_px, overwrite, verbose)
+
+
+def edit(
+    source,
+    style=None,
+    port: int = 5050,
+    open_browser: bool = True,
+):
+    """Launch interactive GUI editor for figure styling.
+
+    Opens a browser-based editor that allows interactive adjustment of
+    figure styles using hitmap-based element selection.
+
+    Parameters
+    ----------
+    source : RecordingFigure, str, or Path
+        Either a live RecordingFigure object or path to a .yaml recipe file.
+    style : str or dict, optional
+        Style preset name (e.g., 'SCITEX', 'SCITEX_DARK') or style dict.
+        If None, uses the currently loaded global style.
+    port : int, optional
+        Flask server port (default: 5050). Auto-finds available port if occupied.
+    open_browser : bool, optional
+        Whether to open browser automatically (default: True).
+
+    Returns
+    -------
+    dict
+        Final style overrides after editing session.
+
+    Examples
+    --------
+    Edit a live figure:
+
+    >>> import figrecipe as fr
+    >>> fig, ax = fr.subplots()
+    >>> ax.plot([1, 2, 3], [1, 4, 9], id='quadratic')
+    >>> overrides = fr.edit(fig)
+
+    Edit a saved recipe:
+
+    >>> overrides = fr.edit('my_figure.yaml')
+
+    With explicit style:
+
+    >>> overrides = fr.edit(fig, style='SCITEX_DARK')
+
+    Notes
+    -----
+    Requires Flask to be installed. Install with:
+        pip install figrecipe[editor]
+    or:
+        pip install flask pillow
+    """
+    from ._editor import edit as _edit
+    return _edit(source, style=style, port=port, open_browser=open_browser)
