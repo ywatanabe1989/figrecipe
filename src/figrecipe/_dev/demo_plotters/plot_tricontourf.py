@@ -18,7 +18,7 @@ def plot_tricontourf(plt, rng, ax=None):
     x = rng.uniform(0, 1, 50)
     y = rng.uniform(0, 1, 50)
     z = np.sin(x * 2 * np.pi) * np.cos(y * 2 * np.pi)
-    ax.tricontourf(x, y, z, levels=10, cmap="plasma", id="tricontourf")
+    ax.tricontourf(x, y, z, id="tricontourf")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("tricontourf")

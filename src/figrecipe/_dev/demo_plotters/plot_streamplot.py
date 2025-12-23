@@ -20,9 +20,7 @@ def plot_streamplot(plt, rng, ax=None):
     X, Y = np.meshgrid(x, y)
     U = -Y
     V = X
-    ax.streamplot(
-        X, Y, U, V, color=np.sqrt(U**2 + V**2), cmap="viridis", id="streamplot"
-    )
+    ax.streamplot(X, Y, U, V, id="streamplot")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("streamplot")

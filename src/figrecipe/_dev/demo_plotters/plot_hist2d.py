@@ -15,7 +15,7 @@ def plot_hist2d(plt, rng, ax=None):
 
     x = rng.normal(0, 1, 1000)
     y = rng.normal(0, 1, 1000)
-    ax.hist2d(x, y, bins=30, cmap="Blues", id="hist2d")
+    ax.hist2d(x, y, id="hist2d")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("hist2d")

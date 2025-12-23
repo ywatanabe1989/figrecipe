@@ -15,7 +15,7 @@ def plot_bar(plt, rng, ax=None):
 
     categories = ["A", "B", "C", "D", "E"]
     values = rng.integers(1, 10, 5)
-    ax.bar(categories, values, color="#3498db", edgecolor="black", id="bar")
+    ax.bar(categories, values, id="bar")
     ax.set_xlabel("Category")
     ax.set_ylabel("Value")
     ax.set_title("bar")

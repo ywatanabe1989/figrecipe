@@ -19,7 +19,7 @@ def plot_pcolormesh(plt, rng, ax=None):
     y = np.linspace(0, 2 * np.pi, 50)
     X, Y = np.meshgrid(x, y)
     Z = np.sin(X) * np.cos(Y)
-    ax.pcolormesh(X, Y, Z, cmap="coolwarm", shading="auto", id="pcolormesh")
+    ax.pcolormesh(X, Y, Z, id="pcolormesh")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("pcolormesh")

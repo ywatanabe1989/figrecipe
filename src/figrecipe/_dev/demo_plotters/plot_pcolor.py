@@ -19,7 +19,7 @@ def plot_pcolor(plt, rng, ax=None):
     y = np.arange(0, 10, 1)
     X, Y = np.meshgrid(x, y)
     Z = np.sin(X) * np.cos(Y)
-    ax.pcolor(X, Y, Z, cmap="RdBu", id="pcolor")
+    ax.pcolor(X, Y, Z, id="pcolor")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("pcolor")

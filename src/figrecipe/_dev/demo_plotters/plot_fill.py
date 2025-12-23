@@ -18,7 +18,7 @@ def plot_fill(plt, rng, ax=None):
     theta = np.linspace(0, 2 * np.pi, 6)
     x = np.cos(theta)
     y = np.sin(theta)
-    ax.fill(x, y, color="orange", alpha=0.5, id="fill")
+    ax.fill(x, y, alpha=0.5, id="fill")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("fill")

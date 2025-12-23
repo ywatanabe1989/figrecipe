@@ -15,7 +15,7 @@ def plot_eventplot(plt, rng, ax=None):
 
     # Multiple event sequences
     events = [rng.uniform(0, 10, 20) for _ in range(5)]
-    ax.eventplot(events, colors="blue", linewidths=1.5, id="eventplot")
+    ax.eventplot(events, id="eventplot")
     ax.set_xlabel("Time")
     ax.set_ylabel("Channel")
     ax.set_title("eventplot")

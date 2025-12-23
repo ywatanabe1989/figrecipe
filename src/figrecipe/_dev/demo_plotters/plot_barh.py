@@ -15,7 +15,7 @@ def plot_barh(plt, rng, ax=None):
 
     categories = ["A", "B", "C", "D", "E"]
     values = rng.integers(1, 10, 5)
-    ax.barh(categories, values, color="#e74c3c", id="barh")
+    ax.barh(categories, values, id="barh")
     ax.set_xlabel("Value")
     ax.set_ylabel("Category")
     ax.set_title("barh")

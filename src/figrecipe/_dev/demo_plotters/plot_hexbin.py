@@ -15,7 +15,7 @@ def plot_hexbin(plt, rng, ax=None):
 
     x = rng.normal(0, 1, 1000)
     y = rng.normal(0, 1, 1000)
-    ax.hexbin(x, y, gridsize=20, cmap="Blues", id="hexbin")
+    ax.hexbin(x, y, id="hexbin")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("hexbin")

@@ -19,11 +19,10 @@ def plot_stackplot(plt, rng, ax=None):
     y1 = rng.uniform(1, 3, 10)
     y2 = rng.uniform(1, 3, 10)
     y3 = rng.uniform(1, 3, 10)
-    ax.stackplot(x, y1, y2, y3, labels=["A", "B", "C"], alpha=0.8, id="stackplot")
+    ax.stackplot(x, y1, y2, y3, id="stackplot")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("stackplot")
-    ax.legend(loc="upper left")
     return fig, ax
 
 

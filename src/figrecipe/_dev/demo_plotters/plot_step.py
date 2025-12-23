@@ -17,7 +17,7 @@ def plot_step(plt, rng, ax=None):
 
     x = np.arange(10)
     y = rng.uniform(0, 1, 10)
-    ax.step(x, y, where="mid", color="green", id="step")
+    ax.step(x, y, where="mid", id="step")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("step")
