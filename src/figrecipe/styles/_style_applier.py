@@ -118,8 +118,9 @@ def apply_theme_colors(
     ----------
     ax : matplotlib.axes.Axes
         Target axes to apply theme to
-    theme : str
+    theme : str or dict
         Color theme: "light" or "dark" (default: "light")
+        If dict, extracts 'mode' key (for YAML-style theme dicts)
     custom_colors : dict, optional
         Custom color overrides. Keys: figure_bg, axes_bg, legend_bg, text, spine, tick, grid
 
@@ -128,6 +129,14 @@ def apply_theme_colors(
     >>> fig, ax = plt.subplots()
     >>> apply_theme_colors(ax, theme="dark")  # Eye-friendly dark mode
     """
+    # Handle dict-style theme (from YAML: {mode: "light", dark: {...}})
+    if isinstance(theme, dict):
+        theme = theme.get("mode", "light")
+
+    # Ensure theme is a string
+    if not isinstance(theme, str):
+        theme = "light"
+
     # Get base theme colors
     colors = THEME_COLORS.get(theme, THEME_COLORS["light"]).copy()
 
@@ -306,6 +315,12 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
 
     # Apply histogram edge widths to existing histogram elements
     _apply_histogram_style(ax, style)
+
+    # Apply pie chart styling
+    _apply_pie_style(ax, style)
+
+    # Apply imshow/matshow/spy styling (hide axes if configured)
+    _apply_matrix_style(ax, style)
 
     # Configure tick parameters
     tick_pad_pt = style.get("tick_pad_pt", 2.0)
@@ -555,6 +570,79 @@ def _apply_histogram_style(ax: Axes, style: Dict[str, Any]) -> None:
             patch.set_linewidth(edge_lw)
             # Set edge color to black for clean scientific look
             patch.set_edgecolor("black")
+
+
+def _apply_pie_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply pie chart styling to existing pie elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing pie chart elements.
+    style : dict
+        Style dictionary with pie_* keys.
+    """
+    from matplotlib.patches import Wedge
+
+    # Check if axes contains pie chart (wedge patches)
+    has_pie = any(isinstance(p, Wedge) for p in ax.patches)
+    if not has_pie:
+        return
+
+    # Get pie text size from style (default 6pt for scientific publications)
+    text_pt = style.get("pie_text_pt", 6)
+    show_axes = style.get("pie_show_axes", False)
+    font_family = check_font(style.get("font_family", "Arial"))
+
+    # Apply text size to all pie text elements (labels and percentages)
+    for text in ax.texts:
+        text.set_fontsize(text_pt)
+        text.set_fontfamily(font_family)
+
+    # Hide axes if configured (default: hide for pie charts)
+    if not show_axes:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        # Hide spines
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+
+def _apply_matrix_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply imshow/matshow/spy styling (hide axes if configured).
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing matrix plot elements.
+    style : dict
+        Style dictionary with imshow_*, matshow_*, spy_* keys.
+    """
+    from matplotlib.image import AxesImage
+
+    # Check if axes contains an image (imshow/matshow)
+    has_image = any(isinstance(c, AxesImage) for c in ax.get_children())
+    if not has_image:
+        return
+
+    # Check if imshow_show_axes is False
+    show_axes = style.get("imshow_show_axes", True)
+    show_labels = style.get("imshow_show_labels", True)
+
+    if not show_axes:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        # Hide spines
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+    if not show_labels:
+        ax.set_xlabel("")
+        ax.set_ylabel("")
 
 
 def finalize_ticks(ax: Axes) -> None:

@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeValues();
     initializeEventListeners();
     loadHitmap();
+    loadLabels();  // Load current axis labels
 
     // Update hit regions on window resize
     window.addEventListener('resize', updateHitRegions);
@@ -194,14 +195,25 @@ function initializeEventListeners() {
     document.getElementById('btn-restore').addEventListener('click', restoreOriginal);
     document.getElementById('btn-show-hitmap').addEventListener('click', toggleHitmapOverlay);
 
-    // Download buttons
-    document.getElementById('btn-download-png').addEventListener('click', () => downloadFigure('png'));
-    document.getElementById('btn-download-svg').addEventListener('click', () => downloadFigure('svg'));
-    document.getElementById('btn-download-pdf').addEventListener('click', () => downloadFigure('pdf'));
+    // Download dropdown buttons
+    initializeDownloadDropdown();
 
-    // View mode toggle buttons
-    document.getElementById('btn-show-all').addEventListener('click', () => setViewMode('all'));
-    document.getElementById('btn-show-selected').addEventListener('click', () => setViewMode('selected'));
+    // Label input handlers
+    initializeLabelInputs();
+
+    // View mode toggle buttons (legacy - replaced by tabs)
+    const btnAll = document.getElementById('btn-show-all');
+    const btnSelected = document.getElementById('btn-show-selected');
+    if (btnAll) btnAll.addEventListener('click', () => setViewMode('all'));
+    if (btnSelected) btnSelected.addEventListener('click', () => setViewMode('selected'));
+
+    // Tab navigation
+    document.getElementById('tab-figure').addEventListener('click', () => switchTab('figure'));
+    document.getElementById('tab-axis').addEventListener('click', () => switchTab('axis'));
+    document.getElementById('tab-element').addEventListener('click', () => switchTab('element'));
+
+    // Theme modal handlers
+    initializeThemeModal();
 
     // Check initial override status
     checkOverrideStatus();
@@ -245,6 +257,77 @@ async function loadHitmap() {
     } catch (error) {
         console.error('Failed to load hitmap:', error);
     }
+}
+
+// Load current axis labels from server
+async function loadLabels() {
+    try {
+        const response = await fetch('/get_labels');
+        const labels = await response.json();
+
+        // Populate label input fields
+        const titleInput = document.getElementById('label_title');
+        const xlabelInput = document.getElementById('label_xlabel');
+        const ylabelInput = document.getElementById('label_ylabel');
+        const suptitleInput = document.getElementById('label_suptitle');
+
+        if (titleInput) titleInput.value = labels.title || '';
+        if (xlabelInput) xlabelInput.value = labels.xlabel || '';
+        if (ylabelInput) ylabelInput.value = labels.ylabel || '';
+        if (suptitleInput) suptitleInput.value = labels.suptitle || '';
+
+        console.log('Loaded labels:', labels);
+    } catch (error) {
+        console.error('Failed to load labels:', error);
+    }
+}
+
+// Update axis label on server
+async function updateLabel(labelType, text) {
+    console.log(`Updating ${labelType} to: "${text}"`);
+
+    document.body.classList.add('loading');
+
+    try {
+        const response = await fetch('/update_label', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                label_type: labelType,
+                text: text
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update preview image
+            const img = document.getElementById('preview-image');
+            img.src = 'data:image/png;base64,' + data.image;
+
+            // Update dimensions
+            if (data.img_size) {
+                currentImgWidth = data.img_size.width;
+                currentImgHeight = data.img_size.height;
+            }
+
+            // Update bboxes
+            currentBboxes = data.bboxes;
+
+            // Redraw hit regions
+            updateHitRegions();
+
+            console.log('Label updated successfully');
+        } else {
+            console.error('Label update failed:', data.error);
+            alert('Update failed: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Label update failed:', error);
+        alert('Update failed: ' + error.message);
+    }
+
+    document.body.classList.remove('loading');
 }
 
 // Toggle hit regions overlay visibility mode
@@ -743,8 +826,11 @@ function selectElement(element) {
     // Draw selection overlay (handles group selection)
     drawSelection(element.key);
 
-    // Auto-switch to "Selected" view mode
-    setViewMode('selected');
+    // Auto-switch to appropriate tab based on element type
+    autoSwitchTab(element.type);
+
+    // Update tab hints
+    updateTabHints();
 
     // Sync properties panel to show relevant section
     syncPropertiesToElement(element);
@@ -1495,12 +1581,86 @@ async function handleDynamicParamChange(callId, param, input) {
 }
 
 // Set view mode (all or selected)
+// Current active tab
+let currentTab = 'figure';
+
+// Element type to tab mapping
+const AXIS_TYPES = ['title', 'xlabel', 'ylabel', 'suptitle', 'supxlabel', 'supylabel', 'legend'];
+const ELEMENT_TYPES = ['line', 'scatter', 'bar', 'fill', 'boxplot', 'violin', 'image', 'linecollection'];
+
+// Switch between Figure/Axis/Element tabs
+function switchTab(tabName) {
+    currentTab = tabName;
+
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.id === `tab-${tabName}`);
+    });
+
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `tab-content-${tabName}`);
+    });
+
+    // Update hints based on selection state
+    updateTabHints();
+}
+
+// Get appropriate tab for element type
+function getTabForElementType(elementType) {
+    if (!elementType) return 'figure';
+    if (AXIS_TYPES.includes(elementType)) return 'axis';
+    if (ELEMENT_TYPES.includes(elementType)) return 'element';
+    return 'figure';
+}
+
+// Auto-switch to appropriate tab based on selected element
+function autoSwitchTab(elementType) {
+    const targetTab = getTabForElementType(elementType);
+    if (targetTab !== currentTab) {
+        switchTab(targetTab);
+    }
+}
+
+// Update tab hints based on current state
+function updateTabHints() {
+    const axisHint = document.getElementById('axis-tab-hint');
+    const elementHint = document.getElementById('element-tab-hint');
+    const elementPanel = document.getElementById('selected-element-panel');
+    const dynamicProps = document.getElementById('dynamic-call-properties');
+
+    if (currentTab === 'axis') {
+        if (selectedElement && AXIS_TYPES.includes(selectedElement.type)) {
+            if (axisHint) axisHint.style.display = 'none';
+        } else {
+            if (axisHint) axisHint.style.display = 'block';
+        }
+    }
+
+    if (currentTab === 'element') {
+        if (selectedElement && ELEMENT_TYPES.includes(selectedElement.type)) {
+            if (elementHint) elementHint.style.display = 'none';
+            if (elementPanel) {
+                elementPanel.style.display = 'block';
+                document.getElementById('element-type-badge').textContent = selectedElement.type;
+                document.getElementById('element-name').textContent = selectedElement.label || selectedElement.key;
+            }
+        } else {
+            if (elementHint) elementHint.style.display = 'block';
+            if (elementPanel) elementPanel.style.display = 'none';
+            if (dynamicProps) dynamicProps.style.display = 'none';
+        }
+    }
+}
+
 function setViewMode(mode) {
     viewMode = mode;
 
-    // Update toggle buttons
-    document.getElementById('btn-show-all').classList.toggle('active', mode === 'all');
-    document.getElementById('btn-show-selected').classList.toggle('active', mode === 'selected');
+    // Update toggle buttons (legacy)
+    const btnAll = document.getElementById('btn-show-all');
+    const btnSelected = document.getElementById('btn-show-selected');
+    if (btnAll) btnAll.classList.toggle('active', mode === 'all');
+    if (btnSelected) btnSelected.classList.toggle('active', mode === 'selected');
 
     // Update controls sections class
     const controlsSections = document.querySelector('.controls-sections');
@@ -1591,9 +1751,12 @@ function clearSelection() {
     document.querySelectorAll('.section-highlighted').forEach(s => s.classList.remove('section-highlighted'));
     document.querySelectorAll('.field-highlighted').forEach(f => f.classList.remove('field-highlighted'));
 
-    // Update hint and show all if in filter mode
+    // Switch back to Figure tab when nothing selected
+    switchTab('figure');
+
+    // Update hint and show all if in filter mode (legacy)
     const hint = document.getElementById('selection-hint');
-    if (viewMode === 'selected') {
+    if (hint && viewMode === 'selected') {
         hint.textContent = '';
         hint.style.color = '';
         showAllProperties();
@@ -1808,6 +1971,697 @@ async function saveOverrides() {
         console.error('Save failed:', error);
         alert('Save failed: ' + error.message);
     }
+}
+
+// Download dropdown state
+let currentDownloadFormat = 'png';
+
+// Initialize download dropdown
+function initializeDownloadDropdown() {
+    const mainBtn = document.getElementById('btn-download-main');
+    const toggleBtn = document.getElementById('btn-download-toggle');
+    const menu = document.getElementById('download-menu');
+
+    // Main button click - download with current format
+    mainBtn.addEventListener('click', () => {
+        downloadFigure(currentDownloadFormat);
+    });
+
+    // Toggle button click - show/hide menu
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu.classList.toggle('open');
+    });
+
+    // Menu option clicks
+    document.querySelectorAll('.download-option').forEach(option => {
+        option.addEventListener('click', (e) => {
+            const format = option.dataset.format;
+            currentDownloadFormat = format;
+
+            // Update main button text
+            mainBtn.textContent = 'Download ' + format.toUpperCase();
+
+            // Update active state
+            document.querySelectorAll('.download-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.format === format);
+            });
+
+            // Close menu
+            menu.classList.remove('open');
+
+            // Download immediately
+            downloadFigure(format);
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.download-dropdown')) {
+            menu.classList.remove('open');
+        }
+    });
+}
+
+// Initialize label input event handlers
+function initializeLabelInputs() {
+    const labelMap = {
+        'label_title': 'title',
+        'label_xlabel': 'xlabel',
+        'label_ylabel': 'ylabel',
+        'label_suptitle': 'suptitle'
+    };
+
+    for (const [inputId, labelType] of Object.entries(labelMap)) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            // Debounced update on input
+            let timeout;
+            input.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    updateLabel(labelType, this.value);
+                }, UPDATE_DEBOUNCE);
+            });
+
+            // Immediate update on Enter key
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    clearTimeout(timeout);
+                    updateLabel(labelType, this.value);
+                }
+            });
+
+            // Immediate update on blur
+            input.addEventListener('blur', function() {
+                clearTimeout(timeout);
+                updateLabel(labelType, this.value);
+            });
+        }
+    }
+
+    // Initialize axis type toggles
+    initializeAxisTypeToggles();
+
+    // Initialize legend position controls
+    initializeLegendPosition();
+}
+
+// Initialize theme modal handlers
+function initializeThemeModal() {
+    const modal = document.getElementById('theme-modal');
+    const themeSelector = document.getElementById('theme-selector');
+    const btnView = document.getElementById('btn-view-theme');
+    const btnDownload = document.getElementById('btn-download-theme');
+    const btnCopy = document.getElementById('btn-copy-theme');
+    const modalClose = document.getElementById('theme-modal-close');
+    const modalDownload = document.getElementById('theme-modal-download');
+    const modalCopy = document.getElementById('theme-modal-copy');
+    const themeContent = document.getElementById('theme-content');
+    const themeModalName = document.getElementById('theme-modal-name');
+
+    // Theme selector change handler
+    if (themeSelector) {
+        // Load current theme and set selector
+        loadCurrentTheme();
+
+        themeSelector.addEventListener('change', function() {
+            switchTheme(this.value);
+        });
+    }
+
+    // View button opens modal
+    if (btnView) {
+        btnView.addEventListener('click', showThemeModal);
+    }
+
+    // Download button
+    if (btnDownload) {
+        btnDownload.addEventListener('click', downloadTheme);
+    }
+
+    // Copy button
+    if (btnCopy) {
+        btnCopy.addEventListener('click', copyTheme);
+    }
+
+    // Modal close
+    if (modalClose) {
+        modalClose.addEventListener('click', hideThemeModal);
+    }
+
+    // Modal buttons
+    if (modalDownload) {
+        modalDownload.addEventListener('click', downloadTheme);
+    }
+    if (modalCopy) {
+        modalCopy.addEventListener('click', copyTheme);
+    }
+
+    // Close modal on outside click
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                hideThemeModal();
+            }
+        });
+    }
+}
+
+// Show theme modal
+async function showThemeModal() {
+    const modal = document.getElementById('theme-modal');
+    const themeContent = document.getElementById('theme-content');
+    const themeModalName = document.getElementById('theme-modal-name');
+    const themeSelector = document.getElementById('theme-selector');
+
+    try {
+        const response = await fetch('/theme');
+        const data = await response.json();
+
+        // Use selector value if available, otherwise use data.name
+        const themeName = themeSelector ? themeSelector.value : data.name;
+        if (themeModalName) themeModalName.textContent = themeName;
+        if (themeContent) themeContent.textContent = data.content;
+        if (modal) modal.style.display = 'flex';
+    } catch (error) {
+        console.error('Failed to load theme:', error);
+    }
+}
+
+// Hide theme modal
+function hideThemeModal() {
+    const modal = document.getElementById('theme-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Download theme as YAML
+async function downloadTheme() {
+    try {
+        const response = await fetch('/theme');
+        const data = await response.json();
+
+        const blob = new Blob([data.content], { type: 'text/yaml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = data.name + '.yaml';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Failed to download theme:', error);
+    }
+}
+
+// Copy theme to clipboard
+async function copyTheme() {
+    try {
+        const response = await fetch('/theme');
+        const data = await response.json();
+
+        await navigator.clipboard.writeText(data.content);
+
+        // Visual feedback
+        const btn = document.getElementById('btn-copy-theme');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = originalText; }, 1500);
+    } catch (error) {
+        console.error('Failed to copy theme:', error);
+    }
+}
+
+// Load current theme and set selector
+async function loadCurrentTheme() {
+    try {
+        const response = await fetch('/list_themes');
+        const data = await response.json();
+
+        const selector = document.getElementById('theme-selector');
+        if (selector && data.current) {
+            selector.value = data.current;
+        }
+
+        console.log('Current theme:', data.current);
+    } catch (error) {
+        console.error('Failed to load current theme:', error);
+    }
+}
+
+// Switch to a different theme preset
+async function switchTheme(themeName) {
+    console.log('Switching theme to:', themeName);
+
+    // Show loading state
+    document.body.classList.add('loading');
+
+    try {
+        const response = await fetch('/switch_theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: themeName })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update preview with new image
+            const previewImg = document.getElementById('preview-image');
+            previewImg.src = 'data:image/png;base64,' + result.image;
+
+            // Update dimensions
+            if (result.img_size) {
+                currentImgWidth = result.img_size.width;
+                currentImgHeight = result.img_size.height;
+            }
+
+            // Update form values from new theme
+            if (result.values) {
+                for (const [key, value] of Object.entries(result.values)) {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            element.checked = Boolean(value);
+                        } else {
+                            element.value = value;
+                        }
+                        // Update placeholder as well for theme defaults
+                        if (element.placeholder !== undefined) {
+                            element.placeholder = value;
+                        }
+                    }
+                }
+                // Update theme defaults for modified state comparison
+                Object.assign(themeDefaults, result.values);
+                updateAllModifiedStates();
+            }
+
+            // Update bboxes and redraw hit regions
+            if (result.bboxes) {
+                currentBboxes = result.bboxes;
+                previewImg.onload = () => {
+                    updateHitRegions();
+                    loadHitmap();
+                };
+            }
+
+            console.log('Theme switched to:', themeName);
+        } else {
+            console.error('Theme switch failed:', result.error);
+            // Reset selector to previous value
+            loadCurrentTheme();
+        }
+    } catch (error) {
+        console.error('Failed to switch theme:', error);
+        // Reset selector to previous value
+        loadCurrentTheme();
+    } finally {
+        document.body.classList.remove('loading');
+    }
+}
+
+// Initialize axis type toggle buttons
+function initializeAxisTypeToggles() {
+    const xNumerical = document.getElementById('xaxis-numerical');
+    const xCategorical = document.getElementById('xaxis-categorical');
+    const yNumerical = document.getElementById('yaxis-numerical');
+    const yCategorical = document.getElementById('yaxis-categorical');
+    const xLabelsRow = document.getElementById('xaxis-labels-row');
+    const yLabelsRow = document.getElementById('yaxis-labels-row');
+    const xLabelsInput = document.getElementById('xaxis_labels');
+    const yLabelsInput = document.getElementById('yaxis_labels');
+
+    // X-axis buttons
+    if (xNumerical) {
+        xNumerical.addEventListener('click', () => {
+            xNumerical.classList.add('active');
+            xCategorical.classList.remove('active');
+            xLabelsRow.style.display = 'none';
+            updateAxisType('x', 'numerical');
+        });
+    }
+
+    if (xCategorical) {
+        xCategorical.addEventListener('click', () => {
+            xCategorical.classList.add('active');
+            xNumerical.classList.remove('active');
+            xLabelsRow.style.display = 'flex';
+        });
+    }
+
+    // Y-axis buttons
+    if (yNumerical) {
+        yNumerical.addEventListener('click', () => {
+            yNumerical.classList.add('active');
+            yCategorical.classList.remove('active');
+            yLabelsRow.style.display = 'none';
+            updateAxisType('y', 'numerical');
+        });
+    }
+
+    if (yCategorical) {
+        yCategorical.addEventListener('click', () => {
+            yCategorical.classList.add('active');
+            yNumerical.classList.remove('active');
+            yLabelsRow.style.display = 'flex';
+        });
+    }
+
+    // Labels input handlers
+    if (xLabelsInput) {
+        let timeout;
+        xLabelsInput.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const labels = this.value.split(',').map(l => l.trim()).filter(l => l);
+                if (labels.length > 0) {
+                    updateAxisType('x', 'categorical', labels);
+                }
+            }, UPDATE_DEBOUNCE);
+        });
+
+        xLabelsInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                clearTimeout(timeout);
+                const labels = this.value.split(',').map(l => l.trim()).filter(l => l);
+                if (labels.length > 0) {
+                    updateAxisType('x', 'categorical', labels);
+                }
+            }
+        });
+    }
+
+    if (yLabelsInput) {
+        let timeout;
+        yLabelsInput.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const labels = this.value.split(',').map(l => l.trim()).filter(l => l);
+                if (labels.length > 0) {
+                    updateAxisType('y', 'categorical', labels);
+                }
+            }, UPDATE_DEBOUNCE);
+        });
+
+        yLabelsInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                clearTimeout(timeout);
+                const labels = this.value.split(',').map(l => l.trim()).filter(l => l);
+                if (labels.length > 0) {
+                    updateAxisType('y', 'categorical', labels);
+                }
+            }
+        });
+    }
+
+    // Load current axis info
+    loadAxisInfo();
+}
+
+// Load current axis type info
+async function loadAxisInfo() {
+    try {
+        const response = await fetch('/get_axis_info');
+        const info = await response.json();
+
+        // Update X axis toggle
+        if (info.x_type === 'categorical') {
+            document.getElementById('xaxis-categorical').classList.add('active');
+            document.getElementById('xaxis-numerical').classList.remove('active');
+            document.getElementById('xaxis-labels-row').style.display = 'flex';
+            if (info.x_labels && info.x_labels.length > 0) {
+                document.getElementById('xaxis_labels').value = info.x_labels.join(', ');
+            }
+        }
+
+        // Update Y axis toggle
+        if (info.y_type === 'categorical') {
+            document.getElementById('yaxis-categorical').classList.add('active');
+            document.getElementById('yaxis-numerical').classList.remove('active');
+            document.getElementById('yaxis-labels-row').style.display = 'flex';
+            if (info.y_labels && info.y_labels.length > 0) {
+                document.getElementById('yaxis_labels').value = info.y_labels.join(', ');
+            }
+        }
+
+        console.log('Loaded axis info:', info);
+    } catch (error) {
+        console.error('Failed to load axis info:', error);
+    }
+}
+
+// Update axis type on server
+async function updateAxisType(axis, type, labels = []) {
+    console.log(`Updating ${axis} axis to ${type}`, labels);
+
+    document.body.classList.add('loading');
+
+    try {
+        const response = await fetch('/update_axis_type', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                axis: axis,
+                type: type,
+                labels: labels
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update preview image
+            const img = document.getElementById('preview-image');
+            img.src = 'data:image/png;base64,' + data.image;
+
+            // Update dimensions
+            if (data.img_size) {
+                currentImgWidth = data.img_size.width;
+                currentImgHeight = data.img_size.height;
+            }
+
+            // Update bboxes
+            currentBboxes = data.bboxes;
+
+            // Redraw hit regions
+            updateHitRegions();
+
+            console.log('Axis type updated successfully');
+        } else {
+            console.error('Axis type update failed:', data.error);
+            alert('Update failed: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Axis type update failed:', error);
+        alert('Update failed: ' + error.message);
+    }
+
+    document.body.classList.remove('loading');
+}
+
+// Initialize legend position controls
+function initializeLegendPosition() {
+    const locSelect = document.getElementById('legend_loc');
+    const customPosDiv = document.getElementById('legend-custom-pos');
+    const xInput = document.getElementById('legend_x');
+    const yInput = document.getElementById('legend_y');
+    const visibleCheckbox = document.getElementById('legend_visible');
+
+    if (!locSelect) return;
+
+    // Legend visibility toggle
+    if (visibleCheckbox) {
+        visibleCheckbox.addEventListener('change', function() {
+            updateLegendVisibility(this.checked);
+        });
+    }
+
+    // Show/hide custom position inputs based on selection
+    locSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customPosDiv.style.display = 'block';
+        } else {
+            customPosDiv.style.display = 'none';
+            // Update legend with new location
+            updateLegendPosition(this.value);
+        }
+    });
+
+    // Custom x/y coordinate handlers
+    if (xInput && yInput) {
+        let timeout;
+        const updateCustomPos = () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const x = parseFloat(xInput.value);
+                const y = parseFloat(yInput.value);
+                if (!isNaN(x) && !isNaN(y)) {
+                    updateLegendPosition('custom', x, y);
+                }
+            }, UPDATE_DEBOUNCE);
+        };
+
+        xInput.addEventListener('input', updateCustomPos);
+        yInput.addEventListener('input', updateCustomPos);
+
+        xInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(timeout);
+                const x = parseFloat(xInput.value);
+                const y = parseFloat(yInput.value);
+                if (!isNaN(x) && !isNaN(y)) {
+                    updateLegendPosition('custom', x, y);
+                }
+            }
+        });
+
+        yInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(timeout);
+                const x = parseFloat(xInput.value);
+                const y = parseFloat(yInput.value);
+                if (!isNaN(x) && !isNaN(y)) {
+                    updateLegendPosition('custom', x, y);
+                }
+            }
+        });
+    }
+
+    // Load current legend info
+    loadLegendInfo();
+}
+
+// Load current legend position info
+async function loadLegendInfo() {
+    try {
+        const response = await fetch('/get_legend_info');
+        const info = await response.json();
+
+        if (!info.has_legend) {
+            console.log('No legend found');
+            return;
+        }
+
+        const locSelect = document.getElementById('legend_loc');
+        const customPosDiv = document.getElementById('legend-custom-pos');
+        const xInput = document.getElementById('legend_x');
+        const yInput = document.getElementById('legend_y');
+        const visibleCheckbox = document.getElementById('legend_visible');
+
+        // Set visibility checkbox
+        if (visibleCheckbox) {
+            visibleCheckbox.checked = info.visible !== false;
+        }
+
+        if (locSelect) {
+            locSelect.value = info.loc;
+        }
+
+        if (info.loc === 'custom' && customPosDiv) {
+            customPosDiv.style.display = 'block';
+            if (xInput && info.x !== null) xInput.value = info.x;
+            if (yInput && info.y !== null) yInput.value = info.y;
+        }
+
+        console.log('Loaded legend info:', info);
+    } catch (error) {
+        console.error('Failed to load legend info:', error);
+    }
+}
+
+// Update legend visibility
+async function updateLegendVisibility(visible) {
+    console.log('Updating legend visibility:', visible);
+
+    try {
+        const response = await fetch('/update_legend_position', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ visible: visible })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Update preview with new image
+            const previewImg = document.getElementById('preview-image');
+            previewImg.src = 'data:image/png;base64,' + result.image;
+
+            // Update dimensions
+            if (result.img_size) {
+                currentImgWidth = result.img_size.width;
+                currentImgHeight = result.img_size.height;
+            }
+
+            // Update bboxes and redraw hit regions
+            if (result.bboxes) {
+                currentBboxes = result.bboxes;
+                previewImg.onload = () => {
+                    updateHitRegions();
+                    loadHitmap();
+                };
+            }
+        } else {
+            console.error('Legend visibility update failed:', result.error);
+        }
+    } catch (error) {
+        console.error('Failed to update legend visibility:', error);
+    }
+}
+
+// Update legend position on server
+async function updateLegendPosition(loc, x = null, y = null) {
+    console.log(`Updating legend position: loc=${loc}, x=${x}, y=${y}`);
+
+    document.body.classList.add('loading');
+
+    try {
+        const body = { loc };
+        if (loc === 'custom' && x !== null && y !== null) {
+            body.x = x;
+            body.y = y;
+        }
+
+        const response = await fetch('/update_legend_position', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update preview image
+            const img = document.getElementById('preview-image');
+            img.src = 'data:image/png;base64,' + data.image;
+
+            // Update dimensions
+            if (data.img_size) {
+                currentImgWidth = data.img_size.width;
+                currentImgHeight = data.img_size.height;
+            }
+
+            // Update bboxes
+            currentBboxes = data.bboxes;
+
+            // Redraw hit regions
+            updateHitRegions();
+
+            console.log('Legend position updated successfully');
+        } else {
+            console.error('Legend position update failed:', data.error);
+            // Don't show alert for "No legend found" - it's expected for some figures
+            if (!data.error.includes('No legend')) {
+                alert('Update failed: ' + data.error);
+            }
+        }
+    } catch (error) {
+        console.error('Legend position update failed:', error);
+    }
+
+    document.body.classList.remove('loading');
 }
 
 // Download figure

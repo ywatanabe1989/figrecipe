@@ -18,6 +18,7 @@ Usage:
 
 __all__ = [
     "load_style",
+    "load_preset",
     "unload_style",
     "get_style",
     "reload_style",
@@ -196,6 +197,43 @@ def _apply_dark_theme(style_dict: Dict) -> Dict:
         result["output"]["transparent"] = False
 
     return result
+
+
+def load_preset(name: str, dark: bool = False) -> Optional[DotDict]:
+    """Load a style preset without affecting global cache.
+
+    This is useful for GUI editors that need to switch themes
+    without affecting the global state.
+
+    Parameters
+    ----------
+    name : str
+        Preset name (e.g., "SCITEX", "MATPLOTLIB")
+    dark : bool, optional
+        If True, apply dark theme transformation
+
+    Returns
+    -------
+    DotDict or None
+        Style configuration as DotDict, or None if not found
+    """
+    # Resolve aliases
+    resolved_name = _PRESET_ALIASES.get(name.upper(), name.upper())
+
+    # Find the preset file
+    style_path = _PRESETS_DIR / f"{resolved_name}.yaml"
+
+    if not style_path.exists():
+        return None
+
+    style_dict = _load_yaml(style_path)
+    style_dict["_name"] = name.upper()
+
+    # Apply dark theme if requested
+    if dark:
+        style_dict = _apply_dark_theme(style_dict)
+
+    return DotDict(style_dict)
 
 
 def unload_style() -> None:
@@ -423,6 +461,12 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
         "barplot_edge_mm": style.get("barplot", {}).get("edge_mm", 0.2),
         # Histogram (histogram.* in YAML)
         "histogram_edge_mm": style.get("histogram", {}).get("edge_mm", 0.2),
+        # Pie chart (pie.* in YAML)
+        "pie_text_pt": style.get("pie", {}).get("text_pt", 6),
+        "pie_show_axes": style.get("pie", {}).get("show_axes", False),
+        # Imshow (imshow.* in YAML)
+        "imshow_show_axes": style.get("imshow", {}).get("show_axes", False),
+        "imshow_show_labels": style.get("imshow", {}).get("show_labels", False),
         # Fonts (fonts.* in YAML)
         "fonts_family": style.fonts.family,
         "fonts_axis_label_pt": style.fonts.axis_label_pt,

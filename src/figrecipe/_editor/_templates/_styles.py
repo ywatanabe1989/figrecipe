@@ -499,15 +499,98 @@ body {
     padding: 8px;
 }
 
-/* View mode toggle */
-.view-mode-toggle {
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    gap: 0;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 12px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-secondary);
+}
+
+.tab-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-hint {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.tab-hint p {
+    margin: 0;
+}
+
+.tab-hint .hint-sub {
+    font-size: 12px;
+    margin-top: 8px;
+    opacity: 0.7;
+}
+
+/* Selected element panel in Element tab */
+.selected-element-header {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 8px;
+    gap: 10px;
+    padding: 12px;
     background: var(--bg-secondary);
-    border-radius: 6px;
-    margin-bottom: 8px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.element-type-badge {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 4px;
+}
+
+.element-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Legacy toggle styles for backward compatibility */
+.view-mode-toggle {
+    display: none;  /* Hidden - replaced by tabs */
 }
 
 .btn-toggle {
@@ -792,6 +875,7 @@ button:hover {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .style-label {
@@ -802,6 +886,114 @@ button:hover {
     color: var(--accent-color);
     font-weight: 600;
     font-family: monospace;
+}
+
+.theme-selector {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--accent-color);
+    font-weight: 600;
+    font-family: monospace;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.theme-selector:hover {
+    border-color: var(--accent-color);
+}
+
+.theme-selector:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.theme-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 3px;
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.theme-content-pre {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    margin: 0;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    background: var(--bg-secondary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 8px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    justify-content: flex-end;
 }
 
 .override-status {
@@ -824,6 +1016,70 @@ button:hover {
     font-size: 11px;
 }
 
+/* Split dropdown for download button */
+.download-dropdown {
+    position: relative;
+    display: flex;
+}
+
+.download-main {
+    border-radius: 4px 0 0 4px;
+    padding: 8px 16px;
+    font-weight: 500;
+}
+
+.download-toggle {
+    border-radius: 0 4px 4px 0;
+    padding: 8px 8px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 10px;
+}
+
+.download-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.download-menu.open {
+    display: block;
+}
+
+.download-option {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    border-radius: 0;
+}
+
+.download-option:hover {
+    background: var(--bg-secondary);
+}
+
+.download-option.active {
+    background: var(--accent-color);
+    color: white;
+}
+
+.download-option.active:hover {
+    background: var(--accent-hover);
+}
+
+/* Legacy download buttons (kept for compatibility) */
 .download-buttons {
     display: flex;
     gap: 8px;
@@ -961,6 +1217,109 @@ button:hover {
     font-size: 11px;
     min-width: 70px;
     cursor: pointer;
+}
+
+/* Axis Type Toggle */
+.axis-type-toggle {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    flex: 1;
+}
+
+.axis-type-btn {
+    flex: 1;
+    padding: 6px 12px;
+    font-size: 12px;
+    border: none;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 0;
+}
+
+.axis-type-btn:first-child {
+    border-right: 1px solid var(--border-color);
+}
+
+.axis-type-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.axis-type-btn.active {
+    background: var(--accent-color);
+    color: white;
+}
+
+/* Label input styling */
+.label-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.label-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Legend custom position */
+.legend-custom-pos {
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.form-hint {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* Legend labels editor */
+.legend-labels-container {
+    margin-top: 8px;
+}
+
+.legend-label-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.legend-label-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.legend-label-input {
+    flex: 1;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 12px;
+}
+
+.legend-label-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
 }
 """
 
