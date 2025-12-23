@@ -288,6 +288,17 @@ def _replay_call(
     # Get kwargs and reconstruct arrays
     kwargs = _reconstruct_kwargs(call.kwargs)
 
+    # Handle special transform markers
+    if "transform" in kwargs:
+        transform_val = kwargs["transform"]
+        if transform_val == "axes":
+            kwargs["transform"] = ax.transAxes
+        elif transform_val == "data":
+            kwargs["transform"] = ax.transData
+        elif transform_val == "figure":
+            kwargs["transform"] = ax.figure.transFigure
+        # If it's already a Transform object or something else, leave it
+
     # Call the method
     try:
         return method(*args, **kwargs)
