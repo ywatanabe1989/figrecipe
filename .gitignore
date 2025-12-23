@@ -88,3 +88,6 @@ outputs/
 *.npy
 *.npz
 *.csv
+GITIGNORED/
+examples/.ipynb_checkpoints/
+examples/.old/

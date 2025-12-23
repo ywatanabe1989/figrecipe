@@ -22,7 +22,8 @@ def load_image(path: Union[str, Path]) -> np.ndarray:
         Image as (H, W, C) array with values 0-255.
     """
     from PIL import Image
-    img = Image.open(path).convert('RGB')
+
+    img = Image.open(path).convert("RGB")
     return np.array(img)
 
 
@@ -48,16 +49,18 @@ def compute_diff(
     """
     # Ensure same shape
     if img1.shape != img2.shape:
-        raise ValueError(
-            f"Image shapes differ: {img1.shape} vs {img2.shape}"
-        )
+        raise ValueError(f"Image shapes differ: {img1.shape} vs {img2.shape}")
 
     # Compute difference
     diff = np.abs(img1.astype(float) - img2.astype(float))
-    mse = np.mean(diff ** 2)
+    mse = np.mean(diff**2)
 
     # Normalize diff for visualization
-    diff_img = (diff / diff.max() * 255).astype(np.uint8) if diff.max() > 0 else diff.astype(np.uint8)
+    diff_img = (
+        (diff / diff.max() * 255).astype(np.uint8)
+        if diff.max() > 0
+        else diff.astype(np.uint8)
+    )
 
     return mse, diff_img
 
@@ -108,14 +111,14 @@ def compare_images(
         mse, diff_img = compute_diff(img1, img2)
     else:
         # Can't compute pixel diff for different sizes
-        mse = float('nan')
+        mse = float("nan")
         diff_img = None
 
     # Peak signal-to-noise ratio
     if mse == 0:
-        psnr = float('inf')
+        psnr = float("inf")
     elif np.isnan(mse):
-        psnr = float('nan')
+        psnr = float("nan")
     else:
         psnr = 10 * np.log10(255**2 / mse)
 
@@ -123,23 +126,24 @@ def compare_images(
     if same_size:
         max_diff = np.max(np.abs(img1.astype(float) - img2.astype(float)))
     else:
-        max_diff = float('nan')
+        max_diff = float("nan")
 
     # Save diff image if requested
     if diff_path is not None and diff_img is not None:
         from PIL import Image
+
         Image.fromarray(diff_img).save(diff_path)
 
     return {
-        'identical': mse == 0,
-        'mse': float(mse),
-        'psnr': float(psnr),
-        'max_diff': float(max_diff),
-        'size1': (img1.shape[0], img1.shape[1]),
-        'size2': (img2.shape[0], img2.shape[1]),
-        'same_size': img1.shape == img2.shape,
-        'file_size1': file_size1,
-        'file_size2': file_size2,
+        "identical": mse == 0,
+        "mse": float(mse),
+        "psnr": float(psnr),
+        "max_diff": float(max_diff),
+        "size1": (img1.shape[0], img1.shape[1]),
+        "size2": (img2.shape[0], img2.shape[1]),
+        "same_size": img1.shape == img2.shape,
+        "file_size1": file_size1,
+        "file_size2": file_size2,
     }
 
 
@@ -173,32 +177,32 @@ def create_comparison_figure(
         # Different sizes, just show side by side
         fig, axes = plt.subplots(1, 2, figsize=(12, 5))
         axes[0].imshow(img1)
-        axes[0].set_title('Original')
-        axes[0].axis('off')
+        axes[0].set_title("Original")
+        axes[0].axis("off")
         axes[1].imshow(img2)
-        axes[1].set_title('Reproduced')
-        axes[1].axis('off')
-        fig.suptitle(f'{title}\n(Different sizes)', fontsize=14)
-        fig.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
+        axes[1].set_title("Reproduced")
+        axes[1].axis("off")
+        fig.suptitle(f"{title}\n(Different sizes)", fontsize=14)
+        fig.savefig(output_path, dpi=150, bbox_inches="tight", facecolor="white")
         plt.close(fig)
         return
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
     axes[0].imshow(img1)
-    axes[0].set_title('Original')
-    axes[0].axis('off')
+    axes[0].set_title("Original")
+    axes[0].axis("off")
 
     axes[1].imshow(img2)
-    axes[1].set_title('Reproduced')
-    axes[1].axis('off')
+    axes[1].set_title("Reproduced")
+    axes[1].axis("off")
 
     axes[2].imshow(diff_img)
-    axes[2].set_title(f'Difference (MSE: {mse:.2f})')
-    axes[2].axis('off')
+    axes[2].set_title(f"Difference (MSE: {mse:.2f})")
+    axes[2].axis("off")
 
     status = "IDENTICAL" if mse == 0 else f"MSE: {mse:.2f}"
-    fig.suptitle(f'{title}\n{status}', fontsize=14, fontweight='bold')
+    fig.suptitle(f"{title}\n{status}", fontsize=14, fontweight="bold")
 
-    fig.savefig(output_path, dpi=150, bbox_inches='tight', facecolor='white')
+    fig.savefig(output_path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)

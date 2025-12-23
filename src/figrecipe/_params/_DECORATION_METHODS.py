@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Timestamp: "2025-12-23 09:55:04 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/src/figrecipe/DECORATION_METHODS.py
+
+
+"""Top-level docstring here"""
+
+DECORATION_METHODS = {
+    "set_xlabel",
+    "set_ylabel",
+    "set_title",
+    "set_xlim",
+    "set_ylim",
+    "set_aspect",
+    "legend",
+    "grid",
+    "axhline",
+    "axvline",
+    "axhspan",
+    "axvspan",
+    "text",
+    "annotate",
+    "clabel",
+}
+
+# EOF

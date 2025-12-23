@@ -3,13 +3,14 @@
 """Seaborn wrapper for figrecipe recording."""
 
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import numpy as np
 
 try:
-    import seaborn as sns
     import pandas as pd
+    import seaborn as sns
+
     HAS_SEABORN = True
 except ImportError:
     HAS_SEABORN = False
@@ -17,7 +18,7 @@ except ImportError:
     pd = None
 
 if TYPE_CHECKING:
-    from ._wrappers._axes import RecordingAxes
+    pass
 
 
 # Seaborn axes-level plotting functions to wrap
@@ -91,8 +92,15 @@ def _extract_data_from_dataframe(
 
     # All column parameters
     param_values = [
-        ("x", x), ("y", y), ("hue", hue), ("size", size), ("style", style),
-        ("row", row), ("col", col), ("weight", weight), ("weights", weights),
+        ("x", x),
+        ("y", y),
+        ("hue", hue),
+        ("size", size),
+        ("style", style),
+        ("row", row),
+        ("col", col),
+        ("weight", weight),
+        ("weights", weights),
     ]
 
     for param_name, col_name in param_values:
@@ -200,10 +208,7 @@ def _is_serializable(value: Any) -> bool:
     if isinstance(value, (list, tuple)):
         return all(_is_serializable(v) for v in value)
     if isinstance(value, dict):
-        return all(
-            isinstance(k, str) and _is_serializable(v)
-            for k, v in value.items()
-        )
+        return all(isinstance(k, str) and _is_serializable(v) for k, v in value.items())
     return False
 
 

@@ -9,4 +9,3 @@ Usage:
 """
 
 from .pyplot import *  # noqa: F401, F403
-from .pyplot import __all__

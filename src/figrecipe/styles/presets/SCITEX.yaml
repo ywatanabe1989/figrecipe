@@ -11,21 +11,27 @@ axes:
   thickness_mm: 0.2
 
 margins:
-  left_mm: 1
+  left_mm: 6      # Room for supylabel
   right_mm: 1
-  bottom_mm: 1
-  top_mm: 1
+  bottom_mm: 5    # Room for supxlabel
+  top_mm: 5       # Room for suptitle
 
 spacing:
-  horizontal_mm: 8
-  vertical_mm: 10
+  horizontal_mm: 10   # Between columns
+  vertical_mm: 15     # Between rows (includes title + xlabel space)
+  suptitle_mm: 5      # Space reserved for figure suptitle
+  supxlabel_mm: 3     # Space reserved for figure super x-label
+  supylabel_mm: 3     # Space reserved for figure super y-label
 
 fonts:
   family: "Arial"
   axis_label_pt: 7
   tick_label_pt: 7
   title_pt: 8
-  suptitle_pt: 8
+  suptitle_pt: 9      # Figure suptitle (slightly larger than subplot titles)
+  supxlabel_pt: 7     # Figure-level x-label (same as axis labels)
+  supylabel_pt: 7     # Figure-level y-label (same as axis labels)
+  panel_label_pt: 10  # Panel labels (A, B, C, ...) - bold, prominent
   legend_pt: 6
   annotation_pt: 6
 
@@ -48,7 +54,53 @@ ticks:
 markers:
   size_mm: 0.8
   scatter_mm: 0.8
+  flier_mm: 0.8        # Boxplot outlier marker size
   edge_width_mm: null  # None = no border (cleaner than 0)
+
+boxplot:
+  line_mm: 0.2           # Box outline thickness
+  whisker_mm: 0.2        # Whisker line thickness
+  cap_mm: 0.2            # Cap line thickness
+  median_mm: 0.2         # Median line thickness
+  median_color: "black"  # Median line color
+  flier_edge_mm: 0.2     # Outlier marker edge thickness
+
+violinplot:
+  line_mm: 0.2           # Violin outline thickness
+  inner: "box"           # Inner display: "box", "quartile", "point", "stick", or "swarm"
+  box_width_mm: 1.5      # Inner box width
+  whisker_mm: 0.2        # Whisker line thickness
+  median_mm: 0.8         # Median marker size
+  alpha: 0.7             # Violin fill transparency (modern: semi-transparent)
+  showmeans: false       # Show mean line
+  showmedians: true      # Show median line
+  showextrema: false     # Hide min/max lines for cleaner look
+
+barplot:
+  edge_mm: 0.2           # Bar edge/border thickness
+
+histogram:
+  edge_mm: 0.2           # Histogram bar edge thickness
+
+pie:
+  text_pt: 6             # Pie chart text size (labels, autopct)
+  show_axes: false       # Hide axes for pie charts
+
+imshow:
+  show_axes: false       # Hide ticks, ticklabels, spines for imshow
+  show_labels: false     # Hide x/y labels for imshow
+
+eventplot:
+  linewidth_mm: 0.2      # Event line thickness
+  linelength: 0.8        # Event line length (fraction of spacing)
+
+matshow:
+  show_axes: false       # Hide axes for matrix display
+  xticklabel_position: "bottom"  # Put xlabels at bottom (not top)
+
+spy:
+  show_axes: false       # Hide axes for spy plots
+  xticklabel_position: "bottom"  # Put xlabels at bottom
 
 legend:
   frameon: false         # No frame for clean look
@@ -67,6 +119,7 @@ behavior:
   hide_top_spine: true
   hide_right_spine: true
   grid: false
+  constrained_layout: true  # Auto-spacing for suptitle/supxlabel/supylabel
 
 theme:
   mode: "light"
