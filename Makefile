@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test notebook pdf clean clean-outputs lint format
+.PHONY: help install install-dev test notebook pdf clean clean-outputs lint lint-fix format pre-commit
 
 PYTHON := python3
 PIP := pip3
@@ -15,7 +15,9 @@ help:
 	@echo "  make clean         Clean build artifacts and outputs"
 	@echo "  make clean-outputs Clean only outputs directory"
 	@echo "  make lint          Run linter"
+	@echo "  make lint-fix      Run linter with auto-fix"
 	@echo "  make format        Format code"
+	@echo "  make pre-commit    Install pre-commit hooks"
 
 install:
 	$(PIP) install -e .
@@ -53,5 +55,12 @@ clean-outputs:
 lint:
 	$(PYTHON) -m ruff check src/ tests/
 
+lint-fix:
+	$(PYTHON) -m ruff check --fix src/ tests/
+
 format:
 	$(PYTHON) -m ruff format src/ tests/
+
+pre-commit:
+	pip install pre-commit
+	pre-commit install

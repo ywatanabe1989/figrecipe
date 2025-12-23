@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-23
+
+### Added
+- **`ax.joyplot()`** - Ridgeline/joyplot visualization with KDE-based density estimation
+- **`ax.swarmplot()`** - Beeswarm plot with non-overlapping point positioning
+- **Theme switching** - Switch between SCITEX/MATPLOTLIB presets with live preview in editor
+- **Theme CRUD** - View theme content, download as YAML, copy to clipboard
+- **Legend controls** - Show/hide toggle, location dropdown, xy coordinate positioning
+- **scipy dependency** - Added scipy>=1.7.0 for joyplot KDE computation
+
+### Changed
+- **Editor layout** - Moved axes size (width_mm, height_mm) from Figure tab to Axis tab
+
+### Fixed
+- **Tick direction validation** - Empty tick direction values no longer cause errors
+- **Theme CommentedMap handling** - Fixed TypeError when switching themes with ruamel.yaml
+
 ## [0.5.1] - 2025-12-22
 
 ### Fixed
@@ -155,6 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.6.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.3.4...v0.5.0
 [0.3.4]: https://github.com/ywatanabe1989/figrecipe/compare/v0.3.2...v0.3.4

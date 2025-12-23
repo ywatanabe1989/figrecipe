@@ -50,20 +50,29 @@ Inspecting a recipe:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from numpy.typing import NDArray
 
-from ._recorder import Recorder, FigureRecord, CallRecord
+from ._recorder import CallRecord, FigureRecord
+from ._reproducer import get_recipe_info
+from ._reproducer import reproduce as _reproduce
+from ._serializer import load_recipe
+from ._utils._numpy_io import DataFormat
+from ._utils._units import (
+    inch_to_mm,
+    mm_to_inch,
+    mm_to_pt,
+    mm_to_scatter_size,
+    normalize_color,
+    pt_to_mm,
+)
+from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from ._wrappers._figure import create_recording_subplots
-from ._serializer import save_recipe, load_recipe, recipe_to_dict
-from ._reproducer import reproduce as _reproduce, get_recipe_info
-from ._utils._numpy_io import DataFormat
-from ._utils._units import mm_to_inch, mm_to_pt, inch_to_mm, pt_to_mm, mm_to_scatter_size, normalize_color
-from .styles._style_applier import list_available_fonts, check_font
+from .styles._style_applier import check_font, list_available_fonts
 
 # Notebook display format flag (set once per session)
 _notebook_format_set = False
@@ -82,16 +91,20 @@ def _enable_notebook_svg():
     try:
         # Method 1: matplotlib_inline (IPython 7.0+, JupyterLab)
         from matplotlib_inline.backend_inline import set_matplotlib_formats
-        set_matplotlib_formats('svg')
+
+        set_matplotlib_formats("svg")
         _notebook_format_set = True
     except (ImportError, Exception):
         try:
             # Method 2: IPython config (older IPython)
             from IPython import get_ipython
+
             ipython = get_ipython()
-            if ipython is not None and hasattr(ipython, 'kernel'):
+            if ipython is not None and hasattr(ipython, "kernel"):
                 # Only run in actual Jupyter kernel, not IPython console
-                ipython.run_line_magic('config', "InlineBackend.figure_formats = ['svg']")
+                ipython.run_line_magic(
+                    "config", "InlineBackend.figure_formats = ['svg']"
+                )
                 _notebook_format_set = True
         except Exception:
             pass  # Not in Jupyter environment or method not available
@@ -122,6 +135,7 @@ def _get_sns():
     global _sns_recorder
     if _sns_recorder is None:
         from ._seaborn import get_seaborn_recorder
+
         _sns_recorder = get_seaborn_recorder()
     return _sns_recorder
 
@@ -146,6 +160,8 @@ __all__ = [
     "load",
     "extract_data",
     "validate",
+    # GUI Editor
+    "edit",
     # Style system
     "load_style",
     "unload_style",
@@ -174,6 +190,8 @@ __all__ = [
     "ValidationResult",
     # Image utilities
     "crop",
+    # Panel labels
+    "panel_label",
     # Version
     "__version__",
 ]
@@ -230,6 +248,7 @@ def load_style(style="SCITEX", dark=False):
     40
     """
     from .styles import load_style as _load_style
+
     return _load_style(style, dark=dark)
 
 
@@ -248,6 +267,7 @@ def unload_style():
     >>> fig, ax = fr.subplots()  # Vanilla matplotlib
     """
     from .styles import unload_style as _unload_style
+
     _unload_style()
 
 
@@ -266,6 +286,7 @@ def list_presets():
     ['MINIMAL', 'PRESENTATION', 'SCIENTIFIC']
     """
     from .styles import list_presets as _list_presets
+
     return _list_presets()
 
 
@@ -293,9 +314,10 @@ def apply_style(ax, style=None):
     >>> ax.plot(x, y, lw=trace_lw)
     """
     from .styles import apply_style_mm, get_style, to_subplots_kwargs
+
     if style is None:
         style = to_subplots_kwargs(get_style())
-    elif hasattr(style, 'to_subplots_kwargs'):
+    elif hasattr(style, "to_subplots_kwargs"):
         style = style.to_subplots_kwargs()
     return apply_style_mm(ax, style)
 
@@ -305,10 +327,12 @@ class _StyleProxy:
 
     def __getattr__(self, name):
         from .styles import STYLE
+
         return getattr(STYLE, name)
 
     def to_subplots_kwargs(self):
         from .styles import to_subplots_kwargs
+
         return to_subplots_kwargs()
 
 
@@ -331,7 +355,7 @@ def subplots(
     style: Optional[Dict[str, Any]] = None,
     apply_style_mm: bool = True,
     **kwargs,
-) -> Tuple[RecordingFigure, Union[RecordingAxes, List[RecordingAxes]]]:
+) -> Tuple[RecordingFigure, Union[RecordingAxes, NDArray]]:
     """Create a figure with recording-enabled axes.
 
     This is a drop-in replacement for plt.subplots() that wraps the
@@ -380,8 +404,8 @@ def subplots(
     -------
     fig : RecordingFigure
         Wrapped figure object.
-    axes : RecordingAxes or list of RecordingAxes
-        Wrapped axes (single for 1x1, list otherwise).
+    axes : RecordingAxes or ndarray
+        Wrapped axes (single for 1x1, numpy array otherwise matching matplotlib).
 
     Examples
     --------
@@ -408,6 +432,7 @@ def subplots(
     """
     # Get global style for default values (if loaded)
     from .styles._style_loader import _STYLE_CACHE
+
     global_style = _STYLE_CACHE
 
     # Helper to get value with priority: explicit > global style > hardcoded default
@@ -418,7 +443,11 @@ def subplots(
             try:
                 val = global_style
                 for key in style_path:
-                    val = val.get(key) if isinstance(val, dict) else getattr(val, key, None)
+                    val = (
+                        val.get(key)
+                        if isinstance(val, dict)
+                        else getattr(val, key, None)
+                    )
                     if val is None:
                         break
                 if val is not None:
@@ -428,98 +457,115 @@ def subplots(
         return default
 
     # Check if mm-based layout is requested (explicit OR from global style)
-    has_explicit_mm = any([
-        axes_width_mm is not None,
-        axes_height_mm is not None,
-        margin_left_mm is not None,
-        margin_right_mm is not None,
-        margin_bottom_mm is not None,
-        margin_top_mm is not None,
-        space_w_mm is not None,
-        space_h_mm is not None,
-    ])
+    has_explicit_mm = any(
+        [
+            axes_width_mm is not None,
+            axes_height_mm is not None,
+            margin_left_mm is not None,
+            margin_right_mm is not None,
+            margin_bottom_mm is not None,
+            margin_top_mm is not None,
+            space_w_mm is not None,
+            space_h_mm is not None,
+        ]
+    )
 
     # Also use mm layout if global style has mm values
     has_style_mm = False
     if global_style is not None:
         try:
             has_style_mm = (
-                global_style.get('axes', {}).get('width_mm') is not None or
-                getattr(getattr(global_style, 'axes', None), 'width_mm', None) is not None
+                global_style.get("axes", {}).get("width_mm") is not None
+                or getattr(getattr(global_style, "axes", None), "width_mm", None)
+                is not None
             )
         except (KeyError, AttributeError):
             pass
 
     use_mm_layout = has_explicit_mm or has_style_mm
 
-    if use_mm_layout and 'figsize' not in kwargs:
+    if use_mm_layout and "figsize" not in kwargs:
         # Get mm values: explicit params > global style > hardcoded defaults
-        aw = _get_mm(axes_width_mm, ['axes', 'width_mm'], 40)
-        ah = _get_mm(axes_height_mm, ['axes', 'height_mm'], 28)
-        ml = _get_mm(margin_left_mm, ['margins', 'left_mm'], 15)
-        mr = _get_mm(margin_right_mm, ['margins', 'right_mm'], 5)
-        mb = _get_mm(margin_bottom_mm, ['margins', 'bottom_mm'], 12)
-        mt = _get_mm(margin_top_mm, ['margins', 'top_mm'], 8)
-        sw = _get_mm(space_w_mm, ['spacing', 'horizontal_mm'], 8)
-        sh = _get_mm(space_h_mm, ['spacing', 'vertical_mm'], 10)
+        aw = _get_mm(axes_width_mm, ["axes", "width_mm"], 40)
+        ah = _get_mm(axes_height_mm, ["axes", "height_mm"], 28)
+        ml = _get_mm(margin_left_mm, ["margins", "left_mm"], 15)
+        mr = _get_mm(margin_right_mm, ["margins", "right_mm"], 5)
+        mb = _get_mm(margin_bottom_mm, ["margins", "bottom_mm"], 12)
+        mt = _get_mm(margin_top_mm, ["margins", "top_mm"], 8)
+        sw = _get_mm(space_w_mm, ["spacing", "horizontal_mm"], 8)
+        sh = _get_mm(space_h_mm, ["spacing", "vertical_mm"], 10)
 
         # Calculate total figure size
         total_width_mm = ml + (ncols * aw) + ((ncols - 1) * sw) + mr
         total_height_mm = mb + (nrows * ah) + ((nrows - 1) * sh) + mt
 
         # Convert to inches and set figsize
-        kwargs['figsize'] = (mm_to_inch(total_width_mm), mm_to_inch(total_height_mm))
+        kwargs["figsize"] = (mm_to_inch(total_width_mm), mm_to_inch(total_height_mm))
 
         # Store mm metadata for recording (will be extracted by create_recording_subplots)
         mm_layout = {
-            'axes_width_mm': aw,
-            'axes_height_mm': ah,
-            'margin_left_mm': ml,
-            'margin_right_mm': mr,
-            'margin_bottom_mm': mb,
-            'margin_top_mm': mt,
-            'space_w_mm': sw,
-            'space_h_mm': sh,
+            "axes_width_mm": aw,
+            "axes_height_mm": ah,
+            "margin_left_mm": ml,
+            "margin_right_mm": mr,
+            "margin_bottom_mm": mb,
+            "margin_top_mm": mt,
+            "space_w_mm": sw,
+            "space_h_mm": sh,
         }
     else:
         mm_layout = None
 
     # Apply DPI from global style if not explicitly provided
-    if 'dpi' not in kwargs and global_style is not None:
+    if "dpi" not in kwargs and global_style is not None:
         # Try figure.dpi first, then output.dpi
         style_dpi = None
         try:
-            if hasattr(global_style, 'figure') and hasattr(global_style.figure, 'dpi'):
+            if hasattr(global_style, "figure") and hasattr(global_style.figure, "dpi"):
                 style_dpi = global_style.figure.dpi
-            elif hasattr(global_style, 'output') and hasattr(global_style.output, 'dpi'):
+            elif hasattr(global_style, "output") and hasattr(
+                global_style.output, "dpi"
+            ):
                 style_dpi = global_style.output.dpi
         except (KeyError, AttributeError):
             pass
         if style_dpi is not None:
-            kwargs['dpi'] = style_dpi
+            kwargs["dpi"] = style_dpi
 
     # Handle style parameter
     if style is not None:
-        if hasattr(style, 'to_subplots_kwargs'):
+        if hasattr(style, "to_subplots_kwargs"):
             # Merge style kwargs (style values are overridden by explicit params)
             style_kwargs = style.to_subplots_kwargs()
             for key, value in style_kwargs.items():
                 if key not in kwargs:
                     kwargs[key] = value
 
-    # Use constrained_layout by default for non-mm layouts (better auto-spacing)
-    # Don't use it with mm-based layout since we manually control positioning
-    if not use_mm_layout and 'constrained_layout' not in kwargs:
-        kwargs['constrained_layout'] = True
+    # Check if style specifies constrained_layout
+    style_constrained = False
+    if global_style is not None:
+        from .styles._style_loader import to_subplots_kwargs
+
+        style_dict_check = to_subplots_kwargs(global_style)
+        style_constrained = style_dict_check.get("constrained_layout", False)
+
+    # Use constrained_layout if: style specifies it, or non-mm layout (better auto-spacing)
+    if "constrained_layout" not in kwargs:
+        if style_constrained:
+            kwargs["constrained_layout"] = True
+        elif not use_mm_layout:
+            kwargs["constrained_layout"] = True
 
     # Create the recording subplots
     fig, axes = create_recording_subplots(nrows, ncols, **kwargs)
 
     # Record constrained_layout setting for reproduction
-    fig.record.constrained_layout = kwargs.get('constrained_layout', False)
+    fig.record.constrained_layout = kwargs.get("constrained_layout", False)
 
     # Store mm_layout metadata on figure for serialization
-    if mm_layout is not None:
+    # Skip mm-based layout if constrained_layout is True (they're incompatible)
+    use_constrained = kwargs.get("constrained_layout", False)
+    if mm_layout is not None and not use_constrained:
         fig._mm_layout = mm_layout
 
         # Apply subplots_adjust to position axes correctly
@@ -547,12 +593,12 @@ def subplots(
 
         # Record layout in figure record for reproduction
         fig.record.layout = {
-            'left': left,
-            'right': right,
-            'bottom': bottom,
-            'top': top,
-            'wspace': wspace,
-            'hspace': hspace,
+            "left": left,
+            "right": right,
+            "bottom": bottom,
+            "top": top,
+            "wspace": wspace,
+            "hspace": hspace,
         }
 
     # Apply styling if requested and a style is actually loaded
@@ -562,25 +608,32 @@ def subplots(
     if style is not None:
         # Explicit style parameter provided
         should_apply_style = True
-        style_dict = style.to_subplots_kwargs() if hasattr(style, 'to_subplots_kwargs') else style
+        style_dict = (
+            style.to_subplots_kwargs()
+            if hasattr(style, "to_subplots_kwargs")
+            else style
+        )
     elif apply_style_mm and global_style is not None:
         # Use global style if loaded and has meaningful values (not MATPLOTLIB)
         from .styles import to_subplots_kwargs
+
         style_dict = to_subplots_kwargs(global_style)
         # Only apply if style has essential mm values (skip MATPLOTLIB which has all None)
-        if style_dict and style_dict.get('axes_thickness_mm') is not None:
+        if style_dict and style_dict.get("axes_thickness_mm") is not None:
             should_apply_style = True
 
     if should_apply_style and style_dict:
         from .styles import apply_style_mm as _apply_style
+
         if nrows == 1 and ncols == 1:
             _apply_style(axes._ax, style_dict)
         else:
             # Handle 2D array of axes
             import numpy as np
+
             axes_array = np.array(axes)
             for ax in axes_array.flat:
-                _apply_style(ax._ax if hasattr(ax, '_ax') else ax, style_dict)
+                _apply_style(ax._ax if hasattr(ax, "_ax") else ax, style_dict)
 
         # Record style in figure record for reproduction
         fig.record.style = style_dict
@@ -676,52 +729,64 @@ def save(
         )
 
     # Determine image and YAML paths based on extension
-    IMAGE_EXTENSIONS = {'.png', '.pdf', '.svg', '.jpg', '.jpeg', '.eps', '.tiff', '.tif'}
-    YAML_EXTENSIONS = {'.yaml', '.yml'}
+    IMAGE_EXTENSIONS = {
+        ".png",
+        ".pdf",
+        ".svg",
+        ".jpg",
+        ".jpeg",
+        ".eps",
+        ".tiff",
+        ".tif",
+    }
+    YAML_EXTENSIONS = {".yaml", ".yml"}
 
     suffix_lower = path.suffix.lower()
 
     if suffix_lower in IMAGE_EXTENSIONS:
         # User provided image path
         image_path = path
-        yaml_path = path.with_suffix('.yaml')
+        yaml_path = path.with_suffix(".yaml")
         img_format = suffix_lower[1:]  # Remove leading dot
     elif suffix_lower in YAML_EXTENSIONS:
         # User provided YAML path
         yaml_path = path
         # Determine image format from style or default
         if image_format is not None:
-            img_format = image_format.lower().lstrip('.')
+            img_format = image_format.lower().lstrip(".")
         else:
             # Check global style for preferred format
             from .styles._style_loader import _STYLE_CACHE
+
             if _STYLE_CACHE is not None:
                 try:
                     img_format = _STYLE_CACHE.output.format.lower()
                 except (KeyError, AttributeError):
-                    img_format = 'png'
+                    img_format = "png"
             else:
-                img_format = 'png'
-        image_path = path.with_suffix(f'.{img_format}')
+                img_format = "png"
+        image_path = path.with_suffix(f".{img_format}")
     else:
         # Unknown extension - treat as base name, add both extensions
-        yaml_path = path.with_suffix('.yaml')
+        yaml_path = path.with_suffix(".yaml")
         if image_format is not None:
-            img_format = image_format.lower().lstrip('.')
+            img_format = image_format.lower().lstrip(".")
         else:
             from .styles._style_loader import _STYLE_CACHE
+
             if _STYLE_CACHE is not None:
                 try:
                     img_format = _STYLE_CACHE.output.format.lower()
                 except (KeyError, AttributeError):
-                    img_format = 'png'
+                    img_format = "png"
             else:
-                img_format = 'png'
-        image_path = path.with_suffix(f'.{img_format}')
+                img_format = "png"
+        image_path = path.with_suffix(f".{img_format}")
 
     # Get DPI from style if not specified
     if dpi is None:
         from .styles._style_loader import _STYLE_CACHE
+
         if _STYLE_CACHE is not None:
             try:
                 dpi = _STYLE_CACHE.output.dpi
@@ -733,31 +798,44 @@ def save(
     # Get transparency setting from style
     transparent = False
     from .styles._style_loader import _STYLE_CACHE
+
     if _STYLE_CACHE is not None:
         try:
             transparent = _STYLE_CACHE.output.transparent
         except (KeyError, AttributeError):
             pass
 
+    # Finalize tick configuration for all axes (avoids categorical axis interference)
+    from .styles._style_applier import finalize_ticks
+
+    for ax in fig.fig.get_axes():
+        finalize_ticks(ax)
+
     # Save the image
-    fig.fig.savefig(image_path, dpi=dpi, bbox_inches='tight', transparent=transparent)
+    fig.fig.savefig(image_path, dpi=dpi, bbox_inches="tight", transparent=transparent)
 
     # Save the recipe
-    saved_yaml = fig.save_recipe(yaml_path, include_data=include_data, data_format=data_format)
+    saved_yaml = fig.save_recipe(
+        yaml_path, include_data=include_data, data_format=data_format
+    )
 
     # Validate if requested
     if validate:
         from ._validator import validate_on_save
+
         result = validate_on_save(fig, saved_yaml, mse_threshold=validate_mse_threshold)
         status = "PASSED" if result.valid else "FAILED"
         if verbose:
-            print(f"Saved: {image_path} + {yaml_path} (Reproducible Validation: {status})")
+            print(
+                f"Saved: {image_path} + {yaml_path} (Reproducible Validation: {status})"
+            )
         if not result.valid:
             msg = f"Reproducibility validation failed (MSE={result.mse:.1f}): {result.message}"
             if validate_error_level == "error":
                 raise ValueError(msg)
             elif validate_error_level == "warning":
                 import warnings
+
                 warnings.warn(msg, UserWarning)
             # "debug" level: silent, just return the result
         return image_path, yaml_path, result
@@ -902,8 +980,17 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
 
     # Decoration functions to skip
     decoration_funcs = {
-        "set_xlabel", "set_ylabel", "set_title", "set_xlim", "set_ylim",
-        "legend", "grid", "axhline", "axvline", "text", "annotate",
+        "set_xlabel",
+        "set_ylabel",
+        "set_title",
+        "set_xlim",
+        "set_ylim",
+        "legend",
+        "grid",
+        "axhline",
+        "axvline",
+        "text",
+        "annotate",
     }
 
     for ax_key, ax_record in record.axes.items():
@@ -921,7 +1008,11 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
                     return np.array(data["data"])
                 if hasattr(data, "tolist"):  # Already array-like
                     return np.array(data)
-                return np.array(list(data) if hasattr(data, "__iter__") and not isinstance(data, str) else data)
+                return np.array(
+                    list(data)
+                    if hasattr(data, "__iter__") and not isinstance(data, str)
+                    else data
+                )
 
             # Extract positional arguments based on function type
             if call.function in ("plot", "scatter", "fill_between"):
@@ -950,7 +1041,11 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
             for key in ("c", "s", "yerr", "xerr", "weights", "bins"):
                 if key in call.kwargs:
                     val = call.kwargs[key]
-                    if isinstance(val, (list, tuple)) or hasattr(val, "__iter__") and not isinstance(val, str):
+                    if (
+                        isinstance(val, (list, tuple))
+                        or hasattr(val, "__iter__")
+                        and not isinstance(val, str)
+                    ):
                         call_data[key] = to_array(val)
                     else:
                         call_data[key] = val
@@ -959,10 +1054,6 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
                 result[call.id] = call_data
 
     return result
-
-
-# Import ValidationResult for type hints
-from ._validator import ValidationResult, validate_recipe
 
 
 def validate(
@@ -1003,10 +1094,12 @@ def validate(
     """
     # For standalone validation, we reproduce twice and compare
     # (This validates the recipe is self-consistent)
+    import tempfile
+
+    import numpy as np
+
     from ._reproducer import reproduce
     from ._utils._image_diff import compare_images
-    import tempfile
-    import numpy as np
 
     path = Path(path)
 
@@ -1040,7 +1133,9 @@ def validate(
             valid=valid,
             mse=mse if not np.isnan(mse) else float("inf"),
             psnr=diff["psnr"],
-            max_diff=diff["max_diff"] if not np.isnan(diff["max_diff"]) else float("inf"),
+            max_diff=diff["max_diff"]
+            if not np.isnan(diff["max_diff"])
+            else float("inf"),
             size_original=diff["size1"],
             size_reproduced=diff["size2"],
             same_size=diff["same_size"],
@@ -1049,7 +1144,14 @@ def validate(
         )
 
 
-def crop(input_path, output_path=None, margin_mm=1.0, margin_px=None, overwrite=False, verbose=False):
+def crop(
+    input_path,
+    output_path=None,
+    margin_mm=1.0,
+    margin_px=None,
+    overwrite=False,
+    verbose=False,
+):
     """Crop a figure image to its content area with a specified margin.
 
     Automatically detects background color (from corners) and crops to
@@ -1087,4 +1189,170 @@ def crop(input_path, output_path=None, margin_mm=1.0, margin_px=None, overwrite=
     >>> fr.crop("figure.png", margin_mm=2.0)   # 2mm margin
     """
     from ._utils._crop import crop as _crop
+
     return _crop(input_path, output_path, margin_mm, margin_px, overwrite, verbose)
+
+
+def edit(
+    source,
+    style=None,
+    port: int = 5050,
+    open_browser: bool = True,
+):
+    """Launch interactive GUI editor for figure styling.
+
+    Opens a browser-based editor that allows interactive adjustment of
+    figure styles using hitmap-based element selection.
+
+    Parameters
+    ----------
+    source : RecordingFigure, str, or Path
+        Either a live RecordingFigure object or path to a .yaml recipe file.
+    style : str or dict, optional
+        Style preset name (e.g., 'SCITEX', 'SCITEX_DARK') or style dict.
+        If None, uses the currently loaded global style.
+    port : int, optional
+        Flask server port (default: 5050). Auto-finds available port if occupied.
+    open_browser : bool, optional
+        Whether to open browser automatically (default: True).
+
+    Returns
+    -------
+    dict
+        Final style overrides after editing session.
+
+    Examples
+    --------
+    Edit a live figure:
+
+    >>> import figrecipe as fr
+    >>> fig, ax = fr.subplots()
+    >>> ax.plot([1, 2, 3], [1, 4, 9], id='quadratic')
+    >>> overrides = fr.edit(fig)
+
+    Edit a saved recipe:
+
+    >>> overrides = fr.edit('my_figure.yaml')
+
+    With explicit style:
+
+    >>> overrides = fr.edit(fig, style='SCITEX_DARK')
+
+    Notes
+    -----
+    Requires Flask to be installed. Install with:
+        pip install figrecipe[editor]
+    or:
+        pip install flask pillow
+    """
+    from ._editor import edit as _edit
+
+    return _edit(source, style=style, port=port, open_browser=open_browser)
+
+
+def panel_label(
+    ax,
+    label: str,
+    loc: str = "upper left",
+    fontsize: Optional[float] = None,
+    fontweight: str = "bold",
+    offset: Tuple[float, float] = (-0.1, 1.05),
+    **kwargs,
+):
+    """Add a panel label (A, B, C, ...) to an axes.
+
+    Panel labels are commonly used in multi-panel scientific figures to
+    identify individual subplots. This function places a label at the
+    specified location relative to the axes.
+
+    Parameters
+    ----------
+    ax : Axes or RecordingAxes
+        The axes to label.
+    label : str
+        The label text (e.g., 'A', 'B', 'a)', '(1)').
+    loc : str, optional
+        Label location: 'upper left' (default), 'upper right',
+        'lower left', 'lower right', or 'outside'.
+    fontsize : float, optional
+        Font size in points. If None, uses title font size from style or 10.
+    fontweight : str, optional
+        Font weight: 'bold' (default), 'normal', etc.
+    offset : tuple of float, optional
+        (x, y) offset in axes coordinates. Default (-0.1, 1.05) places
+        label slightly outside top-left corner.
+    **kwargs
+        Additional arguments passed to ax.text().
+
+    Returns
+    -------
+    Text
+        The matplotlib Text object.
+
+    Examples
+    --------
+    >>> import figrecipe as fr
+    >>> fig, axes = fr.subplots(nrows=2, ncols=2)
+    >>> for i, ax in enumerate(axes.flat):
+    ...     fr.panel_label(ax, chr(65 + i))  # A, B, C, D
+
+    >>> # Custom styling
+    >>> fr.panel_label(ax, 'a)', fontsize=12, fontweight='normal')
+
+    >>> # Outside position (default)
+    >>> fr.panel_label(ax, 'A', loc='upper left')
+    """
+    # Get fontsize from style if available, otherwise default to 10pt
+    if fontsize is None:
+        try:
+            from .styles._style_loader import _STYLE_CACHE
+
+            if _STYLE_CACHE is not None:
+                fontsize = getattr(
+                    getattr(_STYLE_CACHE, "fonts", None), "panel_label_pt", 10
+                )
+            else:
+                fontsize = 10
+        except Exception:
+            fontsize = 10
+
+    # Calculate position based on loc
+    if loc == "upper left":
+        x, y = offset
+    elif loc == "upper right":
+        x, y = 1.0 + abs(offset[0]), offset[1]
+    elif loc == "lower left":
+        x, y = offset[0], -abs(offset[1]) + 1.0
+    elif loc == "lower right":
+        x, y = 1.0 + abs(offset[0]), -abs(offset[1]) + 1.0
+    else:
+        x, y = offset
+
+    # Default kwargs - use 'axes' as transform string (handled by reproducer)
+    text_kwargs = {
+        "fontsize": fontsize,
+        "fontweight": fontweight,
+        "transform": "axes",  # Special string marker for axes coordinates
+        "va": "bottom",
+        "ha": "right" if "right" in loc else "left",
+    }
+    text_kwargs.update(kwargs)
+
+    # Get the underlying matplotlib axes
+    mpl_ax = ax._ax if hasattr(ax, "_ax") else ax
+
+    # For actual rendering, use the real transform
+    render_kwargs = text_kwargs.copy()
+    render_kwargs["transform"] = mpl_ax.transAxes
+
+    # Record the call using recorder's method (handles args/kwargs processing)
+    if hasattr(ax, "_recorder") and hasattr(ax, "_position"):
+        ax._recorder.record_call(
+            ax_position=ax._position,
+            method_name="text",
+            args=(x, y, label),
+            kwargs=text_kwargs,  # Contains transform: "axes"
+        )
+
+    # Render directly on matplotlib axes with actual transform
+    return mpl_ax.text(x, y, label, **render_kwargs)

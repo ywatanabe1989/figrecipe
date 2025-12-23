@@ -5,7 +5,13 @@
 Applies mm-based styling to matplotlib axes for publication-quality figures.
 """
 
-__all__ = ["apply_style_mm", "apply_theme_colors", "check_font", "list_available_fonts"]
+__all__ = [
+    "apply_style_mm",
+    "apply_theme_colors",
+    "check_font",
+    "finalize_ticks",
+    "list_available_fonts",
+]
 
 import warnings
 from typing import Any, Dict, List, Optional
@@ -30,6 +36,7 @@ def list_available_fonts() -> List[str]:
     ['Arial', 'Courier New', 'DejaVu Sans', ...]
     """
     import matplotlib.font_manager as fm
+
     fonts = set()
     for font in fm.fontManager.ttflist:
         fonts.add(font.name)
@@ -56,7 +63,6 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
     >>> font = check_font("Arial")  # Returns "Arial" if available
     >>> font = check_font("NonExistentFont")  # Returns fallback with warning
     """
-    import matplotlib.font_manager as fm
 
     available = list_available_fonts()
 
@@ -70,8 +76,8 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
     if similar:
         msg += f"  Similar fonts available: {similar[:5]}\n"
     msg += f"  Using fallback: '{fallback}'\n"
-    msg += f"  To see all available fonts: ps.list_available_fonts()\n"
-    msg += f"  To install Arial on Linux: sudo apt install ttf-mscorefonts-installer"
+    msg += "  To see all available fonts: ps.list_available_fonts()\n"
+    msg += "  To install Arial on Linux: sudo apt install ttf-mscorefonts-installer"
 
     warnings.warn(msg, UserWarning)
 
@@ -81,18 +87,18 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
 # Default theme color palettes (Monaco/VS Code style for dark)
 THEME_COLORS = {
     "dark": {
-        "figure_bg": "#1e1e1e",     # VS Code main background
-        "axes_bg": "#252526",       # VS Code panel background
-        "legend_bg": "#252526",     # Same as axes
-        "text": "#d4d4d4",          # VS Code default text
-        "spine": "#3c3c3c",         # Subtle border color
-        "tick": "#d4d4d4",          # Match text
-        "grid": "#3a3a3a",          # Subtle grid
+        "figure_bg": "#1e1e1e",  # VS Code main background
+        "axes_bg": "#252526",  # VS Code panel background
+        "legend_bg": "#252526",  # Same as axes
+        "text": "#d4d4d4",  # VS Code default text
+        "spine": "#3c3c3c",  # Subtle border color
+        "tick": "#d4d4d4",  # Match text
+        "grid": "#3a3a3a",  # Subtle grid
     },
     "light": {
-        "figure_bg": "none",        # Transparent
-        "axes_bg": "none",          # Transparent
-        "legend_bg": "none",        # Transparent
+        "figure_bg": "none",  # Transparent
+        "axes_bg": "none",  # Transparent
+        "legend_bg": "none",  # Transparent
         "text": "black",
         "spine": "black",
         "tick": "black",
@@ -112,8 +118,9 @@ def apply_theme_colors(
     ----------
     ax : matplotlib.axes.Axes
         Target axes to apply theme to
-    theme : str
+    theme : str or dict
         Color theme: "light" or "dark" (default: "light")
+        If dict, extracts 'mode' key (for YAML-style theme dicts)
     custom_colors : dict, optional
         Custom color overrides. Keys: figure_bg, axes_bg, legend_bg, text, spine, tick, grid
 
@@ -122,6 +129,14 @@ def apply_theme_colors(
     >>> fig, ax = plt.subplots()
     >>> apply_theme_colors(ax, theme="dark")  # Eye-friendly dark mode
     """
+    # Handle dict-style theme (from YAML: {mode: "light", dark: {...}})
+    if isinstance(theme, dict):
+        theme = theme.get("mode", "light")
+
+    # Ensure theme is a string
+    if not isinstance(theme, str):
+        theme = "light"
+
     # Get base theme colors
     colors = THEME_COLORS.get(theme, THEME_COLORS["light"]).copy()
 
@@ -155,6 +170,14 @@ def apply_theme_colors(
             fig.patch.set_alpha(0)
         else:
             fig.patch.set_facecolor(fig_bg)
+
+        # Apply text colors to figure-level text elements (suptitle, supxlabel, supylabel)
+        if hasattr(fig, "_suptitle") and fig._suptitle is not None:
+            fig._suptitle.set_color(colors["text"])
+        if hasattr(fig, "_supxlabel") and fig._supxlabel is not None:
+            fig._supxlabel.set_color(colors["text"])
+        if hasattr(fig, "_supylabel") and fig._supylabel is not None:
+            fig._supylabel.set_color(colors["text"])
 
     # Apply text colors (labels, titles)
     ax.xaxis.label.set_color(colors["text"])
@@ -262,8 +285,42 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     marker_size_mm = style.get("marker_size_mm")
     if marker_size_mm is not None:
         import matplotlib as mpl
+
         marker_size_pt = mm_to_pt(marker_size_mm)
         mpl.rcParams["lines.markersize"] = marker_size_pt
+
+    # Set boxplot flier (outlier) marker size
+    flier_mm = style.get("markers_flier_mm", style.get("flier_mm"))
+    if flier_mm is not None:
+        import matplotlib as mpl
+
+        flier_size_pt = mm_to_pt(flier_mm)
+        mpl.rcParams["boxplot.flierprops.markersize"] = flier_size_pt
+
+    # Set boxplot median color
+    median_color = style.get("boxplot_median_color")
+    if median_color is not None:
+        import matplotlib as mpl
+
+        mpl.rcParams["boxplot.medianprops.color"] = median_color
+
+    # Apply boxplot line widths to existing boxplot elements
+    _apply_boxplot_style(ax, style)
+
+    # Apply violinplot line widths to existing violinplot elements
+    _apply_violinplot_style(ax, style)
+
+    # Apply barplot edge widths to existing bar elements
+    _apply_barplot_style(ax, style)
+
+    # Apply histogram edge widths to existing histogram elements
+    _apply_histogram_style(ax, style)
+
+    # Apply pie chart styling
+    _apply_pie_style(ax, style)
+
+    # Apply imshow/matshow/spy styling (hide axes if configured)
+    _apply_matrix_style(ax, style)
 
     # Configure tick parameters
     tick_pad_pt = style.get("tick_pad_pt", 2.0)
@@ -305,8 +362,9 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
 
     # Set legend font size and background via rcParams (for future legends)
     import matplotlib as mpl
-    mpl.rcParams['legend.fontsize'] = legend_fs
-    mpl.rcParams['legend.title_fontsize'] = legend_fs
+
+    mpl.rcParams["legend.fontsize"] = legend_fs
+    mpl.rcParams["legend.title_fontsize"] = legend_fs
 
     # Set legend colors from theme
     theme = style.get("theme", "light")
@@ -323,15 +381,15 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
 
     # Handle transparent backgrounds
     if str(legend_bg).lower() in ("none", "transparent"):
-        mpl.rcParams['legend.facecolor'] = 'none'
-        mpl.rcParams['legend.framealpha'] = 0
+        mpl.rcParams["legend.facecolor"] = "none"
+        mpl.rcParams["legend.framealpha"] = 0
     else:
-        mpl.rcParams['legend.facecolor'] = legend_bg
-        mpl.rcParams['legend.framealpha'] = 1.0
+        mpl.rcParams["legend.facecolor"] = legend_bg
+        mpl.rcParams["legend.framealpha"] = 1.0
 
     # Set legend text and edge colors
-    mpl.rcParams['legend.edgecolor'] = spine_color
-    mpl.rcParams['legend.labelcolor'] = text_color
+    mpl.rcParams["legend.edgecolor"] = spine_color
+    mpl.rcParams["legend.labelcolor"] = text_color
 
     legend = ax.get_legend()
     if legend is not None:
@@ -345,17 +403,20 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     else:
         ax.grid(False)
 
-    # Configure number of ticks
+    # Configure number of ticks (only for numeric axes, not categorical)
+    # We defer tick configuration to avoid interfering with categorical axes
+    # that get set up later by bar(), boxplot(), etc.
     n_ticks = style.get("n_ticks")
     if n_ticks is not None:
-        from matplotlib.ticker import MaxNLocator
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+        # Store n_ticks preference on the axes for later application
+        # This will be applied in _finalize_ticks() before saving
+        ax._figrecipe_n_ticks = n_ticks
 
     # Apply color palette to both rcParams and this specific axes
     color_palette = style.get("color_palette")
     if color_palette is not None:
         import matplotlib as mpl
+
         # Normalize colors (RGB 0-255 to 0-1)
         normalized_palette = []
         for c in color_palette:
@@ -368,7 +429,7 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
             else:
                 normalized_palette.append(c)
         # Set rcParams for future axes
-        mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=normalized_palette)
+        mpl.rcParams["axes.prop_cycle"] = mpl.cycler(color=normalized_palette)
         # Also set the color cycle on this specific axes (axes cache cycler at creation)
         ax.set_prop_cycle(color=normalized_palette)
 
@@ -378,6 +439,249 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     ax._figrecipe_style.update(style)
 
     return trace_lw_pt
+
+
+def _apply_boxplot_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply boxplot line width styling to existing boxplot elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing boxplot elements.
+    style : dict
+        Style dictionary with boxplot_* keys.
+    """
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import PathPatch
+
+    # Get line widths from style
+    box_lw = mm_to_pt(style.get("boxplot_line_mm", 0.2))
+    whisker_lw = mm_to_pt(style.get("boxplot_whisker_mm", 0.2))
+    cap_lw = mm_to_pt(style.get("boxplot_cap_mm", 0.2))
+    median_lw = mm_to_pt(style.get("boxplot_median_mm", 0.2))
+    median_color = style.get("boxplot_median_color", "black")
+    flier_edge_lw = mm_to_pt(style.get("boxplot_flier_edge_mm", 0.2))
+
+    # Boxplot creates Line2D objects for whiskers, caps, medians, fliers
+    # and PathPatch objects for boxes
+    for child in ax.get_children():
+        # Check if it's a boxplot box (PathPatch with specific properties)
+        if isinstance(child, PathPatch):
+            # Boxes are typically PathPatch with edgecolor
+            if child.get_edgecolor() is not None:
+                child.set_linewidth(box_lw)
+
+        # Check for Line2D objects (whiskers, caps, medians, fliers)
+        elif isinstance(child, Line2D):
+            xdata = child.get_xdata()
+            ydata = child.get_ydata()
+
+            # Fliers are markers with no line (linestyle='None' or '')
+            # and typically have varying number of points (outliers)
+            marker = child.get_marker()
+            linestyle = child.get_linestyle()
+            if marker and marker != "None" and linestyle in ("None", "", " "):
+                # This is likely a flier (outlier marker)
+                child.set_markeredgewidth(flier_edge_lw)
+            elif len(xdata) == 2 and len(ydata) == 2:
+                # Horizontal line (could be median or cap)
+                if ydata[0] == ydata[1]:
+                    # Check if it's likely a median (middle of box) or cap
+                    # Medians are usually solid, caps are at extremes
+                    if linestyle == "-":
+                        # Could be median - apply median style
+                        child.set_linewidth(median_lw)
+                        if median_color:
+                            child.set_color(median_color)
+                    else:
+                        child.set_linewidth(cap_lw)
+                # Vertical line (whisker)
+                elif xdata[0] == xdata[1]:
+                    child.set_linewidth(whisker_lw)
+
+
+def _apply_violinplot_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply violinplot line width styling to existing violinplot elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing violinplot elements.
+    style : dict
+        Style dictionary with violinplot_* keys.
+    """
+    from matplotlib.collections import LineCollection, PolyCollection
+
+    # Get line widths from style
+    body_lw = mm_to_pt(style.get("violinplot_line_mm", 0.2))
+    whisker_lw = mm_to_pt(style.get("violinplot_whisker_mm", 0.2))
+
+    for child in ax.get_children():
+        # Violin bodies are PolyCollection
+        if isinstance(child, PolyCollection):
+            child.set_linewidth(body_lw)
+
+        # Violin inner elements (cbars, cmins, cmaxes) are LineCollection
+        elif isinstance(child, LineCollection):
+            child.set_linewidth(whisker_lw)
+
+
+def _apply_barplot_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply barplot edge styling to existing bar elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing bar elements.
+    style : dict
+        Style dictionary with barplot_* keys.
+    """
+    from matplotlib.patches import Rectangle
+
+    # Get edge width from style
+    edge_lw = mm_to_pt(style.get("barplot_edge_mm", 0.2))
+
+    # Bar plots create Rectangle patches
+    for patch in ax.patches:
+        if isinstance(patch, Rectangle):
+            patch.set_linewidth(edge_lw)
+            # Set edge color to black for clean scientific look
+            patch.set_edgecolor("black")
+
+
+def _apply_histogram_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply histogram edge styling to existing histogram elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing histogram elements.
+    style : dict
+        Style dictionary with histogram_* keys.
+    """
+    from matplotlib.patches import Rectangle
+
+    # Get edge width from style
+    edge_lw = mm_to_pt(style.get("histogram_edge_mm", 0.2))
+
+    # Histograms also create Rectangle patches
+    for patch in ax.patches:
+        if isinstance(patch, Rectangle):
+            patch.set_linewidth(edge_lw)
+            # Set edge color to black for clean scientific look
+            patch.set_edgecolor("black")
+
+
+def _apply_pie_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply pie chart styling to existing pie elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing pie chart elements.
+    style : dict
+        Style dictionary with pie_* keys.
+    """
+    from matplotlib.patches import Wedge
+
+    # Check if axes contains pie chart (wedge patches)
+    has_pie = any(isinstance(p, Wedge) for p in ax.patches)
+    if not has_pie:
+        return
+
+    # Get pie text size from style (default 6pt for scientific publications)
+    text_pt = style.get("pie_text_pt", 6)
+    show_axes = style.get("pie_show_axes", False)
+    font_family = check_font(style.get("font_family", "Arial"))
+
+    # Apply text size to all pie text elements (labels and percentages)
+    for text in ax.texts:
+        text.set_fontsize(text_pt)
+        text.set_fontfamily(font_family)
+
+    # Hide axes if configured (default: hide for pie charts)
+    if not show_axes:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        # Hide spines
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+
+def _apply_matrix_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply imshow/matshow/spy styling (hide axes if configured).
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing matrix plot elements.
+    style : dict
+        Style dictionary with imshow_*, matshow_*, spy_* keys.
+    """
+    from matplotlib.image import AxesImage
+
+    # Check if axes contains an image (imshow/matshow)
+    has_image = any(isinstance(c, AxesImage) for c in ax.get_children())
+    if not has_image:
+        return
+
+    # Check if imshow_show_axes is False
+    show_axes = style.get("imshow_show_axes", True)
+    show_labels = style.get("imshow_show_labels", True)
+
+    if not show_axes:
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        # Hide spines
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+    if not show_labels:
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+
+
+def finalize_ticks(ax: Axes) -> None:
+    """
+    Apply deferred tick configuration after all plotting is done.
+
+    This function applies the n_ticks setting stored by apply_style_mm(),
+    but only to numeric axes (not categorical).
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to finalize.
+    """
+    from matplotlib.ticker import MaxNLocator
+
+    n_ticks = getattr(ax, "_figrecipe_n_ticks", None)
+    if n_ticks is None:
+        return
+
+    # Check if x-axis is categorical (has string tick labels)
+    x_labels = [t.get_text() for t in ax.get_xticklabels()]
+    x_is_categorical = any(
+        lbl and not lbl.replace(".", "").replace("-", "").replace("+", "").isdigit()
+        for lbl in x_labels
+        if lbl
+    )
+    if not x_is_categorical:
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+
+    # Check if y-axis is categorical
+    y_labels = [t.get_text() for t in ax.get_yticklabels()]
+    y_is_categorical = any(
+        lbl and not lbl.replace(".", "").replace("-", "").replace("+", "").isdigit()
+        for lbl in y_labels
+        if lbl
+    )
+    if not y_is_categorical:
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
 
 
 if __name__ == "__main__":

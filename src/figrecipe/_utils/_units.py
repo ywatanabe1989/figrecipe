@@ -11,7 +11,14 @@ Constants:
     - 1 mm = 72/25.4 points
 """
 
-__all__ = ["mm_to_inch", "inch_to_mm", "mm_to_pt", "pt_to_mm", "mm_to_scatter_size", "normalize_color"]
+__all__ = [
+    "mm_to_inch",
+    "inch_to_mm",
+    "mm_to_pt",
+    "pt_to_mm",
+    "mm_to_scatter_size",
+    "normalize_color",
+]
 
 from typing import List, Tuple, Union
 
@@ -143,12 +150,13 @@ def mm_to_scatter_size(diameter_mm: float) -> float:
     where d is diameter in points.
     """
     import math
+
     diameter_pt = mm_to_pt(diameter_mm)
     return math.pi * (diameter_pt / 2) ** 2
 
 
 def normalize_color(
-    color: Union[List[int], Tuple[int, ...], str]
+    color: Union[List[int], Tuple[int, ...], str],
 ) -> Union[Tuple[float, ...], str]:
     """Normalize color to matplotlib-compatible format.
 
@@ -195,6 +203,6 @@ if __name__ == "__main__":
     print(f"  1 inch = {inch_to_mm(1.0):.1f} mm")
     print(f"  0.2 mm = {mm_to_pt(0.2):.4f} pt")
     print(f"  1 pt = {pt_to_mm(1.0):.4f} mm")
-    print(f"\nColor normalization:")
+    print("\nColor normalization:")
     print(f"  [0, 128, 192] -> {normalize_color([0, 128, 192])}")
     print(f"  '#0080C0' -> {normalize_color('#0080C0')}")

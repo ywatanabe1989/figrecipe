@@ -6,60 +6,60 @@ import tempfile
 from pathlib import Path
 
 import matplotlib
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-
 # Test configurations for different plot types
 ROUNDTRIP_TESTS = [
     pytest.param(
-        'plot',
+        "plot",
         lambda: (np.linspace(0, 10, 50), np.sin(np.linspace(0, 10, 50))),
-        {'color': 'blue', 'linewidth': 2},
-        id='plot'
+        {"color": "blue", "linewidth": 2},
+        id="plot",
     ),
     pytest.param(
-        'scatter',
+        "scatter",
         lambda: (np.array([1, 2, 3, 4, 5]), np.array([2, 4, 1, 5, 3])),
-        {'c': 'red', 's': 50},
-        id='scatter'
+        {"c": "red", "s": 50},
+        id="scatter",
     ),
     pytest.param(
-        'bar',
+        "bar",
         lambda: (np.arange(5), np.array([3, 7, 2, 5, 8])),
-        {'color': '#3498db'},
-        id='bar'
+        {"color": "#3498db"},
+        id="bar",
     ),
     pytest.param(
-        'barh',
+        "barh",
         lambda: (np.arange(5), np.array([3, 7, 2, 5, 8])),
-        {'color': '#e74c3c'},
-        id='barh'
+        {"color": "#e74c3c"},
+        id="barh",
     ),
     pytest.param(
-        'fill_between',
+        "fill_between",
         lambda: (
             np.linspace(0, 5, 20),
             np.zeros(20),
             np.sin(np.linspace(0, 5, 20)),
         ),
-        {'alpha': 0.5, 'color': 'green'},
-        id='fill_between'
+        {"alpha": 0.5, "color": "green"},
+        id="fill_between",
     ),
     pytest.param(
-        'step',
+        "step",
         lambda: (np.arange(10), np.array([1, 3, 2, 4, 3, 5, 4, 6, 5, 7])),
-        {'where': 'mid'},
-        id='step'
+        {"where": "mid"},
+        id="step",
     ),
     pytest.param(
-        'errorbar',
+        "errorbar",
         lambda: (np.arange(5), np.array([2, 4, 3, 5, 4])),
-        {'yerr': 0.5, 'fmt': 'o'},
-        id='errorbar'
+        {"yerr": 0.5, "fmt": "o"},
+        id="errorbar",
     ),
 ]
 
@@ -81,7 +81,7 @@ class TestRoundtrip:
 
             method = getattr(ax, method_name)
             args = args_func()
-            method(*args, **kwargs, id=f'{method_name}_test')
+            method(*args, **kwargs, id=f"{method_name}_test")
 
             ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
@@ -95,14 +95,14 @@ class TestRoundtrip:
 
             # Check artists were created
             has_content = (
-                len(ax2.lines) > 0 or
-                len(ax2.collections) > 0 or
-                len(ax2.patches) > 0 or
-                len(ax2.containers) > 0
+                len(ax2.lines) > 0
+                or len(ax2.collections) > 0
+                or len(ax2.patches) > 0
+                or len(ax2.containers) > 0
             )
             assert has_content, f"{method_name} reproduction has no visible content"
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_with_decorations(self):
         """Test that decorations (labels, title, legend) are preserved."""
@@ -113,10 +113,10 @@ class TestRoundtrip:
 
             # === RECORD ===
             fig, ax = ps.subplots()
-            ax.plot([1, 2, 3], [1, 4, 9], label='quadratic')
-            ax.set_xlabel('X Axis')
-            ax.set_ylabel('Y Axis')
-            ax.set_title('Test Title')
+            ax.plot([1, 2, 3], [1, 4, 9], label="quadratic")
+            ax.set_xlabel("X Axis")
+            ax.set_ylabel("Y Axis")
+            ax.set_title("Test Title")
             ax.legend()
 
             ps.save(fig, recipe_path, validate=False)
@@ -125,11 +125,11 @@ class TestRoundtrip:
             # === REPRODUCE ===
             fig2, ax2 = ps.reproduce(recipe_path)
 
-            assert ax2.get_xlabel() == 'X Axis'
-            assert ax2.get_ylabel() == 'Y Axis'
-            assert ax2.get_title() == 'Test Title'
+            assert ax2.get_xlabel() == "X Axis"
+            assert ax2.get_ylabel() == "Y Axis"
+            assert ax2.get_title() == "Test Title"
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_multiple_plots(self):
         """Test figure with multiple plotting calls."""
@@ -142,9 +142,9 @@ class TestRoundtrip:
 
             # === RECORD ===
             fig, ax = ps.subplots()
-            ax.plot(x, np.sin(x), color='blue', id='sin')
-            ax.plot(x, np.cos(x), color='red', id='cos')
-            ax.scatter(x[::5], np.sin(x[::5]), s=50, id='points')
+            ax.plot(x, np.sin(x), color="blue", id="sin")
+            ax.plot(x, np.cos(x), color="red", id="cos")
+            ax.scatter(x[::5], np.sin(x[::5]), s=50, id="points")
 
             ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
@@ -156,7 +156,7 @@ class TestRoundtrip:
             assert len(ax2.lines) >= 2
             assert len(ax2.collections) >= 1
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_data_integrity(self):
         """Test that data values are preserved in roundtrip."""
@@ -170,7 +170,7 @@ class TestRoundtrip:
 
             # === RECORD ===
             fig, ax = ps.subplots()
-            ax.plot(x, y, id='linear')
+            ax.plot(x, y, id="linear")
 
             ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
@@ -183,7 +183,7 @@ class TestRoundtrip:
             np.testing.assert_array_almost_equal(line.get_xdata(), x)
             np.testing.assert_array_almost_equal(line.get_ydata(), y)
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_large_array(self):
         """Test roundtrip with large arrays (saved to .npy)."""
@@ -198,7 +198,7 @@ class TestRoundtrip:
 
             # === RECORD ===
             fig, ax = ps.subplots()
-            ax.plot(x, y, id='damped_sine')
+            ax.plot(x, y, id="damped_sine")
 
             ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
@@ -216,7 +216,7 @@ class TestRoundtrip:
             np.testing.assert_array_almost_equal(line.get_xdata(), x)
             np.testing.assert_array_almost_equal(line.get_ydata(), y, decimal=5)
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
 
 class TestPixelComparison:
@@ -228,8 +228,6 @@ class TestPixelComparison:
             from figrecipe._utils._image_diff import compare_images
         except ImportError:
             pytest.skip("PIL not installed")
-
-        import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
             img1 = Path(tmpdir) / "img1.png"
@@ -243,8 +241,8 @@ class TestPixelComparison:
                 plt.close(fig)
 
             result = compare_images(img1, img2)
-            assert result['identical']
-            assert result['mse'] == 0
+            assert result["identical"]
+            assert result["mse"] == 0
 
     def test_different_images(self):
         """Test that different images are detected as different."""
@@ -259,15 +257,15 @@ class TestPixelComparison:
 
             # Create different figures
             fig, ax = plt.subplots(figsize=(4, 3))
-            ax.plot([1, 2, 3], [1, 2, 3], color='blue')
+            ax.plot([1, 2, 3], [1, 2, 3], color="blue")
             fig.savefig(img1, dpi=100)
             plt.close(fig)
 
             fig, ax = plt.subplots(figsize=(4, 3))
-            ax.plot([1, 2, 3], [3, 2, 1], color='red')
+            ax.plot([1, 2, 3], [3, 2, 1], color="red")
             fig.savefig(img2, dpi=100)
             plt.close(fig)
 
             result = compare_images(img1, img2)
-            assert not result['identical']
-            assert result['mse'] > 0
+            assert not result["identical"]
+            assert result["mse"] > 0

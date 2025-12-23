@@ -18,6 +18,7 @@ Usage:
 
 __all__ = [
     "load_style",
+    "load_preset",
     "unload_style",
     "get_style",
     "reload_style",
@@ -30,7 +31,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from ruamel.yaml import YAML
-
 
 # Path to presets directory
 _PRESETS_DIR = Path(__file__).parent / "presets"
@@ -82,7 +82,7 @@ class DotDict(dict):
 
     def __getattr__(self, key: str) -> Any:
         # Handle special methods first
-        if key == 'to_subplots_kwargs':
+        if key == "to_subplots_kwargs":
             return lambda: to_subplots_kwargs(self)
         try:
             value = self[key]
@@ -172,17 +172,18 @@ def _apply_dark_theme(style_dict: Dict) -> Dict:
         Style dictionary with dark theme applied
     """
     import copy
+
     result = copy.deepcopy(style_dict)
 
     # Monaco/VS Code dark theme colors (from scitex-cloud UIUX.md)
     dark_colors = {
-        "figure_bg": "#1e1e1e",     # VS Code main background
-        "axes_bg": "#1e1e1e",       # Same as figure background
-        "legend_bg": "#1e1e1e",     # Same as figure background
-        "text": "#d4d4d4",          # VS Code default text
-        "spine": "#3c3c3c",         # Subtle border color
-        "tick": "#d4d4d4",          # Match text
-        "grid": "#3a3a3a",          # Subtle grid
+        "figure_bg": "#1e1e1e",  # VS Code main background
+        "axes_bg": "#1e1e1e",  # Same as figure background
+        "legend_bg": "#1e1e1e",  # Same as figure background
+        "text": "#d4d4d4",  # VS Code default text
+        "spine": "#3c3c3c",  # Subtle border color
+        "tick": "#d4d4d4",  # Match text
+        "grid": "#3a3a3a",  # Subtle grid
     }
 
     # Update theme section
@@ -196,6 +197,43 @@ def _apply_dark_theme(style_dict: Dict) -> Dict:
         result["output"]["transparent"] = False
 
     return result
+
+
+def load_preset(name: str, dark: bool = False) -> Optional[DotDict]:
+    """Load a style preset without affecting global cache.
+
+    This is useful for GUI editors that need to switch themes
+    without affecting the global state.
+
+    Parameters
+    ----------
+    name : str
+        Preset name (e.g., "SCITEX", "MATPLOTLIB")
+    dark : bool, optional
+        If True, apply dark theme transformation
+
+    Returns
+    -------
+    DotDict or None
+        Style configuration as DotDict, or None if not found
+    """
+    # Resolve aliases
+    resolved_name = _PRESET_ALIASES.get(name.upper(), name.upper())
+
+    # Find the preset file
+    style_path = _PRESETS_DIR / f"{resolved_name}.yaml"
+
+    if not style_path.exists():
+        return None
+
+    style_dict = _load_yaml(style_path)
+    style_dict["_name"] = name.upper()
+
+    # Apply dark theme if requested
+    if dark:
+        style_dict = _apply_dark_theme(style_dict)
+
+    return DotDict(style_dict)
 
 
 def unload_style() -> None:
@@ -218,10 +256,13 @@ def unload_style() -> None:
 
     # Reset matplotlib rcParams to defaults
     import matplotlib as mpl
+
     mpl.rcParams.update(mpl.rcParamsDefault)
 
 
-def load_style(style: Optional[Union[str, Path, bool]] = "SCITEX", dark: bool = False) -> Optional[DotDict]:
+def load_style(
+    style: Optional[Union[str, Path, bool]] = "SCITEX", dark: bool = False
+) -> Optional[DotDict]:
     """Load style configuration from preset or YAML file.
 
     Parameters
@@ -294,7 +335,14 @@ def load_style(style: Optional[Union[str, Path, bool]] = "SCITEX", dark: bool = 
         resolved_style = base_style
 
     # Determine the style path
-    if isinstance(resolved_style, Path) or (isinstance(resolved_style, str) and ("/" in resolved_style or "\\" in resolved_style or resolved_style.endswith(".yaml"))):
+    if isinstance(resolved_style, Path) or (
+        isinstance(resolved_style, str)
+        and (
+            "/" in resolved_style
+            or "\\" in resolved_style
+            or resolved_style.endswith(".yaml")
+        )
+    ):
         # Explicit file path
         style_path = Path(resolved_style)
         style_name = str(resolved_style)
@@ -346,6 +394,9 @@ def get_style() -> DotDict:
 def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     """Convert style DotDict to kwargs for ps.subplots().
 
+    Uses YAML-compatible flattened key names as the single source of truth.
+    For example, YAML `fonts.axis_label_pt` becomes `fonts_axis_label_pt`.
+
     Parameters
     ----------
     style : DotDict, optional
@@ -354,7 +405,7 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     Returns
     -------
     dict
-        Keyword arguments for ps.subplots()
+        Keyword arguments for ps.subplots() with YAML-compatible flattened keys.
 
     Examples
     --------
@@ -365,42 +416,75 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     if style is None:
         style = get_style()
 
+    # YAML-compatible flattened keys (single source of truth)
     result = {
-        # Axes dimensions
+        # Axes (axes.* in YAML)
         "axes_width_mm": style.axes.width_mm,
         "axes_height_mm": style.axes.height_mm,
         "axes_thickness_mm": style.axes.thickness_mm,
-        # Margins
-        "margin_left_mm": style.margins.left_mm,
-        "margin_right_mm": style.margins.right_mm,
-        "margin_bottom_mm": style.margins.bottom_mm,
-        "margin_top_mm": style.margins.top_mm,
-        # Spacing
-        "space_w_mm": style.spacing.horizontal_mm,
-        "space_h_mm": style.spacing.vertical_mm,
-        # Ticks
-        "tick_length_mm": style.ticks.length_mm,
-        "tick_thickness_mm": style.ticks.thickness_mm,
-        "n_ticks": style.ticks.n_ticks,
-        # Lines
-        "trace_thickness_mm": style.lines.trace_mm,
-        # Markers
-        "marker_size_mm": style.markers.size_mm,
-        # Fonts
-        "font_family": style.fonts.family,
-        "axis_font_size_pt": style.fonts.axis_label_pt,
-        "tick_font_size_pt": style.fonts.tick_label_pt,
-        "title_font_size_pt": style.fonts.title_pt,
-        "suptitle_font_size_pt": style.fonts.suptitle_pt,
-        "legend_font_size_pt": style.fonts.legend_pt,
-        # Padding
-        "label_pad_pt": style.padding.label_pt,
-        "tick_pad_pt": style.padding.tick_pt,
-        "title_pad_pt": style.padding.title_pt,
-        # Output
-        "dpi": style.output.dpi,
-        # Theme
-        "theme": style.theme.mode,
+        # Margins (margins.* in YAML)
+        "margins_left_mm": style.margins.left_mm,
+        "margins_right_mm": style.margins.right_mm,
+        "margins_bottom_mm": style.margins.bottom_mm,
+        "margins_top_mm": style.margins.top_mm,
+        # Spacing (spacing.* in YAML)
+        "spacing_horizontal_mm": style.spacing.horizontal_mm,
+        "spacing_vertical_mm": style.spacing.vertical_mm,
+        # Ticks (ticks.* in YAML)
+        "ticks_length_mm": style.ticks.length_mm,
+        "ticks_thickness_mm": style.ticks.thickness_mm,
+        "ticks_direction": style.ticks.get("direction", "out"),
+        "ticks_n_ticks": style.ticks.n_ticks,
+        # Lines (lines.* in YAML)
+        "lines_trace_mm": style.lines.trace_mm,
+        "lines_errorbar_mm": style.lines.get("errorbar_mm", 0.2),
+        "lines_errorbar_cap_mm": style.lines.get("errorbar_cap_mm", 0.8),
+        # Markers (markers.* in YAML)
+        "markers_size_mm": style.markers.size_mm,
+        "markers_scatter_mm": style.markers.get("scatter_mm", style.markers.size_mm),
+        "markers_flier_mm": style.markers.get("flier_mm", style.markers.size_mm),
+        "markers_edge_width_mm": style.markers.get("edge_width_mm"),
+        # Boxplot (boxplot.* in YAML)
+        "boxplot_line_mm": style.get("boxplot", {}).get("line_mm", 0.2),
+        "boxplot_whisker_mm": style.get("boxplot", {}).get("whisker_mm", 0.2),
+        "boxplot_cap_mm": style.get("boxplot", {}).get("cap_mm", 0.2),
+        "boxplot_median_mm": style.get("boxplot", {}).get("median_mm", 0.2),
+        "boxplot_median_color": style.get("boxplot", {}).get("median_color", "black"),
+        "boxplot_flier_edge_mm": style.get("boxplot", {}).get("flier_edge_mm", 0.2),
+        # Violinplot (violinplot.* in YAML)
+        "violinplot_line_mm": style.get("violinplot", {}).get("line_mm", 0.2),
+        "violinplot_inner": style.get("violinplot", {}).get("inner", "box"),
+        "violinplot_box_width_mm": style.get("violinplot", {}).get("box_width_mm", 1.5),
+        "violinplot_whisker_mm": style.get("violinplot", {}).get("whisker_mm", 0.2),
+        "violinplot_median_mm": style.get("violinplot", {}).get("median_mm", 0.8),
+        # Barplot (barplot.* in YAML)
+        "barplot_edge_mm": style.get("barplot", {}).get("edge_mm", 0.2),
+        # Histogram (histogram.* in YAML)
+        "histogram_edge_mm": style.get("histogram", {}).get("edge_mm", 0.2),
+        # Pie chart (pie.* in YAML)
+        "pie_text_pt": style.get("pie", {}).get("text_pt", 6),
+        "pie_show_axes": style.get("pie", {}).get("show_axes", False),
+        # Imshow (imshow.* in YAML)
+        "imshow_show_axes": style.get("imshow", {}).get("show_axes", False),
+        "imshow_show_labels": style.get("imshow", {}).get("show_labels", False),
+        # Fonts (fonts.* in YAML)
+        "fonts_family": style.fonts.family,
+        "fonts_axis_label_pt": style.fonts.axis_label_pt,
+        "fonts_tick_label_pt": style.fonts.tick_label_pt,
+        "fonts_title_pt": style.fonts.title_pt,
+        "fonts_suptitle_pt": style.fonts.suptitle_pt,
+        "fonts_legend_pt": style.fonts.legend_pt,
+        "fonts_annotation_pt": style.fonts.get("annotation_pt", 6),
+        # Padding (padding.* in YAML)
+        "padding_label_pt": style.padding.label_pt,
+        "padding_tick_pt": style.padding.tick_pt,
+        "padding_title_pt": style.padding.title_pt,
+        # Output (output.* in YAML)
+        "output_dpi": style.output.dpi,
+        "output_transparent": style.output.get("transparent", True),
+        "output_format": style.output.get("format", "pdf"),
+        # Theme (theme.* in YAML)
+        "theme_mode": style.theme.mode,
     }
 
     # Add theme colors from preset if available
@@ -411,6 +495,50 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     # Add color palette if available
     if "colors" in style and "palette" in style.colors:
         result["color_palette"] = list(style.colors.palette)
+
+    # Add behavior settings (behavior.* in YAML)
+    if "behavior" in style:
+        behavior = style.behavior
+        if hasattr(behavior, "hide_top_spine"):
+            result["behavior_hide_top_spine"] = behavior.hide_top_spine
+        if hasattr(behavior, "hide_right_spine"):
+            result["behavior_hide_right_spine"] = behavior.hide_right_spine
+        if hasattr(behavior, "grid"):
+            result["behavior_grid"] = behavior.grid
+        if hasattr(behavior, "auto_scale_axes"):
+            result["behavior_auto_scale_axes"] = behavior.auto_scale_axes
+        if hasattr(behavior, "constrained_layout"):
+            result["behavior_constrained_layout"] = behavior.constrained_layout
+
+    # Legacy key aliases for backwards compatibility
+    # (These allow existing code using old keys to still work)
+    result["margin_left_mm"] = result["margins_left_mm"]
+    result["margin_right_mm"] = result["margins_right_mm"]
+    result["margin_bottom_mm"] = result["margins_bottom_mm"]
+    result["margin_top_mm"] = result["margins_top_mm"]
+    result["space_w_mm"] = result["spacing_horizontal_mm"]
+    result["space_h_mm"] = result["spacing_vertical_mm"]
+    result["tick_length_mm"] = result["ticks_length_mm"]
+    result["tick_thickness_mm"] = result["ticks_thickness_mm"]
+    result["n_ticks"] = result["ticks_n_ticks"]
+    result["trace_thickness_mm"] = result["lines_trace_mm"]
+    result["marker_size_mm"] = result["markers_size_mm"]
+    result["font_family"] = result["fonts_family"]
+    result["axis_font_size_pt"] = result["fonts_axis_label_pt"]
+    result["tick_font_size_pt"] = result["fonts_tick_label_pt"]
+    result["title_font_size_pt"] = result["fonts_title_pt"]
+    result["suptitle_font_size_pt"] = result["fonts_suptitle_pt"]
+    result["legend_font_size_pt"] = result["fonts_legend_pt"]
+    result["label_pad_pt"] = result["padding_label_pt"]
+    result["tick_pad_pt"] = result["padding_tick_pt"]
+    result["title_pad_pt"] = result["padding_title_pt"]
+    result["dpi"] = result["output_dpi"]
+    result["theme"] = result["theme_mode"]
+    result["hide_top_spine"] = result.get("behavior_hide_top_spine", True)
+    result["hide_right_spine"] = result.get("behavior_hide_right_spine", True)
+    result["grid"] = result.get("behavior_grid", False)
+    result["auto_scale_axes"] = result.get("behavior_auto_scale_axes", True)
+    result["constrained_layout"] = result.get("behavior_constrained_layout", False)
 
     return result
 

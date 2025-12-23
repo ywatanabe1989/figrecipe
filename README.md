@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2025-12-22 13:51:22
+!-- Timestamp: 2025-12-22 14:49:10
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -10,12 +10,12 @@
 
 # FigRecipe
 
-**Reproducible matplotlib figures with mm-precision layouts.**  
+**Reproducible matplotlib figures with mm-precision layouts.**
 FigRecipe is a lightweight recording & reproduction layer for matplotlib,
 designed for scientific figures that must remain **editable, inspectable,
 and reproducible**.
 
-Part of **SciTeX™ – Research OS for reproducible science**  
+Part of **SciTeX™ – Research OS for reproducible science**
 https://scitex.ai
 
 [![PyPI version](https://badge.fury.io/py/figrecipe.svg)](https://badge.fury.io/py/figrecipe)
@@ -52,6 +52,7 @@ allowing figures to be:
 - ✅ Dark theme support (data colors preserved)
 - ✅ Seamless seaborn integration
 - ✅ Crop figures to content with mm margins
+- ✅ **Interactive GUI editor** with live preview
 
 ---
 
@@ -150,6 +151,30 @@ fr.load_style('/path/to/my_style.yaml')
 ```
 
 See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for full examples.
+
+### Interactive GUI Editor
+
+``` python
+import figrecipe as fr
+import numpy as np
+
+fig, ax = fr.subplots()
+ax.plot(np.sin(np.linspace(0, 10, 100)))
+
+# Launch browser-based editor
+overrides = fr.edit(fig, port=5050)
+
+# Returns style overrides when editor is closed (Ctrl+C)
+# Apply overrides to future figures or save to custom YAML
+```
+
+The editor provides:
+- **Live preview** with real-time style updates
+- **Theme switching** between SCITEX/MATPLOTLIB presets
+- **Element selection** with hover highlighting
+- **Property panels** for Figure, Axis, Legend, and Labels
+- **Download** in PNG, SVG, PDF formats
+- **Export** updated recipe YAML
 
 ### Style Format (YAML)
 
@@ -294,6 +319,7 @@ colors:
 | `fr.reproduce('fig.yaml')`       | Reproduce figure from recipe                      |
 | `fr.extract_data('fig.yaml')`    | Extract plotted data                              |
 | `fr.info('fig.yaml')`            | Inspect recipe metadata                           |
+| `fr.edit(fig)`                   | Launch interactive GUI editor                     |
 | `fr.load_style()`                | Load style preset (global)                        |
 | `fr.list_presets()`              | List available presets                            |
 | `fr.crop('fig.png')`             | Crop to content with mm margin                    |
@@ -302,9 +328,9 @@ colors:
 
 FigRecipe focuses on *how* figures are constructed, not *what* they represent.
 
-FigRecipe is intentionally minimal, focusing on recording, reproduction, and layout fidelity.
+FigRecipe provides recording, reproduction, layout fidelity, and interactive editing.
 
-Higher-level workflows (figures–tables–statistics bundle, GUI editor, and integration with manuscript Writing) are handled in:
+Higher-level workflows (figures–tables–statistics bundle, integration with manuscript writing) are handled in:
 
 FTS (Figure-Table-Statistics Bundle) in SciTeX Ecosystem:
 https://github.com/ywatanabe1989/scitex-code
