@@ -142,8 +142,8 @@ def reproduce_from_record(
         constrained_layout=record.constrained_layout,
     )
 
-    # Apply layout if recorded
-    if record.layout is not None:
+    # Apply layout if recorded (skip if constrained_layout is used)
+    if record.layout is not None and not record.constrained_layout:
         fig.subplots_adjust(**record.layout)
 
     # Ensure axes is 2D array
@@ -194,6 +194,32 @@ def reproduce_from_record(
                 result = _replay_call(ax, call, result_cache)
                 if result is not None:
                     result_cache[call.id] = result
+
+    # Finalize tick configuration (avoids categorical axis interference)
+    from .styles._style_applier import finalize_ticks
+
+    for row in range(nrows):
+        for col in range(ncols):
+            finalize_ticks(axes_2d[row, col])
+
+    # Apply figure-level labels if recorded
+    if record.suptitle is not None:
+        text = record.suptitle.get("text", "")
+        kwargs = record.suptitle.get("kwargs", {}).copy()
+        # Only add y=1.02 if not using constrained_layout (which handles positioning)
+        if "y" not in kwargs and not record.constrained_layout:
+            kwargs["y"] = 1.02
+        fig.suptitle(text, **kwargs)
+
+    if record.supxlabel is not None:
+        text = record.supxlabel.get("text", "")
+        kwargs = record.supxlabel.get("kwargs", {})
+        fig.supxlabel(text, **kwargs)
+
+    if record.supylabel is not None:
+        text = record.supylabel.get("text", "")
+        kwargs = record.supylabel.get("kwargs", {})
+        fig.supylabel(text, **kwargs)
 
     # Wrap in Recording types (same as subplots() returns)
     recorder = Recorder()

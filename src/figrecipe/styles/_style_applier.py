@@ -5,7 +5,13 @@
 Applies mm-based styling to matplotlib axes for publication-quality figures.
 """
 
-__all__ = ["apply_style_mm", "apply_theme_colors", "check_font", "list_available_fonts"]
+__all__ = [
+    "apply_style_mm",
+    "apply_theme_colors",
+    "check_font",
+    "finalize_ticks",
+    "list_available_fonts",
+]
 
 import warnings
 from typing import Any, Dict, List, Optional
@@ -287,6 +293,12 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     # Apply violinplot line widths to existing violinplot elements
     _apply_violinplot_style(ax, style)
 
+    # Apply barplot edge widths to existing bar elements
+    _apply_barplot_style(ax, style)
+
+    # Apply histogram edge widths to existing histogram elements
+    _apply_histogram_style(ax, style)
+
     # Configure tick parameters
     tick_pad_pt = style.get("tick_pad_pt", 2.0)
     tick_direction = style.get("tick_direction", "out")
@@ -369,29 +381,13 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         ax.grid(False)
 
     # Configure number of ticks (only for numeric axes, not categorical)
+    # We defer tick configuration to avoid interfering with categorical axes
+    # that get set up later by bar(), boxplot(), etc.
     n_ticks = style.get("n_ticks")
     if n_ticks is not None:
-        from matplotlib.ticker import MaxNLocator
-
-        # Check if x-axis has string tick labels (categorical)
-        x_labels = [t.get_text() for t in ax.get_xticklabels()]
-        x_is_categorical = any(
-            label and not label.replace(".", "").replace("-", "").isdigit()
-            for label in x_labels
-            if label
-        )
-        if not x_is_categorical:
-            ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
-
-        # Check if y-axis has string tick labels (categorical)
-        y_labels = [t.get_text() for t in ax.get_yticklabels()]
-        y_is_categorical = any(
-            label and not label.replace(".", "").replace("-", "").isdigit()
-            for label in y_labels
-            if label
-        )
-        if not y_is_categorical:
-            ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+        # Store n_ticks preference on the axes for later application
+        # This will be applied in _finalize_ticks() before saving
+        ax._figrecipe_n_ticks = n_ticks
 
     # Apply color palette to both rcParams and this specific axes
     color_palette = style.get("color_palette")
@@ -441,6 +437,7 @@ def _apply_boxplot_style(ax: Axes, style: Dict[str, Any]) -> None:
     cap_lw = mm_to_pt(style.get("boxplot_cap_mm", 0.2))
     median_lw = mm_to_pt(style.get("boxplot_median_mm", 0.2))
     median_color = style.get("boxplot_median_color", "black")
+    flier_edge_lw = mm_to_pt(style.get("boxplot_flier_edge_mm", 0.2))
 
     # Boxplot creates Line2D objects for whiskers, caps, medians, fliers
     # and PathPatch objects for boxes
@@ -451,19 +448,24 @@ def _apply_boxplot_style(ax: Axes, style: Dict[str, Any]) -> None:
             if child.get_edgecolor() is not None:
                 child.set_linewidth(box_lw)
 
-        # Check for Line2D objects (whiskers, caps, medians)
+        # Check for Line2D objects (whiskers, caps, medians, fliers)
         elif isinstance(child, Line2D):
-            # Identify by line style and position
-            # Medians are typically horizontal lines
             xdata = child.get_xdata()
             ydata = child.get_ydata()
 
-            if len(xdata) == 2 and len(ydata) == 2:
+            # Fliers are markers with no line (linestyle='None' or '')
+            # and typically have varying number of points (outliers)
+            marker = child.get_marker()
+            linestyle = child.get_linestyle()
+            if marker and marker != "None" and linestyle in ("None", "", " "):
+                # This is likely a flier (outlier marker)
+                child.set_markeredgewidth(flier_edge_lw)
+            elif len(xdata) == 2 and len(ydata) == 2:
                 # Horizontal line (could be median or cap)
                 if ydata[0] == ydata[1]:
                     # Check if it's likely a median (middle of box) or cap
                     # Medians are usually solid, caps are at extremes
-                    if child.get_linestyle() == "-":
+                    if linestyle == "-":
                         # Could be median - apply median style
                         child.set_linewidth(median_lw)
                         if median_color:
@@ -499,6 +501,91 @@ def _apply_violinplot_style(ax: Axes, style: Dict[str, Any]) -> None:
         # Violin inner elements (cbars, cmins, cmaxes) are LineCollection
         elif isinstance(child, LineCollection):
             child.set_linewidth(whisker_lw)
+
+
+def _apply_barplot_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply barplot edge styling to existing bar elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing bar elements.
+    style : dict
+        Style dictionary with barplot_* keys.
+    """
+    from matplotlib.patches import Rectangle
+
+    # Get edge width from style
+    edge_lw = mm_to_pt(style.get("barplot_edge_mm", 0.2))
+
+    # Bar plots create Rectangle patches
+    for patch in ax.patches:
+        if isinstance(patch, Rectangle):
+            patch.set_linewidth(edge_lw)
+            # Set edge color to black for clean scientific look
+            patch.set_edgecolor("black")
+
+
+def _apply_histogram_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply histogram edge styling to existing histogram elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing histogram elements.
+    style : dict
+        Style dictionary with histogram_* keys.
+    """
+    from matplotlib.patches import Rectangle
+
+    # Get edge width from style
+    edge_lw = mm_to_pt(style.get("histogram_edge_mm", 0.2))
+
+    # Histograms also create Rectangle patches
+    for patch in ax.patches:
+        if isinstance(patch, Rectangle):
+            patch.set_linewidth(edge_lw)
+            # Set edge color to black for clean scientific look
+            patch.set_edgecolor("black")
+
+
+def finalize_ticks(ax: Axes) -> None:
+    """
+    Apply deferred tick configuration after all plotting is done.
+
+    This function applies the n_ticks setting stored by apply_style_mm(),
+    but only to numeric axes (not categorical).
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to finalize.
+    """
+    from matplotlib.ticker import MaxNLocator
+
+    n_ticks = getattr(ax, "_figrecipe_n_ticks", None)
+    if n_ticks is None:
+        return
+
+    # Check if x-axis is categorical (has string tick labels)
+    x_labels = [t.get_text() for t in ax.get_xticklabels()]
+    x_is_categorical = any(
+        lbl and not lbl.replace(".", "").replace("-", "").replace("+", "").isdigit()
+        for lbl in x_labels
+        if lbl
+    )
+    if not x_is_categorical:
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+
+    # Check if y-axis is categorical
+    y_labels = [t.get_text() for t in ax.get_yticklabels()]
+    y_is_categorical = any(
+        lbl and not lbl.replace(".", "").replace("-", "").replace("+", "").isdigit()
+        for lbl in y_labels
+        if lbl
+    )
+    if not y_is_categorical:
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
 
 
 if __name__ == "__main__":

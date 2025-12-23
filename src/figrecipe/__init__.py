@@ -539,10 +539,20 @@ def subplots(
                 if key not in kwargs:
                     kwargs[key] = value
 
-    # Use constrained_layout by default for non-mm layouts (better auto-spacing)
-    # Don't use it with mm-based layout since we manually control positioning
-    if not use_mm_layout and "constrained_layout" not in kwargs:
-        kwargs["constrained_layout"] = True
+    # Check if style specifies constrained_layout
+    style_constrained = False
+    if global_style is not None:
+        from .styles._style_loader import to_subplots_kwargs
+
+        style_dict_check = to_subplots_kwargs(global_style)
+        style_constrained = style_dict_check.get("constrained_layout", False)
+
+    # Use constrained_layout if: style specifies it, or non-mm layout (better auto-spacing)
+    if "constrained_layout" not in kwargs:
+        if style_constrained:
+            kwargs["constrained_layout"] = True
+        elif not use_mm_layout:
+            kwargs["constrained_layout"] = True
 
     # Create the recording subplots
     fig, axes = create_recording_subplots(nrows, ncols, **kwargs)
@@ -551,7 +561,9 @@ def subplots(
     fig.record.constrained_layout = kwargs.get("constrained_layout", False)
 
     # Store mm_layout metadata on figure for serialization
-    if mm_layout is not None:
+    # Skip mm-based layout if constrained_layout is True (they're incompatible)
+    use_constrained = kwargs.get("constrained_layout", False)
+    if mm_layout is not None and not use_constrained:
         fig._mm_layout = mm_layout
 
         # Apply subplots_adjust to position axes correctly
@@ -790,6 +802,12 @@ def save(
             transparent = _STYLE_CACHE.output.transparent
         except (KeyError, AttributeError):
             pass
+
+    # Finalize tick configuration for all axes (avoids categorical axis interference)
+    from .styles._style_applier import finalize_ticks
+
+    for ax in fig.fig.get_axes():
+        finalize_ticks(ax)
 
     # Save the image
     fig.fig.savefig(image_path, dpi=dpi, bbox_inches="tight", transparent=transparent)

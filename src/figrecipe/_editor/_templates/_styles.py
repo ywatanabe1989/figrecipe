@@ -126,7 +126,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
+    pointer-events: auto;  /* Allow clicks on empty areas to deselect */
     z-index: 10;  /* Above the preview image */
 }
 
@@ -861,6 +861,80 @@ button:hover {
         width: 100%;
         max-height: 50vh;
     }
+}
+
+/* Color Input Component */
+.color-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.color-swatch:hover {
+    border-color: var(--accent-color);
+}
+
+.color-text-input {
+    flex: 1;
+    min-width: 80px;
+}
+
+.rgb-display {
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+.color-preset-select {
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.color-picker-hidden {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+}
+
+.color-custom-input {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    font-size: 11px;
+    min-width: 100px;
+}
+
+.color-custom-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.color-select {
+    padding: 4px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    font-size: 11px;
+    min-width: 70px;
+    cursor: pointer;
 }
 """
 

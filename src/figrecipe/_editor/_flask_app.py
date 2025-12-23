@@ -508,7 +508,11 @@ class FigureEditor:
 
         @app.route("/download/<fmt>")
         def download(fmt: str):
-            """Download figure in specified format."""
+            """Download figure in specified format.
+
+            Note: Downloads always use light mode for scientific document compatibility.
+            Transparent backgrounds are preserved.
+            """
             import io
 
             fmt = fmt.lower()
@@ -517,12 +521,13 @@ class FigureEditor:
 
             # Use effective style (base + programmatic + manual)
             effective_style = editor.get_effective_style()
+            # Always use light mode for scientific documents (dark_mode=False)
             content = render_download(
                 editor.fig,
                 fmt=fmt,
                 dpi=300,
                 overrides=effective_style if effective_style else None,
-                dark_mode=editor.dark_mode,
+                dark_mode=False,  # Scientific documents require light mode
             )
 
             mimetype = {

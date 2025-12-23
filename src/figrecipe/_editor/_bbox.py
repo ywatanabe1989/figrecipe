@@ -403,6 +403,94 @@ def extract_bboxes(
                 except Exception:
                     pass
 
+    # Process figure-level text elements (suptitle, supxlabel, supylabel)
+    # Suptitle
+    if hasattr(fig, "_suptitle") and fig._suptitle is not None:
+        suptitle_obj = fig._suptitle
+        if suptitle_obj.get_text():
+            try:
+                suptitle_extent = suptitle_obj.get_window_extent(renderer)
+                if suptitle_extent is not None:
+                    bbox = _transform_bbox(
+                        suptitle_extent,
+                        fig,
+                        tight_bbox,
+                        img_width,
+                        img_height,
+                        scale_x,
+                        scale_y,
+                        pad_inches,
+                        saved_height_inches,
+                    )
+                    if bbox:
+                        bboxes["fig_suptitle"] = {
+                            **bbox,
+                            "type": "suptitle",
+                            "label": "suptitle",
+                            "ax_index": -1,  # Figure-level
+                            "text": suptitle_obj.get_text(),
+                        }
+            except Exception:
+                pass
+
+    # Supxlabel
+    if hasattr(fig, "_supxlabel") and fig._supxlabel is not None:
+        supxlabel_obj = fig._supxlabel
+        if supxlabel_obj.get_text():
+            try:
+                supxlabel_extent = supxlabel_obj.get_window_extent(renderer)
+                if supxlabel_extent is not None:
+                    bbox = _transform_bbox(
+                        supxlabel_extent,
+                        fig,
+                        tight_bbox,
+                        img_width,
+                        img_height,
+                        scale_x,
+                        scale_y,
+                        pad_inches,
+                        saved_height_inches,
+                    )
+                    if bbox:
+                        bboxes["fig_supxlabel"] = {
+                            **bbox,
+                            "type": "supxlabel",
+                            "label": "supxlabel",
+                            "ax_index": -1,  # Figure-level
+                            "text": supxlabel_obj.get_text(),
+                        }
+            except Exception:
+                pass
+
+    # Supylabel
+    if hasattr(fig, "_supylabel") and fig._supylabel is not None:
+        supylabel_obj = fig._supylabel
+        if supylabel_obj.get_text():
+            try:
+                supylabel_extent = supylabel_obj.get_window_extent(renderer)
+                if supylabel_extent is not None:
+                    bbox = _transform_bbox(
+                        supylabel_extent,
+                        fig,
+                        tight_bbox,
+                        img_width,
+                        img_height,
+                        scale_x,
+                        scale_y,
+                        pad_inches,
+                        saved_height_inches,
+                    )
+                    if bbox:
+                        bboxes["fig_supylabel"] = {
+                            **bbox,
+                            "type": "supylabel",
+                            "label": "supylabel",
+                            "ax_index": -1,  # Figure-level
+                            "text": supylabel_obj.get_text(),
+                        }
+            except Exception:
+                pass
+
     # Add metadata
     bboxes["_meta"] = {
         "img_width": img_width,

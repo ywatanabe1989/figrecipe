@@ -91,6 +91,10 @@ class FigureRecord:
     style: Optional[Dict[str, Any]] = None
     # Constrained layout flag
     constrained_layout: bool = False
+    # Figure-level decorations (suptitle, supxlabel, supylabel)
+    suptitle: Optional[Dict[str, Any]] = None
+    supxlabel: Optional[Dict[str, Any]] = None
+    supylabel: Optional[Dict[str, Any]] = None
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -125,6 +129,15 @@ class FigureRecord:
         # Add constrained_layout if True
         if self.constrained_layout:
             result["figure"]["constrained_layout"] = True
+        # Add suptitle if set
+        if self.suptitle is not None:
+            result["figure"]["suptitle"] = self.suptitle
+        # Add supxlabel if set
+        if self.supxlabel is not None:
+            result["figure"]["supxlabel"] = self.supxlabel
+        # Add supylabel if set
+        if self.supylabel is not None:
+            result["figure"]["supylabel"] = self.supylabel
         return result
 
     @classmethod
@@ -140,6 +153,9 @@ class FigureRecord:
             layout=fig_data.get("layout"),
             style=fig_data.get("style"),
             constrained_layout=fig_data.get("constrained_layout", False),
+            suptitle=fig_data.get("suptitle"),
+            supxlabel=fig_data.get("supxlabel"),
+            supylabel=fig_data.get("supylabel"),
         )
 
         # Reconstruct axes

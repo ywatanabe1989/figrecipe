@@ -80,6 +80,88 @@ class RecordingFigure:
         """Get the figure record."""
         return self._recorder.figure_record
 
+    def _get_style_fontsize(self, key: str, default: float) -> float:
+        """Get fontsize from loaded style."""
+        try:
+            from ..styles._style_loader import _STYLE_CACHE
+
+            if _STYLE_CACHE is not None:
+                fonts = getattr(_STYLE_CACHE, "fonts", None)
+                if fonts is not None:
+                    return getattr(fonts, key, default)
+        except Exception:
+            pass
+        return default
+
+    def suptitle(self, t: str, **kwargs) -> Any:
+        """Set super title for the figure and record it.
+
+        Parameters
+        ----------
+        t : str
+            The super title text.
+        **kwargs
+            Additional arguments passed to matplotlib's suptitle().
+
+        Returns
+        -------
+        Text
+            The matplotlib Text object.
+        """
+        # Auto-apply fontsize from style if not specified
+        if "fontsize" not in kwargs:
+            kwargs["fontsize"] = self._get_style_fontsize("suptitle_pt", 10)
+        # Record the suptitle call
+        self._recorder.figure_record.suptitle = {"text": t, "kwargs": kwargs}
+        # Call the underlying figure's suptitle
+        return self._fig.suptitle(t, **kwargs)
+
+    def supxlabel(self, t: str, **kwargs) -> Any:
+        """Set super x-label for the figure and record it.
+
+        Parameters
+        ----------
+        t : str
+            The super x-label text.
+        **kwargs
+            Additional arguments passed to matplotlib's supxlabel().
+
+        Returns
+        -------
+        Text
+            The matplotlib Text object.
+        """
+        # Auto-apply fontsize from style if not specified
+        if "fontsize" not in kwargs:
+            kwargs["fontsize"] = self._get_style_fontsize("supxlabel_pt", 8)
+        # Record the supxlabel call
+        self._recorder.figure_record.supxlabel = {"text": t, "kwargs": kwargs}
+        # Call the underlying figure's supxlabel
+        return self._fig.supxlabel(t, **kwargs)
+
+    def supylabel(self, t: str, **kwargs) -> Any:
+        """Set super y-label for the figure and record it.
+
+        Parameters
+        ----------
+        t : str
+            The super y-label text.
+        **kwargs
+            Additional arguments passed to matplotlib's supylabel().
+
+        Returns
+        -------
+        Text
+            The matplotlib Text object.
+        """
+        # Auto-apply fontsize from style if not specified
+        if "fontsize" not in kwargs:
+            kwargs["fontsize"] = self._get_style_fontsize("supylabel_pt", 8)
+        # Record the supylabel call
+        self._recorder.figure_record.supylabel = {"text": t, "kwargs": kwargs}
+        # Call the underlying figure's supylabel
+        return self._fig.supylabel(t, **kwargs)
+
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to underlying figure."""
         return getattr(self._fig, name)

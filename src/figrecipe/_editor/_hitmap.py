@@ -396,6 +396,11 @@ def generate_hitmap(
                 if regular_line_idx < len(plot_ids):
                     call_id = plot_ids[regular_line_idx]
                     label = call_id  # Use call_id as label
+                else:
+                    # Fallback: generate synthetic call_id when no record
+                    call_id = f"line_{ax_idx}_{regular_line_idx}"
+                    if orig_label.startswith("_"):
+                        label = call_id
                 regular_line_idx += 1
 
             color_map[key] = {
@@ -440,6 +445,11 @@ def generate_hitmap(
                 if scatter_coll_idx < len(scatter_ids):
                     call_id = scatter_ids[scatter_coll_idx]
                     label = call_id  # Use call_id as label
+                else:
+                    # Fallback: generate synthetic call_id when no record
+                    call_id = f"scatter_{ax_idx}_{scatter_coll_idx}"
+                    if orig_label.startswith("_"):
+                        label = call_id
                 scatter_coll_idx += 1
 
                 color_map[key] = {
@@ -543,7 +553,8 @@ def generate_hitmap(
                 element_id += 1
 
         # Get bar call_id (all bars from a single bar() call share the same ID)
-        bar_call_id = bar_ids[0] if bar_ids else None
+        # Fallback: generate synthetic call_id when no record
+        bar_call_id = bar_ids[0] if bar_ids else f"bar_{ax_idx}"
 
         # Process bars (Rectangle patches)
         for i, patch in enumerate(ax.patches):
@@ -682,6 +693,65 @@ def generate_hitmap(
             }
             element_id += 1
 
+    # Process figure-level text elements (suptitle, supxlabel, supylabel)
+    if include_text:
+        # Suptitle
+        if hasattr(mpl_fig, "_suptitle") and mpl_fig._suptitle is not None:
+            suptitle_obj = mpl_fig._suptitle
+            if suptitle_obj.get_text():
+                key = "fig_suptitle"
+                rgb = id_to_rgb(element_id)
+
+                original_props[key] = {"color": suptitle_obj.get_color()}
+                suptitle_obj.set_color(_normalize_color(rgb))
+
+                color_map[key] = {
+                    "id": element_id,
+                    "type": "suptitle",
+                    "label": "suptitle",
+                    "ax_index": -1,  # Figure-level, not axes-specific
+                    "rgb": list(rgb),
+                }
+                element_id += 1
+
+        # Supxlabel
+        if hasattr(mpl_fig, "_supxlabel") and mpl_fig._supxlabel is not None:
+            supxlabel_obj = mpl_fig._supxlabel
+            if supxlabel_obj.get_text():
+                key = "fig_supxlabel"
+                rgb = id_to_rgb(element_id)
+
+                original_props[key] = {"color": supxlabel_obj.get_color()}
+                supxlabel_obj.set_color(_normalize_color(rgb))
+
+                color_map[key] = {
+                    "id": element_id,
+                    "type": "supxlabel",
+                    "label": "supxlabel",
+                    "ax_index": -1,  # Figure-level
+                    "rgb": list(rgb),
+                }
+                element_id += 1
+
+        # Supylabel
+        if hasattr(mpl_fig, "_supylabel") and mpl_fig._supylabel is not None:
+            supylabel_obj = mpl_fig._supylabel
+            if supylabel_obj.get_text():
+                key = "fig_supylabel"
+                rgb = id_to_rgb(element_id)
+
+                original_props[key] = {"color": supylabel_obj.get_color()}
+                supylabel_obj.set_color(_normalize_color(rgb))
+
+                color_map[key] = {
+                    "id": element_id,
+                    "type": "supylabel",
+                    "label": "supylabel",
+                    "ax_index": -1,  # Figure-level
+                    "rgb": list(rgb),
+                }
+                element_id += 1
+
     # Set non-selectable elements to axes color
     for ax in axes_list:
         # Spines
@@ -776,6 +846,32 @@ def generate_hitmap(
 
         # Restore tick colors
         ax.tick_params(colors="black")
+
+    # Restore figure-level text
+    if include_text:
+        key = "fig_suptitle"
+        if (
+            key in original_props
+            and hasattr(mpl_fig, "_suptitle")
+            and mpl_fig._suptitle
+        ):
+            mpl_fig._suptitle.set_color(original_props[key]["color"])
+
+        key = "fig_supxlabel"
+        if (
+            key in original_props
+            and hasattr(mpl_fig, "_supxlabel")
+            and mpl_fig._supxlabel
+        ):
+            mpl_fig._supxlabel.set_color(original_props[key]["color"])
+
+        key = "fig_supylabel"
+        if (
+            key in original_props
+            and hasattr(mpl_fig, "_supylabel")
+            and mpl_fig._supylabel
+        ):
+            mpl_fig._supylabel.set_color(original_props[key]["color"])
 
     # Restore backgrounds
     fig.patch.set_facecolor("white")

@@ -102,7 +102,7 @@ class TestRoundtrip:
             )
             assert has_content, f"{method_name} reproduction has no visible content"
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_with_decorations(self):
         """Test that decorations (labels, title, legend) are preserved."""
@@ -129,7 +129,7 @@ class TestRoundtrip:
             assert ax2.get_ylabel() == "Y Axis"
             assert ax2.get_title() == "Test Title"
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_multiple_plots(self):
         """Test figure with multiple plotting calls."""
@@ -156,7 +156,7 @@ class TestRoundtrip:
             assert len(ax2.lines) >= 2
             assert len(ax2.collections) >= 1
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_data_integrity(self):
         """Test that data values are preserved in roundtrip."""
@@ -183,7 +183,7 @@ class TestRoundtrip:
             np.testing.assert_array_almost_equal(line.get_xdata(), x)
             np.testing.assert_array_almost_equal(line.get_ydata(), y)
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_roundtrip_large_array(self):
         """Test roundtrip with large arrays (saved to .npy)."""
@@ -216,7 +216,7 @@ class TestRoundtrip:
             np.testing.assert_array_almost_equal(line.get_xdata(), x)
             np.testing.assert_array_almost_equal(line.get_ydata(), y, decimal=5)
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
 
 class TestPixelComparison:
