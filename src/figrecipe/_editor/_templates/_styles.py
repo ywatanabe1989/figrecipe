@@ -272,16 +272,42 @@ body {
 }
 
 .selection-rect {
-    fill: var(--selection-color);
-    stroke: var(--accent-color);
+    --element-color: #2563eb;  /* Default fallback to accent color */
+    fill: var(--element-color);
+    fill-opacity: 0.15;
+    stroke: var(--element-color);
+    stroke-opacity: 0.6;
     stroke-width: 2;
     stroke-dasharray: 5, 3;
 }
 
 /* Primary selection in a group - solid border */
 .selection-rect.selection-primary {
+    fill-opacity: 0.2;
+    stroke-opacity: 0.8;
     stroke-width: 3;
     stroke-dasharray: none;
+}
+
+/* Selection for lines - show stroke along the path */
+.selection-polyline {
+    --element-color: #2563eb;
+    fill: none !important;
+    stroke: var(--element-color);
+    stroke-width: 8;
+    stroke-opacity: 0.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Selection for scatter points */
+.selection-circle {
+    --element-color: #2563eb;
+    fill: var(--element-color);
+    fill-opacity: 0.3;
+    stroke: var(--element-color);
+    stroke-opacity: 0.7;
+    stroke-width: 2;
 }
 
 /* Group hover highlight - all elements in same logical group */

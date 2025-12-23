@@ -1506,7 +1506,7 @@ function clearSelection() {
     }
 }
 
-// Draw selection rectangle(s) - handles both single elements and groups
+// Draw selection shape(s) - handles lines, scatter, and rectangles like hover effect
 function drawSelection(key) {
     const overlay = document.getElementById('selection-overlay');
     overlay.innerHTML = '';
@@ -1530,29 +1530,71 @@ function drawSelection(key) {
         elementsToHighlight = selectedElement.groupElements.map(e => e.key);
     }
 
-    // Draw selection for each element
+    // Draw selection for each element (same shape as hover)
     for (const elemKey of elementsToHighlight) {
         const bbox = currentBboxes[elemKey];
         if (!bbox) continue;
 
-        const x = offsetX + bbox.x * scaleX;
-        const y = offsetY + bbox.y * scaleY;
-        const width = bbox.width * scaleX;
-        const height = bbox.height * scaleY;
+        // Get element color from bbox or use accent color as fallback
+        const elementColor = bbox.original_color || '#2563eb';
+        const isPrimary = elemKey === key;
 
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', x);
-        rect.setAttribute('y', y);
-        rect.setAttribute('width', Math.max(width, 2));
-        rect.setAttribute('height', Math.max(height, 2));
-        rect.setAttribute('class', 'selection-rect');
+        // Use polyline for lines with points (same as hover)
+        if (bbox.type === 'line' && bbox.points && bbox.points.length > 1) {
+            const points = bbox.points.map(pt => {
+                const x = offsetX + pt[0] * scaleX;
+                const y = offsetY + pt[1] * scaleY;
+                return `${x},${y}`;
+            }).join(' ');
 
-        // Mark the primary selection differently
-        if (elemKey === key) {
-            rect.classList.add('selection-primary');
+            const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            polyline.setAttribute('points', points);
+            polyline.setAttribute('class', 'selection-polyline');
+            polyline.style.setProperty('--element-color', elementColor);
+            if (isPrimary) {
+                polyline.style.strokeWidth = '10';
+                polyline.style.strokeOpacity = '0.6';
+            }
+            overlay.appendChild(polyline);
         }
+        // Use circles for scatter points (same as hover)
+        else if (bbox.type === 'scatter' && bbox.points && bbox.points.length > 0) {
+            const hitRadius = isPrimary ? 7 : 5;
+            bbox.points.forEach(pt => {
+                const cx = offsetX + pt[0] * scaleX;
+                const cy = offsetY + pt[1] * scaleY;
 
-        overlay.appendChild(rect);
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', hitRadius);
+                circle.setAttribute('class', 'selection-circle');
+                circle.style.setProperty('--element-color', elementColor);
+                overlay.appendChild(circle);
+            });
+        }
+        // Use rectangle for other elements
+        else {
+            const x = offsetX + bbox.x * scaleX;
+            const y = offsetY + bbox.y * scaleY;
+            const width = bbox.width * scaleX;
+            const height = bbox.height * scaleY;
+
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', x);
+            rect.setAttribute('y', y);
+            rect.setAttribute('width', Math.max(width, 2));
+            rect.setAttribute('height', Math.max(height, 2));
+            rect.setAttribute('class', 'selection-rect');
+            rect.style.setProperty('--element-color', elementColor);
+
+            // Mark the primary selection differently
+            if (isPrimary) {
+                rect.classList.add('selection-primary');
+            }
+
+            overlay.appendChild(rect);
+        }
     }
 }
 

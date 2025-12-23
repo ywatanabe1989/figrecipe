@@ -162,6 +162,14 @@ def apply_theme_colors(
         else:
             fig.patch.set_facecolor(fig_bg)
 
+        # Apply text colors to figure-level text elements (suptitle, supxlabel, supylabel)
+        if hasattr(fig, "_suptitle") and fig._suptitle is not None:
+            fig._suptitle.set_color(colors["text"])
+        if hasattr(fig, "_supxlabel") and fig._supxlabel is not None:
+            fig._supxlabel.set_color(colors["text"])
+        if hasattr(fig, "_supylabel") and fig._supylabel is not None:
+            fig._supylabel.set_color(colors["text"])
+
     # Apply text colors (labels, titles)
     ax.xaxis.label.set_color(colors["text"])
     ax.yaxis.label.set_color(colors["text"])
