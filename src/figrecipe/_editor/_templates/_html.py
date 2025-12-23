@@ -65,7 +65,7 @@ HTML_TEMPLATE = """
                 <div class="view-mode-toggle">
                     <button id="btn-show-all" class="btn-toggle active" title="Show all properties">General</button>
                     <button id="btn-show-selected" class="btn-toggle" title="Show only properties for selected element">Selected</button>
-                    <span class="selection-hint" id="selection-hint">Click an element to filter</span>
+                    <span class="selection-hint" id="selection-hint"></span>
                 </div>
 
                 <!-- Dynamic call properties (shown when element selected) -->

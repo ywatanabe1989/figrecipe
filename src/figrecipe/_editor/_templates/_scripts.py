@@ -1245,9 +1245,15 @@ function createColorInput(callId, key, value) {
     // Event handlers
     select.addEventListener('change', function() {
         if (this.value === '__custom__') {
-            customInput.style.display = 'block';
-            customInput.focus();
+            // Hide swatch and rgb display, open color picker
+            swatch.style.display = 'none';
+            rgbDisplay.style.display = 'none';
+            customInput.style.display = 'none';
+            colorPicker.click();  // Open color picker dialog
         } else {
+            // Show swatch and rgb display
+            swatch.style.display = '';
+            rgbDisplay.style.display = '';
             customInput.style.display = 'none';
             updateDisplay(this.value);
             // Create a fake input for the handler
@@ -1318,7 +1324,11 @@ function createColorInput(callId, key, value) {
             }
             select.value = rgbTuple || pickedColor;
         }
+        // Restore display elements and update
+        swatch.style.display = '';
+        rgbDisplay.style.display = '';
         customInput.style.display = 'none';
+        updateDisplay(select.value);
         const fakeInput = { value: select.value };
         handleDynamicParamChange(callId, key, fakeInput);
     });
@@ -1505,7 +1515,7 @@ function setViewMode(mode) {
             // Hide all style sections - only show call properties
             hideAllStyleSections();
         } else {
-            hint.textContent = 'Click an element to filter';
+            hint.textContent = '';
             hint.style.color = '';
             // Show all when no selection in filter mode
             showAllProperties();
@@ -1584,7 +1594,7 @@ function clearSelection() {
     // Update hint and show all if in filter mode
     const hint = document.getElementById('selection-hint');
     if (viewMode === 'selected') {
-        hint.textContent = 'Click an element to filter';
+        hint.textContent = '';
         hint.style.color = '';
         showAllProperties();
     }
