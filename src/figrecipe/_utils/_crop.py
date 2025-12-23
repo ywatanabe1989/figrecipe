@@ -8,7 +8,6 @@ and crops them, removing excess whitespace while preserving a specified margin.
 
 __all__ = ["crop", "find_content_area", "mm_to_pixels"]
 
-import os
 from pathlib import Path
 from typing import Optional, Tuple, Union
 
@@ -195,7 +194,9 @@ def crop(
     else:
         left, upper, right, lower = find_content_area(input_path)
         if verbose:
-            print(f"Content area: left={left}, upper={upper}, right={right}, lower={lower}")
+            print(
+                f"Content area: left={left}, upper={upper}, right={right}, lower={lower}"
+            )
 
         # Add margin, clamping to image boundaries
         left = max(left - margin, 0)
@@ -222,11 +223,14 @@ def crop(
 
         # Preserve PNG text chunks
         from PIL import PngImagePlugin
+
         pnginfo = PngImagePlugin.PngInfo()
         for key, value in img.info.items():
             if isinstance(value, (str, bytes)):
                 try:
-                    pnginfo.add_text(key, str(value) if isinstance(value, bytes) else value)
+                    pnginfo.add_text(
+                        key, str(value) if isinstance(value, bytes) else value
+                    )
                 except Exception:
                     pass
         save_kwargs["pnginfo"] = pnginfo
@@ -240,7 +244,9 @@ def crop(
 
     final_width, final_height = cropped_img.size
     if verbose:
-        area_reduction = 1 - ((final_width * final_height) / (original_width * original_height))
+        area_reduction = 1 - (
+            (final_width * final_height) / (original_width * original_height)
+        )
         print(f"Saved {area_reduction * 100:.1f}% of original area")
         if output_path != input_path:
             print(f"Saved to: {output_path}")

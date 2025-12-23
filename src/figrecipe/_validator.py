@@ -61,7 +61,9 @@ class ValidationResult:
             f"({'match' if self.same_size else 'DIFFER'})",
             f"  Pixel MSE: {self.mse:.2f}",
             f"  Max pixel diff: {self.max_diff:.1f}",
-            f"  PSNR: {self.psnr:.1f} dB" if not np.isinf(self.psnr) else "  PSNR: inf (identical)",
+            f"  PSNR: {self.psnr:.1f} dB"
+            if not np.isinf(self.psnr)
+            else "  PSNR: inf (identical)",
             f"  File size diff: {self.file_size_diff:+d} bytes",
         ]
         if not self.valid:
@@ -95,6 +97,7 @@ def validate_recipe(
         Detailed comparison results.
     """
     import matplotlib.pyplot as plt
+
     from ._reproducer import reproduce
     from ._utils._image_diff import compare_images
 
@@ -115,7 +118,11 @@ def validate_recipe(
         reproduced_fig.savefig(reproduced_path, dpi=dpi)
 
         # Close reproduced figure to prevent double display in notebooks
-        plt.close(reproduced_fig)
+        # Use .fig to get underlying matplotlib Figure since reproduce() returns RecordingFigure
+        mpl_fig = (
+            reproduced_fig.fig if hasattr(reproduced_fig, "fig") else reproduced_fig
+        )
+        plt.close(mpl_fig)
 
         # Compare images
         diff = compare_images(original_path, reproduced_path)
@@ -137,7 +144,9 @@ def validate_recipe(
             valid=valid,
             mse=mse if not np.isnan(mse) else float("inf"),
             psnr=diff["psnr"],
-            max_diff=diff["max_diff"] if not np.isnan(diff["max_diff"]) else float("inf"),
+            max_diff=diff["max_diff"]
+            if not np.isnan(diff["max_diff"])
+            else float("inf"),
             size_original=diff["size1"],
             size_reproduced=diff["size2"],
             same_size=diff["same_size"],

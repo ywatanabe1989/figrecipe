@@ -281,6 +281,12 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
 
         mpl.rcParams["boxplot.medianprops.color"] = median_color
 
+    # Apply boxplot line widths to existing boxplot elements
+    _apply_boxplot_style(ax, style)
+
+    # Apply violinplot line widths to existing violinplot elements
+    _apply_violinplot_style(ax, style)
+
     # Configure tick parameters
     tick_pad_pt = style.get("tick_pad_pt", 2.0)
     tick_direction = style.get("tick_direction", "out")
@@ -362,13 +368,30 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     else:
         ax.grid(False)
 
-    # Configure number of ticks
+    # Configure number of ticks (only for numeric axes, not categorical)
     n_ticks = style.get("n_ticks")
     if n_ticks is not None:
         from matplotlib.ticker import MaxNLocator
 
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+        # Check if x-axis has string tick labels (categorical)
+        x_labels = [t.get_text() for t in ax.get_xticklabels()]
+        x_is_categorical = any(
+            label and not label.replace(".", "").replace("-", "").isdigit()
+            for label in x_labels
+            if label
+        )
+        if not x_is_categorical:
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+
+        # Check if y-axis has string tick labels (categorical)
+        y_labels = [t.get_text() for t in ax.get_yticklabels()]
+        y_is_categorical = any(
+            label and not label.replace(".", "").replace("-", "").isdigit()
+            for label in y_labels
+            if label
+        )
+        if not y_is_categorical:
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
 
     # Apply color palette to both rcParams and this specific axes
     color_palette = style.get("color_palette")
@@ -397,6 +420,85 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     ax._figrecipe_style.update(style)
 
     return trace_lw_pt
+
+
+def _apply_boxplot_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply boxplot line width styling to existing boxplot elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing boxplot elements.
+    style : dict
+        Style dictionary with boxplot_* keys.
+    """
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import PathPatch
+
+    # Get line widths from style
+    box_lw = mm_to_pt(style.get("boxplot_line_mm", 0.2))
+    whisker_lw = mm_to_pt(style.get("boxplot_whisker_mm", 0.2))
+    cap_lw = mm_to_pt(style.get("boxplot_cap_mm", 0.2))
+    median_lw = mm_to_pt(style.get("boxplot_median_mm", 0.2))
+    median_color = style.get("boxplot_median_color", "black")
+
+    # Boxplot creates Line2D objects for whiskers, caps, medians, fliers
+    # and PathPatch objects for boxes
+    for child in ax.get_children():
+        # Check if it's a boxplot box (PathPatch with specific properties)
+        if isinstance(child, PathPatch):
+            # Boxes are typically PathPatch with edgecolor
+            if child.get_edgecolor() is not None:
+                child.set_linewidth(box_lw)
+
+        # Check for Line2D objects (whiskers, caps, medians)
+        elif isinstance(child, Line2D):
+            # Identify by line style and position
+            # Medians are typically horizontal lines
+            xdata = child.get_xdata()
+            ydata = child.get_ydata()
+
+            if len(xdata) == 2 and len(ydata) == 2:
+                # Horizontal line (could be median or cap)
+                if ydata[0] == ydata[1]:
+                    # Check if it's likely a median (middle of box) or cap
+                    # Medians are usually solid, caps are at extremes
+                    if child.get_linestyle() == "-":
+                        # Could be median - apply median style
+                        child.set_linewidth(median_lw)
+                        if median_color:
+                            child.set_color(median_color)
+                    else:
+                        child.set_linewidth(cap_lw)
+                # Vertical line (whisker)
+                elif xdata[0] == xdata[1]:
+                    child.set_linewidth(whisker_lw)
+
+
+def _apply_violinplot_style(ax: Axes, style: Dict[str, Any]) -> None:
+    """Apply violinplot line width styling to existing violinplot elements.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        Target axes containing violinplot elements.
+    style : dict
+        Style dictionary with violinplot_* keys.
+    """
+    from matplotlib.collections import LineCollection, PolyCollection
+
+    # Get line widths from style
+    body_lw = mm_to_pt(style.get("violinplot_line_mm", 0.2))
+    whisker_lw = mm_to_pt(style.get("violinplot_whisker_mm", 0.2))
+
+    for child in ax.get_children():
+        # Violin bodies are PolyCollection
+        if isinstance(child, PolyCollection):
+            child.set_linewidth(body_lw)
+
+        # Violin inner elements (cbars, cmins, cmaxes) are LineCollection
+        elif isinstance(child, LineCollection):
+            child.set_linewidth(whisker_lw)
 
 
 if __name__ == "__main__":

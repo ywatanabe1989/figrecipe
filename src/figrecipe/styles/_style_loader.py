@@ -407,7 +407,17 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
         "markers_flier_mm": style.markers.get("flier_mm", style.markers.size_mm),
         "markers_edge_width_mm": style.markers.get("edge_width_mm"),
         # Boxplot (boxplot.* in YAML)
+        "boxplot_line_mm": style.get("boxplot", {}).get("line_mm", 0.2),
+        "boxplot_whisker_mm": style.get("boxplot", {}).get("whisker_mm", 0.2),
+        "boxplot_cap_mm": style.get("boxplot", {}).get("cap_mm", 0.2),
+        "boxplot_median_mm": style.get("boxplot", {}).get("median_mm", 0.2),
         "boxplot_median_color": style.get("boxplot", {}).get("median_color", "black"),
+        # Violinplot (violinplot.* in YAML)
+        "violinplot_line_mm": style.get("violinplot", {}).get("line_mm", 0.2),
+        "violinplot_inner": style.get("violinplot", {}).get("inner", "box"),
+        "violinplot_box_width_mm": style.get("violinplot", {}).get("box_width_mm", 1.5),
+        "violinplot_whisker_mm": style.get("violinplot", {}).get("whisker_mm", 0.2),
+        "violinplot_median_mm": style.get("violinplot", {}).get("median_mm", 0.8),
         # Fonts (fonts.* in YAML)
         "fonts_family": style.fonts.family,
         "fonts_axis_label_pt": style.fonts.axis_label_pt,

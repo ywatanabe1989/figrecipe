@@ -3,13 +3,13 @@
 """Serialization for recipe files (YAML + data files)."""
 
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Dict, Union
 
 import numpy as np
 from ruamel.yaml import YAML
 
 from ._recorder import FigureRecord
-from ._utils._numpy_io import save_array, load_array, DataFormat
+from ._utils._numpy_io import DataFormat, load_array, save_array
 
 
 def _convert_numpy_types(obj: Any) -> Any:

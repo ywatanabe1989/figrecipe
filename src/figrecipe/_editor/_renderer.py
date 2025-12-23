@@ -226,19 +226,24 @@ def _apply_overrides(fig: Figure, overrides: Dict[str, Any]) -> None:
                 line.set_linewidth(lw)
 
         # Marker sizes (YAML: markers_scatter_mm, legacy: marker_size_mm)
+        # Only apply to PathCollection (scatter), not PolyCollection (violin/fill)
         scatter_mm = overrides.get(
             "markers_scatter_mm",
             overrides.get("markers_size_mm", overrides.get("marker_size_mm")),
         )
         if scatter_mm is not None:
+            from matplotlib.collections import PathCollection
+
             from .._utils._units import mm_to_scatter_size
 
             size = mm_to_scatter_size(scatter_mm)
             for coll in ax.collections:
-                try:
-                    coll.set_sizes([size])
-                except Exception:
-                    pass
+                # Only apply to scatter plots (PathCollection), not violin/fill (PolyCollection)
+                if isinstance(coll, PathCollection):
+                    try:
+                        coll.set_sizes([size])
+                    except Exception:
+                        pass
 
 
 def _apply_dark_mode(fig: Figure) -> None:

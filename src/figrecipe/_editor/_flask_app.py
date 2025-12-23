@@ -18,7 +18,11 @@ Manual overrides are stored separately in `.overrides.json` files,
 allowing restoration to original programmatic styles.
 """
 
-import socket
+# Force Agg backend before any pyplot import to avoid Tkinter threading issues
+import matplotlib
+
+matplotlib.use("Agg")
+
 import webbrowser
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -180,13 +184,12 @@ class FigureEditor:
         from ._renderer import render_download
         from ._templates import build_html_template
 
-        # Find available port
-        self.port = _find_available_port(self.port)
+        # Use specified port strictly (no fallback)
 
         # Use pre-generated hitmap or generate now
         if self._hitmap_base64 is None or self._color_map is None:
-            mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
-            hitmap, self._color_map = generate_hitmap(mpl_fig)
+            # Pass RecordingFigure to preserve record for plot type detection
+            hitmap, self._color_map = generate_hitmap(self.fig)
             self._hitmap_base64 = hitmap_to_base64(hitmap)
 
         # Create Flask app
@@ -196,32 +199,13 @@ class FigureEditor:
         @app.route("/")
         def index():
             """Main editor page."""
-            # Use pre-rendered static PNG (source of truth - same as static save)
-            if editor._initial_base64 and not editor.overrides:
-                base64_img = editor._initial_base64
-                # Get image size from the static PNG
-                import base64
-                import io
-
-                from PIL import Image
-
-                img_data = base64.b64decode(base64_img)
-                img = Image.open(io.BytesIO(img_data))
-                img_size = img.size
-                # Extract bboxes from original figure
-                mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-                original_dpi = mpl_fig.dpi
-                mpl_fig.set_dpi(150)
-                mpl_fig.canvas.draw()
-                bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
-                mpl_fig.set_dpi(original_dpi)
-            else:
-                # Re-render with overrides using reproduce pipeline
-                base64_img, bboxes, img_size = _render_with_overrides(
-                    editor.fig,
-                    editor.overrides,
-                    editor.dark_mode,
-                )
+            # Always render with effective style (base + programmatic + manual)
+            # to ensure YAML style settings are applied
+            base64_img, bboxes, img_size = _render_with_overrides(
+                editor.fig,
+                editor.get_effective_style(),
+                editor.dark_mode,
+            )
 
             # Get style name (default to SCITEX if not set)
             style_name = getattr(editor, "_style_name", "SCITEX")
@@ -232,7 +216,7 @@ class FigureEditor:
                 bboxes=bboxes,
                 color_map=editor._color_map,
                 style=editor.style,
-                overrides=editor.overrides,
+                overrides=editor.get_effective_style(),
                 img_size=img_size,
                 style_name=style_name,
             )
@@ -242,30 +226,12 @@ class FigureEditor:
         @app.route("/preview")
         def preview():
             """Get current preview image."""
-            # Use pre-rendered static PNG if no overrides
-            if editor._initial_base64 and not editor.overrides and not editor.dark_mode:
-                base64_img = editor._initial_base64
-                import base64 as b64
-                import io
-
-                from PIL import Image
-
-                img_data = b64.b64decode(base64_img)
-                img = Image.open(io.BytesIO(img_data))
-                img_size = img.size
-                mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-                original_dpi = mpl_fig.dpi
-                mpl_fig.set_dpi(150)
-                mpl_fig.canvas.draw()
-                bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
-                mpl_fig.set_dpi(original_dpi)
-            else:
-                # Re-render with overrides using reproduce pipeline
-                base64_img, bboxes, img_size = _render_with_overrides(
-                    editor.fig,
-                    editor.overrides,
-                    editor.dark_mode,
-                )
+            # Always render with effective style (base + programmatic + manual)
+            base64_img, bboxes, img_size = _render_with_overrides(
+                editor.fig,
+                editor.get_effective_style(),
+                editor.dark_mode,
+            )
 
             return jsonify(
                 {
@@ -284,10 +250,10 @@ class FigureEditor:
             editor.overrides.update(data.get("overrides", {}))
             editor.dark_mode = data.get("dark_mode", editor.dark_mode)
 
-            # Re-render with overrides using reproduce pipeline
+            # Re-render with effective style (base + programmatic + manual)
             base64_img, bboxes, img_size = _render_with_overrides(
                 editor.fig,
-                editor.overrides,
+                editor.get_effective_style(),
                 editor.dark_mode,
             )
 
@@ -308,6 +274,66 @@ class FigureEditor:
                     "color_map": editor._color_map,
                 }
             )
+
+        @app.route("/calls")
+        def get_calls():
+            """Get all recorded calls with their signatures."""
+            from .._signatures import get_signature
+
+            calls_data = {}
+            if hasattr(editor.fig, "record"):
+                for ax_key, ax_record in editor.fig.record.axes.items():
+                    for call in ax_record.calls:
+                        call_id = call.id
+                        func_name = call.function
+                        sig = get_signature(func_name)
+
+                        calls_data[call_id] = {
+                            "function": func_name,
+                            "ax_key": ax_key,
+                            "args": call.args,
+                            "kwargs": call.kwargs,
+                            "signature": {
+                                "args": sig.get("args", []),
+                                "kwargs": {
+                                    k: v
+                                    for k, v in sig.get("kwargs", {}).items()
+                                    if k != "**kwargs"
+                                },
+                            },
+                        }
+
+            return jsonify(calls_data)
+
+        @app.route("/call/<call_id>")
+        def get_call(call_id):
+            """Get recorded call data by call_id."""
+            from .._signatures import get_signature
+
+            if hasattr(editor.fig, "record"):
+                for ax_key, ax_record in editor.fig.record.axes.items():
+                    for call in ax_record.calls:
+                        if call.id == call_id:
+                            sig = get_signature(call.function)
+                            return jsonify(
+                                {
+                                    "call_id": call_id,
+                                    "function": call.function,
+                                    "ax_key": ax_key,
+                                    "args": call.args,
+                                    "kwargs": call.kwargs,
+                                    "signature": {
+                                        "args": sig.get("args", []),
+                                        "kwargs": {
+                                            k: v
+                                            for k, v in sig.get("kwargs", {}).items()
+                                            if k != "**kwargs"
+                                        },
+                                    },
+                                }
+                            )
+
+            return jsonify({"error": f"Call {call_id} not found"}), 404
 
         @app.route("/style")
         def get_style():
@@ -399,6 +425,87 @@ class FigureEditor:
                 }
             )
 
+        @app.route("/update_call", methods=["POST"])
+        def update_call():
+            """Update a call's kwargs and re-render.
+
+            Only display kwargs are editable (orientation, colors, etc.).
+            Data (x, y arrays) remains read-only for scientific integrity.
+            """
+            from .._reproducer import reproduce_from_record
+
+            data = request.get_json() or {}
+            call_id = data.get("call_id")
+            param = data.get("param")
+            value = data.get("value")
+
+            if not call_id or not param:
+                return jsonify({"error": "Missing call_id or param"}), 400
+
+            # Find and update the call in the record
+            updated = False
+            if hasattr(editor.fig, "record"):
+                for ax_key, ax_record in editor.fig.record.axes.items():
+                    for call in ax_record.calls:
+                        if call.id == call_id:
+                            # Track the override in style_overrides
+                            editor.style_overrides.set_call_override(
+                                call_id, param, value
+                            )
+
+                            # Update the kwarg in the record
+                            if value is None or value == "" or value == "null":
+                                call.kwargs.pop(param, None)
+                            else:
+                                call.kwargs[param] = value
+                            updated = True
+                            break
+                    if updated:
+                        break
+
+            if not updated:
+                return jsonify({"error": f"Call {call_id} not found"}), 404
+
+            # Re-reproduce the figure from the updated record
+            try:
+                new_fig, new_axes = reproduce_from_record(editor.fig.record)
+
+                # Apply style overrides to the new figure
+                effective_style = editor.get_effective_style()
+                base64_img, bboxes, img_size = _render_with_overrides(
+                    new_fig,
+                    effective_style if effective_style else None,
+                    editor.dark_mode,
+                )
+
+                # Update editor's figure reference
+                editor.fig = new_fig
+
+                # Reload hitmap and color map
+                hitmap_b64, color_map = generate_hitmap(
+                    new_fig, img_size[0], img_size[1]
+                )
+                editor._color_map = color_map
+
+            except Exception as e:
+                import traceback
+
+                traceback.print_exc()
+                return jsonify({"error": f"Re-render failed: {str(e)}"}), 500
+
+            return jsonify(
+                {
+                    "success": True,
+                    "image": base64_img,
+                    "bboxes": bboxes,
+                    "img_size": {"width": img_size[0], "height": img_size[1]},
+                    "call_id": call_id,
+                    "param": param,
+                    "value": value,
+                    "has_call_overrides": editor.style_overrides.has_call_overrides(),
+                }
+            )
+
         @app.route("/download/<fmt>")
         def download(fmt: str):
             """Download figure in specified format."""
@@ -408,11 +515,13 @@ class FigureEditor:
             if fmt not in ("png", "svg", "pdf"):
                 return jsonify({"error": f"Unsupported format: {fmt}"}), 400
 
+            # Use effective style (base + programmatic + manual)
+            effective_style = editor.get_effective_style()
             content = render_download(
                 editor.fig,
                 fmt=fmt,
                 dpi=300,
-                overrides=editor.overrides if editor.overrides else None,
+                overrides=effective_style if effective_style else None,
                 dark_mode=editor.dark_mode,
             )
 
@@ -461,38 +570,28 @@ def _render_with_overrides(
     fig, overrides: Optional[Dict[str, Any]], dark_mode: bool = False
 ):
     """
-    Re-render figure with overrides using the reproduce pipeline.
+    Re-render figure with overrides applied directly.
 
-    This ensures identical rendering to fr.reproduce() and fr.save().
+    Applies style overrides directly to the existing figure for reliable rendering.
     """
     import base64
     import io
 
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
     from PIL import Image
 
     from ._bbox import extract_bboxes
-    from ._renderer import _apply_dark_mode
+    from ._renderer import _apply_dark_mode, _apply_overrides
 
-    # Get the record from RecordingFigure
-    if hasattr(fig, "record"):
-        record = fig.record
-        # Merge overrides into record style
-        if overrides:
-            merged_style = (record.style or {}).copy()
-            merged_style.update(overrides)
-            record.style = merged_style
+    # Get the underlying matplotlib figure
+    new_fig = fig.fig if hasattr(fig, "fig") else fig
 
-        # Reproduce using the same pipeline as fr.reproduce()
-        from .._reproducer import reproduce_from_record
+    # Switch to Agg backend to avoid Tkinter thread issues
+    new_fig.set_canvas(FigureCanvasAgg(new_fig))
 
-        new_fig, _ = reproduce_from_record(record)
-    else:
-        # Fallback: apply overrides directly
-        new_fig = fig.fig if hasattr(fig, "fig") else fig
-        if overrides:
-            from ._renderer import _apply_overrides
-
-            _apply_overrides(new_fig, overrides)
+    # Apply overrides directly to existing figure
+    if overrides:
+        _apply_overrides(new_fig, overrides)
 
     # Apply dark mode if requested
     if dark_mode:
@@ -517,47 +616,7 @@ def _render_with_overrides(
     bboxes = extract_bboxes(new_fig, img_size[0], img_size[1])
     new_fig.set_dpi(original_dpi)
 
-    # Close the reproduced figure if it's different from original
-    if hasattr(fig, "record") and new_fig is not fig.fig:
-        import matplotlib.pyplot as plt
-
-        plt.close(new_fig)
-
     return base64_str, bboxes, img_size
-
-
-def _find_available_port(start_port: int = 5050, max_attempts: int = 100) -> int:
-    """
-    Find an available port starting from start_port.
-
-    Parameters
-    ----------
-    start_port : int
-        Port to start searching from.
-    max_attempts : int
-        Maximum number of ports to try.
-
-    Returns
-    -------
-    int
-        Available port number.
-
-    Raises
-    ------
-    RuntimeError
-        If no available port found.
-    """
-    for port in range(start_port, start_port + max_attempts):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("127.0.0.1", port))
-                return port
-        except OSError:
-            continue
-
-    raise RuntimeError(
-        f"No available ports found in range {start_port}-{start_port + max_attempts}"
-    )
 
 
 __all__ = ["FigureEditor"]

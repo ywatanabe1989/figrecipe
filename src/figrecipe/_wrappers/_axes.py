@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 """Wrapped Axes that records all plotting calls."""
 
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
@@ -35,6 +34,11 @@ class RecordingAxes:
     >>> # The call is recorded automatically
     """
 
+    # Methods whose results can be referenced by other methods (e.g., clabel needs ContourSet)
+    RESULT_REFERENCEABLE_METHODS = {"contour", "contourf"}
+    # Methods that take results from other methods as arguments
+    RESULT_REFERENCING_METHODS = {"clabel"}
+
     def __init__(
         self,
         ax: Axes,
@@ -45,6 +49,8 @@ class RecordingAxes:
         self._recorder = recorder
         self._position = position
         self._track = True
+        # Map matplotlib result objects (by id) to their source call_id
+        self._result_refs: Dict[int, str] = {}
 
     @property
     def ax(self) -> Axes:
@@ -87,6 +93,7 @@ class RecordingAxes:
         callable
             Wrapped method that records calls.
         """
+
         def wrapper(*args, id: Optional[str] = None, track: bool = True, **kwargs):
             # Call the original method first (without our custom kwargs)
             result = method(*args, **kwargs)
@@ -96,23 +103,74 @@ class RecordingAxes:
                 # Capture actual colors from result for plotting methods
                 # that use matplotlib's color cycle
                 recorded_kwargs = kwargs.copy()
-                if method_name in ('plot', 'scatter', 'bar', 'barh', 'step', 'fill_between'):
-                    if 'color' not in recorded_kwargs and 'c' not in recorded_kwargs:
-                        actual_color = self._extract_color_from_result(method_name, result)
+                if method_name in (
+                    "plot",
+                    "scatter",
+                    "bar",
+                    "barh",
+                    "step",
+                    "fill_between",
+                ):
+                    if "color" not in recorded_kwargs and "c" not in recorded_kwargs:
+                        actual_color = self._extract_color_from_result(
+                            method_name, result
+                        )
                         if actual_color is not None:
-                            recorded_kwargs['color'] = actual_color
+                            recorded_kwargs["color"] = actual_color
 
-                self._recorder.record_call(
+                # Process args to detect result references (e.g., clabel's ContourSet)
+                processed_args = self._process_result_refs_in_args(args, method_name)
+
+                call_record = self._recorder.record_call(
                     ax_position=self._position,
                     method_name=method_name,
-                    args=args,
+                    args=processed_args,
                     kwargs=recorded_kwargs,
                     call_id=id,
                 )
 
+                # Store result reference for methods whose results can be used later
+                if method_name in self.RESULT_REFERENCEABLE_METHODS:
+                    import builtins
+
+                    self._result_refs[builtins.id(result)] = call_record.id
+
             return result
 
         return wrapper
+
+    def _process_result_refs_in_args(self, args: tuple, method_name: str) -> tuple:
+        """Process args to replace matplotlib objects with references.
+
+        For methods like clabel that take a ContourSet as argument,
+        replace the object with a reference to the original call_id.
+
+        Parameters
+        ----------
+        args : tuple
+            Original arguments.
+        method_name : str
+            Name of the method.
+
+        Returns
+        -------
+        tuple
+            Processed args with references.
+        """
+        if method_name not in self.RESULT_REFERENCING_METHODS:
+            return args
+
+        import builtins
+
+        processed = []
+        for i, arg in enumerate(args):
+            obj_id = builtins.id(arg)
+            if obj_id in self._result_refs:
+                # This arg is a reference to a previous call's result
+                processed.append({"__ref__": self._result_refs[obj_id]})
+            else:
+                processed.append(arg)
+        return tuple(processed)
 
     def _extract_color_from_result(self, method_name: str, result) -> Optional[str]:
         """Extract actual color used from plot result.
@@ -130,34 +188,37 @@ class RecordingAxes:
             The color used, or None if not extractable.
         """
         try:
-            if method_name == 'plot':
+            if method_name == "plot":
                 # plot() returns list of Line2D
-                if result and hasattr(result[0], 'get_color'):
+                if result and hasattr(result[0], "get_color"):
                     return result[0].get_color()
-            elif method_name == 'scatter':
+            elif method_name == "scatter":
                 # scatter() returns PathCollection
-                if hasattr(result, 'get_facecolor'):
+                if hasattr(result, "get_facecolor"):
                     fc = result.get_facecolor()
                     if len(fc) > 0:
                         # Convert RGBA to hex
                         import matplotlib.colors as mcolors
+
                         return mcolors.to_hex(fc[0])
-            elif method_name in ('bar', 'barh'):
+            elif method_name in ("bar", "barh"):
                 # bar() returns BarContainer
-                if hasattr(result, 'patches') and result.patches:
+                if hasattr(result, "patches") and result.patches:
                     fc = result.patches[0].get_facecolor()
                     import matplotlib.colors as mcolors
+
                     return mcolors.to_hex(fc)
-            elif method_name == 'step':
+            elif method_name == "step":
                 # step() returns list of Line2D
-                if result and hasattr(result[0], 'get_color'):
+                if result and hasattr(result[0], "get_color"):
                     return result[0].get_color()
-            elif method_name == 'fill_between':
+            elif method_name == "fill_between":
                 # fill_between() returns PolyCollection
-                if hasattr(result, 'get_facecolor'):
+                if hasattr(result, "get_facecolor"):
                     fc = result.get_facecolor()
                     if len(fc) > 0:
                         import matplotlib.colors as mcolors
+
                         return mcolors.to_hex(fc[0])
         except Exception:
             pass
@@ -213,23 +274,29 @@ class RecordingAxes:
                 if key in data_arrays:
                     arr = data_arrays[key]
                     if should_store_inline(arr):
-                        processed_args.append({
-                            "name": f"arg{i}",
-                            "data": to_serializable(arr),
-                            "dtype": str(arr.dtype),
-                        })
+                        processed_args.append(
+                            {
+                                "name": f"arg{i}",
+                                "data": to_serializable(arr),
+                                "dtype": str(arr.dtype),
+                            }
+                        )
                     else:
-                        processed_args.append({
-                            "name": f"arg{i}",
-                            "data": "__FILE__",
-                            "dtype": str(arr.dtype),
-                            "_array": arr,
-                        })
+                        processed_args.append(
+                            {
+                                "name": f"arg{i}",
+                                "data": "__FILE__",
+                                "dtype": str(arr.dtype),
+                                "_array": arr,
+                            }
+                        )
             else:
-                processed_args.append({
-                    "name": f"arg{i}",
-                    "data": arg,
-                })
+                processed_args.append(
+                    {
+                        "name": f"arg{i}",
+                        "data": arg,
+                    }
+                )
 
         # Process DataFrame column data
         for key, arr in data_arrays.items():
@@ -237,20 +304,24 @@ class RecordingAxes:
                 param_name = key[5:]  # Remove "_col_" prefix
                 col_name = data_arrays.get(f"_colname_{param_name}", param_name)
                 if should_store_inline(arr):
-                    processed_args.append({
-                        "name": col_name,
-                        "param": param_name,
-                        "data": to_serializable(arr),
-                        "dtype": str(arr.dtype),
-                    })
+                    processed_args.append(
+                        {
+                            "name": col_name,
+                            "param": param_name,
+                            "data": to_serializable(arr),
+                            "dtype": str(arr.dtype),
+                        }
+                    )
                 else:
-                    processed_args.append({
-                        "name": col_name,
-                        "param": param_name,
-                        "data": "__FILE__",
-                        "dtype": str(arr.dtype),
-                        "_array": arr,
-                    })
+                    processed_args.append(
+                        {
+                            "name": col_name,
+                            "param": param_name,
+                            "data": "__FILE__",
+                            "dtype": str(arr.dtype),
+                            "_array": arr,
+                        }
+                    )
 
         # Process kwarg arrays
         processed_kwargs = dict(kwargs)

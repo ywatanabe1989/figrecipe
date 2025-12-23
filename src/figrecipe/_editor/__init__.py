@@ -105,7 +105,8 @@ def edit(
     mpl_fig.savefig(static_png_path, format="png", dpi=150, bbox_inches="tight")
 
     # Generate hitmap ONCE at this point
-    hitmap, color_map = generate_hitmap(mpl_fig)
+    # Pass RecordingFigure to preserve record for plot type detection
+    hitmap, color_map = generate_hitmap(fig)
     hitmap_base64 = hitmap_to_base64(hitmap)
 
     # Create and run editor with pre-rendered static PNG
@@ -138,6 +139,23 @@ def _resolve_source(source: Union[RecordingFigure, str, Path]):
     """
     if isinstance(source, RecordingFigure):
         return source, None
+
+    # Handle matplotlib Figure (e.g., from reproduce())
+    from matplotlib.figure import Figure
+
+    if isinstance(source, Figure):
+        from .._recorder import FigureRecord, Recorder
+        from .._wrappers._figure import RecordingFigure as RF
+
+        wrapped_fig = RF.__new__(RF)
+        wrapped_fig._fig = source
+        wrapped_fig._axes = [[ax] for ax in source.axes]  # 2D list format
+        wrapped_fig._recorder = Recorder()
+        wrapped_fig._recorder._figure_record = FigureRecord(
+            figsize=tuple(source.get_size_inches()),
+            dpi=int(source.dpi),
+        )
+        return wrapped_fig, None
 
     # Assume it's a path
     path = Path(source)

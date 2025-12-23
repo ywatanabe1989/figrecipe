@@ -186,6 +186,102 @@ def _mpl_color_to_hex(color) -> str:
         return "#888888"  # fallback gray
 
 
+def _detect_plot_types(fig) -> Dict[int, Dict[str, Any]]:
+    """
+    Detect plot types used on each axes from RecordingFigure.
+
+    Parameters
+    ----------
+    fig : Figure or RecordingFigure
+        Figure to analyze.
+
+    Returns
+    -------
+    dict
+        Mapping from ax_index to plot info:
+        {ax_idx: {'types': set(), 'call_ids': {'boxplot': ['boxplot_000'], ...}}}
+    """
+    plot_info = {}
+
+    # Check if fig is a RecordingFigure with record
+    record = None
+    if hasattr(fig, "record"):
+        record = fig.record
+    elif hasattr(fig, "fig") and hasattr(fig.fig, "_recording_figure"):
+        # Wrapped figure
+        record = (
+            fig.fig._recording_figure.record
+            if hasattr(fig.fig._recording_figure, "record")
+            else None
+        )
+
+    if record is None:
+        return plot_info
+
+    # Analyze recorded calls
+    axes_list = (
+        fig.get_axes()
+        if hasattr(fig, "get_axes")
+        else (fig.fig.get_axes() if hasattr(fig, "fig") else [])
+    )
+
+    # Calculate ncols from record
+    max_col = 0
+    for ax_key in record.axes.keys():
+        parts = ax_key.split("_")
+        if len(parts) >= 3:
+            max_col = max(max_col, int(parts[2]))
+    ncols = max_col + 1
+
+    for ax_key, ax_record in record.axes.items():
+        # Parse ax position to index
+        parts = ax_key.split("_")
+        if len(parts) >= 3:
+            row, col = int(parts[1]), int(parts[2])
+            # Calculate axes index (row-major order for grid layouts)
+            ax_idx = row * ncols + col
+
+            if ax_idx < len(axes_list):
+                if ax_idx not in plot_info:
+                    plot_info[ax_idx] = {"types": set(), "call_ids": {}}
+
+                for call in ax_record.calls:
+                    if call.function in ("boxplot", "violinplot"):
+                        plot_info[ax_idx]["types"].add(call.function)
+                        if call.function not in plot_info[ax_idx]["call_ids"]:
+                            plot_info[ax_idx]["call_ids"][call.function] = []
+                        plot_info[ax_idx]["call_ids"][call.function].append(call.id)
+
+    return plot_info
+
+
+def _is_boxplot_element(line, ax) -> bool:
+    """Check if a Line2D is part of a boxplot based on its properties."""
+    label = line.get_label()
+    # Boxplot elements typically have labels like "_child0", "_nolegend_"
+    # - _childN: median lines (5 points), boxes
+    # - _nolegend_: whiskers, caps (2 points)
+    if label.startswith("_child"):
+        # This is a boxplot median line or box element
+        return True
+    if label == "_nolegend_":
+        # Check for whisker/cap (2-point lines)
+        xdata, ydata = line.get_xdata(), line.get_ydata()
+        if len(xdata) == 2 and len(ydata) == 2:
+            return True
+    return False
+
+
+def _is_violin_element(coll, ax) -> bool:
+    """Check if a PolyCollection is part of a violinplot."""
+    # Violin bodies are PolyCollection with fill
+    if hasattr(coll, "get_facecolor"):
+        fc = coll.get_facecolor()
+        if len(fc) > 0 and fc[0][3] > 0:  # Has visible fill
+            return True
+    return False
+
+
 def generate_hitmap(
     fig: Figure,
     dpi: int = 150,
@@ -212,7 +308,7 @@ def generate_hitmap(
         {
             'element_key': {
                 'id': int,
-                'type': str,  # 'line', 'scatter', 'bar', 'text', etc.
+                'type': str,  # 'line', 'scatter', 'bar', 'boxplot', 'violin', etc.
                 'label': str,
                 'ax_index': int,
                 'rgb': [r, g, b],
@@ -224,11 +320,33 @@ def generate_hitmap(
     color_map = {}
     element_id = 1
 
-    # Get all axes
-    axes_list = fig.get_axes()
+    # Detect plot types from record
+    plot_types = _detect_plot_types(fig)
+
+    # Get all axes (handle RecordingFigure wrapper)
+    if hasattr(fig, "fig"):
+        mpl_fig = fig.fig
+    else:
+        mpl_fig = fig
+    axes_list = mpl_fig.get_axes()
 
     # Collect all artists and assign colors
     for ax_idx, ax in enumerate(axes_list):
+        # Get plot info for this axes
+        ax_info = plot_types.get(ax_idx, {"types": set(), "call_ids": {}})
+        ax_plot_types = ax_info.get("types", set())
+        ax_call_ids = ax_info.get("call_ids", {})
+        has_boxplot = "boxplot" in ax_plot_types
+        has_violin = "violinplot" in ax_plot_types
+
+        # Get call_id for labeling
+        boxplot_call_id = (
+            ax_call_ids.get("boxplot", ["boxplot"])[0] if has_boxplot else None
+        )
+        violin_call_id = (
+            ax_call_ids.get("violinplot", ["violin"])[0] if has_violin else None
+        )
+
         # Process lines (traces)
         for i, line in enumerate(ax.get_lines()):
             if not line.get_visible():
@@ -247,10 +365,26 @@ def generate_hitmap(
             line.set_markerfacecolor(_normalize_color(rgb))
             line.set_markeredgecolor(_normalize_color(rgb))
 
+            # Determine element type
+            orig_label = line.get_label() or f"line_{i}"
+            if has_boxplot and (
+                _is_boxplot_element(line, ax)
+                or orig_label.startswith("_")  # All _-prefixed on boxplot axes
+            ):
+                elem_type = "boxplot"
+                # Use call_id as label for grouping
+                label = boxplot_call_id or "boxplot"
+            elif has_violin and orig_label.startswith("_"):
+                elem_type = "violin"
+                label = violin_call_id or "violin"
+            else:
+                elem_type = "line"
+                label = orig_label
+
             color_map[key] = {
                 "id": element_id,
-                "type": "line",
-                "label": line.get_label() or f"line_{i}",
+                "type": elem_type,
+                "label": label,
                 "ax_index": ax_idx,
                 "rgb": list(rgb),
                 "original_color": _mpl_color_to_hex(original_props[key]["color"]),
@@ -308,10 +442,19 @@ def generate_hitmap(
                 orig_fc = original_props[key]["facecolors"]
                 orig_color = orig_fc[0] if len(orig_fc) > 0 else [0.5, 0.5, 0.5, 1]
 
+                # Determine element type
+                orig_label = coll.get_label() or f"fill_{i}"
+                if has_violin and _is_violin_element(coll, ax):
+                    elem_type = "violin"
+                    label = violin_call_id or "violin"
+                else:
+                    elem_type = "fill"
+                    label = orig_label
+
                 color_map[key] = {
                     "id": element_id,
-                    "type": "fill",
-                    "label": coll.get_label() or f"fill_{i}",
+                    "type": elem_type,
+                    "label": label,
                     "ax_index": ax_idx,
                     "rgb": list(rgb),
                     "original_color": _mpl_color_to_hex(orig_color),

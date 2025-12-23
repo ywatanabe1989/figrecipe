@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Timestamp: "2025-12-23 09:57:28 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/src/figrecipe/_recorder.py
+
+
 """Core recording functionality for figrecipe."""
 
-from collections import OrderedDict
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
-import uuid
 
 import matplotlib
 import numpy as np
@@ -34,7 +37,9 @@ class CallRecord:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any], ax_position: Tuple[int, int] = (0, 0)) -> "CallRecord":
+    def from_dict(
+        cls, data: Dict[str, Any], ax_position: Tuple[int, int] = (0, 0)
+    ) -> "CallRecord":
         """Create from dictionary."""
         return cls(
             id=data["id"],
@@ -160,26 +165,7 @@ class FigureRecord:
 class Recorder:
     """Central recorder for tracking matplotlib calls."""
 
-    # Plotting methods that create artists
-    PLOTTING_METHODS = {
-        "plot", "scatter", "bar", "barh", "hist", "hist2d",
-        "boxplot", "violinplot", "pie", "errorbar", "fill",
-        "fill_between", "fill_betweenx", "stackplot", "stem",
-        "step", "imshow", "pcolor", "pcolormesh", "contour",
-        "contourf", "quiver", "barbs", "streamplot", "hexbin",
-        "tripcolor", "triplot", "tricontour", "tricontourf",
-        "eventplot", "stairs", "ecdf", "matshow", "spy",
-        "loglog", "semilogx", "semilogy", "acorr", "xcorr",
-        "specgram", "psd", "csd", "cohere", "angle_spectrum",
-        "magnitude_spectrum", "phase_spectrum",
-    }
-
-    # Decoration methods
-    DECORATION_METHODS = {
-        "set_xlabel", "set_ylabel", "set_title", "set_xlim",
-        "set_ylim", "legend", "grid", "axhline", "axvline",
-        "axhspan", "axvspan", "text", "annotate",
-    }
+    from ._params import DECORATION_METHODS, PLOTTING_METHODS
 
     def __init__(self):
         self._figure_record: Optional[FigureRecord] = None
@@ -291,53 +277,93 @@ class Recorder:
         arg_names = self._get_arg_names(method_name, len(args))
 
         for i, (name, value) in enumerate(zip(arg_names, args)):
+            # Handle result references (e.g., ContourSet for clabel)
+            if isinstance(value, dict) and "__ref__" in value:
+                processed.append(
+                    {
+                        "name": name,
+                        "data": {"__ref__": value["__ref__"]},
+                    }
+                )
+                continue
+
             if isinstance(value, np.ndarray):
                 if should_store_inline(value):
-                    processed.append({
-                        "name": name,
-                        "data": to_serializable(value),
-                        "dtype": str(value.dtype),
-                    })
+                    processed.append(
+                        {
+                            "name": name,
+                            "data": to_serializable(value),
+                            "dtype": str(value.dtype),
+                        }
+                    )
                 else:
                     # Mark for file storage (will be handled by serializer)
-                    processed.append({
-                        "name": name,
-                        "data": "__FILE__",
-                        "dtype": str(value.dtype),
-                        "_array": value,  # Temporary, removed during serialization
-                    })
+                    processed.append(
+                        {
+                            "name": name,
+                            "data": "__FILE__",
+                            "dtype": str(value.dtype),
+                            "_array": value,  # Temporary, removed during serialization
+                        }
+                    )
             elif hasattr(value, "values"):  # pandas
                 arr = np.asarray(value)
                 if should_store_inline(arr):
-                    processed.append({
-                        "name": name,
-                        "data": to_serializable(arr),
-                        "dtype": str(arr.dtype),
-                    })
+                    processed.append(
+                        {
+                            "name": name,
+                            "data": to_serializable(arr),
+                            "dtype": str(arr.dtype),
+                        }
+                    )
                 else:
-                    processed.append({
+                    processed.append(
+                        {
+                            "name": name,
+                            "data": "__FILE__",
+                            "dtype": str(arr.dtype),
+                            "_array": arr,
+                        }
+                    )
+            elif (
+                isinstance(value, (list, tuple))
+                and len(value) > 0
+                and isinstance(value[0], np.ndarray)
+            ):
+                # List of arrays (e.g., boxplot, violinplot data)
+                arrays_data = [to_serializable(arr) for arr in value]
+                dtypes = [str(arr.dtype) for arr in value]
+                processed.append(
+                    {
                         "name": name,
-                        "data": "__FILE__",
-                        "dtype": str(arr.dtype),
-                        "_array": arr,
-                    })
+                        "data": arrays_data,
+                        "dtype": (dtypes[0] if len(set(dtypes)) == 1 else dtypes),
+                        "_is_array_list": True,
+                    }
+                )
             else:
                 # Scalar or other serializable value
                 try:
-                    processed.append({
-                        "name": name,
-                        "data": value if self._is_serializable(value) else str(value),
-                    })
+                    processed.append(
+                        {
+                            "name": name,
+                            "data": (
+                                value if self._is_serializable(value) else str(value)
+                            ),
+                        }
+                    )
                 except (TypeError, ValueError):
-                    processed.append({
-                        "name": name,
-                        "data": str(value),
-                    })
+                    processed.append(
+                        {
+                            "name": name,
+                            "data": str(value),
+                        }
+                    )
 
         return processed
 
     def _get_arg_names(self, method_name: str, n_args: int) -> List[str]:
-        """Get argument names for a method.
+        """Get argument names for a method from signatures.
 
         Parameters
         ----------
@@ -351,31 +377,18 @@ class Recorder:
         list
             List of argument names.
         """
-        # Common patterns
-        patterns = {
-            "plot": ["x", "y", "fmt"],
-            "scatter": ["x", "y", "s", "c"],
-            "bar": ["x", "height", "width", "bottom"],
-            "barh": ["y", "width", "height", "left"],
-            "hist": ["x", "bins"],
-            "imshow": ["X"],
-            "contour": ["X", "Y", "Z", "levels"],
-            "contourf": ["X", "Y", "Z", "levels"],
-            "fill_between": ["x", "y1", "y2"],
-            "errorbar": ["x", "y", "yerr", "xerr"],
-            "text": ["x", "y", "s"],
-            "annotate": ["text", "xy", "xytext"],
-        }
+        try:
+            from ._signatures import get_signature
 
-        if method_name in patterns:
-            names = patterns[method_name][:n_args]
+            sig = get_signature(method_name)
+            names = [arg["name"] for arg in sig["args"][:n_args]]
             # Pad with generic names if needed
             while len(names) < n_args:
                 names.append(f"arg{len(names)}")
             return names
-
-        # Default generic names
-        return [f"arg{i}" for i in range(n_args)]
+        except Exception:
+            # Fallback to generic names
+            return [f"arg{i}" for i in range(n_args)]
 
     def _process_kwargs(
         self,
@@ -383,6 +396,8 @@ class Recorder:
         method_name: str,
     ) -> Dict[str, Any]:
         """Process keyword arguments for storage.
+
+        Only stores non-default kwargs to keep recipes minimal.
 
         Parameters
         ----------
@@ -396,6 +411,15 @@ class Recorder:
         dict
             Processed kwargs (non-default only).
         """
+        # Get defaults from signature
+        defaults = {}
+        try:
+            from ._signatures import get_defaults
+
+            defaults = get_defaults(method_name)
+        except Exception:
+            pass
+
         # Remove internal keys
         skip_keys = {"id", "track", "_array"}
         processed = {}
@@ -403,6 +427,16 @@ class Recorder:
         for key, value in kwargs.items():
             if key in skip_keys:
                 continue
+
+            # Skip if value matches default
+            if key in defaults:
+                default_val = defaults[key]
+                # Compare values (handle None specially)
+                if default_val is not None and value == default_val:
+                    continue
+                # Also skip if both are None
+                if default_val is None and value is None:
+                    continue
 
             if self._is_serializable(value):
                 processed[key] = value
@@ -433,3 +467,6 @@ class Recorder:
                 for k, v in value.items()
             )
         return False
+
+
+# EOF

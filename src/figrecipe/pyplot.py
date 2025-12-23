@@ -34,9 +34,10 @@ Examples
 import matplotlib.pyplot as _plt
 from matplotlib.pyplot import *  # noqa: F401, F403
 
+from . import save as _ps_save
+
 # Import figrecipe functionality
 from . import subplots as _ps_subplots
-from . import save as _ps_save
 from ._wrappers import RecordingFigure
 
 # Override subplots with recording-enabled version
