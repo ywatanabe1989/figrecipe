@@ -17,11 +17,10 @@ def plot_loglog(plt, rng, ax=None):
 
     x = np.logspace(0, 3, 50)
     y = x**2
-    ax.loglog(x, y, "b-", label="x^2", id="loglog")
+    ax.loglog(x, y, id="loglog")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("loglog")
-    ax.legend()
     return fig, ax
 
 

@@ -18,7 +18,7 @@ def plot_fill_betweenx(plt, rng, ax=None):
     y = np.linspace(0, 10, 100)
     x1 = np.sin(y)
     x2 = np.sin(y) + 0.5
-    ax.fill_betweenx(y, x1, x2, alpha=0.5, color="teal", id="fill_betweenx")
+    ax.fill_betweenx(y, x1, x2, alpha=0.5, id="fill_betweenx")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("fill_betweenx")

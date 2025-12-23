@@ -14,7 +14,8 @@ def plot_violinplot(plt, rng, ax=None):
         fig = ax.get_figure() if hasattr(ax, "get_figure") else ax.fig
 
     data = [rng.normal(i, 1, 100) for i in range(4)]
-    ax.violinplot(data, showmeans=True, showmedians=True, id="violinplot")
+    # Modern style: show box inside (default from SCITEX style)
+    ax.violinplot(data, id="violinplot")
     ax.set_xlabel("Group")
     ax.set_ylabel("Value")
     ax.set_title("violinplot")

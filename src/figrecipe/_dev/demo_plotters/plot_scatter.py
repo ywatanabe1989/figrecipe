@@ -14,7 +14,7 @@ def plot_scatter(plt, rng, ax=None):
         fig = ax.get_figure() if hasattr(ax, "get_figure") else ax.fig
 
     x, y = rng.uniform(0, 10, 50), rng.uniform(0, 10, 50)
-    ax.scatter(x, y, c=rng.uniform(0, 1, 50), cmap="viridis", id="scatter")
+    ax.scatter(x, y, id="scatter")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("scatter")

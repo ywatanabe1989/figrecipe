@@ -15,7 +15,7 @@ def plot_triplot(plt, rng, ax=None):
 
     x = rng.uniform(0, 1, 20)
     y = rng.uniform(0, 1, 20)
-    ax.triplot(x, y, "ko-", id="triplot")
+    ax.triplot(x, y, id="triplot")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("triplot")

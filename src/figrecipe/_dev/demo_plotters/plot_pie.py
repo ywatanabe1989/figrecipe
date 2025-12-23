@@ -15,7 +15,7 @@ def plot_pie(plt, rng, ax=None):
 
     sizes = [35, 25, 20, 20]
     labels = ["A", "B", "C", "D"]
-    ax.pie(sizes, labels=labels, autopct="%1.1f%%", id="pie")
+    ax.pie(sizes, labels=labels, id="pie")
     ax.set_title("pie")
     return fig, ax
 

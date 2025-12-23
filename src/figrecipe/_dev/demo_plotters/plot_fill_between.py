@@ -18,9 +18,9 @@ def plot_fill_between(plt, rng, ax=None):
     x = np.linspace(0, 10, 100)
     y1 = np.sin(x)
     y2 = np.sin(x) + 0.5
-    ax.fill_between(x, y1, y2, alpha=0.5, color="purple", id="fill_between")
-    ax.plot(x, y1, "b-", id="lower")
-    ax.plot(x, y2, "r-", id="upper")
+    ax.fill_between(x, y1, y2, alpha=0.5, id="fill_between")
+    ax.plot(x, y1, id="lower")
+    ax.plot(x, y2, id="upper")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("fill_between")

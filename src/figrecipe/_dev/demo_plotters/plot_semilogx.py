@@ -17,7 +17,7 @@ def plot_semilogx(plt, rng, ax=None):
 
     x = np.logspace(0, 3, 50)
     y = np.log10(x)
-    ax.semilogx(x, y, "g-", id="semilogx")
+    ax.semilogx(x, y, id="semilogx")
     ax.set_xlabel("X (log)")
     ax.set_ylabel("Y")
     ax.set_title("semilogx")

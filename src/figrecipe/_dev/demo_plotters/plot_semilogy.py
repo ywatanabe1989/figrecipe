@@ -17,7 +17,7 @@ def plot_semilogy(plt, rng, ax=None):
 
     x = np.linspace(0, 5, 50)
     y = np.exp(x)
-    ax.semilogy(x, y, "r-", id="semilogy")
+    ax.semilogy(x, y, id="semilogy")
     ax.set_xlabel("X")
     ax.set_ylabel("Y (log)")
     ax.set_title("semilogy")

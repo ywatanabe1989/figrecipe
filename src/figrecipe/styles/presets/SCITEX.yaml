@@ -67,16 +67,40 @@ boxplot:
 
 violinplot:
   line_mm: 0.2           # Violin outline thickness
-  inner: "box"           # Inner display: "box", "quartile", "point", or "stick"
+  inner: "box"           # Inner display: "box", "quartile", "point", "stick", or "swarm"
   box_width_mm: 1.5      # Inner box width
   whisker_mm: 0.2        # Whisker line thickness
   median_mm: 0.8         # Median marker size
+  alpha: 0.7             # Violin fill transparency (modern: semi-transparent)
+  showmeans: false       # Show mean line
+  showmedians: true      # Show median line
+  showextrema: false     # Hide min/max lines for cleaner look
 
 barplot:
   edge_mm: 0.2           # Bar edge/border thickness
 
 histogram:
   edge_mm: 0.2           # Histogram bar edge thickness
+
+pie:
+  text_pt: 6             # Pie chart text size (labels, autopct)
+  show_axes: false       # Hide axes for pie charts
+
+imshow:
+  show_axes: false       # Hide ticks, ticklabels, spines for imshow
+  show_labels: false     # Hide x/y labels for imshow
+
+eventplot:
+  linewidth_mm: 0.2      # Event line thickness
+  linelength: 0.8        # Event line length (fraction of spacing)
+
+matshow:
+  show_axes: false       # Hide axes for matrix display
+  xticklabel_position: "bottom"  # Put xlabels at bottom (not top)
+
+spy:
+  show_axes: false       # Hide axes for spy plots
+  xticklabel_position: "bottom"  # Put xlabels at bottom
 
 legend:
   frameon: false         # No frame for clean look

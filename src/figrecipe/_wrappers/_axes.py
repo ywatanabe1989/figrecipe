@@ -111,7 +111,13 @@ class RecordingAxes:
                     "step",
                     "fill_between",
                 ):
-                    if "color" not in recorded_kwargs and "c" not in recorded_kwargs:
+                    # Check if fmt string already specifies color (e.g., "b-", "r--")
+                    has_fmt_color = self._args_have_fmt_color(args)
+                    if (
+                        "color" not in recorded_kwargs
+                        and "c" not in recorded_kwargs
+                        and not has_fmt_color
+                    ):
                         actual_color = self._extract_color_from_result(
                             method_name, result
                         )
@@ -171,6 +177,29 @@ class RecordingAxes:
             else:
                 processed.append(arg)
         return tuple(processed)
+
+    def _args_have_fmt_color(self, args: tuple) -> bool:
+        """Check if args contain a matplotlib fmt string with color specifier.
+
+        Fmt strings like "b-", "r--", "go" contain color codes (b,g,r,c,m,y,k,w).
+
+        Parameters
+        ----------
+        args : tuple
+            Arguments passed to plot method.
+
+        Returns
+        -------
+        bool
+            True if a fmt string with color is found.
+        """
+        color_codes = set("bgrcmykw")
+        for arg in args:
+            if isinstance(arg, str) and len(arg) >= 1 and len(arg) <= 4:
+                # Fmt strings are short (e.g., "b-", "r--", "go", "k:")
+                if arg[0] in color_codes:
+                    return True
+        return False
 
     def _extract_color_from_result(self, method_name: str, result) -> Optional[str]:
         """Extract actual color used from plot result.

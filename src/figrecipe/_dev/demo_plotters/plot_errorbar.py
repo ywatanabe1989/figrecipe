@@ -18,7 +18,7 @@ def plot_errorbar(plt, rng, ax=None):
     x = np.arange(5)
     y = rng.uniform(2, 8, 5)
     yerr = rng.uniform(0.3, 0.8, 5)
-    ax.errorbar(x, y, yerr=yerr, fmt="o-", capsize=5, id="errorbar")
+    ax.errorbar(x, y, yerr=yerr, id="errorbar")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("errorbar")
