@@ -188,7 +188,7 @@ def _mpl_color_to_hex(color) -> str:
 
 def _detect_plot_types(fig) -> Dict[int, Dict[str, Any]]:
     """
-    Detect plot types used on each axes from RecordingFigure.
+    Detect plot types and call IDs used on each axes from RecordingFigure.
 
     Parameters
     ----------
@@ -199,7 +199,10 @@ def _detect_plot_types(fig) -> Dict[int, Dict[str, Any]]:
     -------
     dict
         Mapping from ax_index to plot info:
-        {ax_idx: {'types': set(), 'call_ids': {'boxplot': ['boxplot_000'], ...}}}
+        {ax_idx: {
+            'types': set(),
+            'call_ids': {'boxplot': ['bp1'], 'plot': ['line1', 'line2'], ...}
+        }}
     """
     plot_info = {}
 
@@ -246,11 +249,11 @@ def _detect_plot_types(fig) -> Dict[int, Dict[str, Any]]:
                     plot_info[ax_idx] = {"types": set(), "call_ids": {}}
 
                 for call in ax_record.calls:
-                    if call.function in ("boxplot", "violinplot"):
-                        plot_info[ax_idx]["types"].add(call.function)
-                        if call.function not in plot_info[ax_idx]["call_ids"]:
-                            plot_info[ax_idx]["call_ids"][call.function] = []
-                        plot_info[ax_idx]["call_ids"][call.function].append(call.id)
+                    # Track ALL call types and their IDs
+                    plot_info[ax_idx]["types"].add(call.function)
+                    if call.function not in plot_info[ax_idx]["call_ids"]:
+                        plot_info[ax_idx]["call_ids"][call.function] = []
+                    plot_info[ax_idx]["call_ids"][call.function].append(call.id)
 
     return plot_info
 
@@ -339,13 +342,19 @@ def generate_hitmap(
         has_boxplot = "boxplot" in ax_plot_types
         has_violin = "violinplot" in ax_plot_types
 
-        # Get call_id for labeling
-        boxplot_call_id = (
-            ax_call_ids.get("boxplot", ["boxplot"])[0] if has_boxplot else None
-        )
-        violin_call_id = (
-            ax_call_ids.get("violinplot", ["violin"])[0] if has_violin else None
-        )
+        # Get call_ids for each plot type (as queues to pop from)
+        boxplot_ids = list(ax_call_ids.get("boxplot", []))
+        violin_ids = list(ax_call_ids.get("violinplot", []))
+        plot_ids = list(ax_call_ids.get("plot", []))
+        scatter_ids = list(ax_call_ids.get("scatter", []))
+        bar_ids = list(ax_call_ids.get("bar", []))
+
+        # Current call_id for multi-element plot types (boxplot/violin)
+        boxplot_call_id = boxplot_ids[0] if boxplot_ids else None
+        violin_call_id = violin_ids[0] if violin_ids else None
+
+        # Counter for regular lines (to map to plot call IDs)
+        regular_line_idx = 0
 
         # Process lines (traces)
         for i, line in enumerate(ax.get_lines()):
@@ -365,28 +374,29 @@ def generate_hitmap(
             line.set_markerfacecolor(_normalize_color(rgb))
             line.set_markeredgecolor(_normalize_color(rgb))
 
-            # Determine element type
+            # Determine element type and call_id
             orig_label = line.get_label() or f"line_{i}"
+            call_id = None
+
             if has_boxplot and (
                 _is_boxplot_element(line, ax)
                 or orig_label.startswith("_")  # All _-prefixed on boxplot axes
             ):
                 elem_type = "boxplot"
-                # Use call_id as label for grouping
                 label = boxplot_call_id or "boxplot"
+                call_id = boxplot_call_id
             elif has_violin and orig_label.startswith("_"):
                 elem_type = "violin"
                 label = violin_call_id or "violin"
+                call_id = violin_call_id
             else:
+                # Regular line - map to plot call IDs
                 elem_type = "line"
                 label = orig_label
-
-            # Add call_id for logical grouping (boxplot/violin elements share same call_id)
-            call_id = None
-            if elem_type == "boxplot":
-                call_id = boxplot_call_id
-            elif elem_type == "violin":
-                call_id = violin_call_id
+                if regular_line_idx < len(plot_ids):
+                    call_id = plot_ids[regular_line_idx]
+                    label = call_id  # Use call_id as label
+                regular_line_idx += 1
 
             color_map[key] = {
                 "id": element_id,
@@ -398,6 +408,9 @@ def generate_hitmap(
                 "call_id": call_id,  # For logical grouping
             }
             element_id += 1
+
+        # Counter for scatter collections
+        scatter_coll_idx = 0
 
         # Process scatter plots (PathCollection)
         for i, coll in enumerate(ax.collections):
@@ -420,13 +433,23 @@ def generate_hitmap(
                 orig_fc = original_props[key]["facecolors"]
                 orig_color = orig_fc[0] if len(orig_fc) > 0 else [0.5, 0.5, 0.5, 1]
 
+                # Map to scatter call IDs
+                orig_label = coll.get_label() or f"scatter_{i}"
+                call_id = None
+                label = orig_label
+                if scatter_coll_idx < len(scatter_ids):
+                    call_id = scatter_ids[scatter_coll_idx]
+                    label = call_id  # Use call_id as label
+                scatter_coll_idx += 1
+
                 color_map[key] = {
                     "id": element_id,
                     "type": "scatter",
-                    "label": coll.get_label() or f"scatter_{i}",
+                    "label": label,
                     "ax_index": ax_idx,
                     "rgb": list(rgb),
                     "original_color": _mpl_color_to_hex(orig_color),
+                    "call_id": call_id,  # For logical grouping
                 }
                 element_id += 1
 
@@ -519,6 +542,9 @@ def generate_hitmap(
                 }
                 element_id += 1
 
+        # Get bar call_id (all bars from a single bar() call share the same ID)
+        bar_call_id = bar_ids[0] if bar_ids else None
+
         # Process bars (Rectangle patches)
         for i, patch in enumerate(ax.patches):
             if isinstance(patch, Rectangle):
@@ -539,15 +565,19 @@ def generate_hitmap(
                 patch.set_facecolor(_normalize_color(rgb))
                 patch.set_edgecolor(_normalize_color(rgb))
 
+                # All bars share the bar call_id
+                label = bar_call_id or patch.get_label() or f"bar_{i}"
+
                 color_map[key] = {
                     "id": element_id,
                     "type": "bar",
-                    "label": patch.get_label() or f"bar_{i}",
+                    "label": label,
                     "ax_index": ax_idx,
                     "rgb": list(rgb),
                     "original_color": _mpl_color_to_hex(
                         original_props[key]["facecolor"]
                     ),
+                    "call_id": bar_call_id,  # All bars share this call_id
                 }
                 element_id += 1
 
