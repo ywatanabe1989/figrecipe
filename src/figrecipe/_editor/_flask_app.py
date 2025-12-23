@@ -275,6 +275,20 @@ class FigureEditor:
                 }
             )
 
+        def _to_json_serializable(obj):
+            """Convert numpy arrays and other non-serializable objects to JSON-safe types."""
+            import numpy as np
+
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, (np.integer, np.floating)):
+                return obj.item()
+            elif isinstance(obj, dict):
+                return {k: _to_json_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, (list, tuple)):
+                return [_to_json_serializable(item) for item in obj]
+            return obj
+
         @app.route("/calls")
         def get_calls():
             """Get all recorded calls with their signatures."""
@@ -291,8 +305,8 @@ class FigureEditor:
                         calls_data[call_id] = {
                             "function": func_name,
                             "ax_key": ax_key,
-                            "args": call.args,
-                            "kwargs": call.kwargs,
+                            "args": _to_json_serializable(call.args),
+                            "kwargs": _to_json_serializable(call.kwargs),
                             "signature": {
                                 "args": sig.get("args", []),
                                 "kwargs": {
