@@ -1417,6 +1417,15 @@ async function handleDynamicParamChange(callId, param, input) {
         if (value === 'null') value = null;
     }
 
+    // For color parameters, resolve to hex using priority system (theme > matplotlib > CSS)
+    // This ensures "red" becomes SCITEX red (#ff4632), not pure red (#ff0000)
+    const colorParams = ['color', 'facecolor', 'edgecolor', 'markerfacecolor', 'markeredgecolor', 'c'];
+    if (value && typeof value === 'string' && colorParams.includes(param.toLowerCase())) {
+        const resolvedHex = resolveColorToHex(value);
+        console.log(`Color resolved: ${value} -> ${resolvedHex}`);
+        value = resolvedHex;
+    }
+
     console.log(`Dynamic param change: ${callId}.${param} = ${value}`);
 
     // Show loading state
