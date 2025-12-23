@@ -174,7 +174,7 @@ def _apply_overrides(fig: Figure, overrides: Dict[str, Any]) -> None:
 
         # Ticks (YAML: ticks_direction, legacy: tick_direction)
         tick_dir = overrides.get("ticks_direction", overrides.get("tick_direction"))
-        if tick_dir is not None:
+        if tick_dir is not None and tick_dir in ("in", "out", "inout"):
             ax.tick_params(direction=tick_dir)
 
         tick_len = overrides.get("ticks_length_mm", overrides.get("tick_length_mm"))

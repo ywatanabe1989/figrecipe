@@ -394,6 +394,379 @@ class RecordingAxes:
     def yaxis(self):
         return self._ax.yaxis
 
+    def pie(
+        self,
+        x,
+        *,
+        id: Optional[str] = None,
+        track: bool = True,
+        **kwargs,
+    ):
+        """Pie chart with automatic SCITEX styling.
+
+        Parameters
+        ----------
+        x : array-like
+            Wedge sizes.
+        id : str, optional
+            Custom ID for this call.
+        track : bool, optional
+            Whether to record this call (default: True).
+        **kwargs
+            Additional arguments passed to matplotlib's pie.
+
+        Returns
+        -------
+        tuple
+            (patches, texts) or (patches, texts, autotexts) if autopct is set.
+        """
+        from ..styles import get_style
+        from ..styles._style_applier import check_font
+
+        # Call matplotlib's pie
+        result = self._ax.pie(x, **kwargs)
+
+        # Get style settings
+        style = get_style()
+        if style:
+            pie_style = style.get("pie", {})
+            text_pt = pie_style.get("text_pt", 6)
+            show_axes = pie_style.get("show_axes", False)
+            font_family = check_font(style.get("fonts", {}).get("family", "Arial"))
+
+            # Apply text size to all pie text elements (labels and percentages)
+            for text in self._ax.texts:
+                text.set_fontsize(text_pt)
+                text.set_fontfamily(font_family)
+
+            # Hide axes if configured (default: hide for pie charts)
+            if not show_axes:
+                self._ax.set_xticks([])
+                self._ax.set_yticks([])
+                self._ax.set_xticklabels([])
+                self._ax.set_yticklabels([])
+                # Hide spines
+                for spine in self._ax.spines.values():
+                    spine.set_visible(False)
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            self._recorder.record_call(
+                ax_position=self._position,
+                method_name="pie",
+                args=(x,),
+                kwargs=kwargs,
+                call_id=id,
+            )
+
+        return result
+
+    def imshow(
+        self,
+        X,
+        *,
+        id: Optional[str] = None,
+        track: bool = True,
+        **kwargs,
+    ):
+        """Display image with automatic SCITEX styling.
+
+        Parameters
+        ----------
+        X : array-like
+            Image data.
+        id : str, optional
+            Custom ID for this call.
+        track : bool, optional
+            Whether to record this call (default: True).
+        **kwargs
+            Additional arguments passed to matplotlib's imshow.
+
+        Returns
+        -------
+        AxesImage
+            The created image.
+        """
+        from ..styles import get_style
+
+        # Call matplotlib's imshow
+        result = self._ax.imshow(X, **kwargs)
+
+        # Get style settings
+        style = get_style()
+        if style:
+            imshow_style = style.get("imshow", {})
+            show_axes = imshow_style.get("show_axes", True)
+            show_labels = imshow_style.get("show_labels", True)
+
+            # Hide axes if configured
+            if not show_axes:
+                self._ax.set_xticks([])
+                self._ax.set_yticks([])
+                self._ax.set_xticklabels([])
+                self._ax.set_yticklabels([])
+                # Hide spines
+                for spine in self._ax.spines.values():
+                    spine.set_visible(False)
+
+            if not show_labels:
+                self._ax.set_xlabel("")
+                self._ax.set_ylabel("")
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            self._recorder.record_call(
+                ax_position=self._position,
+                method_name="imshow",
+                args=(X,),
+                kwargs=kwargs,
+                call_id=id,
+            )
+
+        return result
+
+    def violinplot(
+        self,
+        dataset,
+        positions=None,
+        *,
+        id: Optional[str] = None,
+        track: bool = True,
+        inner: Optional[str] = None,
+        **kwargs,
+    ):
+        """Violin plot with support for inner display options.
+
+        Parameters
+        ----------
+        dataset : array-like
+            Data to plot.
+        positions : array-like, optional
+            Position of each violin on x-axis.
+        id : str, optional
+            Custom ID for this call.
+        track : bool, optional
+            Whether to record this call (default: True).
+        inner : str, optional
+            Inner display type: "box", "quartile", "stick", "point", "swarm", or None.
+            Default is from style config (SCITEX default: "box").
+        **kwargs
+            Additional arguments passed to matplotlib's violinplot.
+
+        Returns
+        -------
+        dict
+            Dictionary with violin parts (bodies, cbars, cmins, cmaxes, cmeans, cmedians).
+        """
+        from ..styles import get_style
+
+        # Get style settings
+        style = get_style()
+        violin_style = style.get("violinplot", {}) if style else {}
+
+        # Determine inner type (user kwarg > style config > default)
+        if inner is None:
+            inner = violin_style.get("inner", "box")
+
+        # Get violin display options from style
+        showmeans = kwargs.pop("showmeans", violin_style.get("showmeans", False))
+        showmedians = kwargs.pop("showmedians", violin_style.get("showmedians", True))
+        showextrema = kwargs.pop("showextrema", violin_style.get("showextrema", False))
+
+        # Call matplotlib's violinplot
+        result = self._ax.violinplot(
+            dataset,
+            positions=positions,
+            showmeans=showmeans,
+            showmedians=showmedians if inner not in ("box", "swarm") else False,
+            showextrema=showextrema if inner not in ("box", "swarm") else False,
+            **kwargs,
+        )
+
+        # Apply alpha from style to violin bodies
+        alpha = violin_style.get("alpha", 0.7)
+        if "bodies" in result:
+            for body in result["bodies"]:
+                body.set_alpha(alpha)
+
+        # Overlay inner elements based on inner type
+        if positions is None:
+            positions = list(range(1, len(dataset) + 1))
+
+        if inner == "box":
+            self._add_violin_inner_box(dataset, positions, violin_style)
+        elif inner == "swarm":
+            self._add_violin_inner_swarm(dataset, positions, violin_style)
+        elif inner == "quartile":
+            # quartile lines are handled by showmedians + showextrema
+            pass
+        elif inner == "stick":
+            self._add_violin_inner_stick(dataset, positions, violin_style)
+        elif inner == "point":
+            self._add_violin_inner_point(dataset, positions, violin_style)
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            recorded_kwargs = kwargs.copy()
+            recorded_kwargs["inner"] = inner
+            recorded_kwargs["showmeans"] = showmeans
+            recorded_kwargs["showmedians"] = showmedians
+            recorded_kwargs["showextrema"] = showextrema
+
+            self._recorder.record_call(
+                ax_position=self._position,
+                method_name="violinplot",
+                args=(dataset,),
+                kwargs=recorded_kwargs,
+                call_id=id,
+            )
+
+        return result
+
+    def _add_violin_inner_box(self, dataset, positions, style: Dict[str, Any]) -> None:
+        """Add box plot inside violin.
+
+        Parameters
+        ----------
+        dataset : array-like
+            Data arrays for each violin.
+        positions : array-like
+            X positions of violins.
+        style : dict
+            Violin style configuration.
+        """
+        from ..styles._style_applier import mm_to_pt
+
+        whisker_lw = mm_to_pt(style.get("whisker_mm", 0.2))
+        median_size = mm_to_pt(style.get("median_mm", 0.8))
+
+        for i, (data, pos) in enumerate(zip(dataset, positions)):
+            data = np.asarray(data)
+            q1, median, q3 = np.percentile(data, [25, 50, 75])
+            iqr = q3 - q1
+            whisker_low = max(data.min(), q1 - 1.5 * iqr)
+            whisker_high = min(data.max(), q3 + 1.5 * iqr)
+
+            # Draw box (Q1 to Q3)
+            self._ax.vlines(
+                pos, q1, q3, colors="black", linewidths=whisker_lw, zorder=3
+            )
+            # Draw whiskers
+            self._ax.vlines(
+                pos,
+                whisker_low,
+                q1,
+                colors="black",
+                linewidths=whisker_lw * 0.5,
+                zorder=3,
+            )
+            self._ax.vlines(
+                pos,
+                q3,
+                whisker_high,
+                colors="black",
+                linewidths=whisker_lw * 0.5,
+                zorder=3,
+            )
+            # Draw median as a white dot with black edge
+            self._ax.scatter(
+                [pos],
+                [median],
+                s=median_size**2,
+                c="white",
+                edgecolors="black",
+                linewidths=whisker_lw,
+                zorder=4,
+            )
+
+    def _add_violin_inner_swarm(
+        self, dataset, positions, style: Dict[str, Any]
+    ) -> None:
+        """Add swarm points inside violin.
+
+        Parameters
+        ----------
+        dataset : array-like
+            Data arrays for each violin.
+        positions : array-like
+            X positions of violins.
+        style : dict
+            Violin style configuration.
+        """
+        from ..styles._style_applier import mm_to_pt
+
+        point_size = mm_to_pt(style.get("median_mm", 0.8))
+
+        for data, pos in zip(dataset, positions):
+            data = np.asarray(data)
+            n = len(data)
+
+            # Simple swarm: jitter x positions
+            # More sophisticated swarm would avoid overlaps
+            jitter = np.random.default_rng(42).uniform(-0.15, 0.15, n)
+            x_positions = pos + jitter
+
+            self._ax.scatter(
+                x_positions, data, s=point_size**2, c="black", alpha=0.5, zorder=3
+            )
+
+    def _add_violin_inner_stick(
+        self, dataset, positions, style: Dict[str, Any]
+    ) -> None:
+        """Add stick (line) markers inside violin for each data point.
+
+        Parameters
+        ----------
+        dataset : array-like
+            Data arrays for each violin.
+        positions : array-like
+            X positions of violins.
+        style : dict
+            Violin style configuration.
+        """
+        from ..styles._style_applier import mm_to_pt
+
+        lw = mm_to_pt(style.get("whisker_mm", 0.2))
+
+        for data, pos in zip(dataset, positions):
+            data = np.asarray(data)
+            # Draw short horizontal lines at each data point
+            for val in data:
+                self._ax.hlines(
+                    val,
+                    pos - 0.05,
+                    pos + 0.05,
+                    colors="black",
+                    linewidths=lw * 0.5,
+                    alpha=0.3,
+                    zorder=3,
+                )
+
+    def _add_violin_inner_point(
+        self, dataset, positions, style: Dict[str, Any]
+    ) -> None:
+        """Add point markers inside violin for each data point.
+
+        Parameters
+        ----------
+        dataset : array-like
+            Data arrays for each violin.
+        positions : array-like
+            X positions of violins.
+        style : dict
+            Violin style configuration.
+        """
+        from ..styles._style_applier import mm_to_pt
+
+        point_size = mm_to_pt(style.get("median_mm", 0.8)) * 0.5
+
+        for data, pos in zip(dataset, positions):
+            data = np.asarray(data)
+            x_positions = np.full_like(data, pos)
+            self._ax.scatter(
+                x_positions, data, s=point_size**2, c="black", alpha=0.3, zorder=3
+            )
+
     # Methods that should not be recorded
     def get_xlim(self):
         return self._ax.get_xlim()
@@ -409,6 +782,347 @@ class RecordingAxes:
 
     def get_title(self):
         return self._ax.get_title()
+
+    def joyplot(
+        self,
+        arrays,
+        *,
+        overlap: float = 0.5,
+        fill_alpha: float = 0.7,
+        line_alpha: float = 1.0,
+        colors=None,
+        labels=None,
+        id: Optional[str] = None,
+        track: bool = True,
+        **kwargs,
+    ):
+        """Create a joyplot (ridgeline plot) for distribution comparison.
+
+        Parameters
+        ----------
+        arrays : list of array-like or dict
+            List of 1D arrays for each ridge. If dict, uses values.
+        overlap : float, default 0.5
+            Amount of overlap between ridges (0 = no overlap, 1 = full overlap).
+        fill_alpha : float, default 0.7
+            Alpha for the filled KDE area.
+        line_alpha : float, default 1.0
+            Alpha for the KDE line.
+        colors : list, optional
+            Colors for each ridge. If None, uses color cycle.
+        labels : list of str, optional
+            Labels for each ridge (for y-axis).
+        id : str, optional
+            Custom ID for this call.
+        track : bool, optional
+            Whether to record this call (default: True).
+        **kwargs
+            Additional arguments.
+
+        Returns
+        -------
+        RecordingAxes
+            Self for method chaining.
+
+        Examples
+        --------
+        >>> ax.joyplot([data1, data2, data3], overlap=0.5)
+        >>> ax.joyplot({"A": arr_a, "B": arr_b}, labels=["A", "B"])
+        """
+        from scipy import stats
+
+        from .._utils._units import mm_to_pt
+        from ..styles import get_style
+
+        # Convert dict to list of arrays
+        if isinstance(arrays, dict):
+            if labels is None:
+                labels = list(arrays.keys())
+            arrays = list(arrays.values())
+
+        n_ridges = len(arrays)
+
+        # Get colors from style or use default cycle
+        if colors is None:
+            style = get_style()
+            if style and "colors" in style and "palette" in style.colors:
+                palette = list(style.colors.palette)
+                # Normalize RGB 0-255 to 0-1
+                colors = []
+                for c in palette:
+                    if isinstance(c, (list, tuple)) and len(c) >= 3:
+                        if all(v <= 1.0 for v in c):
+                            colors.append(tuple(c))
+                        else:
+                            colors.append(tuple(v / 255.0 for v in c))
+                    else:
+                        colors.append(c)
+            else:
+                # Matplotlib default color cycle
+                import matplotlib.pyplot as plt
+
+                colors = [c["color"] for c in plt.rcParams["axes.prop_cycle"]]
+
+        # Calculate global x range
+        all_data = np.concatenate([np.asarray(arr) for arr in arrays])
+        x_min, x_max = np.min(all_data), np.max(all_data)
+        x_range = x_max - x_min
+        x_padding = x_range * 0.1
+        x = np.linspace(x_min - x_padding, x_max + x_padding, 200)
+
+        # Calculate KDEs and find max density for scaling
+        kdes = []
+        max_density = 0
+        for arr in arrays:
+            arr = np.asarray(arr)
+            if len(arr) > 1:
+                kde = stats.gaussian_kde(arr)
+                density = kde(x)
+                kdes.append(density)
+                max_density = max(max_density, np.max(density))
+            else:
+                kdes.append(np.zeros_like(x))
+
+        # Scale factor for ridge height
+        ridge_height = 1.0 / (1.0 - overlap * 0.5) if overlap < 1 else 2.0
+
+        # Get line width from style
+        style = get_style()
+        lw = mm_to_pt(0.2)  # Default
+        if style and "lines" in style:
+            lw = mm_to_pt(style.lines.get("trace_mm", 0.2))
+
+        # Plot each ridge from back to front
+        for i in range(n_ridges - 1, -1, -1):
+            color = colors[i % len(colors)]
+            baseline = i * (1.0 - overlap)
+
+            # Scale density to fit nicely
+            scaled_density = (
+                kdes[i] / max_density * ridge_height if max_density > 0 else kdes[i]
+            )
+
+            # Fill
+            self._ax.fill_between(
+                x,
+                baseline,
+                baseline + scaled_density,
+                facecolor=color,
+                edgecolor="none",
+                alpha=fill_alpha,
+            )
+            # Line on top
+            self._ax.plot(
+                x,
+                baseline + scaled_density,
+                color=color,
+                alpha=line_alpha,
+                linewidth=lw,
+            )
+
+        # Set y limits
+        self._ax.set_ylim(-0.1, n_ridges * (1.0 - overlap) + ridge_height)
+
+        # Set y-axis labels if provided
+        if labels:
+            y_positions = [(i * (1.0 - overlap)) + 0.3 for i in range(n_ridges)]
+            self._ax.set_yticks(y_positions)
+            self._ax.set_yticklabels(labels)
+        else:
+            # Hide y-axis ticks for cleaner look
+            self._ax.set_yticks([])
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            self._recorder.record_call(
+                ax_position=self._position,
+                method_name="joyplot",
+                args=(arrays,),
+                kwargs={
+                    "overlap": overlap,
+                    "fill_alpha": fill_alpha,
+                    "line_alpha": line_alpha,
+                    "labels": labels,
+                },
+                call_id=id,
+            )
+
+        return self
+
+    def swarmplot(
+        self,
+        data,
+        positions=None,
+        *,
+        size: float = None,
+        color=None,
+        alpha: float = 0.7,
+        jitter: float = 0.3,
+        id: Optional[str] = None,
+        track: bool = True,
+        **kwargs,
+    ):
+        """Create a swarm plot (beeswarm plot) showing individual data points.
+
+        Parameters
+        ----------
+        data : list of array-like
+            List of 1D arrays to plot.
+        positions : array-like, optional
+            X positions for each swarm. Default is 1, 2, 3, ...
+        size : float, optional
+            Marker size in mm. Default from style config.
+        color : color or list of colors, optional
+            Colors for each swarm.
+        alpha : float, default 0.7
+            Transparency of markers.
+        jitter : float, default 0.3
+            Width of jitter spread (in data units).
+        id : str, optional
+            Custom ID for this call.
+        track : bool, optional
+            Whether to record this call (default: True).
+        **kwargs
+            Additional arguments passed to scatter.
+
+        Returns
+        -------
+        list
+            List of PathCollection objects.
+
+        Examples
+        --------
+        >>> ax.swarmplot([data1, data2, data3])
+        >>> ax.swarmplot([arr1, arr2], positions=[0, 1], color=['red', 'blue'])
+        """
+        from .._utils._units import mm_to_pt
+        from ..styles import get_style
+
+        # Get style
+        style = get_style()
+
+        # Default marker size from style
+        if size is None:
+            if style and "markers" in style:
+                size = style.markers.get("scatter_mm", 0.8)
+            else:
+                size = 0.8
+        size_pt = mm_to_pt(size) ** 2  # matplotlib uses area
+
+        # Get colors
+        if color is None:
+            if style and "colors" in style and "palette" in style.colors:
+                palette = list(style.colors.palette)
+                colors = []
+                for c in palette:
+                    if isinstance(c, (list, tuple)) and len(c) >= 3:
+                        if all(v <= 1.0 for v in c):
+                            colors.append(tuple(c))
+                        else:
+                            colors.append(tuple(v / 255.0 for v in c))
+                    else:
+                        colors.append(c)
+            else:
+                import matplotlib.pyplot as plt
+
+                colors = [c["color"] for c in plt.rcParams["axes.prop_cycle"]]
+        elif isinstance(color, list):
+            colors = color
+        else:
+            colors = [color] * len(data)
+
+        # Default positions
+        if positions is None:
+            positions = list(range(1, len(data) + 1))
+
+        # Random generator for reproducible jitter
+        rng = np.random.default_rng(42)
+
+        results = []
+        for i, (arr, pos) in enumerate(zip(data, positions)):
+            arr = np.asarray(arr)
+
+            # Create jittered x positions using beeswarm algorithm (simplified)
+            x_jitter = self._beeswarm_positions(arr, jitter, rng)
+            x_positions = pos + x_jitter
+
+            c = colors[i % len(colors)]
+            result = self._ax.scatter(
+                x_positions, arr, s=size_pt, c=[c], alpha=alpha, **kwargs
+            )
+            results.append(result)
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            self._recorder.record_call(
+                ax_position=self._position,
+                method_name="swarmplot",
+                args=(data,),
+                kwargs={
+                    "positions": positions,
+                    "size": size,
+                    "alpha": alpha,
+                    "jitter": jitter,
+                },
+                call_id=id,
+            )
+
+        return results
+
+    def _beeswarm_positions(
+        self,
+        data: np.ndarray,
+        width: float,
+        rng: np.random.Generator,
+    ) -> np.ndarray:
+        """Calculate beeswarm-style x positions to minimize overlap.
+
+        This is a simplified beeswarm that uses binning and jittering.
+        For a true beeswarm, we'd need to iteratively place points.
+
+        Parameters
+        ----------
+        data : array
+            Y values of points.
+        width : float
+            Maximum jitter width.
+        rng : Generator
+            Random number generator.
+
+        Returns
+        -------
+        array
+            X offsets for each point.
+        """
+        n = len(data)
+        if n == 0:
+            return np.array([])
+
+        # Sort data and get order
+        order = np.argsort(data)
+        sorted_data = data[order]
+
+        # Group nearby points and offset them
+        x_offsets = np.zeros(n)
+
+        # Simple approach: bin by quantiles and spread within each bin
+        n_bins = max(1, int(np.sqrt(n)))
+        bin_edges = np.percentile(sorted_data, np.linspace(0, 100, n_bins + 1))
+
+        for i in range(n_bins):
+            mask = (sorted_data >= bin_edges[i]) & (sorted_data <= bin_edges[i + 1])
+            n_in_bin = mask.sum()
+            if n_in_bin > 0:
+                # Spread points evenly within bin width
+                offsets = np.linspace(-width / 2, width / 2, n_in_bin)
+                # Add small random noise
+                offsets += rng.uniform(-width * 0.1, width * 0.1, n_in_bin)
+                x_offsets[mask] = offsets
+
+        # Restore original order
+        result = np.zeros(n)
+        result[order] = x_offsets
+        return result
 
 
 class _NoRecordContext:

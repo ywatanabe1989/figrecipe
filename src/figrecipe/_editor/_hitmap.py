@@ -361,6 +361,19 @@ def generate_hitmap(
             if not line.get_visible():
                 continue
 
+            # Get label for filtering
+            orig_label = line.get_label() or ""
+
+            # Skip internal child elements for non-boxplot/non-violin axes
+            # (e.g., triplot, tricontour create _child0, _child1 lines)
+            if orig_label.startswith("_child") and not has_boxplot and not has_violin:
+                continue
+
+            # Skip empty lines
+            xdata = line.get_xdata()
+            if len(xdata) == 0:
+                continue
+
             key = f"ax{ax_idx}_line{i}"
             rgb = id_to_rgb(element_id)
 
@@ -375,7 +388,6 @@ def generate_hitmap(
             line.set_markeredgecolor(_normalize_color(rgb))
 
             # Determine element type and call_id
-            orig_label = line.get_label() or f"line_{i}"
             call_id = None
 
             if has_boxplot and (
@@ -392,7 +404,7 @@ def generate_hitmap(
             else:
                 # Regular line - map to plot call IDs
                 elem_type = "line"
-                label = orig_label
+                label = orig_label if orig_label else f"line_{i}"
                 if regular_line_idx < len(plot_ids):
                     call_id = plot_ids[regular_line_idx]
                     label = call_id  # Use call_id as label
@@ -468,6 +480,18 @@ def generate_hitmap(
                 if not coll.get_visible():
                     continue
 
+                # Get label for filtering and identification
+                orig_label = coll.get_label() or ""
+
+                # Skip internal child elements (e.g., from barbs/quiver plots)
+                # These have labels like "_child0", "_child1", etc.
+                if orig_label.startswith("_child"):
+                    continue
+
+                # Skip other internal matplotlib elements
+                if orig_label.startswith("_nolegend"):
+                    continue
+
                 key = f"ax{ax_idx}_fill{i}"
                 rgb = id_to_rgb(element_id)
 
@@ -483,14 +507,16 @@ def generate_hitmap(
                 orig_fc = original_props[key]["facecolors"]
                 orig_color = orig_fc[0] if len(orig_fc) > 0 else [0.5, 0.5, 0.5, 1]
 
-                # Determine element type
-                orig_label = coll.get_label() or f"fill_{i}"
+                # Determine element type and label
                 if has_violin and _is_violin_element(coll, ax):
                     elem_type = "violin"
                     label = violin_call_id or "violin"
                 else:
                     elem_type = "fill"
-                    label = orig_label
+                    # Use a sensible label, not internal _-prefixed names
+                    label = (
+                        orig_label if not orig_label.startswith("_") else f"fill_{i}"
+                    )
 
                 # Add call_id for logical grouping
                 call_id = None
