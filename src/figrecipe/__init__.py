@@ -190,6 +190,8 @@ __all__ = [
     "ValidationResult",
     # Image utilities
     "crop",
+    # Panel labels
+    "panel_label",
     # Version
     "__version__",
 ]
@@ -1246,3 +1248,87 @@ def edit(
     from ._editor import edit as _edit
 
     return _edit(source, style=style, port=port, open_browser=open_browser)
+
+
+def panel_label(
+    ax,
+    label: str,
+    loc: str = "upper left",
+    fontsize: Optional[float] = None,
+    fontweight: str = "bold",
+    offset: Tuple[float, float] = (-0.1, 1.05),
+    **kwargs,
+):
+    """Add a panel label (A, B, C, ...) to an axes.
+
+    Panel labels are commonly used in multi-panel scientific figures to
+    identify individual subplots. This function places a label at the
+    specified location relative to the axes.
+
+    Parameters
+    ----------
+    ax : Axes or RecordingAxes
+        The axes to label.
+    label : str
+        The label text (e.g., 'A', 'B', 'a)', '(1)').
+    loc : str, optional
+        Label location: 'upper left' (default), 'upper right',
+        'lower left', 'lower right', or 'outside'.
+    fontsize : float, optional
+        Font size in points. If None, uses title font size from style or 10.
+    fontweight : str, optional
+        Font weight: 'bold' (default), 'normal', etc.
+    offset : tuple of float, optional
+        (x, y) offset in axes coordinates. Default (-0.1, 1.05) places
+        label slightly outside top-left corner.
+    **kwargs
+        Additional arguments passed to ax.text().
+
+    Returns
+    -------
+    Text
+        The matplotlib Text object.
+
+    Examples
+    --------
+    >>> import figrecipe as fr
+    >>> fig, axes = fr.subplots(nrows=2, ncols=2)
+    >>> for i, ax in enumerate(axes.flat):
+    ...     fr.panel_label(ax, chr(65 + i))  # A, B, C, D
+
+    >>> # Custom styling
+    >>> fr.panel_label(ax, 'a)', fontsize=12, fontweight='normal')
+
+    >>> # Outside position (default)
+    >>> fr.panel_label(ax, 'A', loc='upper left')
+    """
+    # Get the underlying matplotlib axes
+    mpl_ax = ax._ax if hasattr(ax, "_ax") else ax
+
+    # Default fontsize is 10pt for panel labels
+    if fontsize is None:
+        fontsize = 10
+
+    # Calculate position based on loc
+    if loc == "upper left":
+        x, y = offset
+    elif loc == "upper right":
+        x, y = 1.0 + abs(offset[0]), offset[1]
+    elif loc == "lower left":
+        x, y = offset[0], -abs(offset[1]) + 1.0
+    elif loc == "lower right":
+        x, y = 1.0 + abs(offset[0]), -abs(offset[1]) + 1.0
+    else:
+        x, y = offset
+
+    # Default kwargs
+    text_kwargs = {
+        "fontsize": fontsize,
+        "fontweight": fontweight,
+        "transform": mpl_ax.transAxes,
+        "va": "bottom",
+        "ha": "right" if "right" in loc else "left",
+    }
+    text_kwargs.update(kwargs)
+
+    return mpl_ax.text(x, y, label, **text_kwargs)
