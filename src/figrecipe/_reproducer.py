@@ -3,12 +3,11 @@
 """Reproduce figures from recipe files."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 
 from ._recorder import CallRecord, FigureRecord
 from ._serializer import load_recipe
@@ -19,13 +18,14 @@ def reproduce(
     calls: Optional[List[str]] = None,
     skip_decorations: bool = False,
     apply_overrides: bool = True,
-) -> Tuple[Figure, Union[Axes, List[Axes]]]:
+):
     """Reproduce a figure from a recipe file.
 
     Parameters
     ----------
     path : str or Path
-        Path to .yaml recipe file.
+        Path to .yaml or .png recipe file. If .png is provided,
+        the corresponding .yaml file will be loaded.
     calls : list of str, optional
         If provided, only reproduce these specific call IDs.
     skip_decorations : bool
@@ -36,18 +36,30 @@ def reproduce(
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-        Reproduced figure.
-    axes : Axes or list of Axes
-        Reproduced axes (single if 1x1, otherwise list).
+    fig : RecordingFigure
+        Reproduced figure (same type as subplots() returns).
+    axes : RecordingAxes or ndarray of RecordingAxes
+        Reproduced axes (single if 1x1, otherwise numpy array).
 
     Examples
     --------
     >>> import figrecipe as ps
     >>> fig, ax = ps.reproduce("experiment_001.yaml")
+    >>> fig, ax = ps.reproduce("experiment_001.png")  # Also works
     >>> plt.show()
     """
     path = Path(path)
+
+    # Accept both .png and .yaml - find the yaml file
+    if path.suffix.lower() in (".png", ".jpg", ".jpeg", ".pdf", ".svg"):
+        yaml_path = path.with_suffix(".yaml")
+        if not yaml_path.exists():
+            raise FileNotFoundError(
+                f"Recipe file not found: {yaml_path}. "
+                f"Expected .yaml file alongside {path}"
+            )
+        path = yaml_path
+
     record = load_recipe(path)
 
     # Check for override file and merge if exists
@@ -58,12 +70,23 @@ def reproduce(
 
             with open(overrides_path) as f:
                 data = json.load(f)
+
+            # Apply style overrides
             manual_overrides = data.get("manual_overrides", {})
             if manual_overrides:
                 # Merge overrides into record style
                 if record.style is None:
                     record.style = {}
                 record.style.update(manual_overrides)
+
+            # Apply call overrides (kwargs changes from editor)
+            call_overrides = data.get("call_overrides", {})
+            if call_overrides:
+                for ax_key, ax_record in record.axes.items():
+                    for call in ax_record.calls:
+                        if call.id in call_overrides:
+                            # Merge call kwargs overrides
+                            call.kwargs.update(call_overrides[call.id])
 
     return reproduce_from_record(
         record,
@@ -76,7 +99,7 @@ def reproduce_from_record(
     record: FigureRecord,
     calls: Optional[List[str]] = None,
     skip_decorations: bool = False,
-) -> Tuple[Figure, Union[Axes, List[Axes]]]:
+):
     """Reproduce a figure from a FigureRecord.
 
     Parameters
@@ -90,11 +113,14 @@ def reproduce_from_record(
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-        Reproduced figure.
-    axes : Axes or list of Axes
-        Reproduced axes.
+    fig : RecordingFigure
+        Reproduced figure (wrapped).
+    axes : RecordingAxes or ndarray of RecordingAxes
+        Reproduced axes (wrapped, numpy array for multi-axes).
     """
+    from ._recorder import Recorder
+    from ._wrappers import RecordingAxes, RecordingFigure
+
     # Determine grid size from axes positions
     max_row = 0
     max_col = 0
@@ -139,6 +165,9 @@ def reproduce_from_record(
             for col in range(ncols):
                 apply_style_mm(axes_2d[row, col], record.style)
 
+    # Result cache for resolving references (e.g., clabel needs ContourSet from contour)
+    result_cache: Dict[str, Any] = {}
+
     # Replay calls on each axes
     for ax_key, ax_record in record.axes.items():
         parts = ax_key.split("_")
@@ -153,27 +182,46 @@ def reproduce_from_record(
         for call in ax_record.calls:
             if calls is not None and call.id not in calls:
                 continue
-            _replay_call(ax, call)
+            result = _replay_call(ax, call, result_cache)
+            if result is not None:
+                result_cache[call.id] = result
 
         # Replay decorations
         if not skip_decorations:
             for call in ax_record.decorations:
                 if calls is not None and call.id not in calls:
                     continue
-                _replay_call(ax, call)
+                result = _replay_call(ax, call, result_cache)
+                if result is not None:
+                    result_cache[call.id] = result
 
-    # Return in appropriate format
+    # Wrap in Recording types (same as subplots() returns)
+    recorder = Recorder()
+    recorder._figure_record = record
+
+    # Wrap axes in RecordingAxes
+    wrapped_axes = np.empty((nrows, ncols), dtype=object)
+    for i in range(nrows):
+        for j in range(ncols):
+            wrapped_axes[i, j] = RecordingAxes(axes_2d[i, j], recorder, position=(i, j))
+
+    # Create RecordingFigure
+    wrapped_fig = RecordingFigure(fig, recorder, wrapped_axes.tolist())
+
+    # Return in appropriate format (matching subplots() behavior)
     if nrows == 1 and ncols == 1:
-        return fig, axes_2d[0, 0]
+        return wrapped_fig, wrapped_axes[0, 0]
     elif nrows == 1:
-        return fig, list(axes_2d[0])
+        return wrapped_fig, np.array(wrapped_axes[0], dtype=object)
     elif ncols == 1:
-        return fig, list(axes_2d[:, 0])
+        return wrapped_fig, np.array(wrapped_axes[:, 0], dtype=object)
     else:
-        return fig, axes_2d.tolist()
+        return wrapped_fig, wrapped_axes
 
 
-def _replay_call(ax: Axes, call: CallRecord) -> Any:
+def _replay_call(
+    ax: Axes, call: CallRecord, result_cache: Optional[Dict[str, Any]] = None
+) -> Any:
     """Replay a single call on an axes.
 
     Parameters
@@ -182,12 +230,17 @@ def _replay_call(ax: Axes, call: CallRecord) -> Any:
         The matplotlib axes.
     call : CallRecord
         The call to replay.
+    result_cache : dict, optional
+        Cache mapping call_id -> result for resolving references.
 
     Returns
     -------
     Any
         Result of the matplotlib call.
     """
+    if result_cache is None:
+        result_cache = {}
+
     method_name = call.function
 
     # Check if it's a seaborn call
@@ -203,11 +256,11 @@ def _replay_call(ax: Axes, call: CallRecord) -> Any:
     # Reconstruct args
     args = []
     for arg_data in call.args:
-        value = _reconstruct_value(arg_data)
+        value = _reconstruct_value(arg_data, result_cache)
         args.append(value)
 
-    # Get kwargs
-    kwargs = call.kwargs.copy()
+    # Get kwargs and reconstruct arrays
+    kwargs = _reconstruct_kwargs(call.kwargs)
 
     # Call the method
     try:
@@ -218,6 +271,33 @@ def _replay_call(ax: Axes, call: CallRecord) -> Any:
 
         warnings.warn(f"Failed to replay {method_name}: {e}")
         return None
+
+
+def _reconstruct_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    """Reconstruct kwargs, converting 2D lists back to numpy arrays.
+
+    Parameters
+    ----------
+    kwargs : dict
+        Raw kwargs from call record.
+
+    Returns
+    -------
+    dict
+        Kwargs with arrays properly reconstructed.
+    """
+    result = {}
+    for key, value in kwargs.items():
+        if isinstance(value, list) and len(value) > 0:
+            # Check if it's a 2D list (list of lists) - should be numpy array
+            if isinstance(value[0], list):
+                result[key] = np.array(value)
+            else:
+                # 1D list - could be array or just list, try to preserve
+                result[key] = value
+        else:
+            result[key] = value
+    return result
 
 
 def _replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
@@ -306,24 +386,51 @@ def _replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
         return None
 
 
-def _reconstruct_value(arg_data: Dict[str, Any]) -> Any:
+def _reconstruct_value(
+    arg_data: Dict[str, Any], result_cache: Optional[Dict[str, Any]] = None
+) -> Any:
     """Reconstruct a value from serialized arg data.
 
     Parameters
     ----------
     arg_data : dict
         Serialized argument data.
+    result_cache : dict, optional
+        Cache mapping call_id -> result for resolving references.
 
     Returns
     -------
     Any
         Reconstructed value.
     """
+    if result_cache is None:
+        result_cache = {}
+
     # Check if we have a pre-loaded array
     if "_loaded_array" in arg_data:
         return arg_data["_loaded_array"]
 
     data = arg_data.get("data")
+
+    # Check if it's a reference to another call's result (e.g., ContourSet for clabel)
+    if isinstance(data, dict) and "__ref__" in data:
+        ref_id = data["__ref__"]
+        if ref_id in result_cache:
+            return result_cache[ref_id]
+        else:
+            import warnings
+
+            warnings.warn(f"Could not resolve reference to {ref_id}")
+            return None
+
+    # Check if it's a list of arrays (e.g., boxplot, violinplot)
+    if arg_data.get("_is_array_list") and isinstance(data, list):
+        dtype = arg_data.get("dtype")
+        # Convert each inner list to numpy array
+        return [
+            np.array(arr_data, dtype=dtype if isinstance(dtype, str) else None)
+            for arr_data in data
+        ]
 
     # If data is a list, convert to numpy array
     if isinstance(data, list):

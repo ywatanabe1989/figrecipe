@@ -3,9 +3,8 @@
 """Tests for the recorder module."""
 
 import numpy as np
-import pytest
 
-from figrecipe._recorder import Recorder, CallRecord, AxesRecord, FigureRecord
+from figrecipe._recorder import CallRecord, FigureRecord, Recorder
 
 
 class TestCallRecord:
@@ -76,12 +75,14 @@ class TestFigureRecord:
         """Test round-trip serialization."""
         record = FigureRecord(figsize=(8, 6), dpi=150)
         ax = record.get_or_create_axes(0, 0)
-        ax.add_call(CallRecord(
-            id="plot_001",
-            function="plot",
-            args=[],
-            kwargs={"color": "blue"},
-        ))
+        ax.add_call(
+            CallRecord(
+                id="plot_001",
+                function="plot",
+                args=[],
+                kwargs={"color": "blue"},
+            )
+        )
 
         # Convert to dict and back
         d = record.to_dict()

@@ -34,6 +34,8 @@ class StyleOverrides:
         Style set programmatically via code.
     manual_overrides : dict
         Overrides from GUI editor.
+    call_overrides : dict
+        Call parameter overrides {call_id: {param: value}}.
     base_timestamp : str
         When base style was set (ISO format).
     manual_timestamp : str
@@ -43,6 +45,7 @@ class StyleOverrides:
     base_style: Dict[str, Any] = field(default_factory=dict)
     programmatic_style: Dict[str, Any] = field(default_factory=dict)
     manual_overrides: Dict[str, Any] = field(default_factory=dict)
+    call_overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     base_timestamp: Optional[str] = None
     manual_timestamp: Optional[str] = None
 
@@ -103,9 +106,17 @@ class StyleOverrides:
         self.manual_overrides.update(overrides)
         self.manual_timestamp = datetime.now().isoformat()
 
-    def clear_manual_overrides(self) -> None:
-        """Clear all manual overrides (restore to original)."""
+    def clear_manual_overrides(self, clear_call_overrides: bool = True) -> None:
+        """Clear all manual overrides (restore to original).
+
+        Parameters
+        ----------
+        clear_call_overrides : bool
+            Also clear call parameter overrides (default True).
+        """
         self.manual_overrides = {}
+        if clear_call_overrides:
+            self.call_overrides = {}
         self.manual_timestamp = None
 
     def has_manual_overrides(self) -> bool:
@@ -128,31 +139,59 @@ class StyleOverrides:
             original_val = original.get(key)
             if original_val != manual_val:
                 diff[key] = {
-                    'original': original_val,
-                    'manual': manual_val,
+                    "original": original_val,
+                    "manual": manual_val,
                 }
 
         return diff
 
+    def set_call_override(self, call_id: str, param: str, value: Any) -> None:
+        """
+        Set a call parameter override.
+
+        Parameters
+        ----------
+        call_id : str
+            ID of the call (e.g., 'bp1', 'vp1').
+        param : str
+            Parameter name.
+        value : Any
+            Parameter value.
+        """
+        if call_id not in self.call_overrides:
+            self.call_overrides[call_id] = {}
+        self.call_overrides[call_id][param] = value
+        self.manual_timestamp = datetime.now().isoformat()
+
+    def get_call_overrides(self, call_id: str) -> Dict[str, Any]:
+        """Get all overrides for a specific call."""
+        return self.call_overrides.get(call_id, {})
+
+    def has_call_overrides(self) -> bool:
+        """Check if any call overrides exist."""
+        return len(self.call_overrides) > 0
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
-            'base_style': self.base_style,
-            'programmatic_style': self.programmatic_style,
-            'manual_overrides': self.manual_overrides,
-            'base_timestamp': self.base_timestamp,
-            'manual_timestamp': self.manual_timestamp,
+            "base_style": self.base_style,
+            "programmatic_style": self.programmatic_style,
+            "manual_overrides": self.manual_overrides,
+            "call_overrides": self.call_overrides,
+            "base_timestamp": self.base_timestamp,
+            "manual_timestamp": self.manual_timestamp,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'StyleOverrides':
+    def from_dict(cls, data: Dict[str, Any]) -> "StyleOverrides":
         """Create from dictionary."""
         return cls(
-            base_style=data.get('base_style', {}),
-            programmatic_style=data.get('programmatic_style', {}),
-            manual_overrides=data.get('manual_overrides', {}),
-            base_timestamp=data.get('base_timestamp'),
-            manual_timestamp=data.get('manual_timestamp'),
+            base_style=data.get("base_style", {}),
+            programmatic_style=data.get("programmatic_style", {}),
+            manual_overrides=data.get("manual_overrides", {}),
+            call_overrides=data.get("call_overrides", {}),
+            base_timestamp=data.get("base_timestamp"),
+            manual_timestamp=data.get("manual_timestamp"),
         )
 
 
@@ -175,7 +214,7 @@ def get_overrides_path(recipe_path: Path) -> Path:
     >>> get_overrides_path(Path('figure.yaml'))
     Path('figure.overrides.json')
     """
-    return recipe_path.with_suffix('.overrides.json')
+    return recipe_path.with_suffix(".overrides.json")
 
 
 def save_overrides(
@@ -198,14 +237,14 @@ def save_overrides(
         Path where overrides were saved.
     """
     # If path is a recipe, derive overrides path
-    if path.suffix in ('.yaml', '.yml'):
+    if path.suffix in (".yaml", ".yml"):
         path = get_overrides_path(path)
 
     data = overrides.to_dict()
-    data['_version'] = '1.0'
-    data['_saved_at'] = datetime.now().isoformat()
+    data["_version"] = "1.0"
+    data["_saved_at"] = datetime.now().isoformat()
 
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         json.dump(data, f, indent=2)
 
     return path
@@ -226,7 +265,7 @@ def load_overrides(path: Path) -> Optional[StyleOverrides]:
         Loaded overrides, or None if file doesn't exist.
     """
     # If path is a recipe, derive overrides path
-    if path.suffix in ('.yaml', '.yml'):
+    if path.suffix in (".yaml", ".yml"):
         path = get_overrides_path(path)
 
     if not path.exists():
@@ -236,8 +275,8 @@ def load_overrides(path: Path) -> Optional[StyleOverrides]:
         data = json.load(f)
 
     # Remove metadata
-    data.pop('_version', None)
-    data.pop('_saved_at', None)
+    data.pop("_version", None)
+    data.pop("_saved_at", None)
 
     return StyleOverrides.from_dict(data)
 
@@ -271,9 +310,9 @@ def create_overrides_from_style(
 
 
 __all__ = [
-    'StyleOverrides',
-    'get_overrides_path',
-    'save_overrides',
-    'load_overrides',
-    'create_overrides_from_style',
+    "StyleOverrides",
+    "get_overrides_path",
+    "save_overrides",
+    "load_overrides",
+    "create_overrides_from_style",
 ]

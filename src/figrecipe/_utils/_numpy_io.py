@@ -8,7 +8,6 @@ from typing import Literal, Union
 
 import numpy as np
 
-
 # Threshold for inline vs file storage (in elements)
 INLINE_THRESHOLD = 100
 

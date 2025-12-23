@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2025-12-22 13:51:22
+!-- Timestamp: 2025-12-22 14:49:10
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -10,12 +10,12 @@
 
 # FigRecipe
 
-**Reproducible matplotlib figures with mm-precision layouts.**  
+**Reproducible matplotlib figures with mm-precision layouts.**
 FigRecipe is a lightweight recording & reproduction layer for matplotlib,
 designed for scientific figures that must remain **editable, inspectable,
 and reproducible**.
 
-Part of **SciTeX™ – Research OS for reproducible science**  
+Part of **SciTeX™ – Research OS for reproducible science**
 https://scitex.ai
 
 [![PyPI version](https://badge.fury.io/py/figrecipe.svg)](https://badge.fury.io/py/figrecipe)

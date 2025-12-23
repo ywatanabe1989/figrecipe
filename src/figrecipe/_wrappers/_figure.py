@@ -3,16 +3,17 @@
 """Wrapped Figure that manages recording."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.figure import Figure
+from numpy.typing import NDArray
 
 from ._axes import RecordingAxes
 
 if TYPE_CHECKING:
-    from .._recorder import Recorder, FigureRecord
-    from .._utils._numpy_io import DataFormat
+    from .._recorder import FigureRecord, Recorder
 
 
 class RecordingFigure:
@@ -88,6 +89,7 @@ class RecordingFigure:
         fname,
         save_recipe: bool = True,
         recipe_format: Literal["csv", "npz", "inline"] = "csv",
+        verbose: bool = True,
         **kwargs,
     ):
         """Save the figure image and optionally the recipe.
@@ -101,6 +103,8 @@ class RecordingFigure:
             Recipe will be saved with same name but .yaml extension.
         recipe_format : str
             Format for data in recipe: 'csv' (default), 'npz', or 'inline'.
+        verbose : bool
+            If True (default), print save status.
         **kwargs
             Passed to matplotlib's savefig().
 
@@ -118,7 +122,7 @@ class RecordingFigure:
         >>> fig.savefig('figure.png', save_recipe=False)  # Image only
         """
         # Handle file-like objects (BytesIO, etc.) - just pass through
-        if hasattr(fname, 'write'):
+        if hasattr(fname, "write"):
             self._fig.savefig(fname, **kwargs)
             return fname
 
@@ -128,8 +132,12 @@ class RecordingFigure:
         if save_recipe:
             recipe_path = fname.with_suffix(".yaml")
             self.save_recipe(recipe_path, include_data=True, data_format=recipe_format)
+            if verbose:
+                print(f"Saved: {fname} + {recipe_path}")
             return fname, recipe_path
 
+        if verbose:
+            print(f"Saved: {fname}")
         return fname
 
     def save_recipe(
@@ -155,7 +163,10 @@ class RecordingFigure:
             Path to saved recipe file.
         """
         from .._serializer import save_recipe
-        return save_recipe(self._recorder.figure_record, path, include_data, data_format)
+
+        return save_recipe(
+            self._recorder.figure_record, path, include_data, data_format
+        )
 
 
 def create_recording_subplots(
@@ -163,7 +174,7 @@ def create_recording_subplots(
     ncols: int = 1,
     recorder: Optional["Recorder"] = None,
     **kwargs,
-) -> Tuple[RecordingFigure, Union[RecordingAxes, List[RecordingAxes]]]:
+) -> Tuple[RecordingFigure, Union[RecordingAxes, NDArray]]:
     """Create a figure with recording-enabled axes.
 
     Parameters
@@ -181,8 +192,8 @@ def create_recording_subplots(
     -------
     fig : RecordingFigure
         Wrapped figure.
-    axes : RecordingAxes or list
-        Wrapped axes (single if 1x1, otherwise 2D array).
+    axes : RecordingAxes or ndarray
+        Wrapped axes (single if 1x1, otherwise numpy array matching matplotlib).
     """
     from .._recorder import Recorder
 
@@ -205,23 +216,27 @@ def create_recording_subplots(
         wrapped_fig = RecordingFigure(fig, recorder, wrapped_ax)
         return wrapped_fig, wrapped_ax
 
-    # Handle 1D or 2D arrays
-    import numpy as np
-    mpl_axes = np.atleast_2d(mpl_axes)
+    # Handle 1D or 2D arrays - reshape to (nrows, ncols) for uniform processing
+    mpl_axes_arr = np.asarray(mpl_axes)
+    if mpl_axes_arr.ndim == 1:
+        mpl_axes_arr = mpl_axes_arr.reshape(nrows, ncols)
 
     wrapped_axes = []
-    for i in range(mpl_axes.shape[0]):
+    for i in range(nrows):
         row = []
-        for j in range(mpl_axes.shape[1]):
-            row.append(RecordingAxes(mpl_axes[i, j], recorder, position=(i, j)))
+        for j in range(ncols):
+            row.append(RecordingAxes(mpl_axes_arr[i, j], recorder, position=(i, j)))
         wrapped_axes.append(row)
 
     wrapped_fig = RecordingFigure(fig, recorder, wrapped_axes)
 
-    # Return in same shape as matplotlib
+    # Return in same shape as matplotlib (numpy arrays for consistency)
     if nrows == 1:
-        return wrapped_fig, wrapped_axes[0]
+        # 1xN -> 1D array of shape (N,)
+        return wrapped_fig, np.array(wrapped_axes[0], dtype=object)
     elif ncols == 1:
-        return wrapped_fig, [row[0] for row in wrapped_axes]
+        # Nx1 -> 1D array of shape (N,)
+        return wrapped_fig, np.array([row[0] for row in wrapped_axes], dtype=object)
     else:
-        return wrapped_fig, wrapped_axes
+        # NxM -> 2D array
+        return wrapped_fig, np.array(wrapped_axes, dtype=object)

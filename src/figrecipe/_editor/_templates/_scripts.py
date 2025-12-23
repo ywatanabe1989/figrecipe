@@ -8,6 +8,7 @@ SCRIPTS = """
 // State
 let currentBboxes = initialBboxes;
 let colorMap = initialColorMap;
+let callsData = {};  // Recorded calls with signatures
 let selectedElement = null;
 let hitmapLoaded = false;
 let hitmapCtx = null;
@@ -23,6 +24,9 @@ let lastClickPosition = null;
 let overlappingElements = [];
 let cycleIndex = 0;
 let hoveredElement = null;  // Track currently hovered element for click priority
+
+// View mode: 'all' shows all properties, 'selected' shows only element-specific
+let viewMode = 'all';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -178,6 +182,10 @@ function initializeEventListeners() {
     document.getElementById('btn-download-svg').addEventListener('click', () => downloadFigure('svg'));
     document.getElementById('btn-download-pdf').addEventListener('click', () => downloadFigure('pdf'));
 
+    // View mode toggle buttons
+    document.getElementById('btn-show-all').addEventListener('click', () => setViewMode('all'));
+    document.getElementById('btn-show-selected').addEventListener('click', () => setViewMode('selected'));
+
     // Check initial override status
     checkOverrideStatus();
 
@@ -188,8 +196,13 @@ function initializeEventListeners() {
 // Load hitmap for element detection
 async function loadHitmap() {
     try {
-        const response = await fetch('/hitmap');
-        const data = await response.json();
+        // Load hitmap and calls data in parallel
+        const [hitmapResponse, callsResponse] = await Promise.all([
+            fetch('/hitmap'),
+            fetch('/calls')
+        ]);
+        const data = await hitmapResponse.json();
+        callsData = await callsResponse.json();
 
         colorMap = data.color_map;
         console.log('Loaded colorMap:', Object.keys(colorMap));
@@ -409,12 +422,15 @@ function drawHitRegions() {
 
         group.appendChild(shape);
 
-        // Create label
+        // Create label - use colorMap type if available (for boxplot, violin detection)
+        const colorMapInfo = colorMap[key] || {};
+        const elemType = colorMapInfo.type || bbox.type || 'element';
+        const elemLabel = colorMapInfo.label || bbox.label || key;
         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         label.setAttribute('x', labelX);
         label.setAttribute('y', labelY);
         label.setAttribute('class', 'hitregion-label');
-        label.textContent = `${bbox.type || 'element'}: ${bbox.label || key}`;
+        label.textContent = `${elemType}: ${elemLabel}`;
         group.appendChild(label);
 
         overlay.appendChild(group);
@@ -432,11 +448,14 @@ function drawHitRegions() {
 
 // Handle hover on hit region
 function handleHitRegionHover(key, bbox) {
-    // Track hovered element for click priority
-    hoveredElement = { key, ...bbox };
+    // Merge colorMap info for correct type (boxplot, violin, etc.)
+    const colorMapInfo = colorMap[key] || {};
+    hoveredElement = { key, ...bbox, ...colorMapInfo };
 
     const info = document.getElementById('selected-info');
-    info.textContent = `Hover: ${bbox.type || 'element'} (${bbox.label || key})`;
+    const elemType = colorMapInfo.type || bbox.type || 'element';
+    const elemLabel = colorMapInfo.label || bbox.label || key;
+    info.textContent = `Hover: ${elemType} (${elemLabel})`;
 }
 
 // Handle leaving hit region
@@ -456,7 +475,10 @@ function handleHitRegionClick(event, key, bbox) {
     event.stopPropagation();
     event.preventDefault();  // Prevent browser default Alt+Click behavior
 
-    const element = { key, ...bbox };
+    // Merge colorMap info (which has correct type like 'boxplot', 'violin')
+    // with bbox info (which has geometry)
+    const colorMapInfo = colorMap[key] || {};
+    const element = { key, ...bbox, ...colorMapInfo };
     console.log('Hit region click:', key, 'altKey:', event.altKey);
 
     if (event.altKey) {
@@ -644,19 +666,31 @@ function selectElement(element) {
     // Draw selection overlay
     drawSelection(element.key);
 
+    // Auto-switch to "Selected" view mode
+    setViewMode('selected');
+
     // Sync properties panel to show relevant section
     syncPropertiesToElement(element);
 }
 
 // Sync properties panel to selected element
 function syncPropertiesToElement(element) {
-    // Map element types to section IDs
+    // In 'selected' mode, skip section management - only show call properties
+    if (viewMode === 'selected') {
+        // Just show call properties, sections are hidden
+        showDynamicCallProperties(element);
+        return;
+    }
+
+    // Map element types to section IDs (for 'all' mode)
     const sectionMap = {
         'axes': 'section-dimensions',
         'line': 'section-lines',
-        'scatter': 'section-lines',
+        'scatter': 'section-markers',
         'bar': 'section-lines',
         'fill': 'section-lines',
+        'boxplot': 'section-boxplot',
+        'violin': 'section-violin',
         'title': 'section-fonts',
         'xlabel': 'section-fonts',
         'ylabel': 'section-fonts',
@@ -708,6 +742,8 @@ function updateElementProperties(element) {
         'scatter': ['markers_size_mm', 'markers_scatter_mm', 'markers_edge_width_mm'],
         'bar': ['lines_trace_mm'],
         'fill': ['lines_trace_mm'],
+        'boxplot': ['lines_trace_mm', 'markers_flier_mm', 'boxplot_median_color'],
+        'violin': ['lines_trace_mm'],
         'title': ['fonts_title_pt', 'fonts_family'],
         'xlabel': ['fonts_axis_label_pt', 'fonts_family'],
         'ylabel': ['fonts_axis_label_pt', 'fonts_family'],
@@ -734,6 +770,336 @@ function updateElementProperties(element) {
 
     console.log('Selected element:', element.type, element.key);
     console.log('Relevant fields:', relevantFields);
+
+    // Apply filtering if in selected mode
+    if (viewMode === 'selected') {
+        filterPropertiesByElementType(element.type);
+    }
+
+    // Show dynamic call properties if element has a call_id
+    showDynamicCallProperties(element);
+}
+
+// Show dynamic properties based on recorded call
+function showDynamicCallProperties(element) {
+    const container = document.getElementById('dynamic-call-properties');
+    if (!container) return;
+
+    // Clear previous content
+    container.innerHTML = '';
+
+    // Get call_id from element label (e.g., "bp1", "vp1")
+    const callId = element.label;
+    if (!callId || !callsData[callId]) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const callData = callsData[callId];
+    container.style.display = 'block';
+
+    // Create header
+    const header = document.createElement('div');
+    header.className = 'dynamic-props-header';
+    header.innerHTML = `<strong>${callData.function}()</strong> <span class="call-id">${callId}</span>`;
+    container.appendChild(header);
+
+    // Get args and kwargs
+    const usedArgs = callData.args || [];
+    const usedKwargs = callData.kwargs || {};
+    const sigArgs = callData.signature?.args || [];
+    const sigKwargs = callData.signature?.kwargs || {};
+
+    // Show args (positional arguments) - display only, not editable
+    if (usedArgs.length > 0) {
+        const argsSection = document.createElement('div');
+        argsSection.className = 'dynamic-props-section';
+        argsSection.innerHTML = '<div class="dynamic-props-label">Arguments:</div>';
+
+        for (let i = 0; i < usedArgs.length; i++) {
+            const arg = usedArgs[i];
+            const sigArg = sigArgs[i] || {};
+            const row = document.createElement('div');
+            row.className = 'form-row dynamic-field arg-field';
+
+            const label = document.createElement('label');
+            label.textContent = arg.name;
+            if (sigArg.type) {
+                label.title = `Type: ${sigArg.type}`;
+            }
+            if (sigArg.optional) {
+                label.textContent += ' (opt)';
+            }
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'arg-value';
+            // Show array shape/type instead of full data
+            if (arg.data && Array.isArray(arg.data)) {
+                valueSpan.textContent = `[${arg.data.length} items]`;
+            } else if (arg.data === '__FILE__') {
+                valueSpan.textContent = '[external file]';
+            } else {
+                valueSpan.textContent = String(arg.data).substring(0, 30);
+            }
+
+            row.appendChild(label);
+            row.appendChild(valueSpan);
+            argsSection.appendChild(row);
+        }
+        container.appendChild(argsSection);
+    }
+
+    // Create form fields for used kwargs
+    if (Object.keys(usedKwargs).length > 0) {
+        const usedSection = document.createElement('div');
+        usedSection.className = 'dynamic-props-section';
+        usedSection.innerHTML = '<div class="dynamic-props-label">Used Parameters:</div>';
+
+        for (const [key, value] of Object.entries(usedKwargs)) {
+            const field = createDynamicField(callId, key, value, sigKwargs[key]);
+            usedSection.appendChild(field);
+        }
+        container.appendChild(usedSection);
+    }
+
+    // Create expandable section for available (unused) params - open by default
+    const availableParams = Object.keys(sigKwargs).filter(k => !(k in usedKwargs));
+    if (availableParams.length > 0) {
+        const availSection = document.createElement('details');
+        availSection.className = 'dynamic-props-available';
+        availSection.setAttribute('open', '');  // Open by default
+        availSection.innerHTML = `<summary>Available Parameters (${availableParams.length})</summary>`;
+
+        const availContent = document.createElement('div');
+        availContent.className = 'dynamic-props-section';
+        for (const key of availableParams) {  // Show all available parameters
+            const sigInfo = sigKwargs[key];
+            const field = createDynamicField(callId, key, sigInfo?.default, sigInfo, true);
+            availContent.appendChild(field);
+        }
+        availSection.appendChild(availContent);
+        container.appendChild(availSection);
+    }
+}
+
+// Create a dynamic form field for call parameter
+function createDynamicField(callId, key, value, sigInfo, isUnused = false) {
+    const container = document.createElement('div');
+    container.className = 'dynamic-field-container' + (isUnused ? ' unused' : '');
+
+    const row = document.createElement('div');
+    row.className = 'form-row dynamic-field';
+
+    const label = document.createElement('label');
+    label.textContent = key;
+
+    let input;
+    if (typeof value === 'boolean' || value === true || value === false) {
+        input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = value === true;
+    } else if (typeof value === 'number') {
+        input = document.createElement('input');
+        input.type = 'number';
+        input.step = 'any';
+        input.value = value;
+    } else if (value === null || value === undefined) {
+        input = document.createElement('input');
+        input.type = 'text';
+        input.value = '';
+        input.placeholder = 'null';
+    } else {
+        input = document.createElement('input');
+        input.type = 'text';
+        input.value = String(value);
+    }
+
+    input.dataset.callId = callId;
+    input.dataset.param = key;
+    input.className = 'dynamic-input';
+
+    // Add change handler
+    input.addEventListener('change', function() {
+        handleDynamicParamChange(callId, key, this);
+    });
+
+    row.appendChild(label);
+    row.appendChild(input);
+    container.appendChild(row);
+
+    // Add type hint below the field
+    if (sigInfo?.type) {
+        const typeHint = document.createElement('div');
+        typeHint.className = 'type-hint';
+        // Clean up matplotlib docstring formatting
+        let typeText = sigInfo.type
+            .replace(/:mpltype:`([^`]+)`/g, '$1')  // :mpltype:`color` -> color
+            .replace(/`~[^`]+`/g, '')              // Remove `~.xxx` references
+            .replace(/`([^`]+)`/g, '$1');          // `xxx` -> xxx
+        typeHint.textContent = typeText;
+        container.appendChild(typeHint);
+    }
+
+    return container;
+}
+
+// Handle change to dynamic call parameter
+async function handleDynamicParamChange(callId, param, input) {
+    let value;
+    if (input.type === 'checkbox') {
+        value = input.checked;
+    } else if (input.type === 'number') {
+        value = parseFloat(input.value);
+        if (isNaN(value)) value = null;
+    } else {
+        value = input.value || null;
+        // Convert string "null" to actual null
+        if (value === 'null') value = null;
+    }
+
+    console.log(`Dynamic param change: ${callId}.${param} = ${value}`);
+
+    // Show loading state
+    document.body.classList.add('loading');
+    input.disabled = true;
+
+    try {
+        const response = await fetch('/update_call', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ call_id: callId, param: param, value: value })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update preview image
+            const img = document.getElementById('preview-image');
+            img.src = 'data:image/png;base64,' + data.image;
+
+            // Update dimensions for hitmap scaling
+            if (data.img_size) {
+                currentImgWidth = data.img_size.width;
+                currentImgHeight = data.img_size.height;
+            }
+
+            // Update bboxes
+            currentBboxes = data.bboxes;
+
+            // Reload hitmap
+            loadHitmap();
+
+            // Redraw hit regions
+            updateHitRegions();
+
+            // Update callsData with new value
+            if (callsData[callId]) {
+                if (value === null) {
+                    delete callsData[callId].kwargs[param];
+                } else {
+                    callsData[callId].kwargs[param] = value;
+                }
+            }
+
+            console.log('Call updated successfully');
+        } else {
+            console.error('Update failed:', data.error);
+            alert('Update failed: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Update failed:', error);
+        alert('Update failed: ' + error.message);
+    }
+
+    input.disabled = false;
+    document.body.classList.remove('loading');
+}
+
+// Set view mode (all or selected)
+function setViewMode(mode) {
+    viewMode = mode;
+
+    // Update toggle buttons
+    document.getElementById('btn-show-all').classList.toggle('active', mode === 'all');
+    document.getElementById('btn-show-selected').classList.toggle('active', mode === 'selected');
+
+    // Update controls sections class
+    const controlsSections = document.querySelector('.controls-sections');
+    controlsSections.classList.toggle('filter-mode', mode === 'selected');
+
+    // Update selection hint
+    const hint = document.getElementById('selection-hint');
+    if (mode === 'selected') {
+        if (selectedElement) {
+            hint.textContent = `Showing: ${selectedElement.type}`;
+            hint.style.color = 'var(--accent-color)';
+            // Hide all style sections - only show call properties
+            hideAllStyleSections();
+        } else {
+            hint.textContent = 'Click an element to filter';
+            hint.style.color = '';
+            // Show all when no selection in filter mode
+            showAllProperties();
+        }
+    } else {
+        hint.textContent = '';
+        showAllProperties();
+    }
+}
+
+// Hide all style sections (for Selected mode - only show call properties)
+function hideAllStyleSections() {
+    const sections = document.querySelectorAll('.section[data-element-types]');
+    sections.forEach(section => {
+        section.classList.add('section-hidden');
+        section.classList.remove('section-visible');
+    });
+}
+
+// Filter properties by element type
+function filterPropertiesByElementType(elementType) {
+    const sections = document.querySelectorAll('.section[data-element-types]');
+
+    sections.forEach(section => {
+        const types = section.getAttribute('data-element-types').split(',');
+        const isGlobal = types.includes('global');
+        const matches = isGlobal || types.includes(elementType);
+
+        section.classList.toggle('section-hidden', !matches);
+        section.classList.toggle('section-visible', matches);
+
+        // If section matches, filter individual form-rows within it
+        if (matches && !isGlobal) {
+            const formRows = section.querySelectorAll('.form-row[data-element-types]');
+            formRows.forEach(row => {
+                const rowTypes = row.getAttribute('data-element-types').split(',');
+                const rowMatches = rowTypes.includes(elementType);
+                row.classList.toggle('field-hidden', !rowMatches);
+            });
+
+            // Open matching sections
+            section.setAttribute('open', '');
+        }
+    });
+
+    // Update hint
+    const hint = document.getElementById('selection-hint');
+    hint.textContent = `Showing: ${elementType}`;
+    hint.style.color = 'var(--accent-color)';
+}
+
+// Show all properties (remove filtering)
+function showAllProperties() {
+    const sections = document.querySelectorAll('.section[data-element-types]');
+
+    sections.forEach(section => {
+        section.classList.remove('section-hidden', 'section-visible');
+
+        const formRows = section.querySelectorAll('.form-row[data-element-types]');
+        formRows.forEach(row => {
+            row.classList.remove('field-hidden');
+        });
+    });
 }
 
 // Clear selection
@@ -745,6 +1111,14 @@ function clearSelection() {
     // Clear section and field highlights
     document.querySelectorAll('.section-highlighted').forEach(s => s.classList.remove('section-highlighted'));
     document.querySelectorAll('.field-highlighted').forEach(f => f.classList.remove('field-highlighted'));
+
+    // Update hint and show all if in filter mode
+    const hint = document.getElementById('selection-hint');
+    if (viewMode === 'selected') {
+        hint.textContent = 'Click an element to filter';
+        hint.style.color = '';
+        showAllProperties();
+    }
 }
 
 // Draw selection rectangle

@@ -1,207 +1,190 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-21 23:07:48 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/roundtrip_all_types.py
+"""Roundtrip tests for all plotting methods.
 
-
-"""
-Programmatic Roundtrip Test for All Plotting Types
-===================================================
-Tests each supported plotting method with pixel-level comparison.
+Tests each supported plotting method with save/reproduce cycle.
+Uses _dev.PLOTTERS as single source of truth for available plotters.
 """
 
 import sys
+import tempfile
+from pathlib import Path
 
-sys.path.insert(0, "../src")
-
-import numpy as np
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from pathlib import Path
+import pytest
+
+# Add src to path for development
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import figrecipe as fr
+from figrecipe._dev import PLOTTERS, list_plotters
 from figrecipe._utils._image_diff import compare_images
-from figrecipe._utils._image_diff import create_comparison_figure
 
 
-# Define test cases for each plotting type
-PLOT_TESTS = {
-    "plot": {
-        "args": lambda: (
-            np.linspace(0, 10, 50),
-            np.sin(np.linspace(0, 10, 50)),
-        ),
-        "kwargs": {"color": "blue", "linewidth": 2, "label": "sin(x)"},
-    },
-    "scatter": {
-        "args": lambda: (np.random.randn(30), np.random.randn(30)),
-        "kwargs": {"c": "red", "s": 50, "alpha": 0.7},
-    },
-    "bar": {
-        "args": lambda: (np.arange(5), [3, 7, 2, 5, 8]),
-        "kwargs": {"color": "#3498db", "edgecolor": "black"},
-    },
-    "barh": {
-        "args": lambda: (np.arange(5), [3, 7, 2, 5, 8]),
-        "kwargs": {"color": "#e74c3c"},
-    },
-    "hist": {
-        "args": lambda: (np.random.randn(500),),
-        "kwargs": {"bins": 20, "color": "#2ecc71", "alpha": 0.7},
-    },
-    "fill_between": {
-        "args": lambda: (
-            np.linspace(0, 10, 50),
-            np.sin(np.linspace(0, 10, 50)) - 0.5,
-            np.sin(np.linspace(0, 10, 50)) + 0.5,
-        ),
-        "kwargs": {"alpha": 0.5, "color": "purple"},
-    },
-    "stem": {
-        "args": lambda: (np.arange(10), np.random.rand(10)),
-        "kwargs": {},
-    },
-    "step": {
-        "args": lambda: (np.arange(10), np.random.rand(10)),
-        "kwargs": {"where": "mid", "color": "green"},
-    },
-    "errorbar": {
-        "args": lambda: (np.arange(5), [2, 4, 3, 5, 4]),
-        "kwargs": {"yerr": 0.5, "fmt": "o-", "capsize": 5},
-    },
-    "fill": {
-        "args": lambda: ([0, 1, 2, 1, 0], [0, 1, 0, -1, 0]),
-        "kwargs": {"color": "orange", "alpha": 0.5},
-    },
-    "axhline": {
-        "args": lambda: (),
-        "kwargs": {"y": 0.5, "color": "red", "linestyle": "--"},
-    },
-    "axvline": {
-        "args": lambda: (),
-        "kwargs": {"x": 0.5, "color": "blue", "linestyle": ":"},
-    },
-}
+class TestRoundtripAllPlotters:
+    """Roundtrip tests for all plotting methods."""
 
+    @pytest.fixture
+    def rng(self):
+        """Random number generator with fixed seed."""
+        return np.random.default_rng(42)
 
-def run_roundtrip_test(
-    plot_type: str, test_config: dict, output_dir: Path
-) -> dict:
-    """Run a single roundtrip test.
+    @pytest.fixture
+    def tmpdir(self):
+        """Temporary directory for test outputs."""
+        with tempfile.TemporaryDirectory() as d:
+            yield Path(d)
 
-    Parameters
-    ----------
-    plot_type : str
-        Name of the plotting method.
-    test_config : dict
-        Test configuration with 'args' and 'kwargs'.
-    output_dir : Path
-        Output directory for files.
+    @pytest.mark.parametrize("plot_type", list_plotters())
+    def test_roundtrip(self, plot_type, rng, tmpdir):
+        """Test that plot type can be saved and reproduced."""
+        plotter = PLOTTERS[plot_type]
 
-    Returns
-    -------
-    dict
-        Test results.
-    """
-    np.random.seed(42)  # Reproducibility
+        # Create original figure
+        fig, ax = plotter(fr, rng)
 
-    # Paths
-    original_path = output_dir / f"{plot_type}_original.png"
-    recipe_path = output_dir / f"{plot_type}_recipe.yaml"
-    reproduced_path = output_dir / f"{plot_type}_reproduced.png"
-    comparison_path = output_dir / f"{plot_type}_comparison.png"
-
-    try:
-        # === ORIGINAL ===
-        fig, ax = fr.subplots(figsize=(6, 4))
-        method = getattr(ax, plot_type)
-        args = test_config["args"]()
-        kwargs = test_config["kwargs"].copy()
-        kwargs["id"] = f"{plot_type}_test"
-        method(*args, **kwargs)
-        ax.set_title(f"{plot_type}()")
-
-        fig.fig.savefig(
-            original_path, dpi=100, bbox_inches="tight", facecolor="white"
-        )
-        fr.save(fig, recipe_path)
+        # Save
+        recipe_path = tmpdir / f"{plot_type}.yaml"
+        fr.save(fig, recipe_path, validate=False)
         plt.close(fig.fig)
 
-        # === REPRODUCED ===
+        # Reproduce
         fig2, ax2 = fr.reproduce(recipe_path)
-        fig2.savefig(
+
+        # Basic checks
+        assert fig2 is not None
+        assert ax2 is not None
+
+        plt.close(fig2.fig)
+
+    @pytest.mark.parametrize("plot_type", list_plotters())
+    def test_roundtrip_pixel_match(self, plot_type, rng, tmpdir):
+        """Test that reproduced figure matches original within threshold."""
+        plotter = PLOTTERS[plot_type]
+
+        # Create original figure
+        fig, ax = plotter(fr, rng)
+
+        # Save original image
+        original_path = tmpdir / f"{plot_type}_original.png"
+        fig.fig.savefig(original_path, dpi=100, bbox_inches="tight", facecolor="white")
+
+        # Save recipe
+        recipe_path = tmpdir / f"{plot_type}.yaml"
+        fr.save(fig, recipe_path, validate=False)
+        plt.close(fig.fig)
+
+        # Reproduce
+        fig2, ax2 = fr.reproduce(recipe_path)
+
+        # Save reproduced image
+        reproduced_path = tmpdir / f"{plot_type}_reproduced.png"
+        fig2.fig.savefig(
             reproduced_path, dpi=100, bbox_inches="tight", facecolor="white"
         )
-        plt.close(fig2)
+        plt.close(fig2.fig)
 
-        # === COMPARE ===
+        # Compare images
         comparison = compare_images(original_path, reproduced_path)
-        create_comparison_figure(
-            original_path, reproduced_path, comparison_path, plot_type
-        )
 
-        return {
-            "status": "PASS" if comparison["mse"] < 1.0 else "DIFF",
-            "mse": comparison["mse"],
-            "identical": comparison["identical"],
-            "error": None,
-        }
-
-    except Exception as e:
-        return {
-            "status": "ERROR",
-            "mse": None,
-            "identical": False,
-            "error": str(e),
-        }
+        # Assert low MSE (allowing for minor rendering differences)
+        assert (
+            comparison["mse"] < 1.0
+        ), f"{plot_type}: MSE {comparison['mse']:.4f} exceeds threshold"
 
 
-def main():
+def run_manual_test():
+    """Run tests manually and print summary."""
+    from figrecipe._utils._image_diff import create_comparison_figure
+
     print("=" * 60)
-    print("Programmatic Roundtrip Test for All Plotting Types")
+    print("Roundtrip Tests for All Plotting Methods")
     print("=" * 60)
 
     output_dir = Path(__file__).parent.parent / "outputs" / "roundtrip_tests"
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    rng = np.random.default_rng(42)
     results = {}
-    for plot_type, config in PLOT_TESTS.items():
-        print(f"\nTesting {plot_type}()...", end=" ")
-        result = run_roundtrip_test(plot_type, config, output_dir)
-        results[plot_type] = result
 
-        if result["status"] == "PASS":
-            print(f"PASS (MSE: {result['mse']:.4f})")
-        elif result["status"] == "DIFF":
-            print(f"DIFF (MSE: {result['mse']:.4f})")
-        else:
-            print(f"ERROR: {result['error']}")
+    for plot_type in list_plotters():
+        print(f"\nTesting {plot_type}()...", end=" ")
+
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmpdir = Path(tmpdir)
+                plotter = PLOTTERS[plot_type]
+
+                # Create original
+                fig, ax = plotter(fr, rng)
+
+                # Save paths
+                original_path = output_dir / f"{plot_type}_original.png"
+                recipe_path = output_dir / f"{plot_type}_recipe.yaml"
+                reproduced_path = output_dir / f"{plot_type}_reproduced.png"
+                comparison_path = output_dir / f"{plot_type}_comparison.png"
+
+                # Save original
+                fig.fig.savefig(
+                    original_path, dpi=100, bbox_inches="tight", facecolor="white"
+                )
+                fr.save(fig, recipe_path, validate=False)
+                plt.close(fig.fig)
+
+                # Reproduce
+                fig2, ax2 = fr.reproduce(recipe_path)
+                fig2.fig.savefig(
+                    reproduced_path, dpi=100, bbox_inches="tight", facecolor="white"
+                )
+                plt.close(fig2.fig)
+
+                # Compare
+                comparison = compare_images(original_path, reproduced_path)
+                create_comparison_figure(
+                    original_path, reproduced_path, comparison_path, plot_type
+                )
+
+                if comparison["mse"] < 1.0:
+                    print(f"PASS (MSE: {comparison['mse']:.4f})")
+                    results[plot_type] = {"status": "PASS", "mse": comparison["mse"]}
+                else:
+                    print(f"DIFF (MSE: {comparison['mse']:.4f})")
+                    results[plot_type] = {"status": "DIFF", "mse": comparison["mse"]}
+
+        except Exception as e:
+            print(f"ERROR: {e}")
+            results[plot_type] = {"status": "ERROR", "error": str(e)}
 
     # Summary
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
 
-    passed = sum(1 for r in results.values() if r["status"] == "PASS")
-    diffed = sum(1 for r in results.values() if r["status"] == "DIFF")
-    errors = sum(1 for r in results.values() if r["status"] == "ERROR")
+    passed = sum(1 for r in results.values() if r.get("status") == "PASS")
+    diffed = sum(1 for r in results.values() if r.get("status") == "DIFF")
+    errors = sum(1 for r in results.values() if r.get("status") == "ERROR")
+    total = len(results)
 
-    print(f"PASS:  {passed}/{len(results)}")
-    print(f"DIFF:  {diffed}/{len(results)}")
-    print(f"ERROR: {errors}/{len(results)}")
+    print(f"PASS:  {passed}/{total}")
+    print(f"DIFF:  {diffed}/{total}")
+    print(f"ERROR: {errors}/{total}")
 
     if errors > 0:
         print("\nErrors:")
         for name, r in results.items():
-            if r["status"] == "ERROR":
-                print(f"  {name}: {r['error']}")
+            if r.get("status") == "ERROR":
+                print(f"  {name}: {r.get('error')}")
 
     print(f"\nOutput: {output_dir.absolute()}")
 
+    return results
+
 
 if __name__ == "__main__":
-    main()
+    run_manual_test()
 
 # EOF

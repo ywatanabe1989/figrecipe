@@ -61,21 +61,31 @@ HTML_TEMPLATE = """
             </div>
 
             <div class="controls-sections">
-                <!-- Dimensions Section -->
-                <details class="section" id="section-dimensions" open>
+                <!-- Mode toggle -->
+                <div class="view-mode-toggle">
+                    <button id="btn-show-all" class="btn-toggle active" title="Show all properties">All</button>
+                    <button id="btn-show-selected" class="btn-toggle" title="Show only properties for selected element">Selected</button>
+                    <span class="selection-hint" id="selection-hint">Click an element to filter</span>
+                </div>
+
+                <!-- Dynamic call properties (shown when element selected) -->
+                <div id="dynamic-call-properties" class="dynamic-call-properties" style="display: none;"></div>
+
+                <!-- Dimensions Section - applies to axes, spine -->
+                <details class="section" id="section-dimensions" data-element-types="axes,spine" open>
                     <summary>Dimensions</summary>
                     <div class="section-content">
                         <div class="subsection">
                             <h4>Axes</h4>
-                            <div class="form-row">
+                            <div class="form-row" data-element-types="axes,spine">
                                 <label>Width (mm)</label>
                                 <input type="number" id="axes_width_mm" step="1" min="10" max="200" placeholder="80">
                             </div>
-                            <div class="form-row">
+                            <div class="form-row" data-element-types="axes,spine">
                                 <label>Height (mm)</label>
                                 <input type="number" id="axes_height_mm" step="1" min="10" max="200" placeholder="55">
                             </div>
-                            <div class="form-row">
+                            <div class="form-row" data-element-types="axes,spine">
                                 <label>Thickness (mm)</label>
                                 <input type="number" id="axes_thickness_mm" step="0.05" min="0.1" max="2" placeholder="0.35">
                             </div>
@@ -83,19 +93,19 @@ HTML_TEMPLATE = """
                         <div class="subsection">
                             <h4>Margins</h4>
                             <div class="form-grid">
-                                <div class="form-row">
+                                <div class="form-row" data-element-types="axes">
                                     <label>Left</label>
                                     <input type="number" id="margins_left_mm" step="1" min="0" max="50" placeholder="12">
                                 </div>
-                                <div class="form-row">
+                                <div class="form-row" data-element-types="axes">
                                     <label>Right</label>
                                     <input type="number" id="margins_right_mm" step="1" min="0" max="50" placeholder="3">
                                 </div>
-                                <div class="form-row">
+                                <div class="form-row" data-element-types="axes">
                                     <label>Bottom</label>
                                     <input type="number" id="margins_bottom_mm" step="1" min="0" max="50" placeholder="10">
                                 </div>
-                                <div class="form-row">
+                                <div class="form-row" data-element-types="axes">
                                     <label>Top</label>
                                     <input type="number" id="margins_top_mm" step="1" min="0" max="50" placeholder="6">
                                 </div>
@@ -103,11 +113,11 @@ HTML_TEMPLATE = """
                         </div>
                         <div class="subsection">
                             <h4>Spacing</h4>
-                            <div class="form-row">
+                            <div class="form-row" data-element-types="axes">
                                 <label>Horizontal (mm)</label>
                                 <input type="number" id="spacing_horizontal_mm" step="1" min="0" max="30" placeholder="8">
                             </div>
-                            <div class="form-row">
+                            <div class="form-row" data-element-types="axes">
                                 <label>Vertical (mm)</label>
                                 <input type="number" id="spacing_vertical_mm" step="1" min="0" max="30" placeholder="8">
                             </div>
@@ -115,11 +125,11 @@ HTML_TEMPLATE = """
                     </div>
                 </details>
 
-                <!-- Fonts Section -->
-                <details class="section" id="section-fonts">
+                <!-- Fonts Section - applies to title, xlabel, ylabel, xticks, yticks, legend -->
+                <details class="section" id="section-fonts" data-element-types="title,xlabel,ylabel,xticks,yticks,legend">
                     <summary>Fonts</summary>
                     <div class="section-content">
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="title,xlabel,ylabel,xticks,yticks,legend">
                             <label>Family</label>
                             <select id="fonts_family">
                                 <option value="Arial">Arial</option>
@@ -130,83 +140,84 @@ HTML_TEMPLATE = """
                                 <option value="serif">serif</option>
                             </select>
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="xlabel,ylabel">
                             <label>Axis Label (pt)</label>
                             <input type="number" id="fonts_axis_label_pt" step="0.5" min="4" max="24">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="xticks,yticks">
                             <label>Tick Label (pt)</label>
                             <input type="number" id="fonts_tick_label_pt" step="0.5" min="4" max="24">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="title">
                             <label>Title (pt)</label>
                             <input type="number" id="fonts_title_pt" step="0.5" min="4" max="24">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="title">
                             <label>Suptitle (pt)</label>
                             <input type="number" id="fonts_suptitle_pt" step="0.5" min="4" max="30">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="legend">
                             <label>Legend (pt)</label>
                             <input type="number" id="fonts_legend_pt" step="0.5" min="4" max="24">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="title,xlabel,ylabel">
                             <label>Annotation (pt)</label>
                             <input type="number" id="fonts_annotation_pt" step="0.5" min="4" max="24">
                         </div>
                     </div>
                 </details>
 
-                <!-- Lines & Markers Section -->
-                <details class="section" id="section-lines">
-                    <summary>Lines & Markers</summary>
+                <!-- Lines Section - applies to line, bar, fill -->
+                <details class="section" id="section-lines" data-element-types="line,bar,fill">
+                    <summary>Lines</summary>
                     <div class="section-content">
-                        <div class="subsection">
-                            <h4>Lines</h4>
-                            <div class="form-row">
-                                <label>Trace (mm)</label>
-                                <input type="number" id="lines_trace_mm" step="0.05" min="0.1" max="3">
-                            </div>
-                            <div class="form-row">
-                                <label>Errorbar (mm)</label>
-                                <input type="number" id="lines_errorbar_mm" step="0.05" min="0.1" max="3">
-                            </div>
-                            <div class="form-row">
-                                <label>Errorbar Cap (mm)</label>
-                                <input type="number" id="lines_errorbar_cap_mm" step="0.1" min="0" max="5">
-                            </div>
+                        <div class="form-row" data-element-types="line,bar,fill">
+                            <label>Trace (mm)</label>
+                            <input type="number" id="lines_trace_mm" step="0.05" min="0.1" max="3">
                         </div>
-                        <div class="subsection">
-                            <h4>Markers</h4>
-                            <div class="form-row">
-                                <label>Size (mm)</label>
-                                <input type="number" id="markers_size_mm" step="0.1" min="0.5" max="10">
-                            </div>
-                            <div class="form-row">
-                                <label>Scatter (mm)</label>
-                                <input type="number" id="markers_scatter_mm" step="0.1" min="0.5" max="10">
-                            </div>
-                            <div class="form-row">
-                                <label>Edge Width (mm)</label>
-                                <input type="number" id="markers_edge_width_mm" step="0.05" min="0" max="2">
-                            </div>
+                        <div class="form-row" data-element-types="line">
+                            <label>Errorbar (mm)</label>
+                            <input type="number" id="lines_errorbar_mm" step="0.05" min="0.1" max="3">
+                        </div>
+                        <div class="form-row" data-element-types="line">
+                            <label>Errorbar Cap (mm)</label>
+                            <input type="number" id="lines_errorbar_cap_mm" step="0.1" min="0" max="5">
                         </div>
                     </div>
                 </details>
 
-                <!-- Ticks Section -->
-                <details class="section" id="section-ticks">
+                <!-- Markers Section - applies to scatter, line (with markers) -->
+                <details class="section" id="section-markers" data-element-types="scatter,line">
+                    <summary>Markers</summary>
+                    <div class="section-content">
+                        <div class="form-row" data-element-types="line">
+                            <label>Size (mm)</label>
+                            <input type="number" id="markers_size_mm" step="0.1" min="0.5" max="10">
+                        </div>
+                        <div class="form-row" data-element-types="scatter">
+                            <label>Scatter (mm)</label>
+                            <input type="number" id="markers_scatter_mm" step="0.1" min="0.5" max="10">
+                        </div>
+                        <div class="form-row" data-element-types="scatter,line">
+                            <label>Edge Width (mm)</label>
+                            <input type="number" id="markers_edge_width_mm" step="0.05" min="0" max="2">
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Ticks Section - applies to xticks, yticks -->
+                <details class="section" id="section-ticks" data-element-types="xticks,yticks">
                     <summary>Ticks</summary>
                     <div class="section-content">
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="xticks,yticks">
                             <label>Length (mm)</label>
                             <input type="number" id="ticks_length_mm" step="0.1" min="0.5" max="5">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="xticks,yticks">
                             <label>Thickness (mm)</label>
                             <input type="number" id="ticks_thickness_mm" step="0.05" min="0.1" max="2">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="xticks,yticks">
                             <label>Direction</label>
                             <select id="ticks_direction">
                                 <option value="out">Out</option>
@@ -214,22 +225,22 @@ HTML_TEMPLATE = """
                                 <option value="inout">Both</option>
                             </select>
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="xticks,yticks">
                             <label>N Ticks</label>
                             <input type="number" id="ticks_n_ticks" step="1" min="2" max="20">
                         </div>
                     </div>
                 </details>
 
-                <!-- Legend Section -->
-                <details class="section" id="section-legend">
+                <!-- Legend Section - applies to legend -->
+                <details class="section" id="section-legend" data-element-types="legend">
                     <summary>Legend</summary>
                     <div class="section-content">
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="legend">
                             <label>Show Frame</label>
                             <input type="checkbox" id="legend_frameon">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="legend">
                             <label>Location</label>
                             <select id="legend_loc">
                                 <option value="best">Best</option>
@@ -240,47 +251,77 @@ HTML_TEMPLATE = """
                                 <option value="center">Center</option>
                             </select>
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="legend">
                             <label>Alpha</label>
                             <input type="range" id="legend_alpha" min="0" max="1" step="0.1">
                             <span id="legend_alpha_value">0.8</span>
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="legend">
                             <label>Background</label>
                             <input type="color" id="legend_bg" value="#ffffff">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="legend">
                             <label>Edge Color</label>
                             <input type="color" id="legend_edgecolor" value="#cccccc">
                         </div>
                     </div>
                 </details>
 
-                <!-- Behavior Section -->
-                <details class="section" id="section-behavior">
+                <!-- Boxplot Section - applies to boxplot -->
+                <details class="section" id="section-boxplot" data-element-types="boxplot">
+                    <summary>Boxplot</summary>
+                    <div class="section-content">
+                        <div class="form-row" data-element-types="boxplot">
+                            <label>Line Width (mm)</label>
+                            <input type="number" id="lines_trace_mm" step="0.05" min="0.1" max="3">
+                        </div>
+                        <div class="form-row" data-element-types="boxplot">
+                            <label>Flier Size (mm)</label>
+                            <input type="number" id="markers_flier_mm" step="0.1" min="0.1" max="5">
+                        </div>
+                        <div class="form-row" data-element-types="boxplot">
+                            <label>Median Color</label>
+                            <input type="color" id="boxplot_median_color" value="#000000">
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Violin Section - applies to violin -->
+                <details class="section" id="section-violin" data-element-types="violin">
+                    <summary>Violin</summary>
+                    <div class="section-content">
+                        <div class="form-row" data-element-types="violin">
+                            <label>Line Width (mm)</label>
+                            <input type="number" id="lines_trace_mm" step="0.05" min="0.1" max="3">
+                        </div>
+                    </div>
+                </details>
+
+                <!-- Behavior Section - global -->
+                <details class="section" id="section-behavior" data-element-types="axes,spine">
                     <summary>Behavior</summary>
                     <div class="section-content">
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="axes">
                             <label>Grid</label>
                             <input type="checkbox" id="behavior_grid">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="spine">
                             <label>Hide Top Spine</label>
                             <input type="checkbox" id="behavior_hide_top_spine">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="spine">
                             <label>Hide Right Spine</label>
                             <input type="checkbox" id="behavior_hide_right_spine">
                         </div>
-                        <div class="form-row">
+                        <div class="form-row" data-element-types="axes">
                             <label>Auto Scale Axes</label>
                             <input type="checkbox" id="behavior_auto_scale_axes">
                         </div>
                     </div>
                 </details>
 
-                <!-- Output Section -->
-                <details class="section">
+                <!-- Output Section - global, always visible -->
+                <details class="section" id="section-output" data-element-types="global">
                     <summary>Output</summary>
                     <div class="section-content">
                         <div class="form-row">
@@ -302,8 +343,8 @@ HTML_TEMPLATE = """
                     </div>
                 </details>
 
-                <!-- Download Section -->
-                <details class="section" id="section-download" open>
+                <!-- Download Section - always visible -->
+                <details class="section" id="section-download" data-element-types="global" open>
                     <summary>Download</summary>
                     <div class="section-content">
                         <div class="download-buttons">
