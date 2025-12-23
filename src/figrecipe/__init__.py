@@ -1302,12 +1302,19 @@ def panel_label(
     >>> # Outside position (default)
     >>> fr.panel_label(ax, 'A', loc='upper left')
     """
-    # Get the underlying matplotlib axes
-    mpl_ax = ax._ax if hasattr(ax, "_ax") else ax
-
-    # Default fontsize is 10pt for panel labels
+    # Get fontsize from style if available, otherwise default to 10pt
     if fontsize is None:
-        fontsize = 10
+        try:
+            from .styles._style_loader import _STYLE_CACHE
+
+            if _STYLE_CACHE is not None:
+                fontsize = getattr(
+                    getattr(_STYLE_CACHE, "fonts", None), "panel_label_pt", 10
+                )
+            else:
+                fontsize = 10
+        except Exception:
+            fontsize = 10
 
     # Calculate position based on loc
     if loc == "upper left":
@@ -1321,14 +1328,31 @@ def panel_label(
     else:
         x, y = offset
 
-    # Default kwargs
+    # Default kwargs - use 'axes' as transform string (handled by reproducer)
     text_kwargs = {
         "fontsize": fontsize,
         "fontweight": fontweight,
-        "transform": mpl_ax.transAxes,
+        "transform": "axes",  # Special string marker for axes coordinates
         "va": "bottom",
         "ha": "right" if "right" in loc else "left",
     }
     text_kwargs.update(kwargs)
 
-    return mpl_ax.text(x, y, label, **text_kwargs)
+    # Get the underlying matplotlib axes
+    mpl_ax = ax._ax if hasattr(ax, "_ax") else ax
+
+    # For actual rendering, use the real transform
+    render_kwargs = text_kwargs.copy()
+    render_kwargs["transform"] = mpl_ax.transAxes
+
+    # Record the call using recorder's method (handles args/kwargs processing)
+    if hasattr(ax, "_recorder") and hasattr(ax, "_position"):
+        ax._recorder.record_call(
+            ax_position=ax._position,
+            method_name="text",
+            args=(x, y, label),
+            kwargs=text_kwargs,  # Contains transform: "axes"
+        )
+
+    # Render directly on matplotlib axes with actual transform
+    return mpl_ax.text(x, y, label, **render_kwargs)
