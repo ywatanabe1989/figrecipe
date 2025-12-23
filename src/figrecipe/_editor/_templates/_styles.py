@@ -278,6 +278,30 @@ body {
     stroke-dasharray: 5, 3;
 }
 
+/* Primary selection in a group - solid border */
+.selection-rect.selection-primary {
+    stroke-width: 3;
+    stroke-dasharray: none;
+}
+
+/* Group hover highlight - all elements in same logical group */
+.group-hovered {
+    opacity: 1 !important;
+}
+
+.group-hovered .hitregion-polyline,
+.group-hovered .hitregion-rect,
+.group-hovered .hitregion-circle {
+    stroke: var(--accent-color) !important;
+    stroke-width: 3 !important;
+    fill: var(--selection-color) !important;
+}
+
+.hitregion-group.group-hovered .hitregion-label {
+    opacity: 1 !important;
+    font-weight: bold;
+}
+
 .selected-element-info {
     padding: 12px 16px;
     background: var(--bg-secondary);

@@ -455,16 +455,51 @@ function handleHitRegionHover(key, bbox) {
     const info = document.getElementById('selected-info');
     const elemType = colorMapInfo.type || bbox.type || 'element';
     const elemLabel = colorMapInfo.label || bbox.label || key;
+    const callId = colorMapInfo.call_id;
+
+    // Check if this element is part of a group
+    if (callId) {
+        const groupElements = findGroupElements(callId);
+        if (groupElements.length > 1) {
+            info.textContent = `Hover: ${elemType} group (${callId}) - ${groupElements.length} elements`;
+            // Highlight all group elements on hover
+            highlightGroupElements(groupElements.map(e => e.key));
+            return;
+        }
+    }
+
     info.textContent = `Hover: ${elemType} (${elemLabel})`;
+}
+
+// Highlight all elements in a group (for hover effect)
+function highlightGroupElements(keys) {
+    // Add hover class to all matching hit regions
+    keys.forEach(key => {
+        const hitRegion = document.querySelector(`[data-key="${key}"]`);
+        if (hitRegion) {
+            hitRegion.classList.add('group-hovered');
+        }
+    });
 }
 
 // Handle leaving hit region
 function handleHitRegionLeave() {
     hoveredElement = null;
 
+    // Clear all group hover highlights
+    document.querySelectorAll('.group-hovered').forEach(el => {
+        el.classList.remove('group-hovered');
+    });
+
     const info = document.getElementById('selected-info');
     if (selectedElement) {
-        info.textContent = `Selected: ${selectedElement.type} (${selectedElement.label || selectedElement.key})`;
+        // Show group info if selected element is part of a group
+        if (selectedElement.groupElements) {
+            const callId = selectedElement.call_id || selectedElement.label;
+            info.textContent = `Selected: ${selectedElement.type} group (${callId}) - ${selectedElement.groupElements.length} elements`;
+        } else {
+            info.textContent = `Selected: ${selectedElement.type} (${selectedElement.label || selectedElement.key})`;
+        }
     } else {
         info.textContent = 'Click on an element to select it';
     }
@@ -655,15 +690,39 @@ function getElementAtPosition(imgX, imgY) {
     return null;
 }
 
-// Select an element
+// Find all elements belonging to the same logical group (same call_id)
+function findGroupElements(callId) {
+    if (!callId) return [];
+
+    const groupElements = [];
+    for (const [key, info] of Object.entries(colorMap)) {
+        if (info.call_id === callId) {
+            groupElements.push({ key, ...info });
+        }
+    }
+    return groupElements;
+}
+
+// Select an element (and its logical group if applicable)
 function selectElement(element) {
     selectedElement = element;
 
+    // Find all elements in the same logical group
+    const callId = element.call_id || element.label;  // Fallback to label for backwards compat
+    const groupElements = findGroupElements(callId);
+
+    // Store group info for multi-selection rendering
+    selectedElement.groupElements = groupElements.length > 1 ? groupElements : null;
+
     // Update info display
     const info = document.getElementById('selected-info');
-    info.textContent = `Selected: ${element.type} (${element.label || element.key})`;
+    if (groupElements.length > 1) {
+        info.textContent = `Selected: ${element.type} group (${callId}) - ${groupElements.length} elements`;
+    } else {
+        info.textContent = `Selected: ${element.type} (${element.label || element.key})`;
+    }
 
-    // Draw selection overlay
+    // Draw selection overlay (handles group selection)
     drawSelection(element.key);
 
     // Auto-switch to "Selected" view mode
@@ -1121,13 +1180,10 @@ function clearSelection() {
     }
 }
 
-// Draw selection rectangle
+// Draw selection rectangle(s) - handles both single elements and groups
 function drawSelection(key) {
     const overlay = document.getElementById('selection-overlay');
     overlay.innerHTML = '';
-
-    const bbox = currentBboxes[key];
-    if (!bbox) return;
 
     // Get preview image dimensions and position
     const img = document.getElementById('preview-image');
@@ -1137,20 +1193,41 @@ function drawSelection(key) {
     // Scale bbox to display coordinates
     const scaleX = imgRect.width / img.naturalWidth;
     const scaleY = imgRect.height / img.naturalHeight;
+    const offsetX = imgRect.left - wrapperRect.left;
+    const offsetY = imgRect.top - wrapperRect.top;
 
-    const x = (imgRect.left - wrapperRect.left) + bbox.x * scaleX;
-    const y = (imgRect.top - wrapperRect.top) + bbox.y * scaleY;
-    const width = bbox.width * scaleX;
-    const height = bbox.height * scaleY;
+    // Determine which elements to highlight
+    let elementsToHighlight = [key];
 
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', x);
-    rect.setAttribute('y', y);
-    rect.setAttribute('width', width);
-    rect.setAttribute('height', height);
-    rect.setAttribute('class', 'selection-rect');
+    // If this element has a group, highlight all group elements
+    if (selectedElement && selectedElement.groupElements) {
+        elementsToHighlight = selectedElement.groupElements.map(e => e.key);
+    }
 
-    overlay.appendChild(rect);
+    // Draw selection for each element
+    for (const elemKey of elementsToHighlight) {
+        const bbox = currentBboxes[elemKey];
+        if (!bbox) continue;
+
+        const x = offsetX + bbox.x * scaleX;
+        const y = offsetY + bbox.y * scaleY;
+        const width = bbox.width * scaleX;
+        const height = bbox.height * scaleY;
+
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x);
+        rect.setAttribute('y', y);
+        rect.setAttribute('width', Math.max(width, 2));
+        rect.setAttribute('height', Math.max(height, 2));
+        rect.setAttribute('class', 'selection-rect');
+
+        // Mark the primary selection differently
+        if (elemKey === key) {
+            rect.classList.add('selection-primary');
+        }
+
+        overlay.appendChild(rect);
+    }
 }
 
 // Clear selection overlay

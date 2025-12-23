@@ -16,7 +16,7 @@ The color encoding uses 24-bit RGB:
 import io
 from typing import Any, Dict, Tuple
 
-from matplotlib.collections import PathCollection, PolyCollection
+from matplotlib.collections import LineCollection, PathCollection, PolyCollection
 from matplotlib.figure import Figure
 from matplotlib.image import AxesImage
 from matplotlib.patches import Rectangle
@@ -381,6 +381,13 @@ def generate_hitmap(
                 elem_type = "line"
                 label = orig_label
 
+            # Add call_id for logical grouping (boxplot/violin elements share same call_id)
+            call_id = None
+            if elem_type == "boxplot":
+                call_id = boxplot_call_id
+            elif elem_type == "violin":
+                call_id = violin_call_id
+
             color_map[key] = {
                 "id": element_id,
                 "type": elem_type,
@@ -388,6 +395,7 @@ def generate_hitmap(
                 "ax_index": ax_idx,
                 "rgb": list(rgb),
                 "original_color": _mpl_color_to_hex(original_props[key]["color"]),
+                "call_id": call_id,  # For logical grouping
             }
             element_id += 1
 
@@ -451,6 +459,11 @@ def generate_hitmap(
                     elem_type = "fill"
                     label = orig_label
 
+                # Add call_id for logical grouping
+                call_id = None
+                if elem_type == "violin":
+                    call_id = violin_call_id
+
                 color_map[key] = {
                     "id": element_id,
                     "type": elem_type,
@@ -458,6 +471,51 @@ def generate_hitmap(
                     "ax_index": ax_idx,
                     "rgb": list(rgb),
                     "original_color": _mpl_color_to_hex(orig_color),
+                    "call_id": call_id,  # For logical grouping
+                }
+                element_id += 1
+
+            elif isinstance(coll, LineCollection):
+                # Violin inner lines (cbars, cmins, cmaxes)
+                if not coll.get_visible():
+                    continue
+
+                key = f"ax{ax_idx}_linecoll{i}"
+                rgb = id_to_rgb(element_id)
+
+                original_props[key] = {
+                    "colors": coll.get_colors().copy()
+                    if hasattr(coll, "get_colors")
+                    else [],
+                    "edgecolors": coll.get_edgecolors().copy(),
+                }
+
+                coll.set_color(_normalize_color(rgb))
+
+                # Get original color for hover effect
+                orig_colors = original_props[key]["colors"]
+                orig_color = (
+                    orig_colors[0] if len(orig_colors) > 0 else [0.5, 0.5, 0.5, 1]
+                )
+
+                # Determine element type - violin inner lines on violin axes
+                if has_violin:
+                    elem_type = "violin"
+                    label = violin_call_id or "violin"
+                    call_id = violin_call_id
+                else:
+                    elem_type = "linecollection"
+                    label = f"linecoll_{i}"
+                    call_id = None
+
+                color_map[key] = {
+                    "id": element_id,
+                    "type": elem_type,
+                    "label": label,
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
+                    "original_color": _mpl_color_to_hex(orig_color),
+                    "call_id": call_id,  # For logical grouping
                 }
                 element_id += 1
 
@@ -633,15 +691,22 @@ def generate_hitmap(
         for i, coll in enumerate(ax.collections):
             if isinstance(coll, PathCollection):
                 key = f"ax{ax_idx}_scatter{i}"
+                if key in original_props:
+                    props = original_props[key]
+                    coll.set_facecolors(props["facecolors"])
+                    coll.set_edgecolors(props["edgecolors"])
             elif isinstance(coll, PolyCollection):
                 key = f"ax{ax_idx}_fill{i}"
-            else:
-                continue
-
-            if key in original_props:
-                props = original_props[key]
-                coll.set_facecolors(props["facecolors"])
-                coll.set_edgecolors(props["edgecolors"])
+                if key in original_props:
+                    props = original_props[key]
+                    coll.set_facecolors(props["facecolors"])
+                    coll.set_edgecolors(props["edgecolors"])
+            elif isinstance(coll, LineCollection):
+                key = f"ax{ax_idx}_linecoll{i}"
+                if key in original_props:
+                    props = original_props[key]
+                    if len(props["colors"]) > 0:
+                        coll.set_color(props["colors"])
 
         # Restore patches
         for i, patch in enumerate(ax.patches):
