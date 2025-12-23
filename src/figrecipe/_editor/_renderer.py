@@ -262,6 +262,14 @@ def _apply_dark_mode(fig: Figure) -> None:
     # Figure background
     fig.patch.set_facecolor(bg_color)
 
+    # Figure-level text elements (suptitle, supxlabel, supylabel)
+    if hasattr(fig, "_suptitle") and fig._suptitle is not None:
+        fig._suptitle.set_color(text_color)
+    if hasattr(fig, "_supxlabel") and fig._supxlabel is not None:
+        fig._supxlabel.set_color(text_color)
+    if hasattr(fig, "_supylabel") and fig._supylabel is not None:
+        fig._supylabel.set_color(text_color)
+
     for ax in fig.get_axes():
         # Axes background
         ax.set_facecolor(bg_color)
