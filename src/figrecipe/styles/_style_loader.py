@@ -412,12 +412,17 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
         "boxplot_cap_mm": style.get("boxplot", {}).get("cap_mm", 0.2),
         "boxplot_median_mm": style.get("boxplot", {}).get("median_mm", 0.2),
         "boxplot_median_color": style.get("boxplot", {}).get("median_color", "black"),
+        "boxplot_flier_edge_mm": style.get("boxplot", {}).get("flier_edge_mm", 0.2),
         # Violinplot (violinplot.* in YAML)
         "violinplot_line_mm": style.get("violinplot", {}).get("line_mm", 0.2),
         "violinplot_inner": style.get("violinplot", {}).get("inner", "box"),
         "violinplot_box_width_mm": style.get("violinplot", {}).get("box_width_mm", 1.5),
         "violinplot_whisker_mm": style.get("violinplot", {}).get("whisker_mm", 0.2),
         "violinplot_median_mm": style.get("violinplot", {}).get("median_mm", 0.8),
+        # Barplot (barplot.* in YAML)
+        "barplot_edge_mm": style.get("barplot", {}).get("edge_mm", 0.2),
+        # Histogram (histogram.* in YAML)
+        "histogram_edge_mm": style.get("histogram", {}).get("edge_mm", 0.2),
         # Fonts (fonts.* in YAML)
         "fonts_family": style.fonts.family,
         "fonts_axis_label_pt": style.fonts.axis_label_pt,
@@ -458,6 +463,8 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
             result["behavior_grid"] = behavior.grid
         if hasattr(behavior, "auto_scale_axes"):
             result["behavior_auto_scale_axes"] = behavior.auto_scale_axes
+        if hasattr(behavior, "constrained_layout"):
+            result["behavior_constrained_layout"] = behavior.constrained_layout
 
     # Legacy key aliases for backwards compatibility
     # (These allow existing code using old keys to still work)
@@ -487,6 +494,7 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     result["hide_right_spine"] = result.get("behavior_hide_right_spine", True)
     result["grid"] = result.get("behavior_grid", False)
     result["auto_scale_axes"] = result.get("behavior_auto_scale_axes", True)
+    result["constrained_layout"] = result.get("behavior_constrained_layout", False)
 
     return result
 

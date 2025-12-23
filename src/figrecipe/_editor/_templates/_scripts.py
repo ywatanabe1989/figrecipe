@@ -136,6 +136,23 @@ function initializeEventListeners() {
     const previewImg = document.getElementById('preview-image');
     previewImg.addEventListener('click', handlePreviewClick);
 
+    // SVG overlay click - deselect when clicking on empty area (not on a shape)
+    const hitregionOverlay = document.getElementById('hitregion-overlay');
+    hitregionOverlay.addEventListener('click', function(event) {
+        // Only clear if clicking directly on the SVG (not on a shape inside it)
+        if (event.target === hitregionOverlay) {
+            clearSelection();
+        }
+    });
+
+    // Selection overlay click - same behavior
+    const selectionOverlay = document.getElementById('selection-overlay');
+    selectionOverlay.addEventListener('click', function(event) {
+        if (event.target === selectionOverlay) {
+            clearSelection();
+        }
+    });
+
     // Dark mode toggle
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     darkModeToggle.addEventListener('change', function() {
@@ -385,7 +402,8 @@ function drawHitRegions() {
             let regionClass = 'hitregion-rect';
             if (bbox.type === 'line' || bbox.type === 'scatter') {
                 regionClass += ' line-region';
-            } else if (bbox.type === 'title' || bbox.type === 'xlabel' || bbox.type === 'ylabel') {
+            } else if (bbox.type === 'title' || bbox.type === 'xlabel' || bbox.type === 'ylabel' ||
+                       bbox.type === 'suptitle' || bbox.type === 'supxlabel' || bbox.type === 'supylabel') {
                 regionClass += ' text-region';
             } else if (bbox.type === 'legend') {
                 regionClass += ' legend-region';
@@ -941,6 +959,304 @@ function showDynamicCallProperties(element) {
     }
 }
 
+// Check if a field is a color field
+function isColorField(key, sigInfo) {
+    const colorKeywords = ['color', 'facecolor', 'edgecolor', 'markerfacecolor', 'markeredgecolor', 'c'];
+    if (colorKeywords.includes(key.toLowerCase())) return true;
+    if (sigInfo?.type && sigInfo.type.toLowerCase().includes('color')) return true;
+    return false;
+}
+
+// Convert color to RGB string for display
+function colorToRGB(color) {
+    if (!color) return '';
+    // Already RGB format
+    if (typeof color === 'string' && color.match(/^rgb/i)) return color;
+    // Hex format
+    if (typeof color === 'string' && color.startsWith('#')) {
+        const hex = color.slice(1);
+        if (hex.length === 3) {
+            const r = parseInt(hex[0] + hex[0], 16);
+            const g = parseInt(hex[1] + hex[1], 16);
+            const b = parseInt(hex[2] + hex[2], 16);
+            return `rgb(${r}, ${g}, ${b})`;
+        } else if (hex.length === 6) {
+            const r = parseInt(hex.slice(0, 2), 16);
+            const g = parseInt(hex.slice(2, 4), 16);
+            const b = parseInt(hex.slice(4, 6), 16);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+    }
+    // Return as-is for named colors
+    return color;
+}
+
+// Convert color to hex for color picker
+function colorToHex(color) {
+    if (!color) return '#000000';
+    if (typeof color === 'string' && color.startsWith('#')) {
+        if (color.length === 4) {
+            return '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+        }
+        return color;
+    }
+    // Try to convert named colors using a canvas
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.fillStyle = color;
+    return ctx.fillStyle;
+}
+
+// Color presets from SCITEX theme (priority 1)
+const COLOR_PRESETS = {
+    'blue': '#0080c0',
+    'red': '#ff4632',
+    'green': '#14b414',
+    'yellow': '#e6a014',
+    'purple': '#c832ff',
+    'lightblue': '#14c8c8',
+    'orange': '#e45e32',
+    'pink': '#ff96c8',
+    'black': '#000000',
+    'white': '#ffffff',
+    'gray': '#808080'
+};
+
+// Matplotlib default colors (priority 2 - fallback)
+const MATPLOTLIB_COLORS = {
+    'b': '#1f77b4',
+    'g': '#2ca02c',
+    'r': '#d62728',
+    'c': '#17becf',
+    'm': '#9467bd',
+    'y': '#bcbd22',
+    'k': '#000000',
+    'w': '#ffffff'
+};
+
+// Find color in presets (returns {name, hex} or null)
+function findPresetColor(input) {
+    if (!input) return null;
+    const lower = input.toLowerCase().trim();
+
+    // Check SCITEX presets first (priority)
+    for (const [name, hex] of Object.entries(COLOR_PRESETS)) {
+        if (name === lower || hex.toLowerCase() === lower) {
+            return { name, hex, source: 'preset' };
+        }
+    }
+
+    // Check matplotlib single-letter colors
+    if (MATPLOTLIB_COLORS[lower]) {
+        return { name: lower, hex: MATPLOTLIB_COLORS[lower], source: 'matplotlib' };
+    }
+
+    return null;
+}
+
+// Format color for display - prefer preset name, then RGB
+function formatColorDisplay(value) {
+    if (!value) return '';
+
+    // Check if it matches a preset
+    const preset = findPresetColor(value);
+    if (preset) {
+        return preset.name;  // Show preset name
+    }
+
+    // If hex, convert to RGB tuple
+    if (value.startsWith('#')) {
+        return hexToRGBTuple(value) || value;
+    }
+
+    // Return as-is (could be matplotlib color name)
+    return value;
+}
+
+// Convert hex to RGB tuple string for matplotlib
+function hexToRGBTuple(hex) {
+    if (!hex || !hex.startsWith('#')) return null;
+    const h = hex.slice(1);
+    if (h.length === 3) {
+        const r = parseInt(h[0] + h[0], 16);
+        const g = parseInt(h[1] + h[1], 16);
+        const b = parseInt(h[2] + h[2], 16);
+        return `(${r}, ${g}, ${b})`;
+    } else if (h.length === 6) {
+        const r = parseInt(h.slice(0, 2), 16);
+        const g = parseInt(h.slice(2, 4), 16);
+        const b = parseInt(h.slice(4, 6), 16);
+        return `(${r}, ${g}, ${b})`;
+    }
+    return null;
+}
+
+// Create a unified color input with dropdown (presets + custom option)
+function createColorInput(callId, key, value) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'color-input-wrapper';
+
+    // Color preview swatch (click to open color picker)
+    const swatch = document.createElement('div');
+    swatch.className = 'color-swatch';
+    swatch.style.backgroundColor = value || '#000000';
+    swatch.title = 'Click to pick color';
+
+    // Unified dropdown with presets + custom option
+    const select = document.createElement('select');
+    select.className = 'dynamic-input color-select';
+    select.dataset.callId = callId;
+    select.dataset.param = key;
+
+    // Add preset options
+    for (const [name, hex] of Object.entries(COLOR_PRESETS)) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        opt.style.backgroundColor = hex;
+        select.appendChild(opt);
+    }
+
+    // Add separator and custom option
+    const separator = document.createElement('option');
+    separator.disabled = true;
+    separator.textContent = '───────────';
+    select.appendChild(separator);
+
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = 'Custom...';
+    select.appendChild(customOpt);
+
+    // Set initial selection
+    const initialPreset = findPresetColor(value);
+    if (initialPreset) {
+        select.value = initialPreset.name;
+    } else if (value) {
+        // Add current value as option if not a preset
+        const currentOpt = document.createElement('option');
+        currentOpt.value = value;
+        currentOpt.textContent = formatColorDisplay(value);
+        select.insertBefore(currentOpt, separator);
+        select.value = value;
+    }
+
+    // Custom input (hidden by default, shown when "Custom..." selected)
+    const customInput = document.createElement('input');
+    customInput.type = 'text';
+    customInput.className = 'dynamic-input color-custom-input';
+    customInput.placeholder = '(R,G,B) or color name';
+    customInput.style.display = 'none';
+
+    // RGB display
+    const rgbDisplay = document.createElement('span');
+    rgbDisplay.className = 'rgb-display';
+    rgbDisplay.textContent = colorToRGB(value);
+
+    // Hidden color picker
+    const colorPicker = document.createElement('input');
+    colorPicker.type = 'color';
+    colorPicker.className = 'color-picker-hidden';
+    colorPicker.value = colorToHex(value);
+
+    // Update display helper
+    function updateDisplay(colorValue) {
+        const preset = findPresetColor(colorValue);
+        const hex = preset ? preset.hex : colorToHex(colorValue);
+        swatch.style.backgroundColor = hex;
+        rgbDisplay.textContent = colorToRGB(hex);
+        colorPicker.value = hex;
+    }
+
+    // Event handlers
+    select.addEventListener('change', function() {
+        if (this.value === '__custom__') {
+            customInput.style.display = 'block';
+            customInput.focus();
+        } else {
+            customInput.style.display = 'none';
+            updateDisplay(this.value);
+            // Create a fake input for the handler
+            const fakeInput = { value: this.value };
+            handleDynamicParamChange(callId, key, fakeInput);
+        }
+    });
+
+    customInput.addEventListener('change', function() {
+        const inputValue = this.value.trim();
+        if (inputValue) {
+            // Check if it matches a preset
+            const preset = findPresetColor(inputValue);
+            if (preset) {
+                select.value = preset.name;
+                customInput.style.display = 'none';
+                updateDisplay(preset.hex);
+            } else {
+                // Add as new option
+                let existingOpt = Array.from(select.options).find(o => o.value === inputValue);
+                if (!existingOpt) {
+                    const newOpt = document.createElement('option');
+                    newOpt.value = inputValue;
+                    newOpt.textContent = formatColorDisplay(inputValue);
+                    select.insertBefore(newOpt, separator);
+                }
+                select.value = inputValue;
+                customInput.style.display = 'none';
+                updateDisplay(inputValue);
+            }
+            const fakeInput = { value: inputValue };
+            handleDynamicParamChange(callId, key, fakeInput);
+        }
+    });
+
+    customInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            customInput.style.display = 'none';
+            // Revert to previous selection
+            if (select.value === '__custom__') {
+                select.selectedIndex = 0;
+            }
+        }
+    });
+
+    swatch.addEventListener('click', function() {
+        colorPicker.click();
+    });
+
+    colorPicker.addEventListener('input', function() {
+        updateDisplay(this.value);
+    });
+
+    colorPicker.addEventListener('change', function() {
+        const pickedColor = this.value;
+        const preset = findPresetColor(pickedColor);
+        if (preset) {
+            select.value = preset.name;
+        } else {
+            // Add picked color as option
+            const rgbTuple = hexToRGBTuple(pickedColor);
+            let existingOpt = Array.from(select.options).find(o => o.value === pickedColor || o.value === rgbTuple);
+            if (!existingOpt) {
+                const newOpt = document.createElement('option');
+                newOpt.value = rgbTuple || pickedColor;
+                newOpt.textContent = rgbTuple || pickedColor;
+                select.insertBefore(newOpt, separator);
+            }
+            select.value = rgbTuple || pickedColor;
+        }
+        customInput.style.display = 'none';
+        const fakeInput = { value: select.value };
+        handleDynamicParamChange(callId, key, fakeInput);
+    });
+
+    wrapper.appendChild(swatch);
+    wrapper.appendChild(select);
+    wrapper.appendChild(customInput);
+    wrapper.appendChild(rgbDisplay);
+    wrapper.appendChild(colorPicker);
+
+    return wrapper;
+}
+
 // Create a dynamic form field for call parameter
 function createDynamicField(callId, key, value, sigInfo, isUnused = false) {
     const container = document.createElement('div');
@@ -953,6 +1269,16 @@ function createDynamicField(callId, key, value, sigInfo, isUnused = false) {
     label.textContent = key;
 
     let input;
+
+    // Check if this is a color field
+    if (isColorField(key, sigInfo)) {
+        input = createColorInput(callId, key, value);
+        row.appendChild(label);
+        row.appendChild(input);
+        container.appendChild(row);
+        return container;  // Skip type hint for color fields
+    }
+
     if (typeof value === 'boolean' || value === true || value === false) {
         input = document.createElement('input');
         input.type = 'checkbox';

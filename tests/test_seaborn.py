@@ -52,7 +52,7 @@ class TestSeabornRecording:
             # Check data was reproduced
             assert len(ax2.collections) > 0  # Has scatter points
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_lineplot_record_and_reproduce(self):
         """Test recording and reproducing a lineplot."""
@@ -82,7 +82,7 @@ class TestSeabornRecording:
             # Check line was reproduced
             assert len(ax2.lines) > 0
 
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
     def test_seaborn_call_in_recipe_info(self):
         """Test that seaborn calls appear in recipe info."""
@@ -135,7 +135,7 @@ class TestSeabornRecording:
             # Reproduce and check
             fig2, ax2 = ps.reproduce(recipe_path)
             assert len(ax2.collections) > 0
-            plt.close(fig2)
+            plt.close(fig2.fig)
 
 
 class TestSeabornDataSerialization:

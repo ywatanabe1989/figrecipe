@@ -47,6 +47,7 @@ def kill_port(port=5050):
 
 
 def plot_figure():
+    # constrained_layout=True comes from SCITEX style for proper sup* label positioning
     fig, axes = fr.subplots(nrows=2, ncols=2)
 
     axes_flat = axes.flatten()
@@ -62,11 +63,15 @@ def plot_figure():
     axes_flat[0].scatter(x[::15], np.cos(x[::15]) + 0.2, label="scatter2")
     axes_flat[0].scatter(x[::15], np.sin(x[::15]) - 0.2, label="scatter3")
     axes_flat[0].set_title("2 Lines + 3 Scatters")
+    axes_flat[0].set_xlabel("Time (s)")
+    axes_flat[0].set_ylabel("Amplitude")
     axes_flat[0].legend(fontsize=5)
 
     ## Axis 1
     axes_flat[1].bar(["A", "B", "C", "D"], [2, 3, 5, 4])
     axes_flat[1].set_title("Bar Plot")
+    axes_flat[1].set_xlabel("Category")
+    axes_flat[1].set_ylabel("Value")
 
     ## Axis 2
     axes_flat[2].boxplot(
@@ -74,10 +79,19 @@ def plot_figure():
         id="bp1",
     )
     axes_flat[2].set_title("Box Plot")
+    axes_flat[2].set_xlabel("Group")
+    axes_flat[2].set_ylabel("Distribution")
 
     ## Axis 3
     axes_flat[3].violinplot([np.random.randn(50) for _ in range(4)], id="vp1")
     axes_flat[3].set_title("Violin Plot")
+    axes_flat[3].set_xlabel("Group")
+    axes_flat[3].set_ylabel("Distribution")
+
+    # Figure-level labels (fontsize comes from style automatically)
+    fig.suptitle("Demo Figure with All Elements")
+    fig.supxlabel("Common X-axis Label")
+    fig.supylabel("Common Y-axis Label")
 
     return fig
 

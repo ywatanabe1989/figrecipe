@@ -23,7 +23,7 @@ HTML_TEMPLATE = """
                 <h2>Preview</h2>
                 <div class="preview-controls">
                     <button id="btn-refresh" title="Refresh preview">Refresh</button>
-                    <button id="btn-show-hitmap" title="Toggle hitmap overlay for debugging">Show Hit Regions</button>
+                    <button id="btn-show-hitmap" title="Toggle hitmap overlay for debugging" style="display: none;">Show Hit Regions</button>
                     <label class="theme-toggle">
                         <input type="checkbox" id="dark-mode-toggle">
                         <span>Dark Mode</span>
@@ -44,7 +44,7 @@ HTML_TEMPLATE = """
         <!-- Controls Panel -->
         <div class="controls-panel">
             <div class="controls-header">
-                <h2>Style Properties</h2>
+                <h2>Properties</h2>
                 <div class="controls-actions">
                     <button id="btn-restore" class="btn-warning" title="Restore to original programmatic style">Restore</button>
                     <button id="btn-reset" class="btn-secondary" title="Reset to last saved">Reset</button>
@@ -63,7 +63,7 @@ HTML_TEMPLATE = """
             <div class="controls-sections">
                 <!-- Mode toggle -->
                 <div class="view-mode-toggle">
-                    <button id="btn-show-all" class="btn-toggle active" title="Show all properties">All</button>
+                    <button id="btn-show-all" class="btn-toggle active" title="Show all properties">General</button>
                     <button id="btn-show-selected" class="btn-toggle" title="Show only properties for selected element">Selected</button>
                     <span class="selection-hint" id="selection-hint">Click an element to filter</span>
                 </div>
