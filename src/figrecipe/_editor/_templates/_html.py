@@ -6,11 +6,12 @@ HTML template for figure editor.
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="DARK_MODE_THEME_PLACEHOLDER">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>figrecipe Editor</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         /* STYLES_PLACEHOLDER */
     </style>
@@ -20,7 +21,16 @@ HTML_TEMPLATE = """
         <!-- Preview Panel -->
         <div class="preview-panel">
             <div class="preview-header">
-                <h2>Preview</h2>
+                <a href="https://scitex.ai" target="_blank" class="scitex-branding" title="FigRecipe - Part of SciTeX">
+                    <img src="data:image/png;base64,SCITEX_ICON_PLACEHOLDER" alt="SciTeX" class="scitex-icon">
+                    <span class="figrecipe-title">FigRecipe Editor</span>
+                </a>
+                <div class="file-switcher">
+                    <select id="file-selector" class="file-selector" title="Switch between recipe files">
+                        <option value="">Loading files...</option>
+                    </select>
+                    <button id="btn-new-figure" class="btn-new" title="Create new blank figure">+</button>
+                </div>
                 <div class="preview-controls">
                     <div class="download-dropdown">
                         <button id="btn-download-main" class="btn-primary download-main" title="Download as PNG">Download PNG</button>
@@ -29,24 +39,36 @@ HTML_TEMPLATE = """
                             <button id="btn-download-png-menu" class="download-option active" data-format="png">PNG</button>
                             <button id="btn-download-svg-menu" class="download-option" data-format="svg">SVG</button>
                             <button id="btn-download-pdf-menu" class="download-option" data-format="pdf">PDF</button>
+                            <hr style="margin: 4px 0; border: none; border-top: 1px solid #ddd;">
+                            <button id="btn-download-csv-menu" class="download-option" data-format="csv" title="Export plot data as CSV">CSV (Data)</button>
                         </div>
                     </div>
                     <button id="btn-refresh" title="Refresh preview">Refresh</button>
-                    <button id="btn-show-hitmap" title="Toggle hitmap overlay for debugging" style="display: none;">Show Hit Regions</button>
+                    <div class="zoom-controls">
+                        <button id="btn-zoom-out" title="Zoom out (-)">−</button>
+                        <span id="zoom-level">100%</span>
+                        <button id="btn-zoom-in" title="Zoom in (+)">+</button>
+                        <button id="btn-zoom-reset" title="Reset zoom (0)">⟲</button>
+                        <button id="btn-zoom-fit" title="Fit to view (F)">Fit</button>
+                    </div>
+                    <button id="btn-ruler-grid" class="btn-ruler" title="Toggle rulers and grid overlay (G)">Ruler & Grid</button>
+                    <button id="btn-shortcuts" class="btn-shortcuts" title="Show keyboard shortcuts (?)">⌨</button>
                     <label class="theme-toggle">
-                        <input type="checkbox" id="dark-mode-toggle">
+                        <input type="checkbox" id="dark-mode-toggle" DARK_MODE_CHECKED_PLACEHOLDER>
                         <span>Dark Mode</span>
                     </label>
                 </div>
             </div>
-            <div class="preview-wrapper">
-                <img id="preview-image" src="data:image/png;base64,IMAGE_BASE64_PLACEHOLDER" alt="Figure preview">
-                <svg id="hitregion-overlay" class="hitregion-overlay"></svg>
-                <svg id="selection-overlay" class="selection-overlay"></svg>
-                <canvas id="hitmap-canvas" style="display: none;"></canvas>
-            </div>
-            <div class="selected-element-info" id="selected-info">
-                Click on an element to select it
+            <div class="preview-wrapper" id="preview-wrapper">
+                <div class="zoom-container" id="zoom-container">
+                    <img id="preview-image" src="data:image/png;base64,IMAGE_BASE64_PLACEHOLDER" alt="Figure preview">
+                    <svg id="hitregion-overlay" class="hitregion-overlay"></svg>
+                    <svg id="selection-overlay" class="selection-overlay"></svg>
+                    <svg id="ruler-overlay" class="ruler-overlay"></svg>
+                    <svg id="grid-overlay" class="grid-overlay"></svg>
+                    <svg id="column-overlay" class="column-overlay"></svg>
+                    <canvas id="hitmap-canvas" style="display: none;"></canvas>
+                </div>
             </div>
         </div>
 
@@ -83,6 +105,45 @@ HTML_TEMPLATE = """
                     <div class="modal-footer">
                         <button id="theme-modal-download" class="btn-primary">Download YAML</button>
                         <button id="theme-modal-copy" class="btn-secondary">Copy to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Shortcuts Modal -->
+            <div id="shortcuts-modal" class="modal" style="display: none;">
+                <div class="modal-content shortcuts-modal-content">
+                    <div class="modal-header">
+                        <h3>Keyboard Shortcuts</h3>
+                        <button id="shortcuts-modal-close" class="modal-close">&times;</button>
+                    </div>
+                    <div class="shortcuts-content">
+                        <div class="shortcut-section">
+                            <h4>General</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Save overrides</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Download PNG</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Debug snapshot</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>F5</kbd> / <kbd>Ctrl</kbd>+<kbd>R</kbd></span><span class="shortcut-desc">Refresh preview</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Esc</kbd></span><span class="shortcut-desc">Clear selection</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>R</kbd></span><span class="shortcut-desc">Reset to theme defaults</span></div>
+                        </div>
+                        <div class="shortcut-section">
+                            <h4>Navigation</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>1</kbd></span><span class="shortcut-desc">Figure tab</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>2</kbd></span><span class="shortcut-desc">Axis tab</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>3</kbd></span><span class="shortcut-desc">Element tab</span></div>
+                        </div>
+                        <div class="shortcut-section">
+                            <h4>View</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>G</kbd></span><span class="shortcut-desc">Toggle ruler &amp; grid</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>+</kbd> / <kbd>-</kbd></span><span class="shortcut-desc">Zoom in/out</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>0</kbd></span><span class="shortcut-desc">Reset zoom</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>F</kbd></span><span class="shortcut-desc">Fit to view</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>?</kbd></span><span class="shortcut-desc">Show this help</span></div>
+                        </div>
+                        <div class="shortcut-section">
+                            <h4>Developer</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Toggle element inspector</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Screenshot + console logs</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
