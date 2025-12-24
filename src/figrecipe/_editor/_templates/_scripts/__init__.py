@@ -18,20 +18,30 @@ Extracted Modules (for incremental refactoring):
 - _selection.py - Selection drawing and property sync
 - _colors.py - Color presets and conversion utilities
 - _element_editor.py - Dynamic form fields and call properties
+- _tabs.py - Tab navigation (Figure/Axis/Element)
+- _view_mode.py - View mode management (all/selected)
+- _modals.py - Theme and shortcuts modals
+- _api.py - API calls (save, load, update, download)
+- _labels.py - Label inputs and axis/legend controls
 """
 
 # Re-export SCRIPTS from the main file for backward compatibility
 from .._scripts_main import SCRIPTS
 
 # Import extracted modules
+from ._api import SCRIPTS_API
 from ._colors import SCRIPTS_COLORS
 from ._core import SCRIPTS_CORE
 from ._element_editor import SCRIPTS_ELEMENT_EDITOR
 from ._files import SCRIPTS_FILES
 from ._hitmap import SCRIPTS_HITMAP
 from ._inspector import SCRIPTS_INSPECTOR
+from ._labels import SCRIPTS_LABELS
+from ._modals import SCRIPTS_MODALS
 from ._overlays import SCRIPTS_OVERLAYS
 from ._selection import SCRIPTS_SELECTION
+from ._tabs import SCRIPTS_TABS
+from ._view_mode import SCRIPTS_VIEW_MODE
 from ._zoom import SCRIPTS_ZOOM
 
 # Export SCRIPTS as the primary export for backward compatibility
@@ -46,4 +56,9 @@ __all__ = [
     "SCRIPTS_SELECTION",
     "SCRIPTS_COLORS",
     "SCRIPTS_ELEMENT_EDITOR",
+    "SCRIPTS_TABS",
+    "SCRIPTS_VIEW_MODE",
+    "SCRIPTS_MODALS",
+    "SCRIPTS_API",
+    "SCRIPTS_LABELS",
 ]
