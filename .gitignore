@@ -80,6 +80,8 @@ outputs/
 !outputs/notebook/
 *.png
 !docs/figrecipe_logo.png
+!docs/images/*.png
+!docs/images/**/*.png
 !outputs/notebook/*.png
 *.yaml
 !pyproject.toml

@@ -48,13 +48,30 @@ def render_preview(
     # Get underlying matplotlib figure
     mpl_fig = fig.fig if hasattr(fig, "fig") else fig
 
+    # Get record for call_id grouping (if fig is a RecordingFigure)
+    record = fig.record if hasattr(fig, "record") else None
+
     # Apply style overrides
     if overrides:
-        _apply_overrides(mpl_fig, overrides)
+        _apply_overrides(mpl_fig, overrides, record)
 
     # Apply dark mode if requested
     if dark_mode:
         _apply_dark_mode(mpl_fig)
+
+    # Finalize ticks and special plots (must be done after all plotting)
+    from ..styles._style_applier import finalize_special_plots, finalize_ticks
+
+    # Get style dict for finalization
+    style_dict = {}
+    if hasattr(fig, "style") and fig.style:
+        from ..styles import get_style
+
+        style_dict = get_style(fig.style)
+
+    for ax in mpl_fig.get_axes():
+        finalize_ticks(ax)
+        finalize_special_plots(ax, style_dict)
 
     # Render to buffer first
     buf = io.BytesIO()
@@ -120,7 +137,9 @@ def render_to_base64(
     return base64_str, bboxes, img_size
 
 
-def _apply_overrides(fig: Figure, overrides: Dict[str, Any]) -> None:
+def _apply_overrides(
+    fig: Figure, overrides: Dict[str, Any], record: Optional[Any] = None
+) -> None:
     """
     Apply style overrides to figure.
 
@@ -134,6 +153,8 @@ def _apply_overrides(fig: Figure, overrides: Dict[str, Any]) -> None:
         - fonts_axis_label_pt, fonts_tick_label_pt
         - lines_trace_mm
         - etc.
+    record : FigureRecord, optional
+        Recording record to access call IDs for grouping elements.
     """
     from ..styles._style_applier import apply_style_mm
 
@@ -225,6 +246,21 @@ def _apply_overrides(fig: Figure, overrides: Dict[str, Any]) -> None:
             for line in ax.get_lines():
                 line.set_linewidth(lw)
 
+        # Apply color palette to existing elements
+        color_palette = overrides.get("color_palette")
+        if color_palette is not None:
+            # Try to find the corresponding AxesRecord for this axes
+            ax_record = None
+            if record is not None and hasattr(record, "axes"):
+                # Find ax position in the figure's axes list
+                ax_idx = axes_list.index(ax)
+                # AxesRecord keys are position tuples like "(0, 0)", "(0, 1)", etc.
+                # Try to match by index order
+                ax_keys = sorted(record.axes.keys())
+                if ax_idx < len(ax_keys):
+                    ax_record = record.axes.get(ax_keys[ax_idx])
+            _apply_color_palette_to_elements(ax, color_palette, ax_record)
+
         # Marker sizes (YAML: markers_scatter_mm, legacy: marker_size_mm)
         # Only apply to PathCollection (scatter), not PolyCollection (violin/fill)
         scatter_mm = overrides.get(
@@ -244,6 +280,155 @@ def _apply_overrides(fig: Figure, overrides: Dict[str, Any]) -> None:
                         coll.set_sizes([size])
                     except Exception:
                         pass
+
+
+def _apply_color_palette_to_elements(ax, color_palette, ax_record=None) -> None:
+    """
+    Apply color palette to existing plot elements, grouping by call_id.
+
+    Parameters
+    ----------
+    ax : Axes
+        Matplotlib axes containing plot elements.
+    color_palette : list
+        List of colors (RGB tuples or color names).
+    ax_record : AxesRecord, optional
+        Record of calls for this axes (for grouping elements by call_id).
+    """
+    from matplotlib.collections import PathCollection, PolyCollection
+    from matplotlib.patches import Rectangle, Wedge
+
+    # Normalize colors (RGB 0-255 to 0-1)
+    normalized_palette = []
+    for c in color_palette:
+        if isinstance(c, (list, tuple)) and len(c) >= 3:
+            if all(v <= 1.0 for v in c):
+                normalized_palette.append(tuple(c))
+            else:
+                normalized_palette.append(tuple(v / 255.0 for v in c))
+        else:
+            normalized_palette.append(c)
+
+    if not normalized_palette:
+        return
+
+    # Build call_id to color index mapping from record
+    call_color_map = {}
+    if ax_record:
+        color_idx = 0
+        for call in ax_record.calls:
+            if call.function in (
+                "plot",
+                "scatter",
+                "bar",
+                "barh",
+                "hist",
+                "pie",
+                "fill",
+                "fill_between",
+                "fill_betweenx",
+            ):
+                if call.id not in call_color_map:
+                    call_color_map[call.id] = color_idx
+                    color_idx += 1
+
+    # Apply to lines - each line is typically one plot call
+    lines = ax.get_lines()
+    line_calls = [
+        c for c in (ax_record.calls if ax_record else []) if c.function == "plot"
+    ]
+    for i, line in enumerate(lines):
+        # Skip internal lines (boxplot whiskers, etc.)
+        label = line.get_label()
+        if label.startswith("_"):
+            continue
+        if i < len(line_calls) and line_calls[i].id in call_color_map:
+            color_idx = call_color_map[line_calls[i].id]
+        else:
+            color_idx = i
+        line.set_color(normalized_palette[color_idx % len(normalized_palette)])
+
+    # Apply to bar plots and histograms (Rectangle patches)
+    # Group all rectangles from the same call together
+    rectangles = [p for p in ax.patches if isinstance(p, Rectangle)]
+    if rectangles:
+        bar_calls = [
+            c
+            for c in (ax_record.calls if ax_record else [])
+            if c.function in ("bar", "barh", "hist")
+        ]
+        if bar_calls:
+            # All rectangles belong to bar/hist calls - group by call
+            # For simplicity, assume rectangles appear in order of calls
+            # and each bar call produces a contiguous set of rectangles
+            rect_per_call = len(rectangles) // len(bar_calls) if bar_calls else 1
+            for i, patch in enumerate(rectangles):
+                call_idx = (
+                    min(i // rect_per_call, len(bar_calls) - 1)
+                    if rect_per_call > 0
+                    else 0
+                )
+                if (
+                    call_idx < len(bar_calls)
+                    and bar_calls[call_idx].id in call_color_map
+                ):
+                    color_idx = call_color_map[bar_calls[call_idx].id]
+                else:
+                    color_idx = call_idx
+                patch.set_facecolor(
+                    normalized_palette[color_idx % len(normalized_palette)]
+                )
+        else:
+            # No record, apply single color to all bars (treat as one group)
+            color = normalized_palette[0]
+            for patch in rectangles:
+                patch.set_facecolor(color)
+
+    # Apply to pie charts (Wedge patches) - all wedges from one pie() call
+    wedges = [p for p in ax.patches if isinstance(p, Wedge)]
+    # Note: pie_calls reserved for future per-call color grouping
+    if wedges:
+        # Each pie call gets one color for all its wedges...
+        # Actually for pie, each wedge should be different color
+        for i, wedge in enumerate(wedges):
+            color = normalized_palette[i % len(normalized_palette)]
+            wedge.set_facecolor(color)
+            # Ensure black edge for pie charts (SCITEX style)
+            wedge.set_edgecolor("black")
+
+    # Apply to scatter plots (PathCollection) - each collection is one scatter call
+    scatter_collections = [c for c in ax.collections if isinstance(c, PathCollection)]
+    scatter_calls = [
+        c for c in (ax_record.calls if ax_record else []) if c.function == "scatter"
+    ]
+    for i, coll in enumerate(scatter_collections):
+        if i < len(scatter_calls) and scatter_calls[i].id in call_color_map:
+            color_idx = call_color_map[scatter_calls[i].id]
+        else:
+            color_idx = i
+        coll.set_facecolor(normalized_palette[color_idx % len(normalized_palette)])
+
+    # Apply to violin/fill plots (PolyCollection)
+    poly_collections = [c for c in ax.collections if isinstance(c, PolyCollection)]
+    for i, coll in enumerate(poly_collections):
+        color = normalized_palette[i % len(normalized_palette)]
+        coll.set_facecolor(color)
+
+    # Update legend if exists (to reflect new colors)
+    legend = ax.get_legend()
+    if legend is not None:
+        handles = (
+            legend.legend_handles
+            if hasattr(legend, "legend_handles")
+            else legend.legendHandles
+        )
+        for i, handle in enumerate(handles):
+            if i < len(normalized_palette):
+                color = normalized_palette[i % len(normalized_palette)]
+                if hasattr(handle, "set_color"):
+                    handle.set_color(color)
+                elif hasattr(handle, "set_facecolor"):
+                    handle.set_facecolor(color)
 
 
 def _apply_dark_mode(fig: Figure) -> None:
@@ -329,11 +514,27 @@ def render_download(
     """
     mpl_fig = fig.fig if hasattr(fig, "fig") else fig
 
+    # Get record for call_id grouping (if fig is a RecordingFigure)
+    record = fig.record if hasattr(fig, "record") else None
+
     if overrides:
-        _apply_overrides(mpl_fig, overrides)
+        _apply_overrides(mpl_fig, overrides, record)
 
     if dark_mode:
         _apply_dark_mode(mpl_fig)
+
+    # Finalize ticks and special plots (must be done after all plotting)
+    from ..styles._style_applier import finalize_special_plots, finalize_ticks
+
+    style_dict = {}
+    if hasattr(fig, "style") and fig.style:
+        from ..styles import get_style
+
+        style_dict = get_style(fig.style)
+
+    for ax in mpl_fig.get_axes():
+        finalize_ticks(ax)
+        finalize_special_plots(ax, style_dict)
 
     buf = io.BytesIO()
     mpl_fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches="tight")

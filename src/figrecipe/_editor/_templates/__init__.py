@@ -8,12 +8,23 @@ single source of truth. No custom key mapping is needed since all keys
 now match the HTML input IDs directly.
 """
 
+import base64
 import json
+from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from ._html import HTML_TEMPLATE
 from ._scripts import SCRIPTS
 from ._styles import STYLES
+
+# Load SciTeX icon as base64
+_SCITEX_ICON_PATH = (
+    Path(__file__).parent.parent.parent.parent.parent / "docs" / "scitex-icon.png"
+)
+_SCITEX_ICON_BASE64 = ""
+if _SCITEX_ICON_PATH.exists():
+    with open(_SCITEX_ICON_PATH, "rb") as f:
+        _SCITEX_ICON_BASE64 = base64.b64encode(f.read()).decode("utf-8")
 
 
 def build_html_template(
@@ -24,6 +35,7 @@ def build_html_template(
     overrides: Dict[str, Any],
     img_size: Tuple[int, int],
     style_name: str = "SCITEX",
+    hot_reload: bool = False,
 ) -> str:
     """
     Build complete HTML template for figure editor.
@@ -47,6 +59,8 @@ def build_html_template(
         (width, height) of preview image.
     style_name : str
         Name of the applied style preset (e.g., "SCITEX", "MATPLOTLIB").
+    hot_reload : bool
+        Enable hot reload auto-reconnect JavaScript.
 
     Returns
     -------
@@ -57,10 +71,58 @@ def build_html_template(
     # Keys should already match HTML input IDs (YAML-compatible flattened)
     initial_values = {**style, **overrides}
 
+    # Hot reload JavaScript for auto-reconnect on server restart
+    hot_reload_script = ""
+    if hot_reload:
+        hot_reload_script = """
+// Hot Reload: Auto-reconnect when server restarts
+(function() {
+    let isReconnecting = false;
+    let pingInterval = null;
+
+    function showReloadBanner(show) {
+        let banner = document.getElementById('hot-reload-banner');
+        if (!banner && show) {
+            banner = document.createElement('div');
+            banner.id = 'hot-reload-banner';
+            banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#f59e0b;' +
+                'color:#000;text-align:center;padding:8px;z-index:9999;font-weight:bold;';
+            banner.textContent = 'Server restarting... will reload automatically';
+            document.body.prepend(banner);
+        }
+        if (banner) {
+            banner.style.display = show ? 'block' : 'none';
+        }
+    }
+
+    function ping() {
+        fetch('/ping', {cache: 'no-store'})
+            .then(r => {
+                if (r.ok && isReconnecting) {
+                    // Server is back! Reload the page
+                    console.log('[Hot Reload] Server is back, reloading...');
+                    window.location.reload();
+                }
+            })
+            .catch(() => {
+                if (!isReconnecting) {
+                    console.log('[Hot Reload] Server disconnected, waiting for restart...');
+                    isReconnecting = true;
+                    showReloadBanner(true);
+                }
+            });
+    }
+
+    // Start pinging every 500ms
+    pingInterval = setInterval(ping, 500);
+    console.log('[Hot Reload] Enabled - watching for server restarts');
+})();
+"""
+
     # Inject data into template
     html = HTML_TEMPLATE
     html = html.replace("/* STYLES_PLACEHOLDER */", STYLES)
-    html = html.replace("/* SCRIPTS_PLACEHOLDER */", SCRIPTS)
+    html = html.replace("/* SCRIPTS_PLACEHOLDER */", SCRIPTS + hot_reload_script)
     html = html.replace("IMAGE_BASE64_PLACEHOLDER", image_base64)
     html = html.replace("BBOXES_PLACEHOLDER", json.dumps(bboxes))
     html = html.replace("COLOR_MAP_PLACEHOLDER", json.dumps(color_map))
@@ -68,6 +130,7 @@ def build_html_template(
     html = html.replace("IMG_WIDTH_PLACEHOLDER", str(img_size[0]))
     html = html.replace("IMG_HEIGHT_PLACEHOLDER", str(img_size[1]))
     html = html.replace("STYLE_NAME_PLACEHOLDER", style_name)
+    html = html.replace("SCITEX_ICON_PLACEHOLDER", _SCITEX_ICON_BASE64)
 
     return html
 

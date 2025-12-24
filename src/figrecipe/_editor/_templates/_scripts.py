@@ -28,6 +28,17 @@ let hoveredElement = null;  // Track currently hovered element for click priorit
 // View mode: 'all' shows all properties, 'selected' shows only element-specific
 let viewMode = 'all';
 
+// Zoom/Pan state
+let zoomLevel = 1.0;
+const ZOOM_MIN = 0.1;
+const ZOOM_MAX = 5.0;
+const ZOOM_STEP = 0.25;
+let isPanning = false;
+let panStartX = 0;
+let panStartY = 0;
+let scrollStartX = 0;
+let scrollStartY = 0;
+
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initializeValues();
@@ -38,9 +49,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update hit regions on window resize
     window.addEventListener('resize', updateHitRegions);
 
-    // Update hit regions when preview image loads
+    // Update hit regions and overlays when preview image loads
     const previewImg = document.getElementById('preview-image');
     previewImg.addEventListener('load', updateHitRegions);
+    previewImg.addEventListener('load', updateOverlays);
 
     // Initialize hit regions visibility state
     const overlay = document.getElementById('hitregion-overlay');
@@ -59,6 +71,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Always draw hit regions for hover detection
     setTimeout(() => drawHitRegions(), 100);
+
+    // Initialize zoom/pan
+    initializeZoomPan();
+
+    // Initialize measurement overlay controls
+    initializeOverlayControls();
 });
 
 // Theme values are passed from server via initialValues
@@ -193,7 +211,9 @@ function initializeEventListeners() {
     document.getElementById('btn-reset').addEventListener('click', resetValues);
     document.getElementById('btn-save').addEventListener('click', saveOverrides);
     document.getElementById('btn-restore').addEventListener('click', restoreOriginal);
-    document.getElementById('btn-show-hitmap').addEventListener('click', toggleHitmapOverlay);
+    // Hit regions toggle (optional - button may be hidden in production)
+    const hitmapBtn = document.getElementById('btn-show-hitmap');
+    if (hitmapBtn) hitmapBtn.addEventListener('click', toggleHitmapOverlay);
 
     // Download dropdown buttons
     initializeDownloadDropdown();
@@ -214,12 +234,97 @@ function initializeEventListeners() {
 
     // Theme modal handlers
     initializeThemeModal();
+    initializeShortcutsModal();
 
     // Check initial override status
     checkOverrideStatus();
 
     // Check modified states after initial values are set
     setTimeout(updateAllModifiedStates, 100);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+}
+
+// Handle keyboard shortcuts
+function handleKeyboardShortcuts(event) {
+    // Ignore shortcuts when typing in input fields
+    const activeElement = document.activeElement;
+    const isInputField = activeElement.tagName === 'INPUT' ||
+                         activeElement.tagName === 'TEXTAREA' ||
+                         activeElement.tagName === 'SELECT';
+
+    // Ctrl+S: Save overrides
+    if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        saveOverrides();
+        showToast('Saved!', 'success');
+        return;
+    }
+
+    // Ctrl+Shift+S: Download PNG
+    if (event.ctrlKey && event.shiftKey && event.key === 'S') {
+        event.preventDefault();
+        downloadFigure('png');
+        return;
+    }
+
+    // F5 or Ctrl+R: Refresh preview
+    if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
+        event.preventDefault();
+        updatePreview();
+        showToast('Refreshed', 'info');
+        return;
+    }
+
+    // Only handle the following shortcuts if not in an input field
+    if (isInputField) return;
+
+    // Escape: Close modals or clear selection
+    if (event.key === 'Escape') {
+        const shortcutsModal = document.getElementById('shortcuts-modal');
+        if (shortcutsModal && shortcutsModal.style.display === 'flex') {
+            hideShortcutsModal();
+            return;
+        }
+        clearSelection();
+        return;
+    }
+
+    // Tab navigation: 1, 2, 3 keys
+    if (event.key === '1') {
+        switchTab('figure');
+        return;
+    }
+    if (event.key === '2') {
+        switchTab('axis');
+        return;
+    }
+    if (event.key === '3') {
+        switchTab('element');
+        return;
+    }
+
+    // R: Reset to theme defaults
+    if (event.key === 'r' || event.key === 'R') {
+        resetValues();
+        showToast('Reset to defaults', 'info');
+        return;
+    }
+
+    // G: Toggle rulers and grid
+    if (event.key === 'g' || event.key === 'G') {
+        toggleRulerGrid();
+        const state = rulerGridVisible ? 'ON' : 'OFF';
+        showToast(`Ruler & Grid: ${state}`, 'info');
+        return;
+    }
+
+    // ?: Show keyboard shortcuts
+    if (event.key === '?') {
+        showShortcutsModal();
+        return;
+    }
 }
 
 // Load hitmap for element detection
@@ -251,7 +356,9 @@ async function loadHitmap() {
 
             // Update overlay image source
             const overlay = document.getElementById('hitmap-overlay');
-            overlay.src = hitmapImg.src;
+            if (overlay) {
+                overlay.src = hitmapImg.src;
+            }
         };
         hitmapImg.src = 'data:image/png;base64,' + data.image;
     } catch (error) {
@@ -359,21 +466,29 @@ function drawHitRegions() {
     overlay.innerHTML = '';
 
     const img = document.getElementById('preview-image');
-    const imgRect = img.getBoundingClientRect();
-    const wrapperRect = img.parentElement.getBoundingClientRect();
 
-    // Calculate offset of image within wrapper
-    const offsetX = imgRect.left - wrapperRect.left;
-    const offsetY = imgRect.top - wrapperRect.top;
+    // Wait for image to load before drawing hit regions
+    if (!img.naturalWidth || !img.naturalHeight) {
+        console.log('Image not loaded yet, deferring hit regions draw');
+        return;
+    }
 
-    // Scale factors from image natural size to display size
-    const scaleX = imgRect.width / img.naturalWidth;
-    const scaleY = imgRect.height / img.naturalHeight;
+    // Set SVG viewBox to match natural image size
+    // CSS transform on zoom-container handles all scaling
+    overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+    overlay.style.width = `${img.naturalWidth}px`;
+    overlay.style.height = `${img.naturalHeight}px`;
+
+    // Use scale=1.0 since SVG coordinates match bbox coordinates (both in natural image pixels)
+    // No offset needed since SVG is positioned to match the image
+    const offsetX = 0;
+    const offsetY = 0;
+    const scaleX = 1.0;
+    const scaleY = 1.0;
 
     console.log('Drawing hit regions:', Object.keys(currentBboxes).length, 'elements');
     console.log('Image natural:', img.naturalWidth, 'x', img.naturalHeight);
-    console.log('Image display:', imgRect.width, 'x', imgRect.height);
-    console.log('Scale:', scaleX, scaleY);
+    console.log('SVG viewBox matches natural size, CSS transform handles zoom');
 
     // Sort by z-order: background first, foreground last (so foreground is on top)
     // Higher z-order = drawn later = on top = can be clicked first
@@ -400,6 +515,9 @@ function drawHitRegions() {
 
     // Draw shapes for each bbox (in z-order)
     for (const [key, bbox] of sortedEntries) {
+        // Get original_color from colorMap (bbox doesn't have it)
+        const colorMapInfo = (colorMap && colorMap[key]) || {};
+        const originalColor = colorMapInfo.original_color || bbox.original_color;
 
         // Create group for shape and label
         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -423,8 +541,8 @@ function drawHitRegions() {
             shape.setAttribute('class', 'hitregion-polyline');
             shape.setAttribute('data-key', key);
             // Set element color as CSS custom property for hover effect
-            if (bbox.original_color) {
-                shape.style.setProperty('--element-color', bbox.original_color);
+            if (originalColor) {
+                shape.style.setProperty('--element-color', originalColor);
             }
 
             // Label position at first point
@@ -437,8 +555,8 @@ function drawHitRegions() {
             shape.setAttribute('class', 'scatter-group');
             shape.setAttribute('data-key', key);
             // Set element color as CSS custom property for hover effect
-            if (bbox.original_color) {
-                shape.style.setProperty('--element-color', bbox.original_color);
+            if (originalColor) {
+                shape.style.setProperty('--element-color', originalColor);
             }
 
             const hitRadius = 5;  // Hit region radius in display pixels
@@ -508,23 +626,25 @@ function drawHitRegions() {
             shape.setAttribute('class', regionClass);
             shape.setAttribute('data-key', key);
             // Set element color as CSS custom property for hover effect
-            if (bbox.original_color) {
-                shape.style.setProperty('--element-color', bbox.original_color);
+            if (originalColor) {
+                shape.style.setProperty('--element-color', originalColor);
             }
 
             labelX = x + 2;
             labelY = y - 3;
         }
 
-        // Add hover and click handlers
-        shape.addEventListener('mouseenter', () => handleHitRegionHover(key, bbox));
+        // Add hover and click handlers (pass colorMapInfo for original_color and call_id)
+        const callId = colorMapInfo.call_id || colorMapInfo.label || bbox.label;
+        const enrichedBbox = { ...bbox, original_color: originalColor, call_id: callId };
+        shape.addEventListener('mouseenter', () => handleHitRegionHover(key, enrichedBbox));
         shape.addEventListener('mouseleave', () => handleHitRegionLeave());
-        shape.addEventListener('click', (e) => handleHitRegionClick(e, key, bbox));
+        shape.addEventListener('click', (e) => handleHitRegionClick(e, key, enrichedBbox));
 
         group.appendChild(shape);
 
         // Create label - use colorMap type if available (for boxplot, violin detection)
-        const colorMapInfo = colorMap[key] || {};
+        // colorMapInfo already declared at start of loop
         const elemType = colorMapInfo.type || bbox.type || 'element';
         const elemLabel = colorMapInfo.label || bbox.label || key;
         const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -538,38 +658,33 @@ function drawHitRegions() {
     }
 
     // Also draw colorMap elements (from hitmap)
-    for (const [key, info] of Object.entries(colorMap)) {
-        // Skip if already in bboxes
-        if (currentBboxes[key]) continue;
+    // Guard against null/undefined colorMap during initial load
+    if (colorMap) {
+        for (const [key, info] of Object.entries(colorMap)) {
+            // Skip if already in bboxes
+            if (currentBboxes[key]) continue;
 
-        // ColorMap entries without bboxes - show as small indicator
-        console.log('ColorMap element without bbox:', key, info);
+            // ColorMap entries without bboxes - show as small indicator
+            console.log('ColorMap element without bbox:', key, info);
+        }
     }
 }
 
 // Handle hover on hit region
 function handleHitRegionHover(key, bbox) {
     // Merge colorMap info for correct type (boxplot, violin, etc.)
-    const colorMapInfo = colorMap[key] || {};
+    const colorMapInfo = (colorMap && colorMap[key]) || {};
     hoveredElement = { key, ...bbox, ...colorMapInfo };
 
-    const info = document.getElementById('selected-info');
-    const elemType = colorMapInfo.type || bbox.type || 'element';
-    const elemLabel = colorMapInfo.label || bbox.label || key;
     const callId = colorMapInfo.call_id;
 
-    // Check if this element is part of a group
+    // Check if this element is part of a group and highlight all
     if (callId) {
         const groupElements = findGroupElements(callId);
         if (groupElements.length > 1) {
-            info.textContent = `Hover: ${elemType} group (${callId}) - ${groupElements.length} elements`;
-            // Highlight all group elements on hover
             highlightGroupElements(groupElements.map(e => e.key));
-            return;
         }
     }
-
-    info.textContent = `Hover: ${elemType} (${elemLabel})`;
 }
 
 // Highlight all elements in a group (for hover effect)
@@ -591,19 +706,6 @@ function handleHitRegionLeave() {
     document.querySelectorAll('.group-hovered').forEach(el => {
         el.classList.remove('group-hovered');
     });
-
-    const info = document.getElementById('selected-info');
-    if (selectedElement) {
-        // Show group info if selected element is part of a group
-        if (selectedElement.groupElements) {
-            const callId = selectedElement.call_id || selectedElement.label;
-            info.textContent = `Selected: ${selectedElement.type} group (${callId}) - ${selectedElement.groupElements.length} elements`;
-        } else {
-            info.textContent = `Selected: ${selectedElement.type} (${selectedElement.label || selectedElement.key})`;
-        }
-    } else {
-        info.textContent = 'Click on an element to select it';
-    }
 }
 
 // Handle click on hit region with Alt+Click cycling support
@@ -613,7 +715,7 @@ function handleHitRegionClick(event, key, bbox) {
 
     // Merge colorMap info (which has correct type like 'boxplot', 'violin')
     // with bbox info (which has geometry)
-    const colorMapInfo = colorMap[key] || {};
+    const colorMapInfo = (colorMap && colorMap[key]) || {};
     const element = { key, ...bbox, ...colorMapInfo };
     console.log('Hit region click:', key, 'altKey:', event.altKey);
 
@@ -765,13 +867,15 @@ function getElementAtPosition(imgX, imgY) {
         }
 
         // Find element by RGB color
-        for (const [key, info] of Object.entries(colorMap)) {
-            if (info.rgb[0] === r && info.rgb[1] === g && info.rgb[2] === b) {
-                console.log(`Found element via hitmap: ${key} (${info.type})`);
-                return { key, ...info };
+        if (colorMap) {
+            for (const [key, info] of Object.entries(colorMap)) {
+                if (info.rgb[0] === r && info.rgb[1] === g && info.rgb[2] === b) {
+                    console.log(`Found element via hitmap: ${key} (${info.type})`);
+                    return { key, ...info };
+                }
             }
+            console.log('No matching element in colorMap for this color');
         }
-        console.log('No matching element in colorMap for this color');
     } catch (error) {
         console.error('Hitmap pixel read error:', error);
     }
@@ -793,7 +897,7 @@ function getElementAtPosition(imgX, imgY) {
 
 // Find all elements belonging to the same logical group (same call_id)
 function findGroupElements(callId) {
-    if (!callId) return [];
+    if (!callId || !colorMap) return [];
 
     const groupElements = [];
     for (const [key, info] of Object.entries(colorMap)) {
@@ -802,6 +906,30 @@ function findGroupElements(callId) {
         }
     }
     return groupElements;
+}
+
+// Get representative color for a call_id group
+// Returns the common color if all elements have the same color, or fallback
+function getGroupRepresentativeColor(callId, fallbackColor) {
+    if (!callId || !colorMap) return fallbackColor;
+
+    const groupElements = findGroupElements(callId);
+    if (groupElements.length === 0) return fallbackColor;
+
+    // Get first element's color as reference
+    const firstColor = groupElements[0].original_color;
+    if (!firstColor) return fallbackColor;
+
+    // Check if all elements have the same color
+    const allSameColor = groupElements.every(el => el.original_color === firstColor);
+
+    if (allSameColor) {
+        return firstColor;
+    }
+
+    // Mixed colors - return the first one as representative
+    // (this is what the user will see and can change for the whole group)
+    return firstColor;
 }
 
 // Select an element (and its logical group if applicable)
@@ -814,14 +942,6 @@ function selectElement(element) {
 
     // Store group info for multi-selection rendering
     selectedElement.groupElements = groupElements.length > 1 ? groupElements : null;
-
-    // Update info display
-    const info = document.getElementById('selected-info');
-    if (groupElements.length > 1) {
-        info.textContent = `Selected: ${element.type} group (${callId}) - ${groupElements.length} elements`;
-    } else {
-        info.textContent = `Selected: ${element.type} (${element.label || element.key})`;
-    }
 
     // Draw selection overlay (handles group selection)
     drawSelection(element.key);
@@ -951,8 +1071,8 @@ function showDynamicCallProperties(element) {
     // Clear previous content
     container.innerHTML = '';
 
-    // Get call_id from element label (e.g., "bp1", "vp1")
-    const callId = element.label;
+    // Get call_id from element (prefer call_id, fallback to label for backwards compat)
+    const callId = element.call_id || element.label;
     if (!callId || !callsData[callId]) {
         container.style.display = 'none';
         return;
@@ -969,9 +1089,25 @@ function showDynamicCallProperties(element) {
 
     // Get args and kwargs
     const usedArgs = callData.args || [];
-    const usedKwargs = callData.kwargs || {};
+    const usedKwargs = { ...callData.kwargs } || {};  // Copy to avoid mutation
     const sigArgs = callData.signature?.args || [];
     const sigKwargs = callData.signature?.kwargs || {};
+
+    // If no color in kwargs, get representative color from call_id group
+    // This handles cases where matplotlib auto-assigns colors
+    if (!usedKwargs.color && !usedKwargs.c) {
+        // Check if signature has a color param
+        if ('color' in sigKwargs || 'c' in sigKwargs) {
+            // Find color from: 1) element's call_id in colorMap, 2) element's label in colorMap, 3) element's original_color
+            // The hitmap's call_id may differ from the recipe's call_id (label)
+            const hitmapCallId = element.call_id;
+            const groupColor = getGroupRepresentativeColor(hitmapCallId, element.original_color) ||
+                               element.original_color;
+            if (groupColor) {
+                usedKwargs.color = groupColor;
+            }
+        }
+    }
 
     // Show args (positional arguments) - display only, not editable
     if (usedArgs.length > 0) {
@@ -1083,30 +1219,32 @@ function colorToHex(color) {
 }
 
 // Color presets from SCITEX theme (priority 1 - highest)
+// Format: 'name': { hex: '#rrggbb', rgb: [r, g, b] }
 const COLOR_PRESETS = {
-    'blue': '#0080c0',
-    'red': '#ff4632',
-    'green': '#14b414',
-    'yellow': '#e6a014',
-    'purple': '#c832ff',
-    'lightblue': '#14c8c8',
-    'orange': '#e45e32',
-    'pink': '#ff96c8',
-    'black': '#000000',
-    'white': '#ffffff',
-    'gray': '#808080'
+    'blue':      { hex: '#0080c0', rgb: [0, 128, 192] },
+    'red':       { hex: '#ff4632', rgb: [255, 70, 50] },
+    'green':     { hex: '#14b414', rgb: [20, 180, 20] },
+    'yellow':    { hex: '#e6a014', rgb: [230, 160, 20] },
+    'purple':    { hex: '#c832ff', rgb: [200, 50, 255] },
+    'lightblue': { hex: '#14c8c8', rgb: [20, 200, 200] },
+    'orange':    { hex: '#e45e32', rgb: [228, 94, 50] },
+    'pink':      { hex: '#ff96c8', rgb: [255, 150, 200] },
+    'black':     { hex: '#000000', rgb: [0, 0, 0] },
+    'white':     { hex: '#ffffff', rgb: [255, 255, 255] },
+    'gray':      { hex: '#808080', rgb: [128, 128, 128] }
 };
 
 // Matplotlib single-letter colors (priority 2)
+// Format: 'name': { hex: '#rrggbb', rgb: [r, g, b] }
 const MATPLOTLIB_SINGLE = {
-    'b': '#1f77b4',
-    'g': '#2ca02c',
-    'r': '#d62728',
-    'c': '#17becf',
-    'm': '#9467bd',
-    'y': '#bcbd22',
-    'k': '#000000',
-    'w': '#ffffff'
+    'b': { hex: '#1f77b4', rgb: [31, 119, 180] },
+    'g': { hex: '#2ca02c', rgb: [44, 160, 44] },
+    'r': { hex: '#d62728', rgb: [214, 39, 40] },
+    'c': { hex: '#17becf', rgb: [23, 190, 207] },
+    'm': { hex: '#9467bd', rgb: [148, 103, 189] },
+    'y': { hex: '#bcbd22', rgb: [188, 189, 34] },
+    'k': { hex: '#000000', rgb: [0, 0, 0] },
+    'w': { hex: '#ffffff', rgb: [255, 255, 255] }
 };
 
 // Matplotlib/CSS named colors (priority 3 - common subset)
@@ -1161,26 +1299,99 @@ const MATPLOTLIB_NAMED = {
 // Returns {name, hex, source} or null if not found in any preset
 function findPresetColor(input) {
     if (!input) return null;
-    const lower = input.toLowerCase().trim();
 
-    // Priority 1: SCITEX theme presets
-    for (const [name, hex] of Object.entries(COLOR_PRESETS)) {
-        if (name === lower || hex.toLowerCase() === lower) {
-            return { name, hex, source: 'theme' };
+    // Handle array input (RGB values like [1.0, 0.27, 0.19])
+    if (Array.isArray(input)) {
+        const r = Math.round(input[0] * 255);
+        const g = Math.round(input[1] * 255);
+        const b = Math.round(input[2] * 255);
+        const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        // Search for matching preset by hex
+        return findPresetByHex(hex);
+    }
+
+    // Ensure input is a string
+    if (typeof input !== 'string') {
+        return null;
+    }
+
+    const trimmed = input.trim();
+
+    // Handle RGB tuple string format: (r, g, b) or r, g, b
+    const rgbMatch = trimmed.match(/^\\(?\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)?$/);
+    if (rgbMatch) {
+        const r = parseInt(rgbMatch[1]);
+        const g = parseInt(rgbMatch[2]);
+        const b = parseInt(rgbMatch[3]);
+        const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        // Search for matching preset by hex
+        return findPresetByHex(hex);
+    }
+
+    const lower = trimmed.toLowerCase();
+
+    // Priority 1: SCITEX theme presets (check name and hex)
+    for (const [name, preset] of Object.entries(COLOR_PRESETS)) {
+        if (name === lower || preset.hex.toLowerCase() === lower) {
+            return { name, hex: preset.hex, rgb: preset.rgb, source: 'theme' };
         }
     }
 
-    // Priority 2: Matplotlib single-letter colors
+    // Priority 2: Matplotlib single-letter colors (check name and hex)
     if (MATPLOTLIB_SINGLE[lower]) {
-        return { name: lower, hex: MATPLOTLIB_SINGLE[lower], source: 'matplotlib' };
+        const preset = MATPLOTLIB_SINGLE[lower];
+        return { name: lower, hex: preset.hex, rgb: preset.rgb, source: 'matplotlib' };
+    }
+    for (const [name, preset] of Object.entries(MATPLOTLIB_SINGLE)) {
+        if (preset.hex.toLowerCase() === lower) {
+            return { name, hex: preset.hex, rgb: preset.rgb, source: 'matplotlib' };
+        }
     }
 
-    // Priority 3: Matplotlib/CSS named colors
+    // Priority 3: Matplotlib/CSS named colors (check name and hex)
     if (MATPLOTLIB_NAMED[lower]) {
         return { name: lower, hex: MATPLOTLIB_NAMED[lower], source: 'css' };
     }
+    for (const [name, hex] of Object.entries(MATPLOTLIB_NAMED)) {
+        if (hex.toLowerCase() === lower) {
+            return { name, hex, source: 'css' };
+        }
+    }
 
     return null;
+}
+
+// Helper: Find preset by hex value (for RGB tuple/array matching)
+function findPresetByHex(hexValue) {
+    if (!hexValue) return null;
+    const lower = hexValue.toLowerCase();
+
+    // Check SCITEX presets
+    for (const [name, preset] of Object.entries(COLOR_PRESETS)) {
+        if (preset.hex.toLowerCase() === lower) {
+            return { name, hex: preset.hex, rgb: preset.rgb, source: 'theme' };
+        }
+    }
+
+    // Check matplotlib single-letter
+    for (const [name, preset] of Object.entries(MATPLOTLIB_SINGLE)) {
+        if (preset.hex.toLowerCase() === lower) {
+            return { name, hex: preset.hex, rgb: preset.rgb, source: 'matplotlib' };
+        }
+    }
+
+    // Check CSS named colors
+    for (const [name, hex] of Object.entries(MATPLOTLIB_NAMED)) {
+        if (hex.toLowerCase() === lower) {
+            return { name, hex, source: 'css' };
+        }
+    }
+
+    // Not found - return as custom with calculated RGB
+    const r = parseInt(hexValue.slice(1, 3), 16);
+    const g = parseInt(hexValue.slice(3, 5), 16);
+    const b = parseInt(hexValue.slice(5, 7), 16);
+    return { name: 'custom', hex: hexValue, rgb: [r, g, b], source: 'custom' };
 }
 
 // Convert any color string to hex (handles presets, hex, rgb, and CSS names)
@@ -1256,10 +1467,14 @@ function createColorInput(callId, key, value) {
     const wrapper = document.createElement('div');
     wrapper.className = 'color-input-wrapper';
 
+    // Resolve initial color to hex for display
+    const resolvedHex = resolveColorToHex(value);
+    const initialPreset = findPresetColor(value);
+
     // Color preview swatch (click to open color picker)
     const swatch = document.createElement('div');
     swatch.className = 'color-swatch';
-    swatch.style.backgroundColor = value || '#000000';
+    swatch.style.backgroundColor = resolvedHex;
     swatch.title = 'Click to pick color';
 
     // Unified dropdown with presets + custom option
@@ -1268,12 +1483,12 @@ function createColorInput(callId, key, value) {
     select.dataset.callId = callId;
     select.dataset.param = key;
 
-    // Add preset options
-    for (const [name, hex] of Object.entries(COLOR_PRESETS)) {
+    // Add preset options with RGB display
+    for (const [name, preset] of Object.entries(COLOR_PRESETS)) {
         const opt = document.createElement('option');
         opt.value = name;
-        opt.textContent = name;
-        opt.style.backgroundColor = hex;
+        opt.textContent = `${name} (${preset.rgb.join(', ')})`;
+        opt.style.backgroundColor = preset.hex;
         select.appendChild(opt);
     }
 
@@ -1289,14 +1504,26 @@ function createColorInput(callId, key, value) {
     select.appendChild(customOpt);
 
     // Set initial selection
-    const initialPreset = findPresetColor(value);
     if (initialPreset) {
-        select.value = initialPreset.name;
+        // Check if preset name is in COLOR_PRESETS (which are added as options)
+        if (initialPreset.name in COLOR_PRESETS) {
+            select.value = initialPreset.name;
+        } else {
+            // Matched matplotlib/CSS color - add as custom option since it's not in dropdown
+            const currentOpt = document.createElement('option');
+            currentOpt.value = initialPreset.name;
+            const rgbStr = initialPreset.rgb ? initialPreset.rgb.join(', ') : hexToRGBTuple(initialPreset.hex);
+            currentOpt.textContent = `${initialPreset.name} (${rgbStr})`;
+            currentOpt.style.backgroundColor = initialPreset.hex;
+            select.insertBefore(currentOpt, separator);
+            select.value = initialPreset.name;
+        }
     } else if (value) {
         // Add current value as option if not a preset
         const currentOpt = document.createElement('option');
         currentOpt.value = value;
         currentOpt.textContent = formatColorDisplay(value);
+        currentOpt.style.backgroundColor = resolvedHex;
         select.insertBefore(currentOpt, separator);
         select.value = value;
     }
@@ -1308,23 +1535,28 @@ function createColorInput(callId, key, value) {
     customInput.placeholder = '(R,G,B) or color name';
     customInput.style.display = 'none';
 
-    // RGB display
+    // RGB display (show tuple format)
     const rgbDisplay = document.createElement('span');
     rgbDisplay.className = 'rgb-display';
-    rgbDisplay.textContent = colorToRGB(value);
+    rgbDisplay.textContent = initialPreset?.rgb ? `(${initialPreset.rgb.join(', ')})` : hexToRGBTuple(resolvedHex);
 
     // Hidden color picker
     const colorPicker = document.createElement('input');
     colorPicker.type = 'color';
     colorPicker.className = 'color-picker-hidden';
-    colorPicker.value = colorToHex(value);
+    colorPicker.value = resolvedHex;
 
     // Update display helper
     function updateDisplay(colorValue) {
         const preset = findPresetColor(colorValue);
-        const hex = preset ? preset.hex : colorToHex(colorValue);
+        const hex = preset ? preset.hex : resolveColorToHex(colorValue);
         swatch.style.backgroundColor = hex;
-        rgbDisplay.textContent = colorToRGB(hex);
+        // Show RGB tuple format
+        if (preset?.rgb) {
+            rgbDisplay.textContent = `(${preset.rgb.join(', ')})`;
+        } else {
+            rgbDisplay.textContent = hexToRGBTuple(hex) || hex;
+        }
         colorPicker.value = hex;
     }
 
@@ -1586,7 +1818,7 @@ let currentTab = 'figure';
 
 // Element type to tab mapping
 const AXIS_TYPES = ['title', 'xlabel', 'ylabel', 'suptitle', 'supxlabel', 'supylabel', 'legend'];
-const ELEMENT_TYPES = ['line', 'scatter', 'bar', 'fill', 'boxplot', 'violin', 'image', 'linecollection'];
+const ELEMENT_TYPES = ['line', 'scatter', 'bar', 'hist', 'fill', 'boxplot', 'violin', 'image', 'linecollection', 'quiver', 'pie'];
 
 // Switch between Figure/Axis/Element tabs
 function switchTab(tabName) {
@@ -1744,7 +1976,6 @@ function showAllProperties() {
 // Clear selection
 function clearSelection() {
     selectedElement = null;
-    document.getElementById('selected-info').textContent = 'Click on an element to select it';
     clearSelectionOverlay();
 
     // Clear section and field highlights
@@ -1768,16 +1999,20 @@ function drawSelection(key) {
     const overlay = document.getElementById('selection-overlay');
     overlay.innerHTML = '';
 
-    // Get preview image dimensions and position
+    // Get preview image dimensions
     const img = document.getElementById('preview-image');
-    const imgRect = img.getBoundingClientRect();
-    const wrapperRect = img.parentElement.getBoundingClientRect();
+    if (!img.naturalWidth || !img.naturalHeight) return;
 
-    // Scale bbox to display coordinates
-    const scaleX = imgRect.width / img.naturalWidth;
-    const scaleY = imgRect.height / img.naturalHeight;
-    const offsetX = imgRect.left - wrapperRect.left;
-    const offsetY = imgRect.top - wrapperRect.top;
+    // Set SVG viewBox to match natural image size (same as hitregion overlay)
+    overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+    overlay.style.width = `${img.naturalWidth}px`;
+    overlay.style.height = `${img.naturalHeight}px`;
+
+    // Use scale=1.0 since SVG coordinates match bbox coordinates
+    const scaleX = 1.0;
+    const scaleY = 1.0;
+    const offsetX = 0;
+    const offsetY = 0;
 
     // Determine which elements to highlight
     let elementsToHighlight = [key];
@@ -1814,9 +2049,8 @@ function drawSelection(key) {
             }
             overlay.appendChild(polyline);
         }
-        // Use circles for scatter points (same as hover)
+        // Use subtle circles for scatter points (marker-level selection)
         else if (bbox.type === 'scatter' && bbox.points && bbox.points.length > 0) {
-            const hitRadius = isPrimary ? 7 : 5;
             bbox.points.forEach(pt => {
                 const cx = offsetX + pt[0] * scaleX;
                 const cy = offsetY + pt[1] * scaleY;
@@ -1824,8 +2058,8 @@ function drawSelection(key) {
                 const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 circle.setAttribute('cx', cx);
                 circle.setAttribute('cy', cy);
-                circle.setAttribute('r', hitRadius);
-                circle.setAttribute('class', 'selection-circle');
+                circle.setAttribute('r', isPrimary ? 4 : 3);
+                circle.setAttribute('class', 'selection-circle-subtle');
                 circle.style.setProperty('--element-color', elementColor);
                 overlay.appendChild(circle);
             });
@@ -2152,6 +2386,44 @@ async function showThemeModal() {
 // Hide theme modal
 function hideThemeModal() {
     const modal = document.getElementById('theme-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Initialize shortcuts modal handlers
+function initializeShortcutsModal() {
+    const modal = document.getElementById('shortcuts-modal');
+    const btnShortcuts = document.getElementById('btn-shortcuts');
+    const modalClose = document.getElementById('shortcuts-modal-close');
+
+    // Button click handler
+    if (btnShortcuts) {
+        btnShortcuts.addEventListener('click', showShortcutsModal);
+    }
+
+    // Close button handler
+    if (modalClose) {
+        modalClose.addEventListener('click', hideShortcutsModal);
+    }
+
+    // Click outside to close
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                hideShortcutsModal();
+            }
+        });
+    }
+}
+
+// Show shortcuts modal
+function showShortcutsModal() {
+    const modal = document.getElementById('shortcuts-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+// Hide shortcuts modal
+function hideShortcutsModal() {
+    const modal = document.getElementById('shortcuts-modal');
     if (modal) modal.style.display = 'none';
 }
 
@@ -2664,6 +2936,130 @@ async function updateLegendPosition(loc, x = null, y = null) {
     document.body.classList.remove('loading');
 }
 
+// ==================== ZOOM/PAN FUNCTIONS ====================
+
+function initializeZoomPan() {
+    const wrapper = document.getElementById('preview-wrapper');
+    const container = document.getElementById('zoom-container');
+
+    if (!wrapper || !container) return;
+
+    // Zoom buttons
+    document.getElementById('btn-zoom-in')?.addEventListener('click', () => setZoom(zoomLevel + ZOOM_STEP));
+    document.getElementById('btn-zoom-out')?.addEventListener('click', () => setZoom(zoomLevel - ZOOM_STEP));
+    document.getElementById('btn-zoom-reset')?.addEventListener('click', () => setZoom(1.0));
+    document.getElementById('btn-zoom-fit')?.addEventListener('click', zoomToFit);
+
+    // Mouse wheel zoom
+    wrapper.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+            setZoom(zoomLevel + delta);
+        }
+    }, { passive: false });
+
+    // Pan with middle mouse or space+drag
+    wrapper.addEventListener('mousedown', (e) => {
+        if (e.button === 1 || (e.button === 0 && e.altKey)) {
+            e.preventDefault();
+            startPan(e);
+        }
+    });
+
+    wrapper.addEventListener('mousemove', (e) => {
+        if (isPanning) {
+            doPan(e);
+        }
+    });
+
+    wrapper.addEventListener('mouseup', endPan);
+    wrapper.addEventListener('mouseleave', endPan);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key === '+' || e.key === '=') {
+            e.preventDefault();
+            setZoom(zoomLevel + ZOOM_STEP);
+        } else if (e.key === '-' || e.key === '_') {
+            e.preventDefault();
+            setZoom(zoomLevel - ZOOM_STEP);
+        } else if (e.key === '0') {
+            e.preventDefault();
+            setZoom(1.0);
+        } else if (e.key === 'f' || e.key === 'F') {
+            e.preventDefault();
+            zoomToFit();
+        }
+    });
+
+    // Initialize fit to view
+    setTimeout(zoomToFit, 200);
+}
+
+function setZoom(newLevel) {
+    zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newLevel));
+
+    const container = document.getElementById('zoom-container');
+    if (container) {
+        container.style.transform = `scale(${zoomLevel})`;
+    }
+
+    // Update zoom level display
+    const levelDisplay = document.getElementById('zoom-level');
+    if (levelDisplay) {
+        levelDisplay.textContent = Math.round(zoomLevel * 100) + '%';
+    }
+}
+
+function zoomToFit() {
+    const wrapper = document.getElementById('preview-wrapper');
+    const img = document.getElementById('preview-image');
+
+    if (!wrapper || !img || !img.naturalWidth) return;
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const padding = 40;
+
+    const scaleX = (wrapperRect.width - padding) / img.naturalWidth;
+    const scaleY = (wrapperRect.height - padding) / img.naturalHeight;
+
+    setZoom(Math.min(scaleX, scaleY, 1.0));
+}
+
+function startPan(e) {
+    const wrapper = document.getElementById('preview-wrapper');
+    isPanning = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    scrollStartX = wrapper.scrollLeft;
+    scrollStartY = wrapper.scrollTop;
+    wrapper.classList.add('panning');
+}
+
+function doPan(e) {
+    if (!isPanning) return;
+
+    const wrapper = document.getElementById('preview-wrapper');
+    const dx = e.clientX - panStartX;
+    const dy = e.clientY - panStartY;
+
+    wrapper.scrollLeft = scrollStartX - dx;
+    wrapper.scrollTop = scrollStartY - dy;
+}
+
+function endPan() {
+    if (isPanning) {
+        const wrapper = document.getElementById('preview-wrapper');
+        wrapper.classList.remove('panning');
+        isPanning = false;
+    }
+}
+
+// ==================== END ZOOM/PAN ====================
+
 // Download figure
 function downloadFigure(format) {
     window.location.href = '/download/' + format;
@@ -2773,6 +3169,785 @@ async function updateOverrideStatusAfterSave(data) {
         showOverrideStatus(data.timestamp);
     }
 }
+
+// Show toast notification for keyboard shortcuts feedback
+function showToast(message, type = 'info') {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification toast-' + type;
+    toast.textContent = message;
+
+    // Style the toast
+    Object.assign(toast.style, {
+        position: 'fixed',
+        bottom: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '10px 20px',
+        borderRadius: '4px',
+        color: 'white',
+        fontWeight: '500',
+        zIndex: '10000',
+        opacity: '0',
+        transition: 'opacity 0.3s ease',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+    });
+
+    // Set background color based on type
+    const colors = {
+        success: '#4CAF50',
+        info: '#2196F3',
+        warning: '#ff9800',
+        error: '#f44336'
+    };
+    toast.style.backgroundColor = colors[type] || colors.info;
+
+    document.body.appendChild(toast);
+
+    // Fade in
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+    });
+
+    // Remove after delay
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
+// ============================================
+// MEASUREMENT OVERLAYS (Ruler, Grid, Columns)
+// ============================================
+
+// State for overlays
+let rulerVisible = false;
+let gridVisible = false;
+let columnsVisible = false;
+
+// Get figure DPI from server (default 300 for preview at 150)
+// Preview DPI is 150, which is half of output DPI
+const PREVIEW_DPI = 150;
+const MM_PER_INCH = 25.4;
+
+// Pixels per mm at preview resolution
+function getPxPerMm() {
+    return PREVIEW_DPI / MM_PER_INCH;
+}
+
+// Unified ruler & grid state
+let rulerGridVisible = false;
+
+// Initialize overlay controls (single toggle button)
+function initializeOverlayControls() {
+    const btn = document.getElementById('btn-ruler-grid');
+    if (btn) {
+        btn.addEventListener('click', toggleRulerGrid);
+    }
+}
+
+// Toggle all ruler/grid overlays together
+function toggleRulerGrid() {
+    rulerGridVisible = !rulerGridVisible;
+
+    // Sync all three visibility states
+    rulerVisible = rulerGridVisible;
+    gridVisible = rulerGridVisible;
+    columnsVisible = rulerGridVisible;
+
+    // Update overlays
+    const rulerOverlay = document.getElementById('ruler-overlay');
+    const gridOverlay = document.getElementById('grid-overlay');
+    const columnOverlay = document.getElementById('column-overlay');
+
+    if (rulerOverlay) rulerOverlay.classList.toggle('visible', rulerGridVisible);
+    if (gridOverlay) gridOverlay.classList.toggle('visible', rulerGridVisible);
+    if (columnOverlay) columnOverlay.classList.toggle('visible', rulerGridVisible);
+
+    // Draw overlays if visible
+    if (rulerGridVisible) {
+        drawRuler();
+        drawGrid();
+        drawColumnGuides();
+    }
+
+    // Update button state
+    const btn = document.getElementById('btn-ruler-grid');
+    if (btn) {
+        btn.classList.toggle('active', rulerGridVisible);
+    }
+}
+
+// Legacy functions for backward compatibility
+function toggleRuler() { toggleRulerGrid(); }
+function toggleGrid() { toggleRulerGrid(); }
+function toggleColumns() { toggleRulerGrid(); }
+
+// Draw ruler overlay (top and left edges)
+function drawRuler() {
+    const overlay = document.getElementById('ruler-overlay');
+    const img = document.getElementById('preview-image');
+    if (!overlay || !img) return;
+
+    // Clear existing
+    overlay.innerHTML = '';
+
+    const imgWidth = img.naturalWidth || img.width;
+    const imgHeight = img.naturalHeight || img.height;
+    const pxPerMm = getPxPerMm();
+
+    // Set SVG size
+    overlay.setAttribute('viewBox', `0 0 ${imgWidth} ${imgHeight}`);
+    overlay.style.width = imgWidth + 'px';
+    overlay.style.height = imgHeight + 'px';
+
+    const rulerThickness = 15;  // pixels
+
+    // Background for horizontal ruler (top)
+    const hBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    hBg.setAttribute('x', 0);
+    hBg.setAttribute('y', 0);
+    hBg.setAttribute('width', imgWidth);
+    hBg.setAttribute('height', rulerThickness);
+    hBg.setAttribute('class', 'ruler-bg');
+    overlay.appendChild(hBg);
+
+    // Background for vertical ruler (left)
+    const vBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    vBg.setAttribute('x', 0);
+    vBg.setAttribute('y', 0);
+    vBg.setAttribute('width', rulerThickness);
+    vBg.setAttribute('height', imgHeight);
+    vBg.setAttribute('class', 'ruler-bg');
+    overlay.appendChild(vBg);
+
+    const widthMm = imgWidth / pxPerMm;
+    const heightMm = imgHeight / pxPerMm;
+
+    // Draw horizontal ruler ticks (every 1mm, labels every 5mm)
+    for (let mm = 0; mm <= widthMm; mm++) {
+        const x = mm * pxPerMm;
+        const isMajor = mm % 5 === 0;
+        const tickLen = isMajor ? 10 : 5;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', tickLen);
+        line.setAttribute('class', isMajor ? 'ruler-line-major' : 'ruler-line');
+        overlay.appendChild(line);
+
+        // Label every 10mm
+        if (mm % 10 === 0 && mm > 0) {
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', x);
+            text.setAttribute('y', 13);
+            text.setAttribute('class', 'ruler-text');
+            text.setAttribute('text-anchor', 'middle');
+            text.textContent = mm.toString();
+            overlay.appendChild(text);
+        }
+    }
+
+    // Draw vertical ruler ticks (every 1mm, labels every 5mm)
+    for (let mm = 0; mm <= heightMm; mm++) {
+        const y = mm * pxPerMm;
+        const isMajor = mm % 5 === 0;
+        const tickLen = isMajor ? 10 : 5;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', 0);
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', tickLen);
+        line.setAttribute('y2', y);
+        line.setAttribute('class', isMajor ? 'ruler-line-major' : 'ruler-line');
+        overlay.appendChild(line);
+
+        // Label every 10mm
+        if (mm % 10 === 0 && mm > 0) {
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', 2);
+            text.setAttribute('y', y + 3);
+            text.setAttribute('class', 'ruler-text');
+            text.setAttribute('text-anchor', 'start');
+            text.setAttribute('transform', `rotate(-90, 2, ${y})`);
+            text.textContent = mm.toString();
+            overlay.appendChild(text);
+        }
+    }
+}
+
+// Draw grid overlay (1mm and 5mm intervals)
+function drawGrid() {
+    const overlay = document.getElementById('grid-overlay');
+    const img = document.getElementById('preview-image');
+    if (!overlay || !img) return;
+
+    // Clear existing
+    overlay.innerHTML = '';
+
+    const imgWidth = img.naturalWidth || img.width;
+    const imgHeight = img.naturalHeight || img.height;
+    const pxPerMm = getPxPerMm();
+
+    // Set SVG size
+    overlay.setAttribute('viewBox', `0 0 ${imgWidth} ${imgHeight}`);
+    overlay.style.width = imgWidth + 'px';
+    overlay.style.height = imgHeight + 'px';
+
+    const widthMm = imgWidth / pxPerMm;
+    const heightMm = imgHeight / pxPerMm;
+
+    // Draw vertical lines (every 1mm)
+    for (let mm = 0; mm <= widthMm; mm++) {
+        const x = mm * pxPerMm;
+        const is5mm = mm % 5 === 0;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', imgHeight);
+        line.setAttribute('class', is5mm ? 'grid-line-5mm' : 'grid-line-1mm');
+        overlay.appendChild(line);
+    }
+
+    // Draw horizontal lines (every 1mm)
+    for (let mm = 0; mm <= heightMm; mm++) {
+        const y = mm * pxPerMm;
+        const is5mm = mm % 5 === 0;
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', 0);
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', imgWidth);
+        line.setAttribute('y2', y);
+        line.setAttribute('class', is5mm ? 'grid-line-5mm' : 'grid-line-1mm');
+        overlay.appendChild(line);
+    }
+}
+
+// Draw column guide lines (45mm intervals: 0, 45, 90, 135, 180mm)
+function drawColumnGuides() {
+    const overlay = document.getElementById('column-overlay');
+    const img = document.getElementById('preview-image');
+    if (!overlay || !img) return;
+
+    // Clear existing
+    overlay.innerHTML = '';
+
+    const imgWidth = img.naturalWidth || img.width;
+    const imgHeight = img.naturalHeight || img.height;
+    const pxPerMm = getPxPerMm();
+
+    // Set SVG size
+    overlay.setAttribute('viewBox', `0 0 ${imgWidth} ${imgHeight}`);
+    overlay.style.width = imgWidth + 'px';
+    overlay.style.height = imgHeight + 'px';
+
+    // Journal column width: 45mm
+    // Lines at 0, 45, 90, 135, 180mm for 0, 1, 2, 3, 4 columns
+    const columnPositions = [
+        { mm: 0, label: '0' },
+        { mm: 45, label: '1 col' },
+        { mm: 90, label: '2 col' },
+        { mm: 135, label: '3 col' },
+        { mm: 180, label: '4 col' }
+    ];
+
+    for (const col of columnPositions) {
+        const x = col.mm * pxPerMm;
+
+        // Skip if beyond image width
+        if (x > imgWidth) continue;
+
+        // Draw vertical line
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', imgHeight);
+        line.setAttribute('class', 'column-line');
+        overlay.appendChild(line);
+
+        // Label background
+        const labelBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const labelText = `${col.label} (${col.mm}mm)`;
+        const labelWidth = labelText.length * 7 + 8;
+        labelBg.setAttribute('x', x + 3);
+        labelBg.setAttribute('y', 3);
+        labelBg.setAttribute('width', labelWidth);
+        labelBg.setAttribute('height', 18);
+        labelBg.setAttribute('rx', 3);
+        labelBg.setAttribute('class', 'column-bg');
+        overlay.appendChild(labelBg);
+
+        // Label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x + 6);
+        text.setAttribute('y', 16);
+        text.setAttribute('class', 'column-text');
+        text.setAttribute('text-anchor', 'start');
+        text.textContent = labelText;
+        overlay.appendChild(text);
+    }
+}
+
+// Update all overlays when image changes
+function updateOverlays() {
+    if (rulerVisible) drawRuler();
+    if (gridVisible) drawGrid();
+    if (columnsVisible) drawColumnGuides();
+}
+
+// ==================== ELEMENT INSPECTOR ====================
+// Visual debugging tool for DOM elements (Alt+I to toggle)
+let elementInspectorActive = false;
+let elementInspectorOverlay = null;
+const inspectorColors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+];
+
+function toggleElementInspector() {
+    if (elementInspectorActive) {
+        deactivateElementInspector();
+    } else {
+        activateElementInspector();
+    }
+}
+
+function activateElementInspector() {
+    console.log('[ElementInspector] Activating...');
+    elementInspectorActive = true;
+
+    // Create overlay container
+    elementInspectorOverlay = document.createElement('div');
+    elementInspectorOverlay.id = 'element-inspector-overlay';
+    elementInspectorOverlay.className = 'element-inspector-overlay';
+    document.body.appendChild(elementInspectorOverlay);
+
+    // Scan and visualize elements
+    scanInspectorElements();
+
+    console.log('[ElementInspector] Active - Press Alt+I to deactivate');
+}
+
+function deactivateElementInspector() {
+    console.log('[ElementInspector] Deactivating...');
+    elementInspectorActive = false;
+
+    if (elementInspectorOverlay) {
+        elementInspectorOverlay.remove();
+        elementInspectorOverlay = null;
+    }
+}
+
+function scanInspectorElements() {
+    if (!elementInspectorOverlay) return;
+
+    // Clear existing overlays
+    elementInspectorOverlay.innerHTML = '';
+
+    // Get all visible elements
+    const allElements = document.querySelectorAll('*');
+    let colorIndex = 0;
+
+    allElements.forEach(element => {
+        // Skip non-visible, overlay, and script/style elements
+        if (element.tagName === 'SCRIPT' || element.tagName === 'STYLE' ||
+            element.tagName === 'HEAD' || element.tagName === 'META' ||
+            element.tagName === 'LINK' || element.tagName === 'TITLE' ||
+            element.id === 'element-inspector-overlay' ||
+            element.closest('#element-inspector-overlay')) {
+            return;
+        }
+
+        const rect = element.getBoundingClientRect();
+
+        // Skip invisible or zero-size elements
+        if (rect.width < 5 || rect.height < 5 ||
+            rect.bottom < 0 || rect.right < 0 ||
+            rect.top > window.innerHeight || rect.left > window.innerWidth) {
+            return;
+        }
+
+        // Create element box
+        const box = document.createElement('div');
+        box.className = 'element-inspector-box';
+        const color = inspectorColors[colorIndex % inspectorColors.length];
+        box.style.cssText = `
+            left: ${rect.left + window.scrollX}px;
+            top: ${rect.top + window.scrollY}px;
+            width: ${rect.width}px;
+            height: ${rect.height}px;
+            border-color: ${color};
+        `;
+
+        // Create label
+        const label = document.createElement('div');
+        label.className = 'element-inspector-label';
+        label.style.backgroundColor = color;
+
+        // Build element identifier
+        let identifier = element.tagName.toLowerCase();
+        if (element.id) identifier += '#' + element.id;
+        if (element.className && typeof element.className === 'string') {
+            const classes = element.className.split(' ').filter(c => c && !c.startsWith('element-inspector')).slice(0, 2);
+            if (classes.length) identifier += '.' + classes.join('.');
+        }
+
+        label.textContent = identifier;
+        box.appendChild(label);
+
+        // Add click handler to show element info
+        box.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showInspectorElementInfo(element, color);
+        });
+
+        // Right-click to copy element path
+        box.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            copyInspectorElementPath(element);
+        });
+
+        elementInspectorOverlay.appendChild(box);
+        colorIndex++;
+    });
+
+    console.log('[ElementInspector] Scanned ' + colorIndex + ' elements');
+}
+
+function showInspectorElementInfo(element, color) {
+    // Log element info to console
+    console.group('%cElement Info', 'color: ' + color + '; font-weight: bold;');
+    console.log('Tag:', element.tagName);
+    console.log('ID:', element.id || '(none)');
+    console.log('Classes:', element.className || '(none)');
+    console.log('Size:', element.offsetWidth + 'x' + element.offsetHeight);
+    console.log('Position:', element.getBoundingClientRect());
+    console.log('Element:', element);
+    console.groupEnd();
+}
+
+function copyInspectorElementPath(element) {
+    // Build CSS selector path
+    const path = [];
+    let current = element;
+
+    while (current && current !== document.body) {
+        let selector = current.tagName.toLowerCase();
+        if (current.id) {
+            selector = '#' + current.id;
+            path.unshift(selector);
+            break;
+        } else if (current.className && typeof current.className === 'string') {
+            const classes = current.className.split(' ').filter(c => c).slice(0, 2);
+            if (classes.length) selector += '.' + classes.join('.');
+        }
+        path.unshift(selector);
+        current = current.parentElement;
+    }
+
+    const selectorPath = path.join(' > ');
+    navigator.clipboard.writeText(selectorPath).then(() => {
+        console.log('[ElementInspector] Copied selector:', selectorPath);
+        showToast('Copied: ' + selectorPath, 'success');
+    });
+}
+
+// Add keyboard shortcut for element inspector
+document.addEventListener('keydown', (e) => {
+    // Skip if typing in input/textarea
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    // Alt+I: Toggle element inspector
+    if (e.altKey && !e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'i') {
+        e.preventDefault();
+        toggleElementInspector();
+    }
+
+    // Alt+Shift+I: Capture debug info (screenshot + console logs)
+    if (e.altKey && !e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[DebugCapture] Alt+Shift+I pressed');
+        captureDebugInfo();
+        return;
+    }
+
+    // Escape: Deactivate element inspector
+    if (e.key === 'Escape' && elementInspectorActive) {
+        e.preventDefault();
+        deactivateElementInspector();
+    }
+});
+
+// Shutter effect for screenshot feedback
+function showShutterEffect() {
+    const shutter = document.createElement('div');
+    shutter.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: white;
+        opacity: 0.8;
+        z-index: 99999;
+        pointer-events: none;
+        animation: shutterFlash 0.3s ease-out forwards;
+    `;
+
+    // Add keyframes if not exists
+    if (!document.getElementById('shutter-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'shutter-keyframes';
+        style.textContent = `
+            @keyframes shutterFlash {
+                0% { opacity: 0.8; }
+                100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.appendChild(shutter);
+    setTimeout(() => shutter.remove(), 300);
+}
+
+// Capture debug info: figure image first, then console logs after delay
+async function captureDebugInfo() {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+    // Show shutter effect
+    showShutterEffect();
+
+    // Step 1: Copy figure image to clipboard first
+    try {
+        const img = document.getElementById('preview-image');
+        if (img && img.src) {
+            const response = await fetch(img.src);
+            const blob = await response.blob();
+            await navigator.clipboard.write([
+                new ClipboardItem({ [blob.type]: blob })
+            ]);
+            showToast('Image copied! Paste now. Text in 2s...', 'success');
+            console.log('[DebugCapture] Image copied to clipboard');
+        } else {
+            showToast('No figure found, copying text only...', 'warning');
+        }
+    } catch (err) {
+        console.error('[DebugCapture] Image copy failed:', err);
+        showToast('Image copy failed, copying text...', 'warning');
+    }
+
+    // Step 2: Wait 2 seconds, then copy debug text
+    setTimeout(async () => {
+        let debugInfo = `=== Debug Capture: ${timestamp} ===\\n\\n`;
+
+        // Collect console logs
+        debugInfo += '=== Console Logs ===\\n';
+        if (window.consoleLogs && window.consoleLogs.length > 0) {
+            window.consoleLogs.forEach(log => {
+                debugInfo += `[${log.type}] ${log.message}\\n`;
+            });
+        } else {
+            debugInfo += '(No logs captured)\\n';
+        }
+
+        // Add current state info
+        debugInfo += '\\n=== Current State ===\\n';
+        debugInfo += `URL: ${window.location.href}\\n`;
+        debugInfo += `Selected Element: ${selectedElement ? selectedElement.key : 'None'}\\n`;
+        debugInfo += `Zoom Level: ${Math.round(zoomLevel * 100)}%\\n`;
+        debugInfo += `Theme: ${document.body.getAttribute('data-theme') || 'light'}\\n`;
+
+        try {
+            await navigator.clipboard.writeText(debugInfo);
+            showToast('Debug text copied! Paste now.', 'success');
+            console.log('[DebugCapture] Text copied:', debugInfo);
+        } catch (err) {
+            console.error('[DebugCapture] Text copy failed:', err);
+            showToast('Text copy failed: ' + err.message, 'error');
+        }
+    }, 2000);
+}
+
+// Console log interceptor (captures logs for debug export)
+window.consoleLogs = [];
+const originalConsole = {
+    log: console.log,
+    warn: console.warn,
+    error: console.error
+};
+
+console.log = function(...args) {
+    window.consoleLogs.push({ type: 'LOG', message: args.join(' '), time: new Date() });
+    if (window.consoleLogs.length > 100) window.consoleLogs.shift();
+    originalConsole.log.apply(console, args);
+};
+
+console.warn = function(...args) {
+    window.consoleLogs.push({ type: 'WARN', message: args.join(' '), time: new Date() });
+    if (window.consoleLogs.length > 100) window.consoleLogs.shift();
+    originalConsole.warn.apply(console, args);
+};
+
+console.error = function(...args) {
+    window.consoleLogs.push({ type: 'ERROR', message: args.join(' '), time: new Date() });
+    if (window.consoleLogs.length > 100) window.consoleLogs.shift();
+    originalConsole.error.apply(console, args);
+};
+
+console.log('[ElementInspector] Loaded - Press Alt+I to toggle');
+console.log('[DebugCapture] Loaded - Press Alt+Shift+I for screenshot + logs');
+
+// ==================== FILE SWITCHER ====================
+// Allows switching between recipe files without restarting the server
+
+let currentFilePath = null;
+
+async function loadFileList() {
+    const selector = document.getElementById('file-selector');
+    if (!selector) return;
+
+    try {
+        const response = await fetch('/api/files');
+        if (!response.ok) {
+            selector.innerHTML = '<option value="">No files found</option>';
+            return;
+        }
+
+        const data = await response.json();
+        const files = data.files || [];
+        currentFilePath = data.current_file;
+
+        if (files.length === 0) {
+            selector.innerHTML = '<option value="">(No recipe files in directory)</option>';
+            return;
+        }
+
+        // Build options
+        let optionsHtml = '';
+        if (!currentFilePath) {
+            optionsHtml += '<option value="" selected>(Unsaved figure)</option>';
+        }
+
+        files.forEach(file => {
+            const isCurrent = file.is_current;
+            const icon = file.has_image ? '📊 ' : '📄 ';
+            const selected = isCurrent ? ' selected' : '';
+            optionsHtml += `<option value="${file.path}"${selected}>${icon}${file.name}</option>`;
+        });
+
+        selector.innerHTML = optionsHtml;
+
+        console.log('[FileSwitcher] Loaded', files.length, 'files');
+
+    } catch (error) {
+        console.error('[FileSwitcher] Error loading files:', error);
+        selector.innerHTML = '<option value="">Error loading files</option>';
+    }
+}
+
+async function switchToFile(filePath) {
+    if (!filePath || filePath === currentFilePath) return;
+
+    showToast('Loading figure...', 'info');
+
+    try {
+        const response = await fetch('/api/switch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: filePath })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to switch file');
+        }
+
+        const data = await response.json();
+
+        // Update preview image
+        const img = document.getElementById('preview-image');
+        if (img && data.image) {
+            img.src = 'data:image/png;base64,' + data.image;
+        }
+
+        // Update bboxes
+        if (data.bboxes) {
+            window.currentBboxes = data.bboxes;
+        }
+
+        // Update color map for hitmap
+        if (data.color_map) {
+            window.currentColorMap = data.color_map;
+        }
+
+        // Update current file path
+        currentFilePath = filePath;
+
+        // Clear selection
+        clearElementHighlights();
+        document.getElementById('selected-element-panel')?.style.setProperty('display', 'none');
+
+        showToast('Loaded: ' + filePath, 'success');
+        console.log('[FileSwitcher] Switched to:', filePath);
+
+        // Reload file list to update selection state
+        loadFileList();
+
+    } catch (error) {
+        console.error('[FileSwitcher] Error switching file:', error);
+        showToast('Error: ' + error.message, 'error');
+        // Revert selector
+        loadFileList();
+    }
+}
+
+function initFileSwitcher() {
+    const selector = document.getElementById('file-selector');
+    const newBtn = document.getElementById('btn-new-figure');
+
+    if (selector) {
+        selector.addEventListener('change', (e) => {
+            const filePath = e.target.value;
+            if (filePath) {
+                switchToFile(filePath);
+            }
+        });
+    }
+
+    if (newBtn) {
+        newBtn.addEventListener('click', () => {
+            showToast('New figure: Use fr.edit() to create a new figure', 'info');
+            // Future: could implement creating a new blank figure via API
+        });
+    }
+
+    // Load file list on init
+    loadFileList();
+}
+
+// Initialize file switcher after DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFileSwitcher);
+} else {
+    initFileSwitcher();
+}
+
+console.log('[FileSwitcher] Loaded - Use dropdown to switch figures');
 """
 
 __all__ = ["SCRIPTS"]

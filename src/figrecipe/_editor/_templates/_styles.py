@@ -77,10 +77,123 @@ body {
     font-weight: 600;
 }
 
+/* SciTeX branding */
+.scitex-branding {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: opacity 0.2s;
+}
+
+.scitex-branding:hover {
+    opacity: 0.8;
+}
+
+.scitex-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+}
+
+.figrecipe-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* File Switcher */
+.file-switcher {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 16px;
+}
+
+.file-selector {
+    padding: 6px 10px;
+    font-size: 13px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-width: 180px;
+    max-width: 280px;
+    cursor: pointer;
+}
+
+.file-selector:hover {
+    border-color: var(--accent-color);
+}
+
+.file-selector:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px var(--selection-color);
+}
+
+.file-selector option {
+    padding: 4px 8px;
+}
+
+.file-selector option[data-current="true"] {
+    font-weight: bold;
+}
+
+.btn-new {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    font-size: 18px;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-new:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
 .preview-controls {
     display: flex;
     gap: 12px;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.zoom-controls button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-controls #zoom-level {
+    min-width: 45px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .preview-wrapper {
@@ -102,22 +215,43 @@ body {
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
+/* Dark checkerboard in dark mode */
 [data-theme="dark"] .preview-wrapper {
+    background-color: #2a2a2a;
     background-image:
-        linear-gradient(45deg, #333 25%, transparent 25%),
-        linear-gradient(-45deg, #333 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #333 75%),
-        linear-gradient(-45deg, transparent 75%, #333 75%);
+        linear-gradient(45deg, #333333 25%, transparent 25%),
+        linear-gradient(-45deg, #333333 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #333333 75%),
+        linear-gradient(-45deg, transparent 75%, #333333 75%);
 }
 
 #preview-image {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: none;
+    max-height: none;
     object-fit: contain;
     cursor: crosshair;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     position: relative;
-    z-index: 1;  /* Below the hit region overlay */
+    z-index: 1;
+    transform-origin: center center;
+    transition: transform 0.1s ease-out;
+}
+
+/* Zoom container for coordinated transform of image and overlays */
+.zoom-container {
+    display: inline-block;
+    position: relative;
+    transform-origin: center center;
+    transition: transform 0.1s ease-out;
+}
+
+/* Pan cursor when dragging */
+.preview-wrapper.panning {
+    cursor: grabbing !important;
+}
+
+.preview-wrapper.pan-ready {
+    cursor: grab;
 }
 
 .hitregion-overlay {
@@ -310,6 +444,15 @@ body {
     stroke-width: 2;
 }
 
+/* Subtle selection for scatter points (less visually overwhelming) */
+.selection-circle-subtle {
+    --element-color: #2563eb;
+    fill: none;
+    stroke: var(--element-color);
+    stroke-opacity: 0.4;
+    stroke-width: 1.5;
+}
+
 /* Group hover highlight - all elements in same logical group */
 .group-hovered {
     opacity: 1 !important;
@@ -326,14 +469,6 @@ body {
 .hitregion-group.group-hovered .hitregion-label {
     opacity: 1 !important;
     font-weight: bold;
-}
-
-.selected-element-info {
-    padding: 12px 16px;
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
-    font-size: 13px;
-    color: var(--text-secondary);
 }
 
 /* Dynamic Call Properties (in right panel) */
@@ -1320,6 +1455,279 @@ button:hover {
 .legend-label-input:focus {
     outline: none;
     border-color: var(--accent-color);
+}
+
+/* Ruler & Grid toggle button */
+.btn-ruler {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-ruler.active {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+/* Ruler, Grid, Column overlays */
+.ruler-overlay,
+.grid-overlay,
+.column-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    display: none;
+}
+
+.ruler-overlay.visible,
+.grid-overlay.visible,
+.column-overlay.visible {
+    display: block;
+}
+
+/* Ruler styles */
+.ruler-line {
+    stroke: #ff6600;
+    stroke-width: 1;
+}
+
+.ruler-line-major {
+    stroke: #ff6600;
+    stroke-width: 1.5;
+}
+
+.ruler-text {
+    fill: #ff6600;
+    font-size: 10px;
+    font-family: monospace;
+}
+
+.ruler-bg {
+    fill: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] .ruler-bg {
+    fill: rgba(30, 30, 30, 0.85);
+}
+
+[data-theme="dark"] .ruler-line,
+[data-theme="dark"] .ruler-line-major {
+    stroke: #ff9944;
+}
+
+[data-theme="dark"] .ruler-text {
+    fill: #ff9944;
+}
+
+/* Grid styles */
+.grid-line-1mm {
+    stroke: rgba(100, 100, 255, 0.2);
+    stroke-width: 0.5;
+}
+
+.grid-line-5mm {
+    stroke: rgba(100, 100, 255, 0.5);
+    stroke-width: 1;
+}
+
+[data-theme="dark"] .grid-line-1mm {
+    stroke: rgba(150, 150, 255, 0.2);
+}
+
+[data-theme="dark"] .grid-line-5mm {
+    stroke: rgba(150, 150, 255, 0.5);
+}
+
+/* Column guide styles */
+.column-line {
+    stroke: #22cc22;
+    stroke-width: 2;
+    stroke-dasharray: 8, 4;
+}
+
+.column-text {
+    fill: #22cc22;
+    font-size: 12px;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.column-bg {
+    fill: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .column-line {
+    stroke: #44ff44;
+}
+
+[data-theme="dark"] .column-text {
+    fill: #44ff44;
+}
+
+[data-theme="dark"] .column-bg {
+    fill: rgba(30, 30, 30, 0.8);
+}
+
+/* Keyboard Shortcuts Button */
+.btn-shortcuts {
+    padding: 6px 10px;
+    font-size: 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-shortcuts:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-color);
+}
+
+/* Shortcuts Modal */
+.shortcuts-modal-content {
+    max-width: 500px;
+    width: 90%;
+}
+
+.shortcuts-content {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.shortcut-section {
+    margin-bottom: 20px;
+}
+
+.shortcut-section:last-child {
+    margin-bottom: 0;
+}
+
+.shortcut-section h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.shortcut-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    gap: 16px;
+}
+
+.shortcut-keys {
+    flex: 0 0 180px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.shortcut-desc {
+    flex: 1;
+    color: var(--text-secondary);
+    font-size: 13px;
+    text-align: left;
+}
+
+kbd {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+    margin: 0 2px;
+}
+
+[data-theme="dark"] kbd {
+    background: var(--bg-tertiary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== ELEMENT INSPECTOR ==================== */
+.element-inspector-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999999;
+}
+
+.element-inspector-box {
+    position: absolute;
+    border: 2px solid;
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.element-inspector-box:hover {
+    border-width: 3px;
+    background: rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6), 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.element-inspector-label {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    border-radius: 3px;
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 1000000;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    line-height: 1.4;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.element-inspector-label:hover {
+    background: rgba(40, 40, 40, 0.95);
+    transform: scale(1.05);
+}
+
+.element-inspector-label .tag { color: #CE9178; }
+.element-inspector-label .id { color: #4EC9B0; font-weight: bold; }
+.element-inspector-label .class { color: #9CDCFE; }
+
+.element-inspector-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000000;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 """
 

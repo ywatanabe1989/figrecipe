@@ -16,7 +16,11 @@ The color encoding uses 24-bit RGB:
 import io
 from typing import Any, Dict, Tuple
 
-from matplotlib.collections import LineCollection, PathCollection, PolyCollection
+from matplotlib.collections import (
+    LineCollection,
+    PathCollection,
+    PolyCollection,
+)
 from matplotlib.figure import Figure
 from matplotlib.image import AxesImage
 from matplotlib.patches import Rectangle
@@ -348,6 +352,12 @@ def generate_hitmap(
         plot_ids = list(ax_call_ids.get("plot", []))
         scatter_ids = list(ax_call_ids.get("scatter", []))
         bar_ids = list(ax_call_ids.get("bar", []))
+        imshow_ids = list(ax_call_ids.get("imshow", []))
+        contourf_ids = list(ax_call_ids.get("contourf", []))
+        specgram_ids = list(ax_call_ids.get("specgram", []))
+        quiver_ids = list(ax_call_ids.get("quiver", []))
+        pie_ids = list(ax_call_ids.get("pie", []))
+        hist_ids = list(ax_call_ids.get("hist", []))
 
         # Current call_id for multi-element plot types (boxplot/violin)
         boxplot_call_id = boxplot_ids[0] if boxplot_ids else None
@@ -355,6 +365,9 @@ def generate_hitmap(
 
         # Counter for regular lines (to map to plot call IDs)
         regular_line_idx = 0
+
+        # Check if we have any recorded plot types (RecordingFigure)
+        has_record = len(ax_plot_types) > 0
 
         # Process lines (traces)
         for i, line in enumerate(ax.get_lines()):
@@ -364,10 +377,19 @@ def generate_hitmap(
             # Get label for filtering
             orig_label = line.get_label() or ""
 
-            # Skip internal child elements for non-boxplot/non-violin axes
-            # (e.g., triplot, tricontour create _child0, _child1 lines)
-            if orig_label.startswith("_child") and not has_boxplot and not has_violin:
-                continue
+            # For RecordingFigure: only skip internal elements when not expected
+            # For plain matplotlib: include ALL lines
+            has_regular_plot = "plot" in ax_plot_types
+            if has_record:
+                # With recording, skip internal elements unless expected
+                if (
+                    orig_label.startswith("_child")
+                    and not has_boxplot
+                    and not has_violin
+                    and not has_regular_plot
+                ):
+                    continue
+            # Without recording: include all lines (plain matplotlib)
 
             # Skip empty lines
             xdata = line.get_xdata()
@@ -429,9 +451,38 @@ def generate_hitmap(
         # Counter for scatter collections
         scatter_coll_idx = 0
 
-        # Process scatter plots (PathCollection)
+        # Process scatter plots (PathCollection), fills (PolyCollection), etc.
         for i, coll in enumerate(ax.collections):
-            if isinstance(coll, PathCollection):
+            # Check for Quiver first (inherits from PolyCollection)
+            from matplotlib.quiver import Quiver
+
+            if isinstance(coll, Quiver):
+                if not coll.get_visible():
+                    continue
+
+                key = f"ax{ax_idx}_quiver{i}"
+                rgb = id_to_rgb(element_id)
+
+                # Quiver uses set_UVC for data, color via set_color
+                original_props[key] = {"color": coll.get_facecolor().copy()}
+
+                coll.set_color(_normalize_color(rgb))
+
+                # Get call_id
+                call_id = quiver_ids[0] if quiver_ids else None
+                label = call_id or f"quiver_{i}"
+
+                color_map[key] = {
+                    "id": element_id,
+                    "type": "quiver",
+                    "label": label,
+                    "ax_index": ax_idx,
+                    "rgb": list(rgb),
+                    "call_id": call_id,
+                }
+                element_id += 1
+
+            elif isinstance(coll, PathCollection):
                 if not coll.get_visible():
                     continue
 
@@ -483,14 +534,16 @@ def generate_hitmap(
                 # Get label for filtering and identification
                 orig_label = coll.get_label() or ""
 
-                # Skip internal child elements (e.g., from barbs/quiver plots)
-                # These have labels like "_child0", "_child1", etc.
-                if orig_label.startswith("_child"):
-                    continue
-
-                # Skip other internal matplotlib elements
-                if orig_label.startswith("_nolegend"):
-                    continue
+                # For RecordingFigure: skip internal elements
+                # For plain matplotlib: include ALL fills
+                if has_record:
+                    # Skip internal child elements (e.g., from barbs/quiver plots)
+                    if orig_label.startswith("_child"):
+                        continue
+                    # Skip other internal matplotlib elements
+                    if orig_label.startswith("_nolegend"):
+                        continue
+                # Without recording: include all PolyCollection (plain matplotlib)
 
                 key = f"ax{ax_idx}_fill{i}"
                 rgb = id_to_rgb(element_id)
@@ -578,11 +631,65 @@ def generate_hitmap(
                 }
                 element_id += 1
 
-        # Get bar call_id (all bars from a single bar() call share the same ID)
-        # Fallback: generate synthetic call_id when no record
-        bar_call_id = bar_ids[0] if bar_ids else f"bar_{ax_idx}"
+            else:
+                # Check for QuadMesh (pcolormesh, hexbin, hist2d)
+                from matplotlib.collections import QuadMesh
 
-        # Process bars (Rectangle patches)
+                if isinstance(coll, QuadMesh):
+                    if not coll.get_visible():
+                        continue
+
+                    key = f"ax{ax_idx}_quadmesh{i}"
+                    rgb = id_to_rgb(element_id)
+
+                    # QuadMesh can't be simply recolored, track for bbox
+                    color_map[key] = {
+                        "id": element_id,
+                        "type": "quadmesh",
+                        "label": f"quadmesh_{i}",
+                        "ax_index": ax_idx,
+                        "rgb": list(rgb),
+                        "call_id": None,
+                    }
+                    element_id += 1
+
+                else:
+                    # Check for QuadContourSet (contour, contourf)
+                    from matplotlib.contour import QuadContourSet
+
+                    if isinstance(coll, QuadContourSet):
+                        key = f"ax{ax_idx}_contour{i}"
+                        rgb = id_to_rgb(element_id)
+
+                        # QuadContourSet can't be simply recolored, track for bbox
+                        color_map[key] = {
+                            "id": element_id,
+                            "type": "contour",
+                            "label": f"contour_{i}",
+                            "ax_index": ax_idx,
+                            "rgb": list(rgb),
+                            "call_id": None,
+                        }
+                        element_id += 1
+
+        # Determine if this is a histogram or bar chart
+        # hist() creates Rectangle patches just like bar(), but should use hist call_id
+        has_hist = "hist" in ax_plot_types
+        has_bar = "bar" in ax_plot_types
+
+        # Get call_id (hist takes precedence if present, then bar)
+        if has_hist and hist_ids:
+            rect_call_id = hist_ids[0]
+            rect_type = "hist"
+        elif has_bar and bar_ids:
+            rect_call_id = bar_ids[0]
+            rect_type = "bar"
+        else:
+            # Fallback: generate synthetic call_id when no record
+            rect_call_id = f"bar_{ax_idx}"
+            rect_type = "bar"
+
+        # Process bars/histogram (Rectangle patches)
         for i, patch in enumerate(ax.patches):
             if isinstance(patch, Rectangle):
                 if not patch.get_visible():
@@ -602,21 +709,92 @@ def generate_hitmap(
                 patch.set_facecolor(_normalize_color(rgb))
                 patch.set_edgecolor(_normalize_color(rgb))
 
-                # All bars share the bar call_id
-                label = bar_call_id or patch.get_label() or f"bar_{i}"
+                # All bars/hist bins share the call_id
+                label = rect_call_id or patch.get_label() or f"bar_{i}"
 
                 color_map[key] = {
                     "id": element_id,
-                    "type": "bar",
+                    "type": rect_type,
                     "label": label,
                     "ax_index": ax_idx,
                     "rgb": list(rgb),
                     "original_color": _mpl_color_to_hex(
                         original_props[key]["facecolor"]
                     ),
-                    "call_id": bar_call_id,  # All bars share this call_id
+                    "call_id": rect_call_id,  # All bars/hist share this call_id
                 }
                 element_id += 1
+
+            else:
+                # Check for Wedge (pie chart)
+                from matplotlib.patches import Wedge
+
+                if isinstance(patch, Wedge):
+                    if not patch.get_visible():
+                        continue
+
+                    key = f"ax{ax_idx}_wedge{i}"
+                    rgb = id_to_rgb(element_id)
+
+                    original_props[key] = {
+                        "facecolor": patch.get_facecolor(),
+                        "edgecolor": patch.get_edgecolor(),
+                    }
+
+                    patch.set_facecolor(_normalize_color(rgb))
+                    patch.set_edgecolor(_normalize_color(rgb))
+
+                    # Get call_id for pie
+                    call_id = pie_ids[0] if pie_ids else None
+                    label = call_id or f"wedge_{i}"
+
+                    color_map[key] = {
+                        "id": element_id,
+                        "type": "pie",
+                        "label": label,
+                        "ax_index": ax_idx,
+                        "rgb": list(rgb),
+                        "original_color": _mpl_color_to_hex(
+                            original_props[key]["facecolor"]
+                        ),
+                        "call_id": call_id,
+                    }
+                    element_id += 1
+
+                else:
+                    # Check for Polygon (fill)
+                    from matplotlib.patches import Polygon
+
+                    if isinstance(patch, Polygon):
+                        if not patch.get_visible():
+                            continue
+
+                        key = f"ax{ax_idx}_polygon{i}"
+                        rgb = id_to_rgb(element_id)
+
+                        original_props[key] = {
+                            "facecolor": patch.get_facecolor(),
+                            "edgecolor": patch.get_edgecolor(),
+                        }
+
+                        patch.set_facecolor(_normalize_color(rgb))
+                        patch.set_edgecolor(_normalize_color(rgb))
+
+                        color_map[key] = {
+                            "id": element_id,
+                            "type": "fill",
+                            "label": f"fill_{i}",
+                            "ax_index": ax_idx,
+                            "rgb": list(rgb),
+                            "original_color": _mpl_color_to_hex(
+                                original_props[key]["facecolor"]
+                            ),
+                            "call_id": None,
+                        }
+                        element_id += 1
+
+        # Counter for image elements
+        image_idx = 0
 
         # Process images
         for i, img in enumerate(ax.images):
@@ -625,13 +803,32 @@ def generate_hitmap(
                     continue
 
                 key = f"ax{ax_idx}_image{i}"
+
+                # Determine call_id based on plot types present
+                call_id = None
+                label = f"image_{i}"
+
+                # Check which image-producing function was used
+                if image_idx < len(imshow_ids):
+                    call_id = imshow_ids[image_idx]
+                    label = call_id
+                elif image_idx < len(specgram_ids):
+                    call_id = specgram_ids[image_idx]
+                    label = call_id
+                elif image_idx < len(contourf_ids):
+                    call_id = contourf_ids[image_idx]
+                    label = call_id
+
+                image_idx += 1
+
                 # Images can't be recolored, just track their bbox
                 color_map[key] = {
                     "id": element_id,
                     "type": "image",
-                    "label": f"image_{i}",
+                    "label": label,
                     "ax_index": ax_idx,
                     "rgb": list(id_to_rgb(element_id)),
+                    "call_id": call_id,
                 }
                 element_id += 1
 
