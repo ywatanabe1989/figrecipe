@@ -24,6 +24,15 @@ function createDynamicField(callId, key, value, sigInfo, isUnused = false) {
 
     let input;
 
+    // Handle color list fields (e.g., pie chart colors array)
+    if (isColorListField(key, value)) {
+        input = createColorListInput(callId, key, value);
+        row.appendChild(label);
+        row.appendChild(input);
+        container.appendChild(row);
+        return container;
+    }
+
     if (isColorField(key, sigInfo)) {
         input = createColorInput(callId, key, value);
         row.appendChild(label);
@@ -86,8 +95,55 @@ function showDynamicCallProperties(element) {
     container.innerHTML = '';
 
     const callId = element.call_id || element.label;
+
+    // If no call data found, show basic element info instead
     if (!callId || !callsData[callId]) {
-        container.style.display = 'none';
+        container.style.display = 'block';
+
+        // Create header with element type
+        const header = document.createElement('div');
+        header.className = 'dynamic-props-header';
+        const elemType = element.type || 'element';
+        const elemLabel = element.label || callId || 'unknown';
+        header.innerHTML = `<strong>${elemType}</strong> <span class="call-id">${elemLabel}</span>`;
+        container.appendChild(header);
+
+        // Show basic info section
+        const infoSection = document.createElement('div');
+        infoSection.className = 'dynamic-props-section';
+        infoSection.innerHTML = '<div class="dynamic-props-label">Element Info:</div>';
+
+        // Show type
+        const typeRow = document.createElement('div');
+        typeRow.className = 'form-row dynamic-field';
+        typeRow.innerHTML = `<label>Type</label><span class="arg-value">${elemType}</span>`;
+        infoSection.appendChild(typeRow);
+
+        // Show color if available
+        if (element.original_color) {
+            const colorRow = document.createElement('div');
+            colorRow.className = 'form-row dynamic-field';
+            colorRow.innerHTML = `<label>Color</label><span class="arg-value" style="color:${element.original_color}">${element.original_color}</span>`;
+            infoSection.appendChild(colorRow);
+        }
+
+        // Show axes index
+        if (element.ax_index !== undefined) {
+            const axRow = document.createElement('div');
+            axRow.className = 'form-row dynamic-field';
+            axRow.innerHTML = `<label>Axes</label><span class="arg-value">ax_${element.ax_index}</span>`;
+            infoSection.appendChild(axRow);
+        }
+
+        container.appendChild(infoSection);
+
+        // Add note about no recorded call
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'dynamic-props-note';
+        noteDiv.style.cssText = 'font-size: 11px; color: var(--text-secondary); margin-top: 8px; font-style: italic;';
+        noteDiv.textContent = 'No recorded call data available for this element.';
+        container.appendChild(noteDiv);
+
         return;
     }
 

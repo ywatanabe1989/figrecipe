@@ -26,11 +26,27 @@ function initializeZoomPan() {
         }
     }, { passive: false });
 
-    // Pan with middle mouse or space+drag
+    // Pan with middle mouse, alt+drag, or left-click on empty area when zoomed
     wrapper.addEventListener('mousedown', (e) => {
+        // Middle mouse or Alt+drag always pans
         if (e.button === 1 || (e.button === 0 && e.altKey)) {
             e.preventDefault();
             startPan(e);
+            return;
+        }
+        // Left-click when zoomed > 100% and clicking on background (not on elements)
+        if (e.button === 0 && zoomLevel > 1.0) {
+            const target = e.target;
+            // Only pan if clicking on wrapper/container background, not on canvas elements
+            if (target.id === 'preview-wrapper' || target.classList.contains('zoom-container') ||
+                target.tagName === 'svg' || target.id === 'preview-image') {
+                // Don't pan if clicking on hitmap regions (they have data attributes)
+                const hitRegion = document.elementFromPoint(e.clientX, e.clientY);
+                if (!hitRegion || !hitRegion.closest('.hit-region')) {
+                    e.preventDefault();
+                    startPan(e);
+                }
+            }
         }
     });
 
@@ -70,8 +86,40 @@ function setZoom(newLevel) {
     zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newLevel));
 
     const container = document.getElementById('zoom-container');
-    if (container) {
+    const wrapper = document.getElementById('preview-wrapper');
+    const img = document.getElementById('preview-image');
+
+    if (container && wrapper) {
         container.style.transform = `scale(${zoomLevel})`;
+
+        // Update container size to enable proper scrolling
+        // Transform scale doesn't change layout size, so we set explicit dimensions
+        if (img) {
+            // Use rendered dimensions if naturalWidth not available
+            const imgWidth = img.naturalWidth || img.width || img.clientWidth;
+            const imgHeight = img.naturalHeight || img.height || img.clientHeight;
+
+            if (imgWidth && imgHeight) {
+                const scaledWidth = imgWidth * zoomLevel;
+                const scaledHeight = imgHeight * zoomLevel;
+
+                // Set container dimensions for scroll area calculation
+                container.style.width = `${imgWidth}px`;
+                container.style.height = `${imgHeight}px`;
+                container.style.minWidth = `${scaledWidth}px`;
+                container.style.minHeight = `${scaledHeight}px`;
+            }
+        }
+
+        // Update wrapper class for cursor hint
+        if (zoomLevel > 1.0) {
+            wrapper.classList.add('zoomed-in');
+        } else {
+            wrapper.classList.remove('zoomed-in');
+            // Reset scroll position when not zoomed
+            wrapper.scrollLeft = 0;
+            wrapper.scrollTop = 0;
+        }
     }
 
     // Update zoom level display

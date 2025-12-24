@@ -16,7 +16,7 @@ let currentTab = 'figure';
 
 // Element type to tab mapping
 const AXIS_TYPES = ['title', 'xlabel', 'ylabel', 'suptitle', 'supxlabel', 'supylabel', 'legend'];
-const ELEMENT_TYPES = ['line', 'scatter', 'bar', 'hist', 'fill', 'boxplot', 'violin', 'image', 'linecollection', 'quiver', 'pie'];
+const ELEMENT_TYPES = ['line', 'scatter', 'bar', 'hist', 'fill', 'boxplot', 'violin', 'image', 'linecollection', 'quiver', 'pie', 'contour', 'specgram'];
 
 // Switch between Figure/Axis/Element tabs
 function switchTab(tabName) {

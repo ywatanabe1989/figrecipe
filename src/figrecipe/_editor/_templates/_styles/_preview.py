@@ -198,8 +198,16 @@ STYLES_PREVIEW = """
 .zoom-container {
     display: inline-block;
     position: relative;
-    transform-origin: center center;
+    transform-origin: top left;
     transition: transform 0.1s ease-out;
+}
+
+/* Show grab cursor hint when zoomed in */
+.preview-wrapper.zoomed-in {
+    cursor: grab;
+    /* Disable centering when zoomed to allow proper scrolling from top-left */
+    align-items: flex-start;
+    justify-content: flex-start;
 }
 
 /* Pan cursor when dragging */

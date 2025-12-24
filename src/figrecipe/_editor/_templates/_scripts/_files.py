@@ -90,7 +90,7 @@ async function switchToFile(filePath) {
         currentFilePath = filePath;
 
         // Clear selection
-        clearElementHighlights();
+        clearSelection();
         document.getElementById('selected-element-panel')?.style.setProperty('display', 'none');
 
         showToast('Loaded: ' + filePath, 'success');
@@ -104,6 +104,60 @@ async function switchToFile(filePath) {
         showToast('Error: ' + error.message, 'error');
         // Revert selector
         loadFileList();
+    }
+}
+
+async function createNewFigure() {
+    showToast('Creating new figure...', 'info');
+
+    try {
+        const response = await fetch('/api/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to create new figure');
+        }
+
+        const data = await response.json();
+
+        // Update preview image
+        const img = document.getElementById('preview-image');
+        if (img && data.image) {
+            img.src = 'data:image/png;base64,' + data.image;
+        }
+
+        // Update bboxes
+        if (data.bboxes) {
+            window.currentBboxes = data.bboxes;
+        }
+
+        // Update color map for hitmap
+        if (data.color_map) {
+            window.currentColorMap = data.color_map;
+        }
+
+        // Clear current file path (unsaved figure)
+        currentFilePath = null;
+
+        // Clear selection
+        if (typeof clearSelection === 'function') {
+            clearSelection();
+        }
+        const selectedPanel = document.getElementById('selected-element-panel');
+        if (selectedPanel) selectedPanel.style.display = 'none';
+
+        showToast('New blank figure created', 'success');
+        console.log('[FileSwitcher] Created new blank figure');
+
+        // Reload file list to show (Unsaved figure)
+        loadFileList();
+
+    } catch (error) {
+        console.error('[FileSwitcher] Error creating new figure:', error);
+        showToast('Error: ' + error.message, 'error');
     }
 }
 
@@ -121,10 +175,7 @@ function initFileSwitcher() {
     }
 
     if (newBtn) {
-        newBtn.addEventListener('click', () => {
-            showToast('New figure: Use fr.edit() to create a new figure', 'info');
-            // Future: could implement creating a new blank figure via API
-        });
+        newBtn.addEventListener('click', createNewFigure);
     }
 
     // Load file list on init

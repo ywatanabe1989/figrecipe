@@ -139,9 +139,11 @@ function clearSelectionOverlay() {
 
 // Sync properties panel to selected element
 function syncPropertiesToElement(element) {
-    // In 'selected' mode, only show call properties
+    // Always show dynamic call properties for the selected element
+    showDynamicCallProperties(element);
+
+    // In 'selected' mode, only show call properties (no section highlighting)
     if (viewMode === 'selected') {
-        showDynamicCallProperties(element);
         return;
     }
 
@@ -161,6 +163,11 @@ function syncPropertiesToElement(element) {
         'yticks': 'section-ticks',
         'legend': 'section-legend',
         'spine': 'section-dimensions',
+        'contour': 'section-dimensions',
+        'image': 'section-dimensions',
+        'pie': 'section-dimensions',
+        'hist': 'section-lines',
+        'quiver': 'section-lines',
     };
 
     const sectionId = sectionMap[element.type] || 'section-dimensions';

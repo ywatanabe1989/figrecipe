@@ -35,6 +35,7 @@ def register_core_routes(app, editor):
             img_size=img_size,
             style_name=style_name,
             hot_reload=editor.hot_reload,
+            dark_mode=editor.dark_mode,
         )
 
         return render_template_string(html)
@@ -64,10 +65,17 @@ def register_core_routes(app, editor):
     @app.route("/update", methods=["POST"])
     def update():
         """Update preview with new style overrides."""
+        from ._preferences import set_preference
+
         data = request.get_json() or {}
 
         editor.overrides.update(data.get("overrides", {}))
-        editor.dark_mode = data.get("dark_mode", editor.dark_mode)
+
+        # Update and persist dark mode preference
+        new_dark_mode = data.get("dark_mode")
+        if new_dark_mode is not None and new_dark_mode != editor.dark_mode:
+            editor.dark_mode = new_dark_mode
+            set_preference("dark_mode", new_dark_mode)
 
         base64_img, bboxes, img_size = render_with_overrides(
             editor.fig,
@@ -212,6 +220,60 @@ def register_core_routes(app, editor):
                     "color_map": editor._color_map,
                     "img_size": {"width": img_size[0], "height": img_size[1]},
                     "file": file_path,
+                }
+            )
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/api/new", methods=["POST"])
+    def new_figure():
+        """Create a new blank figure."""
+        from .. import subplots
+
+        try:
+            # Create new blank figure
+            fig, ax = subplots()
+            ax.set_title("New Figure")
+            ax.text(
+                0.5,
+                0.5,
+                "Add plots using fr.edit(fig)",
+                ha="center",
+                va="center",
+                transform=ax.transAxes,
+                fontsize=12,
+                color="gray",
+            )
+
+            # Update editor state
+            editor.fig = fig
+            editor.recipe_path = None
+            editor._hitmap_generated = False
+            editor._color_map = {}
+
+            # Re-init style overrides
+            editor._init_style_overrides(None)
+
+            # Regenerate hitmap
+            hitmap_img, editor._color_map = generate_hitmap(editor.fig)
+            editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
+            editor._hitmap_generated = True
+
+            # Render new preview
+            base64_img, bboxes, img_size = render_with_overrides(
+                editor.fig,
+                editor.get_effective_style(),
+                editor.dark_mode,
+            )
+
+            return jsonify(
+                {
+                    "success": True,
+                    "image": base64_img,
+                    "bboxes": bboxes,
+                    "color_map": editor._color_map,
+                    "img_size": {"width": img_size[0], "height": img_size[1]},
                 }
             )
 

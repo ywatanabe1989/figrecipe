@@ -2,6 +2,8 @@
 CLAUDE.md
 .claude
 docs/to_claude
+REFACTORING.md
+project_management/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

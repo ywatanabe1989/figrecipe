@@ -93,12 +93,22 @@ def register_element_routes(app, editor):
             for ax_key, ax_record in editor.fig.record.axes.items():
                 for call in ax_record.calls:
                     if call.id == call_id:
+                        # Debug: log the update
+                        print(f"[DEBUG] update_call: {call_id}.{param} = {value}")
+                        print(
+                            f"[DEBUG] Before: call.kwargs[{param}] = {call.kwargs.get(param)}"
+                        )
+
                         editor.style_overrides.set_call_override(call_id, param, value)
 
                         if value is None or value == "" or value == "null":
                             call.kwargs.pop(param, None)
                         else:
                             call.kwargs[param] = value
+
+                        print(
+                            f"[DEBUG] After: call.kwargs[{param}] = {call.kwargs.get(param)}"
+                        )
                         updated = True
                         break
                 if updated:
