@@ -8,12 +8,13 @@
 - [x] **_overlays.py** (292 lines) - Measurement overlays (ruler, grid, columns)
 - [x] **_inspector.py** (315 lines) - Element inspector (Alt+I, Alt+Shift+I debug)
 - [x] **_files.py** (144 lines) - File switching functionality
+- [x] **_hitmap.py** (460 lines) - Hitmap loading, hit region drawing, element detection
+- [x] **_selection.py** (210 lines) - Selection drawing, property sync
 - [x] **__init__.py** - Module exports (individual modules, not combined SCRIPTS)
 
 ### Remaining in _scripts.py:
 - initializeEventListeners, handleKeyboardShortcuts
-- Hitmap handling (loadHitmap, drawHitRegions, toggleHitmapOverlay)
-- Selection (handleHitRegionClick, selectElement, clearSelection, drawSelection)
+- Labels (loadLabels, updateLabel)
 - Element editor (showDynamicCallProperties, createDynamicField, color functions)
 - Controls (tab switching, theme modal, download dropdown, label inputs)
 - API calls (collectOverrides, resetValues, saveOverrides, downloadFigure)
