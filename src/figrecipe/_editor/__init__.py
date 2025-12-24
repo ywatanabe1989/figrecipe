@@ -26,10 +26,12 @@ from ._flask_app import FigureEditor
 
 
 def edit(
-    source: Union[RecordingFigure, str, Path],
+    source: Optional[Union[RecordingFigure, str, Path]] = None,
     style: Optional[Union[str, Dict[str, Any]]] = None,
     port: int = 5050,
     open_browser: bool = True,
+    hot_reload: bool = False,
+    working_dir: Optional[Union[str, Path]] = None,
 ) -> Dict[str, Any]:
     """
     Launch interactive GUI editor for figure styling.
@@ -39,8 +41,9 @@ def edit(
 
     Parameters
     ----------
-    source : RecordingFigure, str, or Path
-        Either a live RecordingFigure object or path to a .yaml recipe file.
+    source : RecordingFigure, str, Path, or None
+        Either a live RecordingFigure object, path to a .yaml/.png file,
+        or None to create a new blank figure.
     style : str or dict, optional
         Style preset name (e.g., 'SCITEX', 'SCITEX_DARK') or style dict.
         If None, uses the currently loaded global style.
@@ -48,6 +51,12 @@ def edit(
         Flask server port (default: 5050). Auto-finds available port if occupied.
     open_browser : bool, optional
         Whether to open browser automatically (default: True).
+    hot_reload : bool, optional
+        Enable hot reload - server restarts when source files change (default: False).
+        Like Django's development server. Browser auto-refreshes on reconnect.
+    working_dir : str or Path, optional
+        Working directory for file switching feature (default: current directory).
+        The file switcher will list recipe files from this directory.
 
     Returns
     -------
@@ -109,6 +118,9 @@ def edit(
     hitmap, color_map = generate_hitmap(fig)
     hitmap_base64 = hitmap_to_base64(hitmap)
 
+    # Resolve working directory
+    resolved_working_dir = Path(working_dir) if working_dir else Path.cwd()
+
     # Create and run editor with pre-rendered static PNG
     editor = FigureEditor(
         fig=fig,
@@ -118,25 +130,46 @@ def edit(
         static_png_path=static_png_path,
         hitmap_base64=hitmap_base64,
         color_map=color_map,
+        hot_reload=hot_reload,
+        working_dir=resolved_working_dir,
     )
 
     return editor.run(open_browser=open_browser)
 
 
-def _resolve_source(source: Union[RecordingFigure, str, Path]):
+def _resolve_source(source: Optional[Union[RecordingFigure, str, Path]]):
     """
     Resolve source to figure and optional recipe path.
 
     Parameters
     ----------
-    source : RecordingFigure, str, or Path
-        Input source.
+    source : RecordingFigure, str, Path, or None
+        Input source. If None, creates a new blank figure.
+        If PNG path, tries to find associated YAML recipe.
 
     Returns
     -------
     tuple
-        (RecordingFigure or None, Path or None)
+        (RecordingFigure, Path or None)
     """
+    # Handle None - create new blank figure
+    if source is None:
+        from .. import subplots
+
+        fig, ax = subplots()
+        ax.set_title("New Figure")
+        ax.text(
+            0.5,
+            0.5,
+            "Add plots using fr.edit(fig)",
+            ha="center",
+            va="center",
+            transform=ax.transAxes,
+            fontsize=12,
+            color="gray",
+        )
+        return fig, None
+
     if isinstance(source, RecordingFigure):
         return source, None
 
@@ -160,10 +193,25 @@ def _resolve_source(source: Union[RecordingFigure, str, Path]):
     # Assume it's a path
     path = Path(source)
     if not path.exists():
-        raise FileNotFoundError(f"Recipe file not found: {path}")
+        raise FileNotFoundError(f"File not found: {path}")
+
+    # Handle PNG path - find associated YAML
+    if path.suffix.lower() == ".png":
+        yaml_path = path.with_suffix(".yaml")
+        if yaml_path.exists():
+            path = yaml_path
+        else:
+            yml_path = path.with_suffix(".yml")
+            if yml_path.exists():
+                path = yml_path
+            else:
+                raise FileNotFoundError(
+                    f"No recipe found for {path.name}. "
+                    f"Expected {yaml_path.name} or {yml_path.name}"
+                )
 
     if path.suffix.lower() not in (".yaml", ".yml"):
-        raise ValueError(f"Expected .yaml or .yml file, got: {path.suffix}")
+        raise ValueError(f"Expected .yaml, .yml, or .png file, got: {path.suffix}")
 
     # Load recipe and reproduce figure
     from .._reproducer import reproduce
