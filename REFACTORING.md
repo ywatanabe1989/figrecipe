@@ -1,49 +1,52 @@
-# Refactoring: _scripts.py
+# Refactoring Status
 
-## Context
-`src/figrecipe/_editor/_templates/_scripts.py` is 3983 lines, exceeding the 512-line limit.
+## _scripts.py (3953 lines)
 
-## Plan
-Split into logical modules in `_templates/_scripts/`:
+### Extracted Modules in `_templates/_scripts/`:
+- [x] **_core.py** (223 lines) - State, initialization, utilities (showToast, debounce, scheduleUpdate)
+- [x] **_zoom.py** (131 lines) - Zoom/pan controls and handlers
+- [x] **_overlays.py** (292 lines) - Measurement overlays (ruler, grid, columns)
+- [x] **_inspector.py** (315 lines) - Element inspector (Alt+I, Alt+Shift+I debug)
+- [x] **_files.py** (144 lines) - File switching functionality
+- [x] **__init__.py** - Module exports (individual modules, not combined SCRIPTS)
 
-1. **_core.py** (~200 lines)
-   - State initialization, global variables
-   - Utility functions (showToast, debounce)
+### Remaining in _scripts.py:
+- initializeEventListeners, handleKeyboardShortcuts
+- Hitmap handling (loadHitmap, drawHitRegions, toggleHitmapOverlay)
+- Selection (handleHitRegionClick, selectElement, clearSelection, drawSelection)
+- Element editor (showDynamicCallProperties, createDynamicField, color functions)
+- Controls (tab switching, theme modal, download dropdown, label inputs)
+- API calls (collectOverrides, resetValues, saveOverrides, downloadFigure)
 
-2. **_zoom.py** (~150 lines)
-   - Zoom controls and handlers
-   - Fit-to-view, zoom shortcuts
+### Notes
+- Main _scripts.py still contains the complete working code
+- _scripts/ modules are for incremental refactoring
+- _templates/__init__.py imports from _scripts.py (not _scripts/)
 
-3. **_hitmap.py** (~300 lines)
-   - Hit region drawing
-   - Click detection and selection
+---
 
-4. **_controls.py** (~400 lines)
-   - Form input handlers
-   - Tab navigation
-   - Theme/download controls
+## _bbox (formerly _bbox.py, 1311 lines)
 
-5. **_api.py** (~200 lines)
-   - API calls (refresh, save, download)
-   - File switching
+### Status: Partially Refactored
+Modular helper functions extracted to `_bbox/` package:
 
-6. **_element_editor.py** (~400 lines)
-   - Dynamic element property editing
-   - Call argument handlers
+- [x] **_transforms.py** (129 lines) - Coordinate transformation utilities
+- [x] **_elements.py** (145 lines) - General element, text, tick bbox extraction
+- [x] **_lines.py** (164 lines) - Line and quiver bbox extraction
+- [x] **_collections.py** (159 lines) - Collection and patch bbox extraction
+- [x] **__init__.py** - Re-exports extract_bboxes from _bbox_main.py + helper functions
 
-7. **_inspector.py** (~300 lines)
-   - Element inspector (Alt+I)
-   - Debug capture (Alt+Shift+I)
+### Notes
+- Main `extract_bboxes` function (725 lines) remains in `_bbox_main.py`
+- `_bbox/` package re-exports `extract_bboxes` for backward compatibility
+- Helper functions can now be imported individually for testing/reuse
+- Further refactoring could split `extract_bboxes` into smaller functions
 
-8. **_keyboard.py** (~150 lines)
-   - Keyboard shortcuts
-   - Modal handlers
+---
 
-9. **__init__.py**
-   - Combines all script modules in correct order
-
-## Status
-- [ ] Create _scripts/ subdirectory
-- [ ] Split into modules
-- [ ] Update _html.py to use new module
-- [ ] Delete this file
+## Next Steps
+1. Continue extracting code from _scripts.py into modules
+2. Create _bbox/ modular structure
+3. Update imports to use modular files
+4. Remove duplicate code from main files
+5. Delete this file when refactoring is complete
