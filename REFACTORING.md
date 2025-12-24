@@ -10,12 +10,13 @@
 - [x] **_files.py** (144 lines) - File switching functionality
 - [x] **_hitmap.py** (460 lines) - Hitmap loading, hit region drawing, element detection
 - [x] **_selection.py** (210 lines) - Selection drawing, property sync
+- [x] **_colors.py** (268 lines) - Color presets, conversion, input widget
+- [x] **_element_editor.py** (242 lines) - Dynamic form fields, call properties
 - [x] **__init__.py** - Module exports (individual modules, not combined SCRIPTS)
 
 ### Remaining in _scripts.py:
 - initializeEventListeners, handleKeyboardShortcuts
 - Labels (loadLabels, updateLabel)
-- Element editor (showDynamicCallProperties, createDynamicField, color functions)
 - Controls (tab switching, theme modal, download dropdown, label inputs)
 - API calls (collectOverrides, resetValues, saveOverrides, downloadFigure)
 

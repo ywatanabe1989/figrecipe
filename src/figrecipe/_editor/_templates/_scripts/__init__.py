@@ -16,13 +16,17 @@ Extracted Modules (for incremental refactoring):
 - _files.py - File switching functionality
 - _hitmap.py - Hitmap loading and hit region drawing
 - _selection.py - Selection drawing and property sync
+- _colors.py - Color presets and conversion utilities
+- _element_editor.py - Dynamic form fields and call properties
 """
 
 # Re-export SCRIPTS from the main file for backward compatibility
 from .._scripts_main import SCRIPTS
 
 # Import extracted modules
+from ._colors import SCRIPTS_COLORS
 from ._core import SCRIPTS_CORE
+from ._element_editor import SCRIPTS_ELEMENT_EDITOR
 from ._files import SCRIPTS_FILES
 from ._hitmap import SCRIPTS_HITMAP
 from ._inspector import SCRIPTS_INSPECTOR
@@ -40,4 +44,6 @@ __all__ = [
     "SCRIPTS_FILES",
     "SCRIPTS_HITMAP",
     "SCRIPTS_SELECTION",
+    "SCRIPTS_COLORS",
+    "SCRIPTS_ELEMENT_EDITOR",
 ]
