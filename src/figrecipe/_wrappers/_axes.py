@@ -498,10 +498,15 @@ class RecordingAxes:
             show_axes = pie_style.get("show_axes", False)
             font_family = check_font(style.get("fonts", {}).get("family", "Arial"))
 
+            # Get text color from rcParams for dark mode support
+            import matplotlib.pyplot as mpl_plt
+
+            text_color = mpl_plt.rcParams.get("text.color", "black")
             # Apply text size to all pie text elements (labels and percentages)
             for text in self._ax.texts:
                 text.set_fontsize(text_pt)
                 text.set_fontfamily(font_family)
+                text.set_color(text_color)
 
             # Hide axes if configured (default: hide for pie charts)
             if not show_axes:

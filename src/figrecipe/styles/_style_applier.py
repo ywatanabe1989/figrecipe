@@ -185,6 +185,14 @@ def apply_theme_colors(
     ax.yaxis.label.set_color(colors["text"])
     ax.title.set_color(colors["text"])
 
+    # Update rcParams for dark mode support (pie charts, panel labels)
+    import matplotlib as mpl
+
+    mpl.rcParams["text.color"] = colors["text"]
+    mpl.rcParams["axes.labelcolor"] = colors["text"]
+    mpl.rcParams["xtick.color"] = colors["tick"]
+    mpl.rcParams["ytick.color"] = colors["tick"]
+
     # Apply spine colors
     for spine in ax.spines.values():
         spine.set_color(colors["spine"])
