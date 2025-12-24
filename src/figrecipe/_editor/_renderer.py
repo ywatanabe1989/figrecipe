@@ -444,6 +444,14 @@ def _apply_dark_mode(fig: Figure) -> None:
     bg_color = "#1a1a1a"
     text_color = "#e8e8e8"
 
+    # Update rcParams for dark mode (pie charts, panel labels)
+    import matplotlib as mpl
+
+    mpl.rcParams["text.color"] = text_color
+    mpl.rcParams["axes.labelcolor"] = text_color
+    mpl.rcParams["xtick.color"] = text_color
+    mpl.rcParams["ytick.color"] = text_color
+
     # Figure background
     fig.patch.set_facecolor(bg_color)
 

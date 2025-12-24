@@ -1362,10 +1362,16 @@ def panel_label(
     else:
         x, y = offset
 
+    # Get text color from rcParams if not specified (supports dark mode)
+    import matplotlib.pyplot as mpl_plt
+
+    default_color = mpl_plt.rcParams.get("text.color", "black")
+
     # Default kwargs - use 'axes' as transform string (handled by reproducer)
     text_kwargs = {
         "fontsize": fontsize,
         "fontweight": fontweight,
+        "color": default_color,
         "transform": "axes",  # Special string marker for axes coordinates
         "va": "bottom",
         "ha": "right" if "right" in loc else "left",
