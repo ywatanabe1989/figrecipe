@@ -25,6 +25,12 @@ STYLES_HITMAP = """
 .hitregion-overlay.visible .hitregion-rect,
 .hitregion-overlay.visible .hitregion-polyline {
     opacity: 1;
+    stroke: rgba(128, 128, 128, 0.3);  /* Slight visible stroke in visible mode */
+}
+
+.hitregion-overlay.visible .hitregion-polyline {
+    stroke: rgba(128, 128, 128, 0.2);
+    stroke-width: 6;
 }
 
 /* Hover-only mode: invisible until hovered */
@@ -51,10 +57,11 @@ STYLES_HITMAP = """
 
 .hitregion-rect:hover {
     fill: var(--element-color);
-    fill-opacity: 0.15;
+    fill-opacity: 0.2;
     stroke: var(--element-color);
-    stroke-opacity: 0.6;
-    stroke-width: 2;
+    stroke-opacity: 0.8;
+    stroke-width: 3;
+    stroke-dasharray: none;
     filter: none;
 }
 

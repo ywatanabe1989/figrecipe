@@ -10,9 +10,7 @@ This module contains the JavaScript code for:
 
 SCRIPTS_VIEW_MODE = """
 // ===== VIEW MODE MANAGEMENT =====
-
-// View mode: 'all' shows all properties, 'selected' shows only element-specific
-let viewMode = 'all';
+// Note: viewMode variable is declared in _core.py
 
 // Set view mode (all or selected)
 function setViewMode(mode) {

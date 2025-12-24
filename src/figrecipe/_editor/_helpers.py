@@ -101,7 +101,6 @@ def render_with_overrides(
     from PIL import Image
 
     from ._bbox import extract_bboxes
-    from ._renderer import _apply_dark_mode, _apply_overrides
 
     # Get the underlying matplotlib figure
     new_fig = fig.fig if hasattr(fig, "fig") else fig
@@ -134,11 +133,15 @@ def render_with_overrides(
     # Get record for call_id grouping (if fig is a RecordingFigure)
     record = fig.record if hasattr(fig, "record") else None
     if overrides:
-        _apply_overrides(new_fig, overrides, record)
+        from ._render_overrides import apply_overrides
+
+        apply_overrides(new_fig, overrides, record)
 
     # Apply dark mode if requested
     if dark_mode:
-        _apply_dark_mode(new_fig)
+        from ._render_overrides import apply_dark_mode
+
+        apply_dark_mode(new_fig)
 
     # Validate axes bounds before rendering (prevent infinite/invalid extents)
     for ax in new_fig.get_axes():

@@ -84,6 +84,38 @@ STYLES_COLOR_INPUT = """
     min-width: 70px;
     cursor: pointer;
 }
+
+/* Color List Component (for pie chart colors array) */
+.color-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.color-list-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.color-list-index {
+    font-size: 10px;
+    color: var(--text-secondary);
+    min-width: 18px;
+}
+
+.color-swatch-small {
+    width: 18px;
+    height: 18px;
+    border-width: 1px;
+}
+
+.color-select-small {
+    padding: 2px 4px;
+    font-size: 10px;
+    min-width: 60px;
+}
 """
 
 __all__ = ["STYLES_COLOR_INPUT"]

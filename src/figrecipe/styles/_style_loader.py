@@ -26,12 +26,16 @@ __all__ = [
     "list_presets",
     "STYLE",
     "to_subplots_kwargs",
+    "DotDict",
 ]
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from ruamel.yaml import YAML
+
+from ._dotdict import DotDict
+from ._kwargs_converter import to_subplots_kwargs
 
 # Path to presets directory
 _PRESETS_DIR = Path(__file__).parent / "presets"
@@ -45,7 +49,7 @@ _PRESET_ALIASES = {
 }
 
 # Global style cache
-_STYLE_CACHE: Optional["DotDict"] = None
+_STYLE_CACHE: Optional[DotDict] = None
 _CURRENT_STYLE_NAME: Optional[str] = None
 
 
@@ -69,52 +73,6 @@ def list_presets() -> List[str]:
     """
     # Show only user-facing presets (not internal file names)
     return ["MATPLOTLIB", "SCITEX"]
-
-
-class DotDict(dict):
-    """Dictionary with dot-notation access to nested keys.
-
-    Examples
-    --------
-    >>> d = DotDict({"axes": {"width_mm": 40}})
-    >>> d.axes.width_mm
-    40
-    """
-
-    def __getattr__(self, key: str) -> Any:
-        # Handle special methods first
-        if key == "to_subplots_kwargs":
-            return lambda: to_subplots_kwargs(self)
-        try:
-            value = self[key]
-            if isinstance(value, dict) and not isinstance(value, DotDict):
-                value = DotDict(value)
-                self[key] = value
-            return value
-        except KeyError:
-            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
-
-    def __setattr__(self, key: str, value: Any) -> None:
-        self[key] = value
-
-    def __delattr__(self, key: str) -> None:
-        try:
-            del self[key]
-        except KeyError:
-            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get value with default, supporting nested keys with dots."""
-        if "." in key:
-            parts = key.split(".")
-            value = self
-            for part in parts:
-                if isinstance(value, dict) and part in value:
-                    value = value[part]
-                else:
-                    return default
-            return value
-        return super().get(key, default)
 
 
 def _deep_merge(base: Dict, override: Dict) -> Dict:
@@ -407,160 +365,6 @@ def get_current_style_dict() -> Dict[str, Any]:
     return to_subplots_kwargs(_STYLE_CACHE)
 
 
-def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
-    """Convert style DotDict to kwargs for ps.subplots().
-
-    Uses YAML-compatible flattened key names as the single source of truth.
-    For example, YAML `fonts.axis_label_pt` becomes `fonts_axis_label_pt`.
-
-    Parameters
-    ----------
-    style : DotDict, optional
-        Style configuration. If None, uses current loaded style.
-
-    Returns
-    -------
-    dict
-        Keyword arguments for ps.subplots() with YAML-compatible flattened keys.
-
-    Examples
-    --------
-    >>> style = load_style()
-    >>> kwargs = to_subplots_kwargs(style)
-    >>> fig, ax = ps.subplots(**kwargs)
-    """
-    if style is None:
-        style = get_style()
-
-    # YAML-compatible flattened keys (single source of truth)
-    result = {
-        # Axes (axes.* in YAML)
-        "axes_width_mm": style.axes.width_mm,
-        "axes_height_mm": style.axes.height_mm,
-        "axes_thickness_mm": style.axes.thickness_mm,
-        # Margins (margins.* in YAML)
-        "margins_left_mm": style.margins.left_mm,
-        "margins_right_mm": style.margins.right_mm,
-        "margins_bottom_mm": style.margins.bottom_mm,
-        "margins_top_mm": style.margins.top_mm,
-        # Spacing (spacing.* in YAML)
-        "spacing_horizontal_mm": style.spacing.horizontal_mm,
-        "spacing_vertical_mm": style.spacing.vertical_mm,
-        # Ticks (ticks.* in YAML)
-        "ticks_length_mm": style.ticks.length_mm,
-        "ticks_thickness_mm": style.ticks.thickness_mm,
-        "ticks_direction": style.ticks.get("direction", "out"),
-        "ticks_n_ticks_min": style.ticks.get("n_ticks_min", 3),
-        "ticks_n_ticks_max": style.ticks.get("n_ticks_max", 4),
-        # Lines (lines.* in YAML)
-        "lines_trace_mm": style.lines.trace_mm,
-        "lines_errorbar_mm": style.lines.get("errorbar_mm", 0.2),
-        "lines_errorbar_cap_mm": style.lines.get("errorbar_cap_mm", 0.8),
-        # Markers (markers.* in YAML)
-        "markers_size_mm": style.markers.size_mm,
-        "markers_scatter_mm": style.markers.get("scatter_mm", style.markers.size_mm),
-        "markers_flier_mm": style.markers.get("flier_mm", style.markers.size_mm),
-        "markers_edge_width_mm": style.markers.get("edge_width_mm"),
-        # Boxplot (boxplot.* in YAML)
-        "boxplot_line_mm": style.get("boxplot", {}).get("line_mm", 0.2),
-        "boxplot_whisker_mm": style.get("boxplot", {}).get("whisker_mm", 0.2),
-        "boxplot_cap_mm": style.get("boxplot", {}).get("cap_mm", 0.2),
-        "boxplot_median_mm": style.get("boxplot", {}).get("median_mm", 0.2),
-        "boxplot_median_color": style.get("boxplot", {}).get("median_color", "black"),
-        "boxplot_flier_edge_mm": style.get("boxplot", {}).get("flier_edge_mm", 0.2),
-        # Violinplot (violinplot.* in YAML)
-        "violinplot_line_mm": style.get("violinplot", {}).get("line_mm", 0.2),
-        "violinplot_inner": style.get("violinplot", {}).get("inner", "box"),
-        "violinplot_box_width_mm": style.get("violinplot", {}).get("box_width_mm", 1.5),
-        "violinplot_whisker_mm": style.get("violinplot", {}).get("whisker_mm", 0.2),
-        "violinplot_median_mm": style.get("violinplot", {}).get("median_mm", 0.8),
-        # Barplot (barplot.* in YAML)
-        "barplot_edge_mm": style.get("barplot", {}).get("edge_mm", 0.2),
-        # Histogram (histogram.* in YAML)
-        "histogram_edge_mm": style.get("histogram", {}).get("edge_mm", 0.2),
-        # Pie chart (pie.* in YAML)
-        "pie_text_pt": style.get("pie", {}).get("text_pt", 6),
-        "pie_show_axes": style.get("pie", {}).get("show_axes", False),
-        # Imshow (imshow.* in YAML)
-        "imshow_show_axes": style.get("imshow", {}).get("show_axes", False),
-        "imshow_show_labels": style.get("imshow", {}).get("show_labels", False),
-        # Fonts (fonts.* in YAML)
-        "fonts_family": style.fonts.family,
-        "fonts_axis_label_pt": style.fonts.axis_label_pt,
-        "fonts_tick_label_pt": style.fonts.tick_label_pt,
-        "fonts_title_pt": style.fonts.title_pt,
-        "fonts_suptitle_pt": style.fonts.suptitle_pt,
-        "fonts_legend_pt": style.fonts.legend_pt,
-        "fonts_annotation_pt": style.fonts.get("annotation_pt", 6),
-        # Padding (padding.* in YAML)
-        "padding_label_pt": style.padding.label_pt,
-        "padding_tick_pt": style.padding.tick_pt,
-        "padding_title_pt": style.padding.title_pt,
-        # Output (output.* in YAML)
-        "output_dpi": style.output.dpi,
-        "output_transparent": style.output.get("transparent", True),
-        "output_format": style.output.get("format", "pdf"),
-        # Theme (theme.* in YAML)
-        "theme_mode": style.theme.mode,
-    }
-
-    # Add theme colors from preset if available
-    theme_mode = style.theme.mode
-    if "theme" in style and theme_mode in style.theme:
-        result["theme_colors"] = dict(style.theme[theme_mode])
-
-    # Add color palette if available
-    if "colors" in style and "palette" in style.colors:
-        result["color_palette"] = list(style.colors.palette)
-
-    # Add behavior settings (behavior.* in YAML)
-    if "behavior" in style:
-        behavior = style.behavior
-        if hasattr(behavior, "hide_top_spine"):
-            result["behavior_hide_top_spine"] = behavior.hide_top_spine
-        if hasattr(behavior, "hide_right_spine"):
-            result["behavior_hide_right_spine"] = behavior.hide_right_spine
-        if hasattr(behavior, "grid"):
-            result["behavior_grid"] = behavior.grid
-        if hasattr(behavior, "auto_scale_axes"):
-            result["behavior_auto_scale_axes"] = behavior.auto_scale_axes
-        if hasattr(behavior, "constrained_layout"):
-            result["behavior_constrained_layout"] = behavior.constrained_layout
-
-    # Legacy key aliases for backwards compatibility
-    # (These allow existing code using old keys to still work)
-    result["margin_left_mm"] = result["margins_left_mm"]
-    result["margin_right_mm"] = result["margins_right_mm"]
-    result["margin_bottom_mm"] = result["margins_bottom_mm"]
-    result["margin_top_mm"] = result["margins_top_mm"]
-    result["space_w_mm"] = result["spacing_horizontal_mm"]
-    result["space_h_mm"] = result["spacing_vertical_mm"]
-    result["tick_length_mm"] = result["ticks_length_mm"]
-    result["tick_thickness_mm"] = result["ticks_thickness_mm"]
-    result["n_ticks_min"] = result["ticks_n_ticks_min"]
-    result["n_ticks_max"] = result["ticks_n_ticks_max"]
-    result["trace_thickness_mm"] = result["lines_trace_mm"]
-    result["marker_size_mm"] = result["markers_size_mm"]
-    result["font_family"] = result["fonts_family"]
-    result["axis_font_size_pt"] = result["fonts_axis_label_pt"]
-    result["tick_font_size_pt"] = result["fonts_tick_label_pt"]
-    result["title_font_size_pt"] = result["fonts_title_pt"]
-    result["suptitle_font_size_pt"] = result["fonts_suptitle_pt"]
-    result["legend_font_size_pt"] = result["fonts_legend_pt"]
-    result["label_pad_pt"] = result["padding_label_pt"]
-    result["tick_pad_pt"] = result["padding_tick_pt"]
-    result["title_pad_pt"] = result["padding_title_pt"]
-    result["dpi"] = result["output_dpi"]
-    result["theme"] = result["theme_mode"]
-    result["hide_top_spine"] = result.get("behavior_hide_top_spine", True)
-    result["hide_right_spine"] = result.get("behavior_hide_right_spine", True)
-    result["grid"] = result.get("behavior_grid", False)
-    result["auto_scale_axes"] = result.get("behavior_auto_scale_axes", True)
-    result["constrained_layout"] = result.get("behavior_constrained_layout", False)
-
-    return result
-
-
 # Lazy-loaded global STYLE object
 class _StyleProxy:
     """Proxy object that loads style on first access."""
@@ -594,3 +398,5 @@ if __name__ == "__main__":
 
     print("\nUsing STYLE proxy...")
     print(f"  STYLE.fonts.family: {STYLE.fonts.family}")
+
+# EOF

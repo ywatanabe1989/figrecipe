@@ -16,7 +16,7 @@ let hitmapImg = null;
 let updateTimeout = null;
 let currentImgWidth = imgWidth;    // Track current preview dimensions
 let currentImgHeight = imgHeight;
-let hitmapVisible = true;          // Hitmap overlay visibility (default visible for development)
+let hitmapVisible = false;         // Hitmap overlay visibility (hover-only by default)
 const UPDATE_DEBOUNCE = 500;  // ms
 
 // Overlapping element cycling state
@@ -69,8 +69,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (overlay) overlay.classList.add('hover-mode');
     }
 
-    // Always draw hit regions for hover detection
-    setTimeout(() => drawHitRegions(), 100);
+    // Draw hit regions - handle both already-loaded and loading images
+    function initHitRegions() {
+        if (previewImg.complete && previewImg.naturalWidth > 0) {
+            console.log('Image already loaded, drawing hit regions');
+            drawHitRegions();
+        } else {
+            console.log('Image not loaded yet, waiting...');
+            setTimeout(initHitRegions, 100);
+        }
+    }
+    setTimeout(initHitRegions, 50);
 
     // Initialize zoom/pan
     initializeZoomPan();
@@ -256,11 +265,34 @@ function handleKeyboardShortcuts(event) {
                          activeElement.tagName === 'TEXTAREA' ||
                          activeElement.tagName === 'SELECT';
 
+    // Ctrl+Alt+I: Debug snapshot (screenshot + console logs)
+    if (event.ctrlKey && event.altKey && (event.key === 'i' || event.key === 'I')) {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log('[DEBUG] Ctrl+Alt+I pressed, calling captureDebugSnapshot');
+        if (typeof captureDebugSnapshot === 'function') {
+            captureDebugSnapshot();
+        } else {
+            console.error('[DEBUG] captureDebugSnapshot is not defined!');
+            showToast('Debug snapshot not available', 'error');
+        }
+        return;
+    }
+
     // Ctrl+S: Save overrides
     if (event.ctrlKey && event.key === 's') {
         event.preventDefault();
         saveOverrides();
         showToast('Saved!', 'success');
+        return;
+    }
+
+    // Ctrl+N: New blank figure
+    if (event.ctrlKey && event.key === 'n') {
+        event.preventDefault();
+        if (typeof createNewFigure === 'function') {
+            createNewFigure();
+        }
         return;
     }
 
@@ -392,41 +424,8 @@ function debounce(func, wait) {
     };
 }
 
-// Schedule update with debounce
-function scheduleUpdate() {
-    clearTimeout(updateTimeout);
-    updateTimeout = setTimeout(async () => {
-        const overrides = collectOverrides();
-        try {
-            const response = await fetch('/api/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(overrides)
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                // Update preview image
-                const previewImg = document.getElementById('preview-image');
-                previewImg.src = 'data:image/png;base64,' + data.image;
-
-                // Update bboxes and hitmap
-                currentBboxes = data.bboxes;
-                colorMap = data.color_map;
-
-                // Update image dimensions for hit detection
-                currentImgWidth = data.img_width;
-                currentImgHeight = data.img_height;
-
-                // Update hit regions
-                drawHitRegions();
-                updateAllModifiedStates();
-            }
-        } catch (error) {
-            console.error('Update failed:', error);
-        }
-    }, UPDATE_DEBOUNCE);
-}
+// Note: scheduleUpdate() is defined in _api.py to avoid duplication
+// It calls updatePreview() with debounce, which properly includes dark_mode
 
 // ==================== END CORE ====================
 """

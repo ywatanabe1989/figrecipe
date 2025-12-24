@@ -48,11 +48,19 @@ const MATPLOTLIB_NAMED = {
     'turquoise': '#40e0d0', 'violet': '#ee82ee'
 };
 
-// Check if a field is a color field
+// Check if a field is a color field (single color, not list)
 function isColorField(key, sigInfo) {
+    // 'colors' (plural) is a list of colors - handle separately
+    if (key.toLowerCase() === 'colors') return false;
     const colorKeywords = ['color', 'facecolor', 'edgecolor', 'markerfacecolor', 'markeredgecolor', 'c'];
     if (colorKeywords.includes(key.toLowerCase())) return true;
     if (sigInfo?.type && sigInfo.type.toLowerCase().includes('color')) return true;
+    return false;
+}
+
+// Check if a field is a color list field
+function isColorListField(key, value) {
+    if (key.toLowerCase() === 'colors' && Array.isArray(value)) return true;
     return false;
 }
 
@@ -82,17 +90,56 @@ function colorToHex(color) {
     return resolveColorToHex(color);
 }
 
-// Find preset color matching input (name, hex, or RGB)
+// Find preset color matching input (name, hex, RGB array, or RGB string)
 function findPresetColor(input) {
     if (!input) return null;
+
+    // Handle array input [r, g, b] where values are 0-1
+    if (Array.isArray(input) && input.length >= 3) {
+        const r = Math.round(parseFloat(input[0]) * 255);
+        const g = Math.round(parseFloat(input[1]) * 255);
+        const b = Math.round(parseFloat(input[2]) * 255);
+        // Check against preset RGB values
+        for (const [name, preset] of Object.entries(COLOR_PRESETS)) {
+            const [pr, pg, pb] = preset.rgb;
+            if (Math.abs(r - pr) <= 1 && Math.abs(g - pg) <= 1 && Math.abs(b - pb) <= 1) {
+                return { name, ...preset };
+            }
+        }
+        for (const [name, preset] of Object.entries(MATPLOTLIB_SINGLE)) {
+            const [pr, pg, pb] = preset.rgb;
+            if (Math.abs(r - pr) <= 1 && Math.abs(g - pg) <= 1 && Math.abs(b - pb) <= 1) {
+                return { name, ...preset };
+            }
+        }
+        return null;
+    }
+
     const inputLower = typeof input === 'string' ? input.toLowerCase().trim() : '';
 
+    // Check preset names
     if (COLOR_PRESETS[inputLower]) return { name: inputLower, ...COLOR_PRESETS[inputLower] };
     if (MATPLOTLIB_SINGLE[inputLower]) return { name: inputLower, ...MATPLOTLIB_SINGLE[inputLower] };
 
+    // Check hex values
     for (const [name, preset] of Object.entries(COLOR_PRESETS)) {
         if (preset.hex.toLowerCase() === inputLower) return { name, ...preset };
     }
+
+    // Check RGB string format like "rgb(0, 128, 192)"
+    const rgbMatch = inputLower.match(/rgb\\s*\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)/);
+    if (rgbMatch) {
+        const r = parseInt(rgbMatch[1]);
+        const g = parseInt(rgbMatch[2]);
+        const b = parseInt(rgbMatch[3]);
+        for (const [name, preset] of Object.entries(COLOR_PRESETS)) {
+            const [pr, pg, pb] = preset.rgb;
+            if (Math.abs(r - pr) <= 1 && Math.abs(g - pg) <= 1 && Math.abs(b - pb) <= 1) {
+                return { name, ...preset };
+            }
+        }
+    }
+
     return null;
 }
 
@@ -130,6 +177,17 @@ function resolveColorToHex(input) {
         }
     }
 
+    // Handle array format [r, g, b] where values are 0-1
+    if (Array.isArray(input) && input.length >= 3) {
+        const r = Math.round(parseFloat(input[0]) * 255);
+        const g = Math.round(parseFloat(input[1]) * 255);
+        const b = Math.round(parseFloat(input[2]) * 255);
+        return '#' + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Ensure input is a string before calling toLowerCase
+    if (typeof input !== 'string') return '#000000';
+
     const inputLower = input.toLowerCase().trim();
     if (COLOR_PRESETS[inputLower]) return COLOR_PRESETS[inputLower].hex;
     if (MATPLOTLIB_SINGLE[inputLower]) return MATPLOTLIB_SINGLE[inputLower].hex;
@@ -143,6 +201,15 @@ function formatColorDisplay(value) {
     if (!value) return '';
     const preset = findPresetColor(value);
     if (preset) return preset.name;
+
+    // Convert to hex first, then to clean RGB display
+    const hex = resolveColorToHex(value);
+    if (hex && hex.startsWith('#') && hex.length === 7) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgb(${r}, ${g}, ${b})`;
+    }
     return value;
 }
 
@@ -191,8 +258,7 @@ function createColorInput(callId, key, value) {
     customInput.placeholder = '#rrggbb or name';
     customInput.style.display = 'none';
 
-    const rgbDisplay = document.createElement('span');
-    rgbDisplay.className = 'color-rgb';
+    // rgbDisplay removed - dropdown now shows RGB format directly
 
     const colorPicker = document.createElement('input');
     colorPicker.type = 'color';
@@ -202,18 +268,19 @@ function createColorInput(callId, key, value) {
         const hex = resolveColorToHex(colorValue);
         swatch.style.backgroundColor = hex;
         colorPicker.value = hex;
-        rgbDisplay.textContent = colorToRGB(hex);
     }
 
     const initialPreset = findPresetColor(value);
     if (initialPreset) {
         select.value = initialPreset.name;
     } else if (value) {
+        // Store hex internally, display RGB for users
+        const hexValue = resolveColorToHex(value);
         const currentOpt = document.createElement('option');
-        currentOpt.value = value;
+        currentOpt.value = hexValue;
         currentOpt.textContent = formatColorDisplay(value);
         select.insertBefore(currentOpt, separator);
-        select.value = value;
+        select.value = hexValue;
     }
     updateDisplay(value || 'blue');
 
@@ -222,11 +289,9 @@ function createColorInput(callId, key, value) {
             customInput.style.display = '';
             customInput.focus();
             swatch.style.display = 'none';
-            rgbDisplay.style.display = 'none';
         } else {
             customInput.style.display = 'none';
             swatch.style.display = '';
-            rgbDisplay.style.display = '';
             updateDisplay(this.value);
             handleDynamicParamChange(callId, key, { value: this.value });
         }
@@ -237,7 +302,6 @@ function createColorInput(callId, key, value) {
             const inputValue = this.value.trim();
             if (inputValue) {
                 swatch.style.display = '';
-                rgbDisplay.style.display = '';
                 const preset = findPresetColor(inputValue);
                 if (preset) {
                     select.value = preset.name;
@@ -280,7 +344,6 @@ function createColorInput(callId, key, value) {
             select.value = rgbTuple || pickedColor;
         }
         swatch.style.display = '';
-        rgbDisplay.style.display = '';
         customInput.style.display = 'none';
         updateDisplay(select.value);
         handleDynamicParamChange(callId, key, { value: select.value });
@@ -289,10 +352,131 @@ function createColorInput(callId, key, value) {
     wrapper.appendChild(swatch);
     wrapper.appendChild(select);
     wrapper.appendChild(customInput);
-    wrapper.appendChild(rgbDisplay);
     wrapper.appendChild(colorPicker);
 
     return wrapper;
+}
+
+// Create color list input for arrays of colors (e.g., pie chart colors)
+function createColorListInput(callId, key, colorArray) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'color-list-wrapper';
+
+    if (!Array.isArray(colorArray) || colorArray.length === 0) {
+        wrapper.textContent = 'No colors';
+        return wrapper;
+    }
+
+    // Create a color swatch + dropdown for each color in the list
+    colorArray.forEach((color, index) => {
+        const itemWrapper = document.createElement('div');
+        itemWrapper.className = 'color-list-item';
+
+        const indexLabel = document.createElement('span');
+        indexLabel.className = 'color-list-index';
+        indexLabel.textContent = `${index + 1}:`;
+
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch color-swatch-small';
+        const hex = resolveColorToHex(color);
+        swatch.style.backgroundColor = hex;
+
+        const select = document.createElement('select');
+        select.className = 'color-select color-select-small';
+        select.dataset.index = index;
+
+        // Add preset color options
+        for (const [name, preset] of Object.entries(COLOR_PRESETS)) {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        }
+
+        // Set current value
+        const preset = findPresetColor(color);
+        if (preset) {
+            select.value = preset.name;
+        } else {
+            // Add current color as option
+            const currentOpt = document.createElement('option');
+            currentOpt.value = hex;
+            currentOpt.textContent = formatColorDisplay(color);
+            select.insertBefore(currentOpt, select.firstChild);
+            select.value = hex;
+        }
+
+        // Handle color change
+        select.addEventListener('change', function() {
+            const newColor = this.value;
+            swatch.style.backgroundColor = resolveColorToHex(newColor);
+
+            // Update the colors array and send to backend
+            const newColors = [...colorArray];
+            newColors[index] = newColor;
+
+            // Send the entire updated array to the backend
+            handleColorListChange(callId, key, newColors);
+        });
+
+        itemWrapper.appendChild(indexLabel);
+        itemWrapper.appendChild(swatch);
+        itemWrapper.appendChild(select);
+        wrapper.appendChild(itemWrapper);
+    });
+
+    return wrapper;
+}
+
+// Handle color list change - update entire array
+async function handleColorListChange(callId, key, colorsArray) {
+    // Normalize all colors to hex format for consistency
+    const normalizedColors = colorsArray.map(color => {
+        // If it's already a preset name, use it directly
+        if (typeof color === 'string' && COLOR_PRESETS[color.toLowerCase()]) {
+            return color;
+        }
+        // Otherwise convert to hex
+        return resolveColorToHex(color);
+    });
+
+    console.log(`Color list change: ${callId}.${key} = [${normalizedColors.join(', ')}]`);
+
+    document.body.classList.add('loading');
+
+    try {
+        const response = await fetch('/update_call', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ call_id: callId, param: key, value: normalizedColors })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const img = document.getElementById('preview-image');
+            img.src = 'data:image/png;base64,' + data.image;
+
+            if (data.img_size) {
+                currentImgWidth = data.img_size.width;
+                currentImgHeight = data.img_size.height;
+            }
+
+            currentBboxes = data.bboxes;
+            loadHitmap();
+            updateHitRegions();
+
+            if (callsData[callId]) {
+                callsData[callId].kwargs[key] = colorsArray;
+            }
+        } else {
+            alert('Update failed: ' + data.error);
+        }
+    } catch (error) {
+        alert('Update failed: ' + error.message);
+    }
+
+    document.body.classList.remove('loading');
 }
 """
 

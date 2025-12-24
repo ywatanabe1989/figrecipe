@@ -300,111 +300,12 @@ class Recorder:
         args: tuple,
         method_name: str,
     ) -> List[Dict[str, Any]]:
-        """Process positional arguments for storage.
+        """Process positional arguments for storage."""
+        from ._recorder_utils import process_args
 
-        Parameters
-        ----------
-        args : tuple
-            Raw positional arguments.
-        method_name : str
-            Name of the method.
-
-        Returns
-        -------
-        list
-            Processed args with name and data.
-        """
-        from ._utils._numpy_io import should_store_inline, to_serializable
-
-        processed = []
-        # Simple arg names based on common patterns
-        arg_names = self._get_arg_names(method_name, len(args))
-
-        for i, (name, value) in enumerate(zip(arg_names, args)):
-            # Handle result references (e.g., ContourSet for clabel)
-            if isinstance(value, dict) and "__ref__" in value:
-                processed.append(
-                    {
-                        "name": name,
-                        "data": {"__ref__": value["__ref__"]},
-                    }
-                )
-                continue
-
-            if isinstance(value, np.ndarray):
-                if should_store_inline(value):
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": to_serializable(value),
-                            "dtype": str(value.dtype),
-                        }
-                    )
-                else:
-                    # Mark for file storage (will be handled by serializer)
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": "__FILE__",
-                            "dtype": str(value.dtype),
-                            "_array": value,  # Temporary, removed during serialization
-                        }
-                    )
-            elif hasattr(value, "values"):  # pandas
-                arr = np.asarray(value)
-                if should_store_inline(arr):
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": to_serializable(arr),
-                            "dtype": str(arr.dtype),
-                        }
-                    )
-                else:
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": "__FILE__",
-                            "dtype": str(arr.dtype),
-                            "_array": arr,
-                        }
-                    )
-            elif (
-                isinstance(value, (list, tuple))
-                and len(value) > 0
-                and isinstance(value[0], np.ndarray)
-            ):
-                # List of arrays (e.g., boxplot, violinplot data)
-                arrays_data = [to_serializable(arr) for arr in value]
-                dtypes = [str(arr.dtype) for arr in value]
-                processed.append(
-                    {
-                        "name": name,
-                        "data": arrays_data,
-                        "dtype": (dtypes[0] if len(set(dtypes)) == 1 else dtypes),
-                        "_is_array_list": True,
-                    }
-                )
-            else:
-                # Scalar or other serializable value
-                try:
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": (
-                                value if self._is_serializable(value) else str(value)
-                            ),
-                        }
-                    )
-                except (TypeError, ValueError):
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": str(value),
-                        }
-                    )
-
-        return processed
+        return process_args(
+            args, method_name, self._get_arg_names, self._is_serializable
+        )
 
     def _get_arg_names(self, method_name: str, n_args: int) -> List[str]:
         """Get argument names for a method from signatures.

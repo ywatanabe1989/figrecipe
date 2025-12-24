@@ -50,9 +50,26 @@ Modular helper functions extracted to `_bbox/` package:
 
 ---
 
+---
+
+## _wrappers/_axes.py (1216→1079 lines)
+
+### Status: In Progress
+Extracting helper functions to reduce file size:
+
+- [x] **_violin_helpers.py** - Violin inner plot helpers (box, swarm, stick, point)
+- [x] **_plot_helpers.py** - Beeswarm positions, color helpers, KDE computation
+
+### Notes
+- Main RecordingAxes class contains complex plot methods (violinplot, joyplot, swarmplot)
+- Violin inner helpers extracted to dedicated module
+- Plot helpers extracted (beeswarm, colors)
+- Need to: remove _beeswarm_positions method, update imports
+- Further extraction needed to get under 512 lines
+
+---
+
 ## Next Steps
-1. Continue extracting code from _scripts.py into modules
-2. Create _bbox/ modular structure
-3. Update imports to use modular files
-4. Remove duplicate code from main files
-5. Delete this file when refactoring is complete
+1. Complete _axes.py refactoring (remove old helpers, add imports)
+2. Continue with _hitmap.py refactoring
+3. Delete this file when refactoring is complete

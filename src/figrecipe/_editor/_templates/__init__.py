@@ -36,6 +36,7 @@ def build_html_template(
     img_size: Tuple[int, int],
     style_name: str = "SCITEX",
     hot_reload: bool = False,
+    dark_mode: bool = False,
 ) -> str:
     """
     Build complete HTML template for figure editor.
@@ -61,6 +62,8 @@ def build_html_template(
         Name of the applied style preset (e.g., "SCITEX", "MATPLOTLIB").
     hot_reload : bool
         Enable hot reload auto-reconnect JavaScript.
+    dark_mode : bool
+        Initial dark mode state from saved preferences.
 
     Returns
     -------
@@ -131,6 +134,10 @@ def build_html_template(
     html = html.replace("IMG_HEIGHT_PLACEHOLDER", str(img_size[1]))
     html = html.replace("STYLE_NAME_PLACEHOLDER", style_name)
     html = html.replace("SCITEX_ICON_PLACEHOLDER", _SCITEX_ICON_BASE64)
+
+    # Dark mode preference - set initial state
+    html = html.replace("DARK_MODE_THEME_PLACEHOLDER", "dark" if dark_mode else "light")
+    html = html.replace("DARK_MODE_CHECKED_PLACEHOLDER", "checked" if dark_mode else "")
 
     return html
 

@@ -6,7 +6,7 @@ HTML template for figure editor.
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="DARK_MODE_THEME_PLACEHOLDER">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,7 +54,7 @@ HTML_TEMPLATE = """
                     <button id="btn-ruler-grid" class="btn-ruler" title="Toggle rulers and grid overlay (G)">Ruler & Grid</button>
                     <button id="btn-shortcuts" class="btn-shortcuts" title="Show keyboard shortcuts (?)">⌨</button>
                     <label class="theme-toggle">
-                        <input type="checkbox" id="dark-mode-toggle">
+                        <input type="checkbox" id="dark-mode-toggle" DARK_MODE_CHECKED_PLACEHOLDER>
                         <span>Dark Mode</span>
                     </label>
                 </div>
@@ -120,6 +120,7 @@ HTML_TEMPLATE = """
                             <h4>General</h4>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Save overrides</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Download PNG</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Debug snapshot</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>F5</kbd> / <kbd>Ctrl</kbd>+<kbd>R</kbd></span><span class="shortcut-desc">Refresh preview</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Esc</kbd></span><span class="shortcut-desc">Clear selection</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>R</kbd></span><span class="shortcut-desc">Reset to theme defaults</span></div>

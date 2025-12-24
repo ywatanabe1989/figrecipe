@@ -217,39 +217,11 @@ class RecordingFigure:
         >>> fig.add_panel_labels(['i', 'ii', 'iii', 'iv'])  # Custom labels
         >>> fig.add_panel_labels(loc='upper right', offset=(1.05, 1.05))
         """
-        import string
-
-        # Get all axes in order (row-major)
-        all_axes = self.flat
-        n_axes = len(all_axes)
-
-        # Generate default labels if not provided
-        if labels is None:
-            labels = list(string.ascii_uppercase[:n_axes])
-        elif len(labels) < n_axes:
-            # Extend with letters if not enough labels provided
-            labels = list(labels) + list(string.ascii_uppercase[len(labels) : n_axes])
+        from ._panel_labels import add_panel_labels as _add_panel_labels
 
         # Get fontsize from style if not specified
         if fontsize is None:
             fontsize = self._get_style_fontsize("title_pt", 10)
-
-        # Calculate position based on loc
-        if loc == "upper left":
-            x, y = offset
-            ha, va = "right", "bottom"
-        elif loc == "upper right":
-            x, y = offset
-            ha, va = "left", "bottom"
-        elif loc == "lower left":
-            x, y = offset[0], -offset[1] + 1.0
-            ha, va = "right", "top"
-        elif loc == "lower right":
-            x, y = offset
-            ha, va = "left", "top"
-        else:
-            x, y = offset
-            ha, va = "right", "bottom"
 
         # Get theme text color (unless user provided 'color' in kwargs)
         if "color" not in kwargs:
@@ -257,35 +229,20 @@ class RecordingFigure:
         else:
             text_color = kwargs.pop("color")
 
-        # Record panel labels (including color)
-        self._recorder.figure_record.panel_labels = {
-            "labels": labels[:n_axes],
-            "loc": loc,
-            "offset": offset,
-            "fontsize": fontsize,
-            "fontweight": fontweight,
-            "color": text_color,
-            "kwargs": kwargs,
-        }
+        def record_callback(info):
+            self._recorder.figure_record.panel_labels = info
 
-        # Add labels to each axes
-        text_objects = []
-        for ax, label in zip(all_axes, labels[:n_axes]):
-            text = ax.ax.text(
-                x,
-                y,
-                label,
-                transform=ax.ax.transAxes,
-                fontsize=fontsize,
-                fontweight=fontweight,
-                color=text_color,
-                ha=ha,
-                va=va,
-                **kwargs,
-            )
-            text_objects.append(text)
-
-        return text_objects
+        return _add_panel_labels(
+            all_axes=self.flat,
+            labels=labels,
+            loc=loc,
+            offset=offset,
+            fontsize=fontsize,
+            fontweight=fontweight,
+            text_color=text_color,
+            record_callback=record_callback,
+            **kwargs,
+        )
 
     def set_title_metadata(self, title: str) -> "RecordingFigure":
         """Set figure title metadata (not rendered, stored in recipe).

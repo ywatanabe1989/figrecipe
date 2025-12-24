@@ -84,9 +84,14 @@ class FigureEditor:
         self.fig = fig
         self.recipe_path = Path(recipe_path) if recipe_path else None
         self.port = port
-        self.dark_mode = False
         self.hot_reload = hot_reload
         self.working_dir = Path(working_dir) if working_dir else Path.cwd()
+
+        # Load user preferences
+        from ._preferences import load_preferences
+
+        prefs = load_preferences()
+        self.dark_mode = prefs.get("dark_mode", False)
 
         # Pre-rendered static PNG (source of truth)
         self._static_png_path = static_png_path
