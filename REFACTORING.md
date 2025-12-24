@@ -12,18 +12,22 @@
 - [x] **_selection.py** (210 lines) - Selection drawing, property sync
 - [x] **_colors.py** (268 lines) - Color presets, conversion, input widget
 - [x] **_element_editor.py** (242 lines) - Dynamic form fields, call properties
-- [x] **__init__.py** - Module exports (individual modules, not combined SCRIPTS)
+- [x] **_tabs.py** (78 lines) - Tab navigation (Figure/Axis/Element)
+- [x] **_view_mode.py** (100 lines) - View mode management (all/selected)
+- [x] **_modals.py** (200 lines) - Theme and shortcuts modals
+- [x] **_api.py** (196 lines) - API calls (save, load, update, download)
+- [x] **_labels.py** (350 lines) - Label inputs, axis type, legend position
+- [x] **__init__.py** - Module exports (14 modules)
 
-### Remaining in _scripts.py:
-- initializeEventListeners, handleKeyboardShortcuts
-- Labels (loadLabels, updateLabel)
-- Controls (tab switching, theme modal, download dropdown, label inputs)
-- API calls (collectOverrides, resetValues, saveOverrides, downloadFigure)
+### Remaining in _scripts_main.py:
+- initializeEventListeners, handleKeyboardShortcuts (initialization only)
+- Some duplicate code that could be replaced with modular imports
 
 ### Notes
-- Main _scripts.py still contains the complete working code
-- _scripts/ modules are for incremental refactoring
-- _templates/__init__.py imports from _scripts.py (not _scripts/)
+- Main _scripts_main.py still contains the complete working code
+- _scripts/ modules are for incremental refactoring (14 modules extracted)
+- Total extracted: ~2900 lines across 14 modules
+- _templates/__init__.py imports from _scripts_main.py (not _scripts/)
 
 ---
 
