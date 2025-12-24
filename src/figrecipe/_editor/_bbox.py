@@ -104,6 +104,16 @@ def extract_bboxes(
             if not line.get_visible():
                 continue
 
+            # Skip lines with no data
+            xdata = line.get_xdata()
+            ydata = line.get_ydata()
+            if len(xdata) == 0 or len(ydata) == 0:
+                continue
+
+            # Skip lines that don't belong to this axes (e.g., legend handles)
+            if line.axes != ax:
+                continue
+
             key = f"ax{ax_idx}_line{i}"
             bbox = _get_line_bbox(
                 line,
@@ -127,10 +137,40 @@ def extract_bboxes(
                     "ax_index": ax_idx,
                 }
 
-        # Scatter plots
+        # Scatter plots, fills, quiver
         scatter_idx = 0
         for i, coll in enumerate(ax.collections):
-            if isinstance(coll, PathCollection):
+            # Check for Quiver first (inherits from PolyCollection)
+            from matplotlib.quiver import Quiver
+
+            if isinstance(coll, Quiver):
+                if not coll.get_visible():
+                    continue
+
+                key = f"ax{ax_idx}_quiver{i}"
+                # Calculate bbox from quiver data points (X, Y positions)
+                bbox = _get_quiver_bbox(
+                    coll,
+                    ax,
+                    fig,
+                    renderer,
+                    tight_bbox,
+                    img_width,
+                    img_height,
+                    scale_x,
+                    scale_y,
+                    pad_inches,
+                    saved_height_inches,
+                )
+                if bbox:
+                    bboxes[key] = {
+                        **bbox,
+                        "type": "quiver",
+                        "label": coll.get_label() or f"quiver_{i}",
+                        "ax_index": ax_idx,
+                    }
+
+            elif isinstance(coll, PathCollection):
                 if not coll.get_visible():
                     continue
 
@@ -162,6 +202,10 @@ def extract_bboxes(
                 if not coll.get_visible():
                     continue
 
+                # Get label - don't skip internal elements anymore
+                # to match hitmap behavior for plain matplotlib figures
+                _ = coll.get_label() or ""  # Reserved for future use
+
                 key = f"ax{ax_idx}_fill{i}"
                 bbox = _get_collection_bbox(
                     coll,
@@ -184,6 +228,95 @@ def extract_bboxes(
                         "label": coll.get_label() or f"fill_{i}",
                         "ax_index": ax_idx,
                     }
+
+            else:
+                # Check for LineCollection (eventplot, streamplot, etc.)
+                from matplotlib.collections import LineCollection
+
+                if isinstance(coll, LineCollection):
+                    if not coll.get_visible():
+                        continue
+
+                    key = f"ax{ax_idx}_linecoll{i}"
+                    bbox = _get_collection_bbox(
+                        coll,
+                        ax,
+                        fig,
+                        renderer,
+                        tight_bbox,
+                        img_width,
+                        img_height,
+                        scale_x,
+                        scale_y,
+                        pad_inches,
+                        saved_height_inches,
+                        include_points=False,
+                    )
+                    if bbox:
+                        bboxes[key] = {
+                            **bbox,
+                            "type": "linecollection",
+                            "label": coll.get_label() or f"linecoll_{i}",
+                            "ax_index": ax_idx,
+                        }
+
+                else:
+                    # Check for QuadMesh (pcolormesh, hexbin, hist2d)
+                    from matplotlib.collections import QuadMesh
+
+                    if isinstance(coll, QuadMesh):
+                        if not coll.get_visible():
+                            continue
+
+                        key = f"ax{ax_idx}_quadmesh{i}"
+                        bbox = _get_collection_bbox(
+                            coll,
+                            ax,
+                            fig,
+                            renderer,
+                            tight_bbox,
+                            img_width,
+                            img_height,
+                            scale_x,
+                            scale_y,
+                            pad_inches,
+                            saved_height_inches,
+                            include_points=False,
+                        )
+                        if bbox:
+                            bboxes[key] = {
+                                **bbox,
+                                "type": "quadmesh",
+                                "label": f"quadmesh_{i}",
+                                "ax_index": ax_idx,
+                            }
+
+                    else:
+                        # Check for QuadContourSet (contour, contourf)
+                        from matplotlib.contour import QuadContourSet
+
+                        if isinstance(coll, QuadContourSet):
+                            key = f"ax{ax_idx}_contour{i}"
+                            # Get bbox from the axes (contour fills the plot area)
+                            bbox = _get_element_bbox(
+                                ax,
+                                fig,
+                                renderer,
+                                tight_bbox,
+                                img_width,
+                                img_height,
+                                scale_x,
+                                scale_y,
+                                pad_inches,
+                                saved_height_inches,
+                            )
+                            if bbox:
+                                bboxes[key] = {
+                                    **bbox,
+                                    "type": "contour",
+                                    "label": f"contour_{i}",
+                                    "ax_index": ax_idx,
+                                }
 
         # Bars
         bar_idx = 0
@@ -217,6 +350,95 @@ def extract_bboxes(
                         "ax_index": ax_idx,
                     }
                 bar_idx += 1
+
+            else:
+                # Check for Wedge (pie chart)
+                from matplotlib.patches import Wedge
+
+                if isinstance(patch, Wedge):
+                    if not patch.get_visible():
+                        continue
+
+                    key = f"ax{ax_idx}_wedge{i}"
+                    bbox = _get_patch_bbox(
+                        patch,
+                        ax,
+                        fig,
+                        renderer,
+                        tight_bbox,
+                        img_width,
+                        img_height,
+                        scale_x,
+                        scale_y,
+                        pad_inches,
+                        saved_height_inches,
+                    )
+                    if bbox:
+                        bboxes[key] = {
+                            **bbox,
+                            "type": "pie",
+                            "label": patch.get_label() or f"wedge_{i}",
+                            "ax_index": ax_idx,
+                        }
+
+                else:
+                    # Check for Polygon (fill)
+                    from matplotlib.patches import Polygon
+
+                    if isinstance(patch, Polygon):
+                        if not patch.get_visible():
+                            continue
+
+                        key = f"ax{ax_idx}_polygon{i}"
+                        bbox = _get_patch_bbox(
+                            patch,
+                            ax,
+                            fig,
+                            renderer,
+                            tight_bbox,
+                            img_width,
+                            img_height,
+                            scale_x,
+                            scale_y,
+                            pad_inches,
+                            saved_height_inches,
+                        )
+                        if bbox:
+                            bboxes[key] = {
+                                **bbox,
+                                "type": "fill",
+                                "label": patch.get_label() or f"fill_{i}",
+                                "ax_index": ax_idx,
+                            }
+
+        # Images (imshow)
+        for i, img in enumerate(ax.images):
+            from matplotlib.image import AxesImage
+
+            if isinstance(img, AxesImage):
+                if not img.get_visible():
+                    continue
+
+                key = f"ax{ax_idx}_image{i}"
+                bbox = _get_element_bbox(
+                    img,
+                    fig,
+                    renderer,
+                    tight_bbox,
+                    img_width,
+                    img_height,
+                    scale_x,
+                    scale_y,
+                    pad_inches,
+                    saved_height_inches,
+                )
+                if bbox:
+                    bboxes[key] = {
+                        **bbox,
+                        "type": "image",
+                        "label": img.get_label() or f"image_{i}",
+                        "ax_index": ax_idx,
+                    }
 
         # Title
         title = ax.get_title()
@@ -535,6 +757,82 @@ def _get_element_bbox(
         return None
 
 
+def _get_quiver_bbox(
+    quiver,
+    ax: Axes,
+    fig: Figure,
+    renderer,
+    tight_bbox: Bbox,
+    img_width: int,
+    img_height: int,
+    scale_x: float,
+    scale_y: float,
+    pad_inches: float,
+    saved_height_inches: float,
+) -> Optional[Dict[str, Any]]:
+    """Get bbox for a quiver plot from its data points."""
+    try:
+        # Get X, Y positions from quiver
+        # Quiver stores positions in X, Y arrays
+        X = quiver.X
+        Y = quiver.Y
+
+        if X is None or Y is None or len(X) == 0:
+            return None
+
+        # Flatten if needed
+        import numpy as np
+
+        X_flat = np.asarray(X).flatten()
+        Y_flat = np.asarray(Y).flatten()
+
+        if len(X_flat) == 0 or len(Y_flat) == 0:
+            return None
+
+        transform = ax.transData
+        points = []
+
+        # Limit to reasonable number of points
+        max_points = 100
+        step = max(1, len(X_flat) // max_points)
+
+        for i in range(0, len(X_flat), step):
+            try:
+                display_coords = transform.transform((X_flat[i], Y_flat[i]))
+                img_coords = _display_to_image(
+                    display_coords[0],
+                    display_coords[1],
+                    fig,
+                    tight_bbox,
+                    img_width,
+                    img_height,
+                    scale_x,
+                    scale_y,
+                    pad_inches,
+                    saved_height_inches,
+                )
+                if img_coords:
+                    points.append(img_coords)
+            except Exception:
+                continue
+
+        if not points:
+            return None
+
+        # Calculate bbox from points
+        xs = [p[0] for p in points]
+        ys = [p[1] for p in points]
+        padding = 15  # pixels - slightly larger for quiver arrows
+        return {
+            "x": float(min(xs) - padding),
+            "y": float(min(ys) - padding),
+            "width": float(max(xs) - min(xs) + 2 * padding),
+            "height": float(max(ys) - min(ys) + 2 * padding),
+        }
+    except Exception:
+        return None
+
+
 def _get_line_bbox(
     line,
     ax: Axes,
@@ -682,7 +980,42 @@ def _get_collection_bbox(
         # Fallback: try standard window extent
         window_extent = coll.get_window_extent(renderer)
         if window_extent is None:
-            return None
+            # Use axes extent as fallback
+            return _get_element_bbox(
+                ax,
+                fig,
+                renderer,
+                tight_bbox,
+                img_width,
+                img_height,
+                scale_x,
+                scale_y,
+                pad_inches,
+                saved_height_inches,
+            )
+
+        # Check if window_extent is valid (not inf)
+        import math
+
+        if (
+            math.isinf(window_extent.x0)
+            or math.isinf(window_extent.y0)
+            or math.isinf(window_extent.x1)
+            or math.isinf(window_extent.y1)
+        ):
+            # Invalid extent - use axes extent as fallback
+            return _get_element_bbox(
+                ax,
+                fig,
+                renderer,
+                tight_bbox,
+                img_width,
+                img_height,
+                scale_x,
+                scale_y,
+                pad_inches,
+                saved_height_inches,
+            )
 
         bbox = _transform_bbox(
             window_extent,

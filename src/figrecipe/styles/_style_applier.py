@@ -10,6 +10,7 @@ __all__ = [
     "apply_theme_colors",
     "check_font",
     "finalize_ticks",
+    "finalize_special_plots",
     "list_available_fonts",
 ]
 
@@ -406,11 +407,13 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     # Configure number of ticks (only for numeric axes, not categorical)
     # We defer tick configuration to avoid interfering with categorical axes
     # that get set up later by bar(), boxplot(), etc.
-    n_ticks = style.get("n_ticks")
-    if n_ticks is not None:
-        # Store n_ticks preference on the axes for later application
-        # This will be applied in _finalize_ticks() before saving
-        ax._figrecipe_n_ticks = n_ticks
+    n_ticks_min = style.get("n_ticks_min")
+    n_ticks_max = style.get("n_ticks_max")
+    if n_ticks_min is not None or n_ticks_max is not None:
+        # Store n_ticks preferences on the axes for later application
+        # This will be applied in finalize_ticks() before saving
+        ax._figrecipe_n_ticks_min = n_ticks_min or 3
+        ax._figrecipe_n_ticks_max = n_ticks_max or 4
 
     # Apply color palette to both rcParams and this specific axes
     color_palette = style.get("color_palette")
@@ -594,8 +597,17 @@ def _apply_pie_style(ax: Axes, style: Dict[str, Any]) -> None:
     show_axes = style.get("pie_show_axes", False)
     font_family = check_font(style.get("font_family", "Arial"))
 
-    # Apply text size to all pie text elements (labels and percentages)
+    # Apply text size to pie text elements (labels and percentages)
+    # Skip panel labels (positioned outside axes bounds with transAxes)
     for text in ax.texts:
+        # Check if this is a panel label (uses transAxes and positioned outside axes)
+        transform = text.get_transform()
+        if transform == ax.transAxes:
+            # Get position in axes coordinates
+            x, y = text.get_position()
+            # Panel labels are typically at y > 1.0 (above axes)
+            if y > 1.0 or y < 0.0:
+                continue  # Skip panel labels
         text.set_fontsize(text_pt)
         text.set_fontfamily(font_family)
 
@@ -650,38 +662,130 @@ def finalize_ticks(ax: Axes) -> None:
     Apply deferred tick configuration after all plotting is done.
 
     This function applies the n_ticks setting stored by apply_style_mm(),
-    but only to numeric axes (not categorical).
+    but only to numeric axes (not categorical). Skips pie charts and other
+    plot types that should have hidden axes.
 
     Parameters
     ----------
     ax : matplotlib.axes.Axes
         The axes to finalize.
     """
+    from matplotlib.patches import Wedge
     from matplotlib.ticker import MaxNLocator
 
-    n_ticks = getattr(ax, "_figrecipe_n_ticks", None)
-    if n_ticks is None:
+    # Skip pie charts - they should have no ticks
+    has_pie = any(isinstance(p, Wedge) for p in ax.patches)
+    if has_pie:
         return
+
+    # Get tick count preferences (new format: min/max)
+    n_ticks_min = getattr(ax, "_figrecipe_n_ticks_min", None)
+    n_ticks_max = getattr(ax, "_figrecipe_n_ticks_max", None)
+
+    if n_ticks_min is None and n_ticks_max is None:
+        return
+
+    # Default values - minimum 3 ticks required
+    n_ticks_min = max(3, n_ticks_min or 3)  # Enforce minimum of 3
+    n_ticks_max = max(n_ticks_min, n_ticks_max or 4)  # max must be >= min
+
+    # MaxNLocator: nbins controls max intervals (bins), not ticks
+    # ticks = bins + 1 at most. Set nbins = n_ticks_max to allow some flexibility
+    # With min_n_ticks, this gives roughly n_ticks_min to n_ticks_max ticks
+    nbins = n_ticks_max  # Allow up to n_ticks_max + 1 ticks, min_n_ticks constrains lower bound
+
+    def _is_numeric_label(lbl: str) -> bool:
+        """Check if a tick label represents a numeric value."""
+        if not lbl:
+            return True  # Empty labels are OK
+        # Remove numeric characters: digits, decimal point, signs (hyphen and unicode minus)
+        # Also handle scientific notation (e, E)
+        stripped = lbl.replace(".", "").replace("-", "").replace("+", "")
+        stripped = stripped.replace("−", "")  # Unicode minus sign (U+2212)
+        stripped = stripped.replace("e", "").replace("E", "")
+        return stripped.isdigit() or stripped == ""
 
     # Check if x-axis is categorical (has string tick labels)
     x_labels = [t.get_text() for t in ax.get_xticklabels()]
-    x_is_categorical = any(
-        lbl and not lbl.replace(".", "").replace("-", "").replace("+", "").isdigit()
-        for lbl in x_labels
-        if lbl
-    )
+    x_is_categorical = any(not _is_numeric_label(lbl) for lbl in x_labels)
     if not x_is_categorical:
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=nbins, min_n_ticks=n_ticks_min))
 
     # Check if y-axis is categorical
     y_labels = [t.get_text() for t in ax.get_yticklabels()]
-    y_is_categorical = any(
-        lbl and not lbl.replace(".", "").replace("-", "").replace("+", "").isdigit()
-        for lbl in y_labels
-        if lbl
-    )
+    y_is_categorical = any(not _is_numeric_label(lbl) for lbl in y_labels)
     if not y_is_categorical:
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=n_ticks))
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=nbins, min_n_ticks=n_ticks_min))
+
+
+def finalize_special_plots(ax: Axes, style: Dict[str, Any] = None) -> None:
+    """
+    Finalize axes visibility for special plot types (pie, imshow, etc.).
+
+    This should be called after all plotting is done, before saving.
+    It handles plot types that need axes/ticks hidden.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to finalize.
+    style : dict, optional
+        Style dictionary. If None, uses defaults.
+    """
+    from matplotlib.patches import Wedge
+
+    if style is None:
+        style = {}
+
+    # Check for pie chart
+    has_pie = any(isinstance(p, Wedge) for p in ax.patches)
+    if has_pie:
+        # Get pie settings
+        show_axes = style.get("pie_show_axes", False)
+        text_pt = style.get("pie_text_pt", 6)
+        font_family = check_font(style.get("font_family", "Arial"))
+
+        # Apply text size to pie labels
+        for text in ax.texts:
+            transform = text.get_transform()
+            if transform == ax.transAxes:
+                x, y = text.get_position()
+                if y > 1.0 or y < 0.0:
+                    continue  # Skip panel labels
+            text.set_fontsize(text_pt)
+            text.set_fontfamily(font_family)
+
+        # Hide axes if configured
+        if not show_axes:
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+            ax.set_xlabel("")
+            ax.set_ylabel("")
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+
+    # Check for imshow/matshow (has AxesImage)
+    # But NOT specgram - which has axis labels and should keep ticks
+    from matplotlib.image import AxesImage
+
+    has_image = any(isinstance(c, AxesImage) for c in ax.get_children())
+    if has_image:
+        # Check if this looks like specgram (has meaningful axis labels)
+        xlabel = ax.get_xlabel()
+        ylabel = ax.get_ylabel()
+        is_specgram = xlabel or ylabel  # specgram has "Time"/"Frequency" labels
+
+        if not is_specgram:
+            show_axes = style.get("imshow_show_axes", False)
+            if not show_axes:
+                ax.set_xticks([])
+                ax.set_yticks([])
+                ax.set_xticklabels([])
+                ax.set_yticklabels([])
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
 
 
 if __name__ == "__main__":

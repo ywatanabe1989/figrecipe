@@ -21,6 +21,7 @@ __all__ = [
     "load_preset",
     "unload_style",
     "get_style",
+    "get_current_style_dict",
     "reload_style",
     "list_presets",
     "STYLE",
@@ -391,6 +392,21 @@ def get_style() -> DotDict:
     return _STYLE_CACHE
 
 
+def get_current_style_dict() -> Dict[str, Any]:
+    """Get current style as a flat dictionary for style applier functions.
+
+    Returns
+    -------
+    dict
+        Flattened style dictionary with keys like 'pie_show_axes', 'imshow_show_axes'.
+        Returns empty dict if no style is loaded.
+    """
+    global _STYLE_CACHE
+    if _STYLE_CACHE is None:
+        return {}
+    return to_subplots_kwargs(_STYLE_CACHE)
+
+
 def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     """Convert style DotDict to kwargs for ps.subplots().
 
@@ -434,7 +450,8 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
         "ticks_length_mm": style.ticks.length_mm,
         "ticks_thickness_mm": style.ticks.thickness_mm,
         "ticks_direction": style.ticks.get("direction", "out"),
-        "ticks_n_ticks": style.ticks.n_ticks,
+        "ticks_n_ticks_min": style.ticks.get("n_ticks_min", 3),
+        "ticks_n_ticks_max": style.ticks.get("n_ticks_max", 4),
         # Lines (lines.* in YAML)
         "lines_trace_mm": style.lines.trace_mm,
         "lines_errorbar_mm": style.lines.get("errorbar_mm", 0.2),
@@ -520,7 +537,8 @@ def to_subplots_kwargs(style: Optional[DotDict] = None) -> Dict[str, Any]:
     result["space_h_mm"] = result["spacing_vertical_mm"]
     result["tick_length_mm"] = result["ticks_length_mm"]
     result["tick_thickness_mm"] = result["ticks_thickness_mm"]
-    result["n_ticks"] = result["ticks_n_ticks"]
+    result["n_ticks_min"] = result["ticks_n_ticks_min"]
+    result["n_ticks_max"] = result["ticks_n_ticks_max"]
     result["trace_thickness_mm"] = result["lines_trace_mm"]
     result["marker_size_mm"] = result["markers_size_mm"]
     result["font_family"] = result["fonts_family"]
