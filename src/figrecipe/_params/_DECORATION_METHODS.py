@@ -22,6 +22,12 @@ DECORATION_METHODS = {
     "text",
     "annotate",
     "clabel",
+    "axis",  # For axis('off'), axis('on'), axis('equal'), etc.
+    "set_xticks",
+    "set_yticks",
+    "set_xticklabels",
+    "set_yticklabels",
+    "tick_params",
 }
 
 # EOF

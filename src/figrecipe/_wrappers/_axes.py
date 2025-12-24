@@ -124,6 +124,17 @@ class RecordingAxes:
                         if actual_color is not None:
                             recorded_kwargs["color"] = actual_color
 
+                    # For fill_between: preserve edgecolor='none' if edge is empty
+                    # This is needed because passing 'color' sets both face AND edge
+                    if (
+                        method_name == "fill_between"
+                        and "edgecolor" not in recorded_kwargs
+                    ):
+                        if hasattr(result, "get_edgecolor"):
+                            ec = result.get_edgecolor()
+                            if len(ec) == 0:
+                                recorded_kwargs["edgecolor"] = "none"
+
                 # Process args to detect result references (e.g., clabel's ContourSet)
                 processed_args = self._process_result_refs_in_args(args, method_name)
 
@@ -252,6 +263,39 @@ class RecordingAxes:
         except Exception:
             pass
         return None
+
+    def set_caption(self, caption: str) -> "RecordingAxes":
+        """Set panel caption metadata (not rendered, stored in recipe).
+
+        This is for storing a description for this panel/axis,
+        typically used in multi-panel scientific figures
+        (e.g., "(A) Control group measurements").
+
+        Parameters
+        ----------
+        caption : str
+            The panel caption text.
+
+        Returns
+        -------
+        RecordingAxes
+            Self for method chaining.
+
+        Examples
+        --------
+        >>> fig, axes = fr.subplots(1, 2)
+        >>> axes[0].set_caption("(A) Control group")
+        >>> axes[1].set_caption("(B) Treatment group")
+        """
+        ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+        ax_record.caption = caption
+        return self
+
+    @property
+    def panel_caption(self) -> Optional[str]:
+        """Get the panel caption metadata."""
+        ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+        return ax_record.caption
 
     def no_record(self):
         """Context manager to temporarily disable recording.
@@ -423,13 +467,33 @@ class RecordingAxes:
         from ..styles import get_style
         from ..styles._style_applier import check_font
 
+        # Get style settings before calling pie
+        style = get_style()
+        pie_style = style.get("pie", {}) if style else {}
+
+        # Apply wedge edge styling via wedgeprops if not already specified
+        if "wedgeprops" not in kwargs:
+            from .._utils._units import mm_to_pt
+
+            edge_color = pie_style.get("edge_color", "black")
+            edge_mm = pie_style.get("edge_mm", 0.2)
+            edge_lw = mm_to_pt(edge_mm)
+            kwargs["wedgeprops"] = {"edgecolor": edge_color, "linewidth": edge_lw}
+        elif "edgecolor" not in kwargs.get("wedgeprops", {}):
+            # User provided wedgeprops but no edgecolor, add it
+            from .._utils._units import mm_to_pt
+
+            edge_color = pie_style.get("edge_color", "black")
+            edge_mm = pie_style.get("edge_mm", 0.2)
+            edge_lw = mm_to_pt(edge_mm)
+            kwargs["wedgeprops"]["edgecolor"] = edge_color
+            kwargs["wedgeprops"]["linewidth"] = edge_lw
+
         # Call matplotlib's pie
         result = self._ax.pie(x, **kwargs)
 
-        # Get style settings
-        style = get_style()
+        # Apply additional style settings
         if style:
-            pie_style = style.get("pie", {})
             text_pt = pie_style.get("text_pt", 6)
             show_axes = pie_style.get("show_axes", False)
             font_family = check_font(style.get("fonts", {}).get("family", "Arial"))
@@ -1068,6 +1132,12 @@ class RecordingAxes:
             )
 
         return results
+
+    @property
+    def caption(self) -> Optional[str]:
+        """Get the panel caption metadata."""
+        ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+        return ax_record.caption
 
     def _beeswarm_positions(
         self,

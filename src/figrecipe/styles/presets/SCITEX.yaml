@@ -1,4 +1,4 @@
-# Timestamp: "2025-12-22 13:49:08 (ywatanabe)"
+# Timestamp: "2025-12-24 14:11:46 (ywatanabe)"
 # File: ./src/figrecipe/styles/presets/SCITEX.yaml
 # FIGRECIPE Style Preset
 # ======================
@@ -49,7 +49,8 @@ ticks:
   length_mm: 0.8
   thickness_mm: 0.2
   direction: "out"
-  n_ticks: 4
+  n_ticks_min: 3
+  n_ticks_max: 4
 
 markers:
   size_mm: 0.8
@@ -85,6 +86,8 @@ histogram:
 pie:
   text_pt: 6             # Pie chart text size (labels, autopct)
   show_axes: false       # Hide axes for pie charts
+  edge_color: "black"    # Wedge edge color (black for contrast)
+  edge_mm: 0.2           # Wedge edge thickness
 
 imshow:
   show_axes: false       # Hide ticks, ticklabels, spines for imshow
@@ -120,6 +123,7 @@ behavior:
   hide_right_spine: true
   grid: false
   constrained_layout: true  # Auto-spacing for suptitle/supxlabel/supylabel
+  panel_labels: true        # Auto-add A, B, C labels to multi-panel figures
 
 theme:
   mode: "light"
@@ -152,25 +156,26 @@ colors:
     - [228, 94, 50]      # orange
     - [255, 150, 200]    # pink
 
-  # Named colors
-  white: [255, 255, 255]
-  black: [0, 0, 0]
-  blue: [0, 128, 192]
-  red: [255, 70, 50]
-  pink: [255, 150, 200]
-  green: [20, 180, 20]
-  yellow: [230, 160, 20]
-  gray: [128, 128, 128]
-  grey: [128, 128, 128]
-  purple: [200, 50, 255]
-  lightblue: [20, 200, 200]
-  brown: [128, 0, 0]
-  navy: [0, 0, 100]
-  orange: [228, 94, 50]
+  rgb:
+    # Named colors
+    - white: [255, 255, 255]
+    - black: [0, 0, 0]
+    - blue: [0, 128, 192]
+    - red: [255, 70, 50]
+    - pink: [255, 150, 200]
+    - green: [20, 180, 20]
+    - yellow: [230, 160, 20]
+    - gray: [128, 128, 128]
+    - grey: [128, 128, 128]
+    - purple: [200, 50, 255]
+    - lightblue: [20, 200, 200]
+    - brown: [128, 0, 0]
+    - navy: [0, 0, 100]
+    - orange: [228, 94, 50]
 
-  # Semantic
-  primary: [0, 128, 192]
-  secondary: [255, 70, 50]
-  accent: [20, 180, 20]
+    # Semantic
+    - primary: [0, 128, 192]
+    - secondary: [255, 70, 50]
+    - accent: [20, 180, 20]
 
 # EOF

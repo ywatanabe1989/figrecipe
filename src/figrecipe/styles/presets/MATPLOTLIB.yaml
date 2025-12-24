@@ -43,7 +43,8 @@ ticks:
   length_mm: null
   thickness_mm: null
   direction: null
-  n_ticks: null
+  n_ticks_min: null
+  n_ticks_max: null
 
 markers:
   size_mm: null

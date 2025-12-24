@@ -354,6 +354,8 @@ def subplots(
     # Style parameters
     style: Optional[Dict[str, Any]] = None,
     apply_style_mm: bool = True,
+    # Panel labels (None = use style default, True/False = explicit)
+    panel_labels: Optional[bool] = None,
     **kwargs,
 ) -> Tuple[RecordingFigure, Union[RecordingAxes, NDArray]]:
     """Create a figure with recording-enabled axes.
@@ -396,6 +398,11 @@ def subplots(
     apply_style_mm : bool
         If True (default), apply loaded style to axes after creation.
         Set to False to disable automatic style application.
+    panel_labels : bool or None
+        If True, automatically add panel labels (A, B, C, ...) to each axes.
+        If False, no panel labels. If None (default), use the loaded style's
+        `behavior.panel_labels` setting (True for SCITEX, False otherwise).
+        Labels are placed in the upper-left corner.
 
     **kwargs
         Additional arguments passed to plt.subplots() (e.g., figsize, dpi).
@@ -638,6 +645,19 @@ def subplots(
         # Record style in figure record for reproduction
         fig.record.style = style_dict
 
+    # Determine panel_labels setting:
+    # - If explicitly provided (True/False), use that
+    # - If None, check loaded style's behavior.panel_labels
+    use_panel_labels = panel_labels
+    if use_panel_labels is None and global_style is not None:
+        # Use the raw global_style (not the flattened style_dict)
+        behavior = global_style.get("behavior", {})
+        use_panel_labels = behavior.get("panel_labels", False)
+
+    # Add panel labels if enabled (for multi-panel figures)
+    if use_panel_labels and (nrows > 1 or ncols > 1):
+        fig.add_panel_labels()
+
     return fig, axes
 
 
@@ -805,11 +825,19 @@ def save(
         except (KeyError, AttributeError):
             pass
 
-    # Finalize tick configuration for all axes (avoids categorical axis interference)
-    from .styles._style_applier import finalize_ticks
+    # Finalize tick configuration and special plot types for all axes
+    from .styles._style_applier import finalize_special_plots, finalize_ticks
+
+    # Get style for special plot finalization
+    style_dict = {}
+    if hasattr(fig, "style") and fig.style:
+        from .styles import get_style
+
+        style_dict = get_style(fig.style)
 
     for ax in fig.fig.get_axes():
         finalize_ticks(ax)
+        finalize_special_plots(ax, style_dict)
 
     # Save the image
     fig.fig.savefig(image_path, dpi=dpi, bbox_inches="tight", transparent=transparent)
@@ -1198,6 +1226,7 @@ def edit(
     style=None,
     port: int = 5050,
     open_browser: bool = True,
+    hot_reload: bool = False,
 ):
     """Launch interactive GUI editor for figure styling.
 
@@ -1215,6 +1244,9 @@ def edit(
         Flask server port (default: 5050). Auto-finds available port if occupied.
     open_browser : bool, optional
         Whether to open browser automatically (default: True).
+    hot_reload : bool, optional
+        Enable hot reload - server restarts when source files change (default: False).
+        Like Django's development server. Browser auto-refreshes on reconnect.
 
     Returns
     -------
@@ -1247,7 +1279,9 @@ def edit(
     """
     from ._editor import edit as _edit
 
-    return _edit(source, style=style, port=port, open_browser=open_browser)
+    return _edit(
+        source, style=style, port=port, open_browser=open_browser, hot_reload=hot_reload
+    )
 
 
 def panel_label(

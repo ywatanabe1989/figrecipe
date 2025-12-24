@@ -58,6 +58,8 @@ class AxesRecord:
     position: Tuple[int, int]
     calls: List[CallRecord] = field(default_factory=list)
     decorations: List[CallRecord] = field(default_factory=list)
+    # Panel-level caption (e.g., "(A) Description of this panel")
+    caption: Optional[str] = None
 
     def add_call(self, record: CallRecord) -> None:
         """Add a plotting call record."""
@@ -69,10 +71,13 @@ class AxesRecord:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
+        result = {
             "calls": [c.to_dict() for c in self.calls],
             "decorations": [d.to_dict() for d in self.decorations],
         }
+        if self.caption is not None:
+            result["caption"] = self.caption
+        return result
 
 
 @dataclass
@@ -95,6 +100,11 @@ class FigureRecord:
     suptitle: Optional[Dict[str, Any]] = None
     supxlabel: Optional[Dict[str, Any]] = None
     supylabel: Optional[Dict[str, Any]] = None
+    # Panel labels (A, B, C, D for multi-panel figures)
+    panel_labels: Optional[Dict[str, Any]] = None
+    # Metadata for scientific figures (not rendered, stored in recipe)
+    title_metadata: Optional[str] = None  # Figure title for publication/reference
+    caption: Optional[str] = None  # Figure caption (e.g., "Fig. 1. Description...")
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -138,12 +148,24 @@ class FigureRecord:
         # Add supylabel if set
         if self.supylabel is not None:
             result["figure"]["supylabel"] = self.supylabel
+        # Add panel_labels if set
+        if self.panel_labels is not None:
+            result["figure"]["panel_labels"] = self.panel_labels
+        # Add metadata section for scientific figures
+        metadata = {}
+        if self.title_metadata is not None:
+            metadata["title"] = self.title_metadata
+        if self.caption is not None:
+            metadata["caption"] = self.caption
+        if metadata:
+            result["metadata"] = metadata
         return result
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "FigureRecord":
         """Create from dictionary."""
         fig_data = data.get("figure", {})
+        metadata = data.get("metadata", {})
         record = cls(
             id=data.get("id", f"fig_{uuid.uuid4().hex[:8]}"),
             created=data.get("created", ""),
@@ -156,6 +178,9 @@ class FigureRecord:
             suptitle=fig_data.get("suptitle"),
             supxlabel=fig_data.get("supxlabel"),
             supylabel=fig_data.get("supylabel"),
+            panel_labels=fig_data.get("panel_labels"),
+            title_metadata=metadata.get("title"),
+            caption=metadata.get("caption"),
         )
 
         # Reconstruct axes
@@ -167,7 +192,10 @@ class FigureRecord:
             else:
                 row, col = 0, 0
 
-            ax_record = AxesRecord(position=(row, col))
+            ax_record = AxesRecord(
+                position=(row, col),
+                caption=ax_data.get("caption"),
+            )
             for call_data in ax_data.get("calls", []):
                 ax_record.calls.append(CallRecord.from_dict(call_data, (row, col)))
             for dec_data in ax_data.get("decorations", []):

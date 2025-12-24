@@ -183,14 +183,12 @@ def _get_setter_type(obj: Any, prop_name: str) -> Optional[str]:
     return None
 
 
-def _build_kwargs_with_types() -> (
-    tuple[
-        List[Dict[str, Any]],
-        List[Dict[str, Any]],
-        List[Dict[str, Any]],
-        List[Dict[str, Any]],
-    ]
-):
+def _build_kwargs_with_types() -> tuple[
+    List[Dict[str, Any]],
+    List[Dict[str, Any]],
+    List[Dict[str, Any]],
+    List[Dict[str, Any]],
+]:
     """Build kwargs lists with types from matplotlib classes."""
     from matplotlib.artist import Artist
     from matplotlib.lines import Line2D
@@ -506,19 +504,31 @@ def get_signature(method_name: str, expand_kwargs: bool = True) -> Dict[str, Any
             if not typehint:
                 typehint = param_types.get(name.lower())
 
-            if param.default is inspect.Parameter.empty:
-                # Positional argument
+            # Handle POSITIONAL_OR_KEYWORD and POSITIONAL_ONLY parameters
+            if param.kind in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            ):
+                # Add to args (for positional parameter name lookup)
                 args.append(
                     {
                         "name": name,
                         "type": typehint,
                     }
                 )
-            else:
-                # Keyword argument with default
+                # Also add to kwargs if it has a default value
+                if param.default is not inspect.Parameter.empty:
+                    kwargs[name] = {
+                        "type": typehint,
+                        "default": _serialize_default(param.default),
+                    }
+            elif param.kind == inspect.Parameter.KEYWORD_ONLY:
+                # Keyword-only argument
                 kwargs[name] = {
                     "type": typehint,
-                    "default": _serialize_default(param.default),
+                    "default": _serialize_default(param.default)
+                    if param.default is not inspect.Parameter.empty
+                    else None,
                 }
 
     # Expand *args from docstring
