@@ -195,12 +195,13 @@ def reproduce_from_record(
                 if result is not None:
                     result_cache[call.id] = result
 
-    # Finalize tick configuration (avoids categorical axis interference)
-    from .styles._style_applier import finalize_ticks
+    # Finalize tick configuration and special plot types (avoids categorical axis interference)
+    from .styles._style_applier import finalize_special_plots, finalize_ticks
 
     for row in range(nrows):
         for col in range(ncols):
             finalize_ticks(axes_2d[row, col])
+            finalize_special_plots(axes_2d[row, col], record.style or {})
 
     # Apply figure-level labels if recorded
     if record.suptitle is not None:
@@ -233,6 +234,26 @@ def reproduce_from_record(
 
     # Create RecordingFigure
     wrapped_fig = RecordingFigure(fig, recorder, wrapped_axes.tolist())
+
+    # Reproduce panel labels if recorded
+    if record.panel_labels is not None:
+        labels = record.panel_labels.get("labels")
+        loc = record.panel_labels.get("loc", "upper left")
+        offset = tuple(record.panel_labels.get("offset", (-0.1, 1.05)))
+        fontsize = record.panel_labels.get("fontsize")
+        fontweight = record.panel_labels.get("fontweight", "bold")
+        color = record.panel_labels.get("color")
+        extra_kwargs = record.panel_labels.get("kwargs", {})
+        if color is not None:
+            extra_kwargs["color"] = color
+        wrapped_fig.add_panel_labels(
+            labels=labels,
+            loc=loc,
+            offset=offset,
+            fontsize=fontsize,
+            fontweight=fontweight,
+            **extra_kwargs,
+        )
 
     # Return in appropriate format (matching subplots() behavior)
     if nrows == 1 and ncols == 1:

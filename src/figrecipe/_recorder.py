@@ -58,6 +58,8 @@ class AxesRecord:
     position: Tuple[int, int]
     calls: List[CallRecord] = field(default_factory=list)
     decorations: List[CallRecord] = field(default_factory=list)
+    # Panel-level caption (e.g., "(A) Description of this panel")
+    caption: Optional[str] = None
 
     def add_call(self, record: CallRecord) -> None:
         """Add a plotting call record."""
@@ -69,10 +71,13 @@ class AxesRecord:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
+        result = {
             "calls": [c.to_dict() for c in self.calls],
             "decorations": [d.to_dict() for d in self.decorations],
         }
+        if self.caption is not None:
+            result["caption"] = self.caption
+        return result
 
 
 @dataclass
@@ -95,6 +100,11 @@ class FigureRecord:
     suptitle: Optional[Dict[str, Any]] = None
     supxlabel: Optional[Dict[str, Any]] = None
     supylabel: Optional[Dict[str, Any]] = None
+    # Panel labels (A, B, C, D for multi-panel figures)
+    panel_labels: Optional[Dict[str, Any]] = None
+    # Metadata for scientific figures (not rendered, stored in recipe)
+    title_metadata: Optional[str] = None  # Figure title for publication/reference
+    caption: Optional[str] = None  # Figure caption (e.g., "Fig. 1. Description...")
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -138,12 +148,24 @@ class FigureRecord:
         # Add supylabel if set
         if self.supylabel is not None:
             result["figure"]["supylabel"] = self.supylabel
+        # Add panel_labels if set
+        if self.panel_labels is not None:
+            result["figure"]["panel_labels"] = self.panel_labels
+        # Add metadata section for scientific figures
+        metadata = {}
+        if self.title_metadata is not None:
+            metadata["title"] = self.title_metadata
+        if self.caption is not None:
+            metadata["caption"] = self.caption
+        if metadata:
+            result["metadata"] = metadata
         return result
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "FigureRecord":
         """Create from dictionary."""
         fig_data = data.get("figure", {})
+        metadata = data.get("metadata", {})
         record = cls(
             id=data.get("id", f"fig_{uuid.uuid4().hex[:8]}"),
             created=data.get("created", ""),
@@ -156,6 +178,9 @@ class FigureRecord:
             suptitle=fig_data.get("suptitle"),
             supxlabel=fig_data.get("supxlabel"),
             supylabel=fig_data.get("supylabel"),
+            panel_labels=fig_data.get("panel_labels"),
+            title_metadata=metadata.get("title"),
+            caption=metadata.get("caption"),
         )
 
         # Reconstruct axes
@@ -167,7 +192,10 @@ class FigureRecord:
             else:
                 row, col = 0, 0
 
-            ax_record = AxesRecord(position=(row, col))
+            ax_record = AxesRecord(
+                position=(row, col),
+                caption=ax_data.get("caption"),
+            )
             for call_data in ax_data.get("calls", []):
                 ax_record.calls.append(CallRecord.from_dict(call_data, (row, col)))
             for dec_data in ax_data.get("decorations", []):
@@ -272,111 +300,12 @@ class Recorder:
         args: tuple,
         method_name: str,
     ) -> List[Dict[str, Any]]:
-        """Process positional arguments for storage.
+        """Process positional arguments for storage."""
+        from ._recorder_utils import process_args
 
-        Parameters
-        ----------
-        args : tuple
-            Raw positional arguments.
-        method_name : str
-            Name of the method.
-
-        Returns
-        -------
-        list
-            Processed args with name and data.
-        """
-        from ._utils._numpy_io import should_store_inline, to_serializable
-
-        processed = []
-        # Simple arg names based on common patterns
-        arg_names = self._get_arg_names(method_name, len(args))
-
-        for i, (name, value) in enumerate(zip(arg_names, args)):
-            # Handle result references (e.g., ContourSet for clabel)
-            if isinstance(value, dict) and "__ref__" in value:
-                processed.append(
-                    {
-                        "name": name,
-                        "data": {"__ref__": value["__ref__"]},
-                    }
-                )
-                continue
-
-            if isinstance(value, np.ndarray):
-                if should_store_inline(value):
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": to_serializable(value),
-                            "dtype": str(value.dtype),
-                        }
-                    )
-                else:
-                    # Mark for file storage (will be handled by serializer)
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": "__FILE__",
-                            "dtype": str(value.dtype),
-                            "_array": value,  # Temporary, removed during serialization
-                        }
-                    )
-            elif hasattr(value, "values"):  # pandas
-                arr = np.asarray(value)
-                if should_store_inline(arr):
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": to_serializable(arr),
-                            "dtype": str(arr.dtype),
-                        }
-                    )
-                else:
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": "__FILE__",
-                            "dtype": str(arr.dtype),
-                            "_array": arr,
-                        }
-                    )
-            elif (
-                isinstance(value, (list, tuple))
-                and len(value) > 0
-                and isinstance(value[0], np.ndarray)
-            ):
-                # List of arrays (e.g., boxplot, violinplot data)
-                arrays_data = [to_serializable(arr) for arr in value]
-                dtypes = [str(arr.dtype) for arr in value]
-                processed.append(
-                    {
-                        "name": name,
-                        "data": arrays_data,
-                        "dtype": (dtypes[0] if len(set(dtypes)) == 1 else dtypes),
-                        "_is_array_list": True,
-                    }
-                )
-            else:
-                # Scalar or other serializable value
-                try:
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": (
-                                value if self._is_serializable(value) else str(value)
-                            ),
-                        }
-                    )
-                except (TypeError, ValueError):
-                    processed.append(
-                        {
-                            "name": name,
-                            "data": str(value),
-                        }
-                    )
-
-        return processed
+        return process_args(
+            args, method_name, self._get_arg_names, self._is_serializable
+        )
 
     def _get_arg_names(self, method_name: str, n_args: int) -> List[str]:
         """Get argument names for a method from signatures.

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-23 15:10:00 (ywatanabe)"
+# Timestamp: "2025-12-24 07:32:26 (ywatanabe)"
 # File: /home/ywatanabe/proj/figrecipe/examples/demo_editor.py
 
 
-"""Demo script for GUI editor with ALL supported plot types."""
+"""Demo script for GUI editor with diverse plot types (subset).
 
-# Force Agg backend BEFORE any matplotlib import to avoid Tkinter threading issues
+For ALL plot types, see demo_editor_full.py
+"""
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -17,25 +19,32 @@ import sys
 import time
 from pathlib import Path
 
+import numpy as np
+
 sys.path.insert(0, "src")
 
-import figrecipe as fr  # noqa: E402
+import figrecipe as fr
 
 output_path = Path(os.path.dirname(__file__))
 
+# Use representative plots from each category (one per category)
+from figrecipe._dev.demo_plotters import get_representative_plots
+
+SELECTED_PLOTTERS = get_representative_plots()
+# Result: ['plot', 'scatter', 'bar', 'hist', 'imshow', 'contourf', 'specgram', 'quiver', 'pie']
+
 
 def kill_port(port=5050):
-    # Kill port first
     subprocess.run(
         f"fuser -k {port}/tcp 2>/dev/null || lsof -ti :{port} | xargs -r kill -9",
         shell=True,
         stderr=subprocess.DEVNULL,
     )
     time.sleep(1)
-    # Verify port is free
-    result = subprocess.run(f"lsof -i :{port}", shell=True, capture_output=True)
+    result = subprocess.run(
+        f"lsof -i :{port}", shell=True, capture_output=True
+    )
     if result.returncode == 0:
-        print(f"Warning: Port {port} still in use, killing again...")
         subprocess.run(
             f"lsof -ti :{port} | xargs kill -9",
             shell=True,
@@ -45,18 +54,43 @@ def kill_port(port=5050):
 
 
 def plot_figure():
-    """Create a figure with ALL supported plot types using the registry."""
-    from figrecipe._dev.demo_plotters import create_all_plots_figure
+    """Create a figure with diverse plot types."""
+    from figrecipe._dev import get_plotter
 
-    # Create figure with all plots
-    fig, axes, results = create_all_plots_figure(fr)
+    rng = np.random.default_rng(42)
 
-    # Report results
+    # Calculate grid size (3x4 for 12 plots)
+    n_plots = len(SELECTED_PLOTTERS)
+    n_cols = 3
+    n_rows = (n_plots + n_cols - 1) // n_cols
+
+    # Let SCITEX style compute figure size (40x28mm per axis)
+    fig, axes = fr.subplots(n_rows, n_cols)
+    axes = axes.flatten()
+
+    results = {}
+    for idx, name in enumerate(SELECTED_PLOTTERS):
+        ax = axes[idx]
+        try:
+            plotter = get_plotter(name)
+            plotter(fr, rng, ax=ax)
+            # Title already set by plotter with method name
+            results[name] = {"success": True, "error": None}
+        except Exception as e:
+            ax.set_title(f"{name} (failed)")
+            ax.text(
+                0.5, 0.5, str(e)[:50], ha="center", va="center", fontsize=8
+            )
+            results[name] = {"success": False, "error": str(e)}
+
+    # Hide unused axes
+    for idx in range(n_plots, len(axes)):
+        axes[idx].set_visible(False)
+
+    # Report
     successes = sum(1 for r in results.values() if r["success"])
-    failures = sum(1 for r in results.values() if not r["success"])
     print(f"Plotted {successes}/{len(results)} plot types successfully")
-    if failures > 0:
-        print("Failed plots:")
+    if successes < len(results):
         for name, r in results.items():
             if not r["success"]:
                 print(f"  - {name}: {r['error']}")
@@ -67,20 +101,19 @@ def plot_figure():
 def main():
     kill_port()
 
-    # Load SCITEX style FIRST
     fr.load_style("SCITEX")
 
-    # Plot figure with all types
     fig = plot_figure()
 
-    # Save and validate
-    fr.save(fig, output_path / "figrecipe_test.png", validate_error_level="warning")
+    # validate_error_level="warning" needed as some plots have non-deterministic elements
+    fr.save(
+        fig, output_path / "demo_editor.png", validate_error_level="warning"
+    )
 
-    # Reproduce
-    fig, axes = fr.reproduce(output_path / "figrecipe_test.yaml")
+    fig, axes = fr.reproduce(output_path / "demo_editor.yaml")
 
-    print("Launching editor on port 5050...")
-    fr.edit(fig, open_browser=True, port=5050)
+    print("Launching editor...")
+    fr.edit(fig)
 
 
 if __name__ == "__main__":

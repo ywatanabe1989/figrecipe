@@ -18,12 +18,10 @@ Usage:
     fig, ax = ps.subplots(**style.to_subplots_kwargs())
 """
 
-from ._style_applier import (
-    apply_style_mm,
-    apply_theme_colors,
-    check_font,
-    list_available_fonts,
-)
+from ._dotdict import DotDict
+from ._finalize import finalize_special_plots, finalize_ticks
+from ._fonts import check_font, list_available_fonts
+from ._style_applier import apply_style_mm
 from ._style_loader import (
     STYLE,
     get_style,
@@ -33,8 +31,10 @@ from ._style_loader import (
     to_subplots_kwargs,
     unload_style,
 )
+from ._themes import apply_theme_colors
 
 __all__ = [
+    "DotDict",
     "load_style",
     "unload_style",
     "get_style",
@@ -46,4 +46,6 @@ __all__ = [
     "apply_theme_colors",
     "check_font",
     "list_available_fonts",
+    "finalize_ticks",
+    "finalize_special_plots",
 ]

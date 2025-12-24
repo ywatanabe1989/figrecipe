@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test notebook pdf clean clean-outputs lint lint-fix format pre-commit
+.PHONY: help install install-dev test notebook pdf clean clean-outputs lint lint-fix format pre-commit gui
 
 PYTHON := python3
 PIP := pip3
@@ -18,6 +18,7 @@ help:
 	@echo "  make lint-fix      Run linter with auto-fix"
 	@echo "  make format        Format code"
 	@echo "  make pre-commit    Install pre-commit hooks"
+	@echo "  make gui           Launch GUI editor demo"
 
 install:
 	$(PIP) install -e .
@@ -64,3 +65,6 @@ format:
 pre-commit:
 	pip install pre-commit
 	pre-commit install
+
+gui:
+	$(PYTHON) examples/demo_editor.py

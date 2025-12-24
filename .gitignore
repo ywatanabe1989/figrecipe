@@ -2,6 +2,8 @@
 CLAUDE.md
 .claude
 docs/to_claude
+REFACTORING.md
+project_management/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -80,6 +82,8 @@ outputs/
 !outputs/notebook/
 *.png
 !docs/figrecipe_logo.png
+!docs/images/*.png
+!docs/images/**/*.png
 !outputs/notebook/*.png
 *.yaml
 !pyproject.toml

@@ -93,6 +93,22 @@ class RecordingFigure:
             pass
         return default
 
+    def _get_theme_text_color(self, default: str = "black") -> str:
+        """Get text color from loaded style's theme settings."""
+        try:
+            from ..styles._style_loader import _STYLE_CACHE
+
+            if _STYLE_CACHE is not None:
+                theme = getattr(_STYLE_CACHE, "theme", None)
+                if theme is not None:
+                    mode = getattr(theme, "mode", "light")
+                    theme_colors = getattr(theme, mode, None)
+                    if theme_colors is not None:
+                        return getattr(theme_colors, "text", default)
+        except Exception:
+            pass
+        return default
+
     def suptitle(self, t: str, **kwargs) -> Any:
         """Set super title for the figure and record it.
 
@@ -162,6 +178,131 @@ class RecordingFigure:
         # Call the underlying figure's supylabel
         return self._fig.supylabel(t, **kwargs)
 
+    def add_panel_labels(
+        self,
+        labels: Optional[List[str]] = None,
+        loc: str = "upper left",
+        offset: Tuple[float, float] = (-0.1, 1.05),
+        fontsize: Optional[float] = None,
+        fontweight: str = "bold",
+        **kwargs,
+    ) -> List[Any]:
+        """Add panel labels (A, B, C, D, etc.) to multi-panel figures.
+
+        Parameters
+        ----------
+        labels : list of str, optional
+            Custom labels. If None, uses uppercase letters (A, B, C, ...).
+        loc : str
+            Location hint: 'upper left' (default), 'upper right', 'lower left', 'lower right'.
+        offset : tuple of float
+            (x, y) offset in axes coordinates from the corner.
+            Default is (-0.1, 1.05) for upper left positioning.
+        fontsize : float, optional
+            Font size in points. If None, uses style's title_pt or 10.
+        fontweight : str
+            Font weight (default: 'bold').
+        **kwargs
+            Additional arguments passed to ax.text().
+
+        Returns
+        -------
+        list of Text
+            The matplotlib Text objects created.
+
+        Examples
+        --------
+        >>> fig, axes = fr.subplots(2, 2)
+        >>> fig.add_panel_labels()  # Adds A, B, C, D
+        >>> fig.add_panel_labels(['i', 'ii', 'iii', 'iv'])  # Custom labels
+        >>> fig.add_panel_labels(loc='upper right', offset=(1.05, 1.05))
+        """
+        from ._panel_labels import add_panel_labels as _add_panel_labels
+
+        # Get fontsize from style if not specified
+        if fontsize is None:
+            fontsize = self._get_style_fontsize("title_pt", 10)
+
+        # Get theme text color (unless user provided 'color' in kwargs)
+        if "color" not in kwargs:
+            text_color = self._get_theme_text_color()
+        else:
+            text_color = kwargs.pop("color")
+
+        def record_callback(info):
+            self._recorder.figure_record.panel_labels = info
+
+        return _add_panel_labels(
+            all_axes=self.flat,
+            labels=labels,
+            loc=loc,
+            offset=offset,
+            fontsize=fontsize,
+            fontweight=fontweight,
+            text_color=text_color,
+            record_callback=record_callback,
+            **kwargs,
+        )
+
+    def set_title_metadata(self, title: str) -> "RecordingFigure":
+        """Set figure title metadata (not rendered, stored in recipe).
+
+        This is for storing a publication/reference title for the figure,
+        separate from suptitle which is rendered on the figure.
+
+        Parameters
+        ----------
+        title : str
+            The figure title for publication/reference.
+
+        Returns
+        -------
+        RecordingFigure
+            Self for method chaining.
+
+        Examples
+        --------
+        >>> fig, ax = fr.subplots()
+        >>> fig.set_title_metadata("Effect of temperature on reaction rate")
+        >>> fig.set_caption("Figure 1. Reaction rates measured at various temperatures.")
+        """
+        self._recorder.figure_record.title_metadata = title
+        return self
+
+    def set_caption(self, caption: str) -> "RecordingFigure":
+        """Set figure caption metadata (not rendered, stored in recipe).
+
+        This is for storing a publication caption for the figure,
+        typically used in scientific papers (e.g., "Fig. 1. Description...").
+
+        Parameters
+        ----------
+        caption : str
+            The figure caption text.
+
+        Returns
+        -------
+        RecordingFigure
+            Self for method chaining.
+
+        Examples
+        --------
+        >>> fig, ax = fr.subplots()
+        >>> fig.set_caption("Figure 1. Temperature dependence of reaction rates.")
+        """
+        self._recorder.figure_record.caption = caption
+        return self
+
+    @property
+    def title_metadata(self) -> Optional[str]:
+        """Get the figure title metadata."""
+        return self._recorder.figure_record.title_metadata
+
+    @property
+    def caption(self) -> Optional[str]:
+        """Get the figure caption metadata."""
+        return self._recorder.figure_record.caption
+
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to underlying figure."""
         return getattr(self._fig, name)
@@ -203,6 +344,15 @@ class RecordingFigure:
         >>> fig.savefig('figure.png')  # Saves both figure.png and figure.yaml
         >>> fig.savefig('figure.png', save_recipe=False)  # Image only
         """
+        # Finalize ticks and special plots before saving
+        from ..styles._style_applier import finalize_special_plots, finalize_ticks
+        from ..styles._style_loader import get_current_style_dict
+
+        style_dict = get_current_style_dict()
+        for ax in self._fig.get_axes():
+            finalize_ticks(ax)
+            finalize_special_plots(ax, style_dict)
+
         # Handle file-like objects (BytesIO, etc.) - just pass through
         if hasattr(fname, "write"):
             self._fig.savefig(fname, **kwargs)
@@ -255,6 +405,7 @@ def create_recording_subplots(
     nrows: int = 1,
     ncols: int = 1,
     recorder: Optional["Recorder"] = None,
+    panel_labels: bool = False,
     **kwargs,
 ) -> Tuple[RecordingFigure, Union[RecordingAxes, NDArray]]:
     """Create a figure with recording-enabled axes.
@@ -267,6 +418,9 @@ def create_recording_subplots(
         Number of columns.
     recorder : Recorder, optional
         Recorder instance. Created if not provided.
+    panel_labels : bool
+        If True and figure has multiple panels, automatically add
+        panel labels (A, B, C, D, ...). Default is False.
     **kwargs
         Passed to plt.subplots().
 
@@ -276,6 +430,10 @@ def create_recording_subplots(
         Wrapped figure.
     axes : RecordingAxes or ndarray
         Wrapped axes (single if 1x1, otherwise numpy array matching matplotlib).
+
+    Examples
+    --------
+    >>> fig, axes = fr.subplots(2, 2, panel_labels=True)  # Auto-adds A, B, C, D
     """
     from .._recorder import Recorder
 
@@ -311,6 +469,10 @@ def create_recording_subplots(
         wrapped_axes.append(row)
 
     wrapped_fig = RecordingFigure(fig, recorder, wrapped_axes)
+
+    # Add panel labels if requested (multi-panel figures only)
+    if panel_labels:
+        wrapped_fig.add_panel_labels()
 
     # Return in same shape as matplotlib (numpy arrays for consistency)
     if nrows == 1:

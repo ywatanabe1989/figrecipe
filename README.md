@@ -5,7 +5,9 @@
 !-- --- -->
 
 <p align="center">
-  <img src="docs/figrecipe_logo.png" alt="figrecipe logo" width="200"/>
+  <a href="https://scitex.ai" target="_blank">
+    <img src="docs/figrecipe_logo.png" alt="figrecipe logo" width="200"/>
+  </a>
 </p>
 
 # FigRecipe
@@ -63,6 +65,31 @@ allowing figures to be:
 The notebook includes side-by-side comparisons of original and reproduced figures.
 
 Source: [examples/figrecipe_demo.ipynb](examples/figrecipe_demo.ipynb)
+
+### Supported Plot Types
+
+FigRecipe supports 46 matplotlib plot types, organized into 9 categories:
+
+<details>
+<summary><b>All Plot Types</b> (click to expand)</summary>
+<p align="center">
+  <img src="docs/images/plot_types/all_plot_types.png" alt="All Plot Types" width="100%"/>
+</p>
+</details>
+
+| Line & Curve | Scatter | Distribution |
+|:---:|:---:|:---:|
+| ![Line](docs/images/plot_types/category_line_curve.png) | ![Scatter](docs/images/plot_types/category_scatter_points.png) | ![Distribution](docs/images/plot_types/category_distribution.png) |
+
+| Bar & Categorical | Contour & Surface | 2D/Image/Matrix |
+|:---:|:---:|:---:|
+| ![Bar](docs/images/plot_types/category_bar_categorical.png) | ![Contour](docs/images/plot_types/category_contour_surface.png) | ![Image](docs/images/plot_types/category_2d_image_matrix.png) |
+
+| Vector & Flow | Spectral & Signal | Special |
+|:---:|:---:|:---:|
+| ![Vector](docs/images/plot_types/category_vector_flow.png) | ![Spectral](docs/images/plot_types/category_spectral_signal.png) | ![Special](docs/images/plot_types/category_special.png) |
+
+Generate all plots: `python examples/demo_plot_all.py`
 
 ## Installation
 
@@ -168,6 +195,10 @@ overrides = fr.edit(fig, port=5050)
 # Apply overrides to future figures or save to custom YAML
 ```
 
+<p align="center">
+  <img src="docs/images/gui_editor_demo.png" alt="FigRecipe GUI Editor" width="100%"/>
+</p>
+
 The editor provides:
 - **Live preview** with real-time style updates
 - **Theme switching** between SCITEX/MATPLOTLIB presets
@@ -175,6 +206,10 @@ The editor provides:
 - **Property panels** for Figure, Axis, Legend, and Labels
 - **Download** in PNG, SVG, PDF formats
 - **Export** updated recipe YAML
+
+| Axis Properties | Download Options | Dark Mode |
+|:---:|:---:|:---:|
+| ![Axis Panel](docs/images/editor_axis_panel.png) | ![Download](docs/images/editor_download_options.png) | ![Dark Mode](docs/images/editor_dark_mode.png) |
 
 ### Style Format (YAML)
 
