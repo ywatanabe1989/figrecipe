@@ -94,7 +94,18 @@ function showDynamicCallProperties(element) {
 
     container.innerHTML = '';
 
-    const callId = element.call_id || element.label;
+    // Get call_id - try element directly, then colorMap, then label
+    let callId = element.call_id;
+    if (!callId && element.key && typeof colorMap !== 'undefined') {
+        // Look up call_id from colorMap (hitmap has this info)
+        const colorInfo = colorMap[element.key];
+        if (colorInfo && colorInfo.call_id) {
+            callId = colorInfo.call_id;
+        }
+    }
+    if (!callId) {
+        callId = element.label;
+    }
 
     // If no call data found, show basic element info instead
     if (!callId || !callsData[callId]) {
