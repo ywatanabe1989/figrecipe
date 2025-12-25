@@ -176,16 +176,22 @@ async function handleLegendDragEnd(event) {
         return;
     }
 
-    // Calculate new legend center in mm
-    const scaleX = img.naturalWidth / rect.width;
-    const scaleY = img.naturalHeight / rect.height;
+    // Calculate scale factors: screen pixels to image pixels
+    const screenToImgX = img.naturalWidth / rect.width;
+    const screenToImgY = img.naturalHeight / rect.height;
 
-    const newCenterX = (legendDragStartBbox.x + legendDragStartBbox.width / 2 + deltaX * scaleX) / img.naturalWidth * figSize.width_mm;
-    const newCenterY = (legendDragStartBbox.y + legendDragStartBbox.height / 2 + deltaY * scaleY) / img.naturalHeight * figSize.height_mm;
+    // New legend upper-left corner in image pixels
+    const newImgX = legendDragStartBbox.x + deltaX * screenToImgX;
+    const newImgY = legendDragStartBbox.y + deltaY * screenToImgY;
+
+    // Convert image pixels to mm (upper-left origin)
+    const newMmX = newImgX / img.naturalWidth * figSize.width_mm;
+    const newMmY = newImgY / img.naturalHeight * figSize.height_mm;
 
     // Convert to axes-relative (0-1) coordinates
-    const relX = (newCenterX - axPos.left) / axPos.width;
-    const relY = 1 - (newCenterY - axPos.top) / axPos.height;  // Flip Y (matplotlib uses bottom-left origin)
+    // Use upper-left corner since we set _loc=2 (upper left) in backend
+    const relX = (newMmX - axPos.left) / axPos.width;
+    const relY = 1 - (newMmY - axPos.top) / axPos.height;  // Flip Y (matplotlib uses bottom-left origin)
 
     console.log('[LegendDrag] New legend position (rel):', relX.toFixed(3), relY.toFixed(3));
 
