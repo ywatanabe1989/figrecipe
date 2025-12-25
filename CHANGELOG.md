@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Panel snapping** - Snap to grid (5mm), panel edges, and centers during drag
-- **Visual alignment guides** - Orange/purple lines show snap targets during drag
+- **Magnetic attraction** - Panels slow down and "stick" as they approach snap targets
+- **Visual alignment guides** - Orange/purple lines with opacity indicating proximity
 - **Alt+Drag fine control** - Hold Alt to disable snapping for precise positioning
 
 ## [0.7.4] - 2025-12-25
