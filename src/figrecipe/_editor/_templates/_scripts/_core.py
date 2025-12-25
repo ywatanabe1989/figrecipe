@@ -191,9 +191,12 @@ function initializeEventListeners() {
     });
 
     // Form inputs - auto update on change
+    // Exclude panel position inputs - they have their own Apply button
+    const panelPositionInputIds = ['panel_left', 'panel_top', 'panel_width', 'panel_height', 'panel_selector'];
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(input => {
         if (input.id === 'dark-mode-toggle') return;
+        if (panelPositionInputIds.includes(input.id)) return;  // Skip panel position inputs
 
         // Update modified state and trigger preview update
         input.addEventListener('change', function() {

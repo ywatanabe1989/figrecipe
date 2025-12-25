@@ -109,8 +109,9 @@ function drawHitRegions() {
     };
 
     // Convert to array, filter, and sort by z-order
+    // Include axes (panels) - they have lowest z-order so drawn first (background)
     const sortedEntries = Object.entries(currentBboxes)
-        .filter(([key, bbox]) => key !== '_meta' && bbox && typeof bbox.x !== 'undefined' && bbox.type !== 'axes')
+        .filter(([key, bbox]) => key !== '_meta' && bbox && typeof bbox.x !== 'undefined')
         .sort((a, b) => (zOrderPriority[a[1].type] || 5) - (zOrderPriority[b[1].type] || 5));
 
     // Draw shapes for each bbox (in z-order)
@@ -150,6 +151,12 @@ function drawHitRegions() {
         shape.addEventListener('mouseenter', () => handleHitRegionHover(key, enrichedBbox));
         shape.addEventListener('mouseleave', () => handleHitRegionLeave());
         shape.addEventListener('click', (e) => handleHitRegionClick(e, key, enrichedBbox));
+
+        // Add mousedown for drag on all elements (checks panel bounds in handler)
+        shape.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || e.ctrlKey || e.metaKey || e.altKey) return;
+            if (typeof handlePanelDragStart === 'function') handlePanelDragStart(e);
+        });
 
         group.appendChild(shape);
 
@@ -295,6 +302,9 @@ function handleHitRegionLeave() {
 
 // Handle click on hit region with Alt+Click cycling support
 function handleHitRegionClick(event, key, bbox) {
+    // Skip if dragging a panel (isDraggingPanel defined in _panel_drag.py)
+    if (typeof isDraggingPanel !== 'undefined' && isDraggingPanel) return;
+
     event.stopPropagation();
     event.preventDefault();
 
