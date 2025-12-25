@@ -51,6 +51,7 @@ class FigureEditor:
         recipe_path: Optional[Path] = None,
         style: Optional[Dict[str, Any]] = None,
         port: int = 5050,
+        host: str = "127.0.0.1",
         static_png_path: Optional[Path] = None,
         hitmap_base64: Optional[str] = None,
         color_map: Optional[Dict] = None,
@@ -84,6 +85,7 @@ class FigureEditor:
         self.fig = fig
         self.recipe_path = Path(recipe_path) if recipe_path else None
         self.port = port
+        self.host = host
         self.hot_reload = hot_reload
         self.working_dir = Path(working_dir) if working_dir else Path.cwd()
 
@@ -228,7 +230,7 @@ class FigureEditor:
         register_element_routes(app, self)
 
         # Start server
-        url = f"http://127.0.0.1:{self.port}"
+        url = f"http://{self.host}:{self.port}"
         print(f"Figure Editor running at {url}")
 
         if self.hot_reload:
@@ -243,7 +245,7 @@ class FigureEditor:
             # Note: debug and use_reloader are always False when working with
             # multiple coding agents to avoid file watching conflicts
             app.run(
-                host="127.0.0.1",
+                host=self.host,
                 port=self.port,
                 debug=False,
                 use_reloader=False,

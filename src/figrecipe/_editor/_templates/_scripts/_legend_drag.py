@@ -56,6 +56,11 @@ function startLegendDrag(event, legendKey) {
     event.preventDefault();
     event.stopPropagation();
 
+    // Capture state before drag for undo
+    if (typeof pushToHistory === 'function') {
+        pushToHistory();
+    }
+
     isDraggingLegend = true;
     legendDragStartPos = { x: event.clientX, y: event.clientY };
     legendDragStartBbox = { ...bbox };

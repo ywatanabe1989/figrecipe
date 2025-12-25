@@ -401,6 +401,12 @@ def register_axis_routes(app, editor):
 
         try:
             ax = axes[ax_index]
+
+            # CRITICAL: Get current position BEFORE changing it
+            # We need this to find the correct ax_record to update
+            current_pos = ax.get_position()
+
+            # Now set the new position
             ax.set_position([left, bottom, width, height])
 
             # Store position override in manual_overrides (mm values with upper-left origin)
@@ -412,13 +418,36 @@ def register_axis_routes(app, editor):
                 "height_mm": height_mm,
             }
 
-            # Update record if available
+            # Update record if available - find ax_record by matching CURRENT position
             if hasattr(editor.fig, "record"):
-                # Find the axes record key
+                matched_ax_key = None
                 ax_keys = sorted(editor.fig.record.axes.keys())
-                if ax_index < len(ax_keys):
-                    ax_key = ax_keys[ax_index]
+
+                # First, try to match by position_override (for previously dragged panels)
+                for ax_key in ax_keys:
                     ax_record = editor.fig.record.axes[ax_key]
+                    if (
+                        hasattr(ax_record, "position_override")
+                        and ax_record.position_override
+                    ):
+                        rec_pos = ax_record.position_override
+                        if len(rec_pos) >= 4:
+                            if (
+                                abs(rec_pos[0] - current_pos.x0) < 0.01
+                                and abs(rec_pos[1] - current_pos.y0) < 0.01
+                                and abs(rec_pos[2] - current_pos.width) < 0.01
+                                and abs(rec_pos[3] - current_pos.height) < 0.01
+                            ):
+                                matched_ax_key = ax_key
+                                break
+
+                # If no position_override match, fall back to index-based matching
+                if matched_ax_key is None and ax_index < len(ax_keys):
+                    matched_ax_key = ax_keys[ax_index]
+
+                # Update the matched ax_record with new position
+                if matched_ax_key:
+                    ax_record = editor.fig.record.axes[matched_ax_key]
                     ax_record.position_override = [left, bottom, width, height]
 
             # Re-render
@@ -428,8 +457,8 @@ def register_axis_routes(app, editor):
                 editor.dark_mode,
             )
 
-            # Regenerate hitmap
-            hitmap_img, color_map = generate_hitmap(mpl_fig, img_size[0], img_size[1])
+            # Regenerate hitmap - use editor.fig to preserve record access
+            hitmap_img, color_map = generate_hitmap(editor.fig, dpi=150)
             editor._color_map = color_map
             editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
             editor._hitmap_generated = True

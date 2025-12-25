@@ -22,6 +22,7 @@ This package contains modular JavaScript organized by functionality:
 - _tabs.py: Tab navigation (Figure/Axis/Element)
 - _view_mode.py: View mode management (all/selected)
 - _zoom.py: Zoom/pan functionality
+- _undo_redo.py: Undo/redo history (Ctrl+Z, Ctrl+Shift+Z)
 """
 
 from ._api import SCRIPTS_API
@@ -41,6 +42,7 @@ from ._panel_position import SCRIPTS_PANEL_POSITION
 from ._panel_snap import SCRIPTS_PANEL_SNAP
 from ._selection import SCRIPTS_SELECTION
 from ._tabs import SCRIPTS_TABS
+from ._undo_redo import SCRIPTS_UNDO_REDO
 from ._view_mode import SCRIPTS_VIEW_MODE
 from ._zoom import SCRIPTS_ZOOM
 
@@ -66,6 +68,7 @@ SCRIPTS = (
     + SCRIPTS_PANEL_SNAP
     + SCRIPTS_PANEL_DRAG
     + SCRIPTS_LEGEND_DRAG
+    + SCRIPTS_UNDO_REDO
 )
 
 
@@ -95,6 +98,7 @@ def get_all_scripts():
         "panel_snap": SCRIPTS_PANEL_SNAP,
         "selection": SCRIPTS_SELECTION,
         "tabs": SCRIPTS_TABS,
+        "undo_redo": SCRIPTS_UNDO_REDO,
         "view_mode": SCRIPTS_VIEW_MODE,
         "zoom": SCRIPTS_ZOOM,
     }
@@ -119,6 +123,7 @@ __all__ = [
     "SCRIPTS_PANEL_SNAP",
     "SCRIPTS_SELECTION",
     "SCRIPTS_TABS",
+    "SCRIPTS_UNDO_REDO",
     "SCRIPTS_VIEW_MODE",
     "SCRIPTS_ZOOM",
     "get_all_scripts",

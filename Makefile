@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test notebook pdf clean clean-outputs lint lint-fix format pre-commit gui
+.PHONY: help install install-dev test notebook pdf clean clean-outputs lint lint-fix format pre-commit gui gui-periodic
 
 PYTHON := python3
 PIP := pip3
@@ -19,6 +19,7 @@ help:
 	@echo "  make format        Format code"
 	@echo "  make pre-commit    Install pre-commit hooks"
 	@echo "  make gui           Launch GUI editor demo"
+	@echo "  make gui-periodic  Launch GUI editor with 60s auto-restart"
 
 install:
 	$(PIP) install -e .
@@ -68,3 +69,6 @@ pre-commit:
 
 gui:
 	$(PYTHON) examples/demo_editor.py
+
+gui-periodic:
+	./scripts/gui_periodic.sh 60

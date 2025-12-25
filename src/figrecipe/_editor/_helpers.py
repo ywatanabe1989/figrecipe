@@ -163,7 +163,9 @@ def render_with_overrides(
         warnings.filterwarnings("ignore", "constrained_layout not applied")
         warnings.filterwarnings("ignore", category=UserWarning)
         try:
-            new_fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+            # Don't use bbox_inches="tight" - it recalculates bounding box each time
+            # causing layout shifts when elements change (e.g., pie chart colors)
+            new_fig.savefig(buf, format="png", dpi=150)
         except Exception:
             # Fall back to saving without bbox_inches="tight"
             # Catches matplotlib internal exceptions (e.g., Done from _get_renderer)

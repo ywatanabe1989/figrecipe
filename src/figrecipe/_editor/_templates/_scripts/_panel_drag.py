@@ -93,6 +93,11 @@ function handlePanelDragStart(event) {
         event.preventDefault();
         event.stopPropagation();
 
+        // Capture state before drag for undo
+        if (typeof pushToHistory === 'function') {
+            pushToHistory();
+        }
+
         isDraggingPanel = true;
         draggedPanelIndex = panelIndex;
         dragStartPos = { x: event.clientX, y: event.clientY };

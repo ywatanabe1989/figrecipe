@@ -390,9 +390,10 @@ def crop(
 
 
 def edit(
-    source,
+    source=None,
     style=None,
     port: int = 5050,
+    host: str = "127.0.0.1",
     open_browser: bool = True,
     hot_reload: bool = False,
 ):
@@ -400,12 +401,15 @@ def edit(
 
     Parameters
     ----------
-    source : RecordingFigure, str, or Path
-        Either a live RecordingFigure object or path to a .yaml recipe file.
+    source : RecordingFigure, str, Path, or None
+        Either a live RecordingFigure object, path to a .yaml recipe file,
+        or None to create a new blank figure.
     style : str or dict, optional
         Style preset name or style dict.
     port : int, optional
         Flask server port (default: 5050).
+    host : str, optional
+        Host to bind Flask server (default: "127.0.0.1", use "0.0.0.0" for Docker).
     open_browser : bool, optional
         Whether to open browser automatically (default: True).
     hot_reload : bool, optional
@@ -419,7 +423,12 @@ def edit(
     from ._editor import edit as _edit
 
     return _edit(
-        source, style=style, port=port, open_browser=open_browser, hot_reload=hot_reload
+        source,
+        style=style,
+        port=port,
+        host=host,
+        open_browser=open_browser,
+        hot_reload=hot_reload,
     )
 
 

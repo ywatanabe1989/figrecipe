@@ -299,6 +299,25 @@ function handleKeyboardShortcuts(event) {
         return;
     }
 
+    // Ctrl+Z: Undo
+    if (event.ctrlKey && !event.shiftKey && event.key === 'z') {
+        event.preventDefault();
+        if (typeof undo === 'function') {
+            undo();
+        }
+        return;
+    }
+
+    // Ctrl+Shift+Z or Ctrl+Y: Redo
+    if ((event.ctrlKey && event.shiftKey && event.key === 'Z') ||
+        (event.ctrlKey && event.key === 'y')) {
+        event.preventDefault();
+        if (typeof redo === 'function') {
+            redo();
+        }
+        return;
+    }
+
     // Ctrl+Shift+S: Download PNG
     if (event.ctrlKey && event.shiftKey && event.key === 'S') {
         event.preventDefault();

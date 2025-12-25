@@ -23,11 +23,18 @@ def apply_overrides(
         - axes_width_mm, axes_height_mm
         - fonts_axis_label_pt, fonts_tick_label_pt
         - lines_trace_mm
+        - spacing_horizontal_mm, spacing_vertical_mm
+        - margins_left_mm, margins_right_mm, margins_bottom_mm, margins_top_mm
+        - call_overrides: dict mapping call_id -> {param: value}
         - etc.
     record : FigureRecord, optional
         Recording record to access call IDs for grouping elements.
     """
     from ..styles._style_applier import apply_style_mm
+    from ._figure_layout import apply_figure_layout_overrides
+
+    # Apply figure-level layout overrides (spacing, margins)
+    apply_figure_layout_overrides(fig, overrides, record)
 
     axes_list = fig.get_axes()
 
@@ -48,6 +55,14 @@ def apply_overrides(
         if color_palette is not None:
             ax_record = _find_ax_record(ax, axes_list, record)
             apply_color_palette(ax, color_palette, ax_record)
+
+    # Apply call-specific overrides (from Element tab edits)
+    # Single source of truth - same function for initial and re-render
+    call_overrides = overrides.get("call_overrides", {})
+    if call_overrides and record:
+        from ._call_overrides import apply_call_overrides
+
+        apply_call_overrides(fig, call_overrides, record)
 
 
 def _apply_font_overrides(ax: Axes, overrides: Dict[str, Any]) -> None:
@@ -274,7 +289,10 @@ def _apply_colors_to_bars(
     ax_record: Optional[Any],
     call_color_map: Dict[str, int],
 ) -> None:
-    """Apply colors to bar and histogram elements."""
+    """Apply colors to bar and histogram elements.
+
+    Skips bars that have an explicit 'color' kwarg set (from Element tab edits).
+    """
     from matplotlib.patches import Rectangle
 
     rectangles = [p for p in ax.patches if isinstance(p, Rectangle)]
@@ -292,6 +310,9 @@ def _apply_colors_to_bars(
             call_idx = (
                 min(i // rect_per_call, len(bar_calls) - 1) if rect_per_call > 0 else 0
             )
+            # Skip if this call has an explicit color set (user override)
+            if call_idx < len(bar_calls) and "color" in bar_calls[call_idx].kwargs:
+                continue
             if call_idx < len(bar_calls) and bar_calls[call_idx].id in call_color_map:
                 color_idx = call_color_map[bar_calls[call_idx].id]
             else:

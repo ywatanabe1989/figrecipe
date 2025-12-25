@@ -77,9 +77,15 @@ def register_element_routes(app, editor):
 
     @app.route("/update_call", methods=["POST"])
     def update_call():
-        """Update a call's kwargs and re-render."""
-        from .._reproducer import reproduce_from_record
+        """Update a call's kwargs and re-render.
 
+        Uses IDENTICAL pipeline as all other routes:
+        1. Store override via set_call_override()
+        2. Call render_with_overrides(editor.fig) - same as initial render
+
+        The actual property application happens in apply_overrides() via
+        apply_call_overrides() - SINGLE SOURCE OF TRUTH.
+        """
         data = request.get_json() or {}
         call_id = data.get("call_id")
         param = data.get("param")
@@ -88,27 +94,21 @@ def register_element_routes(app, editor):
         if not call_id or not param:
             return jsonify({"error": "Missing call_id or param"}), 400
 
+        # Find the call and store override
         updated = False
         if hasattr(editor.fig, "record"):
             for ax_key, ax_record in editor.fig.record.axes.items():
                 for call in ax_record.calls:
                     if call.id == call_id:
-                        # Debug: log the update
-                        print(f"[DEBUG] update_call: {call_id}.{param} = {value}")
-                        print(
-                            f"[DEBUG] Before: call.kwargs[{param}] = {call.kwargs.get(param)}"
-                        )
-
+                        # Store override - will be applied via apply_overrides()
                         editor.style_overrides.set_call_override(call_id, param, value)
 
+                        # Also update record kwargs for persistence
                         if value is None or value == "" or value == "null":
                             call.kwargs.pop(param, None)
                         else:
                             call.kwargs[param] = value
 
-                        print(
-                            f"[DEBUG] After: call.kwargs[{param}] = {call.kwargs.get(param)}"
-                        )
                         updated = True
                         break
                 if updated:
@@ -117,19 +117,23 @@ def register_element_routes(app, editor):
         if not updated:
             return jsonify({"error": f"Call {call_id} not found"}), 404
 
-        try:
-            new_fig, _ = reproduce_from_record(editor.fig.record)
+        # Auto-save recipe if we have a recipe path
+        if editor.recipe_path and hasattr(editor.fig, "save_recipe"):
+            try:
+                editor.fig.save_recipe(editor.recipe_path)
+            except Exception as save_err:
+                print(f"[Auto-save] Warning: Could not save recipe: {save_err}")
 
-            effective_style = editor.get_effective_style()
+        try:
+            # IDENTICAL to all other routes - single source of truth
             base64_img, bboxes, img_size = render_with_overrides(
-                new_fig,
-                effective_style if effective_style else None,
+                editor.fig,
+                editor.get_effective_style(),
                 editor.dark_mode,
             )
 
-            editor.fig = new_fig
-
-            hitmap_img, color_map = generate_hitmap(new_fig, img_size[0], img_size[1])
+            # Regenerate hitmap
+            hitmap_img, color_map = generate_hitmap(editor.fig, dpi=150)
             editor._color_map = color_map
             editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
             editor._hitmap_generated = True
@@ -139,6 +143,19 @@ def register_element_routes(app, editor):
 
             traceback.print_exc()
             return jsonify({"error": f"Re-render failed: {str(e)}"}), 500
+
+        # Get updated call data to sync frontend
+        updated_call_data = None
+        if hasattr(editor.fig, "record"):
+            for ax_key, ax_record in editor.fig.record.axes.items():
+                for call in ax_record.calls:
+                    if call.id == call_id:
+                        updated_call_data = {
+                            "kwargs": to_json_serializable(call.kwargs),
+                        }
+                        break
+                if updated_call_data:
+                    break
 
         return jsonify(
             {
@@ -150,6 +167,7 @@ def register_element_routes(app, editor):
                 "param": param,
                 "value": value,
                 "has_call_overrides": editor.style_overrides.has_call_overrides(),
+                "updated_call": updated_call_data,
             }
         )
 

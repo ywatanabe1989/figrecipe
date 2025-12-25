@@ -31,6 +31,7 @@ from ._modals import STYLES_MODALS
 from ._overlays import STYLES_OVERLAYS
 from ._preview import STYLES_PREVIEW
 from ._selection import STYLES_SELECTION
+from ._spinner import STYLES_SPINNER
 
 # Combined STYLES constant for backward compatibility
 STYLES = (
@@ -47,6 +48,7 @@ STYLES = (
     + STYLES_OVERLAYS
     + STYLES_MODALS
     + STYLES_INSPECTOR
+    + STYLES_SPINNER
 )
 
 __all__ = [
@@ -64,6 +66,7 @@ __all__ = [
     "STYLES_OVERLAYS",
     "STYLES_MODALS",
     "STYLES_INSPECTOR",
+    "STYLES_SPINNER",
 ]
 
 # EOF

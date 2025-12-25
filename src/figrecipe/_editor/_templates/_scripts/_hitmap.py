@@ -239,7 +239,9 @@ function _createScatterShape(bbox, key, originalColor, offsetX, offsetY, scaleX,
 // Helper: Create rectangle shape for other elements
 function _createRectShape(bbox, key, originalColor, offsetX, offsetY, scaleX, scaleY) {
     let regionClass = 'hitregion-rect';
-    if (bbox.type === 'line' || bbox.type === 'scatter') {
+    if (bbox.type === 'axes') {
+        regionClass += ' axes-region';  // Special class for axes - lower z-order
+    } else if (bbox.type === 'line' || bbox.type === 'scatter') {
         regionClass += ' line-region';
     } else if (['title', 'xlabel', 'ylabel', 'suptitle', 'supxlabel', 'supylabel'].includes(bbox.type)) {
         regionClass += ' text-region';
@@ -333,11 +335,10 @@ function handleHitRegionClick(event, key, bbox) {
             }
         }
     } else {
-        // Normal click: select the hovered element
-        selectElement(element);
-        lastClickPosition = null;
-        overlappingElements = [];
-        cycleIndex = 0;
+        // Normal click: use priority-based selection (pie > axes, etc.)
+        const overlapping = findOverlappingElements({ x: event.clientX, y: event.clientY });
+        selectElement(overlapping.length > 0 ? overlapping[0] : element);
+        lastClickPosition = null; overlappingElements = []; cycleIndex = 0;
     }
 }
 
@@ -356,7 +357,8 @@ function findOverlappingElements(screenPos) {
 
         if (imgX >= bbox.x && imgX <= bbox.x + bbox.width &&
             imgY >= bbox.y && imgY <= bbox.y + bbox.height) {
-            overlapping.push({ key, ...bbox });
+            const info = (colorMap && colorMap[key]) || {};
+            overlapping.push({ key, ...bbox, ...info });
         }
 
         // For lines with points, check proximity
@@ -365,7 +367,8 @@ function findOverlappingElements(screenPos) {
                 const dist = Math.sqrt(Math.pow(imgX - pt[0], 2) + Math.pow(imgY - pt[1], 2));
                 if (dist < 15) {
                     if (!overlapping.find(e => e.key === key)) {
-                        overlapping.push({ key, ...bbox });
+                        const info = (colorMap && colorMap[key]) || {};
+                        overlapping.push({ key, ...bbox, ...info });
                     }
                     break;
                 }
@@ -494,12 +497,10 @@ function selectElement(element) {
     updateTabHints();
     syncPropertiesToElement(element);
 
-    // Sync with panel position if axes type or has ax_index
+    // Sync panel position; only switch to Axis tab for axes type (not elements like pie/bar)
     if (element.type === 'axes' || element.ax_index !== undefined) {
         const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);
-        if (axIndex !== null && typeof selectPanelByIndex === 'function') {
-            selectPanelByIndex(axIndex);
-        }
+        if (axIndex !== null && typeof selectPanelByIndex === 'function') selectPanelByIndex(axIndex, element.type === 'axes');
     }
 }
 """

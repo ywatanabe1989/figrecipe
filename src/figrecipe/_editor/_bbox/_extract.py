@@ -55,18 +55,35 @@ def extract_bboxes(
     bboxes = {}
 
     # Get renderer for bbox calculations
-    fig.canvas.draw()
+    # Handle matplotlib's Done exception from _get_renderer (can occur with corrupted canvas state)
+    try:
+        fig.canvas.draw()
+    except Exception as e:
+        # Matplotlib's Done exception or other draw issues - reset canvas and retry
+        if "Done" in str(type(e).__name__) or "Done" in str(e):
+            from matplotlib.backends.backend_agg import FigureCanvasAgg
+
+            fig.set_canvas(FigureCanvasAgg(fig))
+            try:
+                fig.canvas.draw()
+            except Exception:
+                pass  # Continue with potentially stale renderer
+        else:
+            raise
     renderer = fig.canvas.get_renderer()
 
-    # Get tight bbox for coordinate transformation
-    tight_bbox = fig.get_tightbbox(renderer)
-    if tight_bbox is None:
-        tight_bbox = Bbox.from_bounds(0, 0, fig.get_figwidth(), fig.get_figheight())
+    # Get figure bounds for coordinate transformation
+    # NOTE: We do NOT use bbox_inches='tight' in savefig, so use fixed figsize
+    fig_width_inches = fig.get_figwidth()
+    fig_height_inches = fig.get_figheight()
 
-    # bbox_inches='tight' adds pad_inches (default 0.1) around the tight bbox
-    pad_inches = 0.1
-    saved_width_inches = tight_bbox.width + 2 * pad_inches
-    saved_height_inches = tight_bbox.height + 2 * pad_inches
+    # Create a bbox representing the full figure (for compatibility with element extraction)
+    tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
+
+    # No padding since we don't use bbox_inches='tight'
+    pad_inches = 0.0
+    saved_width_inches = fig_width_inches
+    saved_height_inches = fig_height_inches
 
     # Calculate scale factors from saved image size to pixel size
     scale_x = img_width / saved_width_inches if saved_width_inches > 0 else 1
