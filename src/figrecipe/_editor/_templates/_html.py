@@ -17,6 +17,7 @@ HTML_TEMPLATE = """
     </style>
 </head>
 <body>
+    <div class="spinner-overlay"><div class="spinner-container"><div class="spinner"></div><div class="spinner-text">Loading...</div></div></div>
     <div class="editor-container">
         <!-- Preview Panel -->
         <div class="preview-panel">
