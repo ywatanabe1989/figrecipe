@@ -10,12 +10,16 @@ now match the HTML input IDs directly.
 
 import base64
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from ._html import HTML_TEMPLATE
 from ._scripts import SCRIPTS
 from ._styles import STYLES
+
+# Server start time for debugging template reloads
+_SERVER_START_TIME = datetime.now().strftime("%H:%M:%S")
 
 # Load SciTeX icon as base64
 _SCITEX_ICON_PATH = (
@@ -138,6 +142,9 @@ def build_html_template(
     # Dark mode preference - set initial state
     html = html.replace("DARK_MODE_THEME_PLACEHOLDER", "dark" if dark_mode else "light")
     html = html.replace("DARK_MODE_CHECKED_PLACEHOLDER", "checked" if dark_mode else "")
+
+    # Server start time for debugging
+    html = html.replace("SERVER_START_TIME_PLACEHOLDER", _SERVER_START_TIME)
 
     return html
 

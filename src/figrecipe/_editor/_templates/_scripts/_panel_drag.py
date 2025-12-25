@@ -6,10 +6,12 @@ This module contains the JavaScript code for:
 - Detecting mousedown on axes/panel elements
 - Handling drag movement with visual feedback
 - Updating panel position on drop
+
+Coordinates are in mm with upper-left origin.
 """
 
 SCRIPTS_PANEL_DRAG = """
-// ===== PANEL DRAG-TO-MOVE =====
+// ===== PANEL DRAG-TO-MOVE (mm, upper-left origin) =====
 
 let isDraggingPanel = false;
 let draggedPanelIndex = null;
@@ -19,13 +21,18 @@ let panelDragOverlay = null;
 
 // Initialize panel drag functionality
 function initPanelDrag() {
-    const previewContainer = document.getElementById('preview-container');
-    if (!previewContainer) return;
+    console.log('[PanelDrag] initPanelDrag called');
+    const zoomContainer = document.getElementById('zoom-container');
+    if (!zoomContainer) {
+        console.error('[PanelDrag] zoom-container not found!');
+        return;
+    }
 
-    // Add mouse event listeners
-    previewContainer.addEventListener('mousedown', handlePanelDragStart);
+    // Add mouse event listeners to zoom container
+    zoomContainer.addEventListener('mousedown', handlePanelDragStart);
     document.addEventListener('mousemove', handlePanelDragMove);
     document.addEventListener('mouseup', handlePanelDragEnd);
+    console.log('[PanelDrag] Event listeners attached');
 
     // Create drag overlay element
     panelDragOverlay = document.createElement('div');
@@ -38,27 +45,36 @@ function initPanelDrag() {
         display: none;
         z-index: 1000;
     `;
-    previewContainer.appendChild(panelDragOverlay);
+    zoomContainer.appendChild(panelDragOverlay);
+    console.log('[PanelDrag] Overlay created:', panelDragOverlay ? 'success' : 'failed');
 }
 
 // Handle mouse down - check if on a panel/axes
 function handlePanelDragStart(event) {
-    // Only start drag on Shift+Click
-    if (!event.shiftKey) return;
+    console.log('[PanelDrag] handlePanelDragStart called, button:', event.button);
+    // Skip if using modifier keys for other actions
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+        console.log('[PanelDrag] Skipped - modifier key pressed');
+        return;
+    }
 
     const img = document.getElementById('preview-image');
-    if (!img) return;
+    if (!img || !figSize.width_mm || !figSize.height_mm) {
+        console.log('[PanelDrag] Skipped - img or figSize not ready');
+        return;
+    }
 
     const rect = img.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Convert to figure coordinates (0-1)
-    const figX = x / rect.width;
-    const figY = 1 - (y / rect.height);  // Flip Y axis for matplotlib coords
+    // Convert to mm coordinates (upper-left origin)
+    const mmX = (x / rect.width) * figSize.width_mm;
+    const mmY = (y / rect.height) * figSize.height_mm;
 
     // Find which panel was clicked
-    const panelIndex = findPanelAtPosition(figX, figY);
+    const panelIndex = findPanelAtPositionMm(mmX, mmY);
+    console.log('[PanelDrag] Click at mm:', mmX.toFixed(1), mmY.toFixed(1), '-> panel:', panelIndex);
 
     if (panelIndex !== null) {
         event.preventDefault();
@@ -68,14 +84,39 @@ function handlePanelDragStart(event) {
         draggedPanelIndex = panelIndex;
         dragStartPos = { x: event.clientX, y: event.clientY };
 
-        // Get current panel position
+        // Get current panel position (in mm)
         const axKey = Object.keys(panelPositions).sort()[panelIndex];
         const pos = panelPositions[axKey];
         dragStartPanelPos = { ...pos };
 
+        // Create overlay if it doesn't exist
+        if (!panelDragOverlay) {
+            console.log('[PanelDrag] Creating overlay on-demand');
+            const zoomContainer = document.getElementById('zoom-container');
+            if (zoomContainer) {
+                panelDragOverlay = document.createElement('div');
+                panelDragOverlay.id = 'panel-drag-overlay';
+                panelDragOverlay.style.cssText = `
+                    position: absolute;
+                    border: 2px dashed #2563eb;
+                    background: rgba(37, 99, 235, 0.1);
+                    pointer-events: none;
+                    display: none;
+                    z-index: 1000;
+                `;
+                zoomContainer.appendChild(panelDragOverlay);
+                console.log('[PanelDrag] Overlay created on-demand');
+            }
+        }
+
         // Show drag overlay
-        updateDragOverlay(pos, rect);
-        panelDragOverlay.style.display = 'block';
+        if (panelDragOverlay) {
+            updateDragOverlayMm(pos, rect);
+            panelDragOverlay.style.display = 'block';
+            console.log('[PanelDrag] Overlay shown');
+        } else {
+            console.warn('[PanelDrag] Overlay still null after creation attempt');
+        }
 
         // Change cursor
         document.body.style.cursor = 'move';
@@ -84,15 +125,17 @@ function handlePanelDragStart(event) {
     }
 }
 
-// Find which panel contains the given position
-function findPanelAtPosition(figX, figY) {
+// Find which panel contains the given position (in mm, upper-left origin)
+function findPanelAtPositionMm(mmX, mmY) {
     const axKeys = Object.keys(panelPositions).sort();
 
     for (let i = 0; i < axKeys.length; i++) {
         const pos = panelPositions[axKeys[i]];
 
-        if (figX >= pos.left && figX <= pos.right &&
-            figY >= pos.bottom && figY <= pos.top) {
+        // Check if point is within panel bounds
+        // pos.left, pos.top, pos.width, pos.height are in mm
+        if (mmX >= pos.left && mmX <= pos.left + pos.width &&
+            mmY >= pos.top && mmY <= pos.top + pos.height) {
             return i;
         }
     }
@@ -110,39 +153,37 @@ function handlePanelDragMove(event) {
 
     const rect = img.getBoundingClientRect();
 
-    // Calculate delta in figure coordinates
-    const deltaX = (event.clientX - dragStartPos.x) / rect.width;
-    const deltaY = -(event.clientY - dragStartPos.y) / rect.height;  // Flip Y
+    // Calculate delta in mm
+    const deltaMmX = (event.clientX - dragStartPos.x) / rect.width * figSize.width_mm;
+    const deltaMmY = (event.clientY - dragStartPos.y) / rect.height * figSize.height_mm;
 
-    // Calculate new position (clamped to 0-1)
-    const newLeft = Math.max(0, Math.min(1 - dragStartPanelPos.width, dragStartPanelPos.left + deltaX));
-    const newBottom = Math.max(0, Math.min(1 - dragStartPanelPos.height, dragStartPanelPos.bottom + deltaY));
+    // Calculate new position (clamped to figure bounds)
+    const newLeft = Math.max(0, Math.min(figSize.width_mm - dragStartPanelPos.width, dragStartPanelPos.left + deltaMmX));
+    const newTop = Math.max(0, Math.min(figSize.height_mm - dragStartPanelPos.height, dragStartPanelPos.top + deltaMmY));
 
     const newPos = {
         left: newLeft,
-        bottom: newBottom,
+        top: newTop,
         width: dragStartPanelPos.width,
-        height: dragStartPanelPos.height,
-        right: newLeft + dragStartPanelPos.width,
-        top: newBottom + dragStartPanelPos.height
+        height: dragStartPanelPos.height
     };
 
     // Update visual overlay
-    updateDragOverlay(newPos, rect);
+    updateDragOverlayMm(newPos, rect);
 }
 
-// Update the drag overlay position
-function updateDragOverlay(pos, imgRect) {
-    if (!panelDragOverlay) return;
+// Update the drag overlay position (pos in mm, upper-left origin)
+function updateDragOverlayMm(pos, imgRect) {
+    if (!panelDragOverlay || !figSize.width_mm) return;
 
-    // Convert figure coords to screen coords
-    const left = pos.left * imgRect.width;
-    const bottom = pos.bottom * imgRect.height;
-    const width = pos.width * imgRect.width;
-    const height = pos.height * imgRect.height;
+    // Convert mm to screen pixels
+    const scaleX = imgRect.width / figSize.width_mm;
+    const scaleY = imgRect.height / figSize.height_mm;
 
-    // SVG/CSS uses top-left origin, matplotlib uses bottom-left
-    const top = imgRect.height - bottom - height;
+    const left = pos.left * scaleX;
+    const top = pos.top * scaleY;
+    const width = pos.width * scaleX;
+    const height = pos.height * scaleY;
 
     panelDragOverlay.style.left = `${left}px`;
     panelDragOverlay.style.top = `${top}px`;
@@ -152,10 +193,14 @@ function updateDragOverlay(pos, imgRect) {
 
 // Handle mouse up - complete the drag
 async function handlePanelDragEnd(event) {
+    console.log('[PanelDrag] handlePanelDragEnd called, isDraggingPanel:', isDraggingPanel);
     if (!isDraggingPanel) return;
 
-    // Hide overlay
-    panelDragOverlay.style.display = 'none';
+    // Hide overlay (with null check)
+    if (panelDragOverlay) {
+        panelDragOverlay.style.display = 'none';
+        console.log('[PanelDrag] Overlay hidden');
+    }
     document.body.style.cursor = '';
 
     const img = document.getElementById('preview-image');
@@ -166,26 +211,31 @@ async function handlePanelDragEnd(event) {
 
     const rect = img.getBoundingClientRect();
 
-    // Calculate final position
-    const deltaX = (event.clientX - dragStartPos.x) / rect.width;
-    const deltaY = -(event.clientY - dragStartPos.y) / rect.height;
+    // Calculate final position in mm
+    const deltaMmX = (event.clientX - dragStartPos.x) / rect.width * figSize.width_mm;
+    const deltaMmY = (event.clientY - dragStartPos.y) / rect.height * figSize.height_mm;
 
-    const newLeft = Math.max(0, Math.min(1 - dragStartPanelPos.width, dragStartPanelPos.left + deltaX));
-    const newBottom = Math.max(0, Math.min(1 - dragStartPanelPos.height, dragStartPanelPos.bottom + deltaY));
+    const newLeft = Math.max(0, Math.min(figSize.width_mm - dragStartPanelPos.width, dragStartPanelPos.left + deltaMmX));
+    const newTop = Math.max(0, Math.min(figSize.height_mm - dragStartPanelPos.height, dragStartPanelPos.top + deltaMmY));
 
-    // Only update if position actually changed
-    const threshold = 0.005;
-    if (Math.abs(newLeft - dragStartPanelPos.left) > threshold ||
-        Math.abs(newBottom - dragStartPanelPos.bottom) > threshold) {
+    // Only update if position actually changed (threshold in mm)
+    const threshold = 1.0;  // 1mm threshold
+    const deltaLeft = Math.abs(newLeft - dragStartPanelPos.left);
+    const deltaTop = Math.abs(newTop - dragStartPanelPos.top);
+    console.log('[PanelDrag] Delta: left=', deltaLeft.toFixed(2), 'top=', deltaTop.toFixed(2), 'threshold=', threshold);
 
-        // Apply the new position
+    if (deltaLeft > threshold || deltaTop > threshold) {
+        console.log('[PanelDrag] Applying new position:', newLeft.toFixed(2), newTop.toFixed(2));
+        // Apply the new position (in mm)
         await applyDraggedPanelPosition(
             draggedPanelIndex,
             newLeft,
-            newBottom,
+            newTop,
             dragStartPanelPos.width,
             dragStartPanelPos.height
         );
+    } else {
+        console.log('[PanelDrag] Movement below threshold, not updating');
     }
 
     // Reset state
@@ -193,10 +243,11 @@ async function handlePanelDragEnd(event) {
     draggedPanelIndex = null;
     dragStartPos = null;
     dragStartPanelPos = null;
+    console.log('[PanelDrag] Drag state reset');
 }
 
-// Apply the dragged panel position to the server
-async function applyDraggedPanelPosition(axIndex, left, bottom, width, height) {
+// Apply the dragged panel position to the server (values in mm)
+async function applyDraggedPanelPosition(axIndex, left, top, width, height) {
     document.body.classList.add('loading');
 
     try {
@@ -206,7 +257,7 @@ async function applyDraggedPanelPosition(axIndex, left, bottom, width, height) {
             body: JSON.stringify({
                 ax_index: axIndex,
                 left: left,
-                bottom: bottom,
+                top: top,
                 width: width,
                 height: height
             })
@@ -215,9 +266,14 @@ async function applyDraggedPanelPosition(axIndex, left, bottom, width, height) {
         const data = await response.json();
 
         if (data.success) {
-            // Update preview image
+            // Update preview image and wait for it to load
             const img = document.getElementById('preview-image');
-            if (img) img.src = 'data:image/png;base64,' + data.image;
+            if (img) {
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.src = 'data:image/png;base64,' + data.image;
+                });
+            }
 
             // Update image size
             if (data.img_size) {
@@ -230,7 +286,7 @@ async function applyDraggedPanelPosition(axIndex, left, bottom, width, height) {
             loadHitmap();
             updateHitRegions();
 
-            // Reload positions
+            // Reload positions (now with correct image dimensions)
             await loadPanelPositions();
 
             console.log('Panel position updated via drag');

@@ -102,6 +102,9 @@ class FigureEditor:
             with open(static_png_path, "rb") as f:
                 self._initial_base64 = base64.b64encode(f.read()).decode("utf-8")
 
+        # Store original axes positions for restore functionality
+        self._initial_axes_positions = self._capture_axes_positions()
+
         # Initialize style overrides system
         self._init_style_overrides(style)
 
@@ -169,6 +172,27 @@ class FigureEditor:
     def get_effective_style(self) -> Dict[str, Any]:
         """Get the final merged style."""
         return self.style_overrides.get_effective_style()
+
+    def _capture_axes_positions(self) -> Dict[int, list]:
+        """Capture current axes positions (matplotlib coords: [left, bottom, width, height])."""
+        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
+        axes = mpl_fig.get_axes()
+        positions = {}
+        for i, ax in enumerate(axes):
+            bbox = ax.get_position()
+            positions[i] = [bbox.x0, bbox.y0, bbox.width, bbox.height]
+        return positions
+
+    def restore_axes_positions(self) -> None:
+        """Restore axes to their original positions."""
+        if not self._initial_axes_positions:
+            return
+        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
+        axes = mpl_fig.get_axes()
+        for i, ax in enumerate(axes):
+            if i in self._initial_axes_positions:
+                pos = self._initial_axes_positions[i]
+                ax.set_position(pos)
 
     def run(self, open_browser: bool = True) -> Dict[str, Any]:
         """
