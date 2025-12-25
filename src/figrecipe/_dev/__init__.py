@@ -16,6 +16,7 @@ Usage:
     results = run_all_demos(fr, output_dir="./outputs")
 """
 
+from . import browser
 from ._plotters import PLOTTERS, get_plotter, list_plotters
 from ._run_demos import run_all_demos
 
@@ -24,6 +25,7 @@ __all__ = [
     "list_plotters",
     "get_plotter",
     "run_all_demos",
+    "browser",
 ]
 
 # EOF
