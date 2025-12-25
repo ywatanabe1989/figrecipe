@@ -333,11 +333,10 @@ function handleHitRegionClick(event, key, bbox) {
             }
         }
     } else {
-        // Normal click: select the hovered element
-        selectElement(element);
-        lastClickPosition = null;
-        overlappingElements = [];
-        cycleIndex = 0;
+        // Normal click: use priority-based selection (pie > axes, etc.)
+        const overlapping = findOverlappingElements({ x: event.clientX, y: event.clientY });
+        selectElement(overlapping.length > 0 ? overlapping[0] : element);
+        lastClickPosition = null; overlappingElements = []; cycleIndex = 0;
     }
 }
 
@@ -356,7 +355,8 @@ function findOverlappingElements(screenPos) {
 
         if (imgX >= bbox.x && imgX <= bbox.x + bbox.width &&
             imgY >= bbox.y && imgY <= bbox.y + bbox.height) {
-            overlapping.push({ key, ...bbox });
+            const info = (colorMap && colorMap[key]) || {};
+            overlapping.push({ key, ...bbox, ...info });
         }
 
         // For lines with points, check proximity
@@ -365,7 +365,8 @@ function findOverlappingElements(screenPos) {
                 const dist = Math.sqrt(Math.pow(imgX - pt[0], 2) + Math.pow(imgY - pt[1], 2));
                 if (dist < 15) {
                     if (!overlapping.find(e => e.key === key)) {
-                        overlapping.push({ key, ...bbox });
+                        const info = (colorMap && colorMap[key]) || {};
+                        overlapping.push({ key, ...bbox, ...info });
                     }
                     break;
                 }
