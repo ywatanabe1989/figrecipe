@@ -311,23 +311,43 @@ def register_axis_routes(app, editor):
 
     @app.route("/get_axes_positions")
     def get_axes_positions():
-        """Get positions for all axes in figure coordinates [left, bottom, width, height]."""
+        """Get positions for all axes in mm with upper-left origin.
+
+        Returns positions as {left_mm, top_mm, width_mm, height_mm}
+        where origin is upper-left corner and positive is right/downward.
+        """
         mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
         axes = mpl_fig.get_axes()
+
+        # Get figure size in mm (inches * 25.4)
+        fig_size_inches = mpl_fig.get_size_inches()
+        fig_width_mm = fig_size_inches[0] * 25.4
+        fig_height_mm = fig_size_inches[1] * 25.4
 
         positions = {}
         for i, ax in enumerate(axes):
             bbox = ax.get_position()
+            # Convert from matplotlib coords (0-1, bottom-left origin)
+            # to mm with upper-left origin
+            left_mm = bbox.x0 * fig_width_mm
+            width_mm = bbox.width * fig_width_mm
+            height_mm = bbox.height * fig_height_mm
+            # Y: convert from bottom-up to top-down
+            top_mm = (1 - bbox.y1) * fig_height_mm
+
             positions[f"ax_{i}"] = {
                 "index": i,
-                "left": round(bbox.x0, 4),
-                "bottom": round(bbox.y0, 4),
-                "width": round(bbox.width, 4),
-                "height": round(bbox.height, 4),
-                # Convenience: also provide right/top
-                "right": round(bbox.x1, 4),
-                "top": round(bbox.y1, 4),
+                "left": round(left_mm, 2),
+                "top": round(top_mm, 2),
+                "width": round(width_mm, 2),
+                "height": round(height_mm, 2),
             }
+
+        # Include figure size for reference
+        positions["_figsize"] = {
+            "width_mm": round(fig_width_mm, 2),
+            "height_mm": round(fig_height_mm, 2),
+        }
 
         return jsonify(positions)
 
@@ -335,32 +355,45 @@ def register_axis_routes(app, editor):
     def update_axes_position():
         """Update position of a specific axes.
 
-        Expects JSON: {ax_index: int, left, bottom, width, height}
-        Values are in figure coordinates (0-1).
+        Expects JSON: {ax_index: int, left, top, width, height}
+        Values are in mm with upper-left origin.
         """
         from ._hitmap import generate_hitmap, hitmap_to_base64
 
         data = request.get_json() or {}
         ax_index = data.get("ax_index", 0)
-        left = data.get("left")
-        bottom = data.get("bottom")
-        width = data.get("width")
-        height = data.get("height")
+        left_mm = data.get("left")
+        top_mm = data.get("top")
+        width_mm = data.get("width")
+        height_mm = data.get("height")
 
-        if any(v is None for v in [left, bottom, width, height]):
+        if any(v is None for v in [left_mm, top_mm, width_mm, height_mm]):
             return jsonify({"error": "Missing position values"}), 400
 
-        # Validate range
-        for name, val in [
-            ("left", left),
-            ("bottom", bottom),
-            ("width", width),
-            ("height", height),
-        ]:
-            if not (0 <= val <= 1):
-                return jsonify({"error": f"{name} must be between 0 and 1"}), 400
-
         mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+
+        # Get figure size in mm for conversion
+        fig_size_inches = mpl_fig.get_size_inches()
+        fig_width_mm = fig_size_inches[0] * 25.4
+        fig_height_mm = fig_size_inches[1] * 25.4
+
+        # Validate range (must be within figure bounds)
+        if left_mm < 0 or left_mm + width_mm > fig_width_mm:
+            return jsonify(
+                {"error": f"Horizontal position out of bounds (0-{fig_width_mm:.1f}mm)"}
+            ), 400
+        if top_mm < 0 or top_mm + height_mm > fig_height_mm:
+            return jsonify(
+                {"error": f"Vertical position out of bounds (0-{fig_height_mm:.1f}mm)"}
+            ), 400
+
+        # Convert from mm (upper-left origin) to matplotlib coords (0-1, bottom-left)
+        left = left_mm / fig_width_mm
+        width = width_mm / fig_width_mm
+        height = height_mm / fig_height_mm
+        # Y: convert from top-down to bottom-up
+        bottom = 1 - (top_mm + height_mm) / fig_height_mm
+
         axes = mpl_fig.get_axes()
 
         if ax_index >= len(axes):
@@ -369,6 +402,15 @@ def register_axis_routes(app, editor):
         try:
             ax = axes[ax_index]
             ax.set_position([left, bottom, width, height])
+
+            # Store position override in manual_overrides (mm values with upper-left origin)
+            # This allows restore functionality to revert position changes
+            editor.style_overrides.manual_overrides[f"axes_position_{ax_index}"] = {
+                "left_mm": left_mm,
+                "top_mm": top_mm,
+                "width_mm": width_mm,
+                "height_mm": height_mm,
+            }
 
             # Update record if available
             if hasattr(editor.fig, "record"):

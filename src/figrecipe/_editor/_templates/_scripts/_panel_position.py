@@ -8,15 +8,24 @@ This module contains the JavaScript code for:
 """
 
 SCRIPTS_PANEL_POSITION = r"""
-// ===== PANEL POSITION =====
+// ===== PANEL POSITION (mm, upper-left origin) =====
 
 let panelPositions = {};
+let figSize = { width_mm: 0, height_mm: 0 };
 
 // Load panel positions from server
 async function loadPanelPositions() {
     try {
         const response = await fetch('/get_axes_positions');
-        panelPositions = await response.json();
+        const data = await response.json();
+
+        // Extract figure size
+        if (data._figsize) {
+            figSize = data._figsize;
+            delete data._figsize;
+        }
+
+        panelPositions = data;
         updatePanelSelector();
         updatePanelPositionInputs();
     } catch (error) {
@@ -41,12 +50,17 @@ function updatePanelSelector() {
         selector.appendChild(opt);
     });
 
-    // Add change event listener
-    selector.addEventListener('change', updatePanelPositionInputs);
+    // Add change event listener - mark as explicitly selected on dropdown change
+    selector.addEventListener('change', () => {
+        panelExplicitlySelected = true;
+        updatePanelPositionInputs();
+    });
 }
 
+let panelExplicitlySelected = false;
+
 // Update position input fields based on selected panel
-function updatePanelPositionInputs() {
+function updatePanelPositionInputs(showHighlight = true) {
     const selector = document.getElementById('panel_selector');
     if (!selector) return;
 
@@ -57,17 +71,20 @@ function updatePanelPositionInputs() {
     if (!pos) return;
 
     const leftInput = document.getElementById('panel_left');
-    const bottomInput = document.getElementById('panel_bottom');
+    const topInput = document.getElementById('panel_top');
     const widthInput = document.getElementById('panel_width');
     const heightInput = document.getElementById('panel_height');
 
+    // Values are already in mm from server
     if (leftInput) leftInput.value = pos.left;
-    if (bottomInput) bottomInput.value = pos.bottom;
+    if (topInput) topInput.value = pos.top;
     if (widthInput) widthInput.value = pos.width;
     if (heightInput) heightInput.value = pos.height;
 
-    // Draw visual highlight for selected panel
-    drawPanelSelectionHighlight(pos);
+    // Only draw highlight if explicitly selected (not on initial load)
+    if (showHighlight && panelExplicitlySelected) {
+        drawPanelSelectionHighlight(pos);
+    }
 }
 
 // Draw visual highlight around selected panel
@@ -87,11 +104,15 @@ function drawPanelSelectionHighlight(pos) {
     overlay.style.width = `${img.naturalWidth}px`;
     overlay.style.height = `${img.naturalHeight}px`;
 
-    // Convert figure coords to image coords
-    const x = pos.left * img.naturalWidth;
-    const y = (1 - pos.top) * img.naturalHeight;  // Flip Y axis
-    const width = pos.width * img.naturalWidth;
-    const height = pos.height * img.naturalHeight;
+    // Convert mm coords (upper-left origin) to image pixel coords
+    // pos.left, pos.top, pos.width, pos.height are in mm
+    const scaleX = img.naturalWidth / figSize.width_mm;
+    const scaleY = img.naturalHeight / figSize.height_mm;
+
+    const x = pos.left * scaleX;
+    const y = pos.top * scaleY;  // Already in upper-left origin
+    const width = pos.width * scaleX;
+    const height = pos.height * scaleY;
 
     // Create highlight rectangle
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -119,6 +140,9 @@ function clearPanelSelectionHighlight() {
 function selectPanelByIndex(axIndex) {
     const selector = document.getElementById('panel_selector');
     if (!selector) return;
+
+    // Mark as explicitly selected
+    panelExplicitlySelected = true;
 
     // Update dropdown selection
     selector.value = axIndex;
@@ -157,24 +181,29 @@ function getPanelIndexFromKey(key) {
 async function applyPanelPosition() {
     const selector = document.getElementById('panel_selector');
     const leftInput = document.getElementById('panel_left');
-    const bottomInput = document.getElementById('panel_bottom');
+    const topInput = document.getElementById('panel_top');
     const widthInput = document.getElementById('panel_width');
     const heightInput = document.getElementById('panel_height');
 
-    if (!selector || !leftInput || !bottomInput || !widthInput || !heightInput) {
+    if (!selector || !leftInput || !topInput || !widthInput || !heightInput) {
         console.error('Panel position inputs not found');
         return;
     }
 
     const axIndex = parseInt(selector.value, 10);
     const left = parseFloat(leftInput.value);
-    const bottom = parseFloat(bottomInput.value);
+    const top = parseFloat(topInput.value);
     const width = parseFloat(widthInput.value);
     const height = parseFloat(heightInput.value);
 
-    // Validate values
-    if ([left, bottom, width, height].some(v => isNaN(v) || v < 0 || v > 1)) {
-        alert('Position values must be between 0 and 1');
+    // Validate values (mm, must be positive and within figure bounds)
+    if ([left, top, width, height].some(v => isNaN(v) || v < 0)) {
+        alert('Position values must be positive numbers in mm');
+        return;
+    }
+
+    if (left + width > figSize.width_mm || top + height > figSize.height_mm) {
+        alert(`Panel extends beyond figure bounds (${figSize.width_mm.toFixed(1)} x ${figSize.height_mm.toFixed(1)} mm)`);
         return;
     }
 
@@ -187,7 +216,7 @@ async function applyPanelPosition() {
             body: JSON.stringify({
                 ax_index: axIndex,
                 left: left,
-                bottom: bottom,
+                top: top,
                 width: width,
                 height: height
             })
@@ -196,9 +225,14 @@ async function applyPanelPosition() {
         const data = await response.json();
 
         if (data.success) {
-            // Update preview image
+            // Update preview image and wait for it to load
             const img = document.getElementById('preview-image');
-            if (img) img.src = 'data:image/png;base64,' + data.image;
+            if (img) {
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.src = 'data:image/png;base64,' + data.image;
+                });
+            }
 
             // Update image size
             if (data.img_size) {
@@ -211,7 +245,7 @@ async function applyPanelPosition() {
             loadHitmap();
             updateHitRegions();
 
-            // Reload positions to reflect any adjustments
+            // Reload positions to reflect any adjustments (now with correct image dimensions)
             await loadPanelPositions();
 
             console.log('Panel position updated successfully');

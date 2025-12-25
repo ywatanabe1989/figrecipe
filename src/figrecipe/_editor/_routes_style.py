@@ -167,10 +167,14 @@ def register_style_routes(app, editor):
 
     @app.route("/restore", methods=["POST"])
     def restore():
-        """Restore to original style (clear manual overrides)."""
+        """Restore to original style (clear manual overrides and axes positions)."""
         from ._bbox import extract_bboxes
 
+        # Clear all manual overrides (including position overrides)
         editor.style_overrides.clear_manual_overrides()
+
+        # Restore original axes positions
+        editor.restore_axes_positions()
 
         if editor._initial_base64 and not editor.dark_mode:
             base64_img = editor._initial_base64
