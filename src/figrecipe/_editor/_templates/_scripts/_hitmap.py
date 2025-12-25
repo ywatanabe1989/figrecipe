@@ -102,11 +102,10 @@ function drawHitRegions() {
 
     console.log('Drawing hit regions:', Object.keys(currentBboxes).length, 'elements');
 
-    // Sort by z-order: background first, foreground last (so foreground is on top)
-    const zOrderPriority = {
-        'axes': 0, 'spine': 1, 'fill': 2, 'bar': 3, 'xticks': 4, 'yticks': 4,
-        'line': 5, 'scatter': 6, 'title': 7, 'xlabel': 7, 'ylabel': 7, 'legend': 8,
-    };
+    // Drawing z-order: background first (lower), foreground last (higher = on top visually)
+    const zOrderPriority = { 'axes': 0, 'fill': 1, 'spine': 2, 'image': 3, 'contour': 3,
+        'bar': 4, 'pie': 4, 'quiver': 4, 'line': 5, 'scatter': 6, 'xticks': 7, 'yticks': 7,
+        'title': 8, 'xlabel': 8, 'ylabel': 8, 'legend': 9 };
 
     // Convert to array, filter, and sort by z-order
     // Include axes (panels) - they have lowest z-order so drawn first (background)
@@ -152,9 +151,10 @@ function drawHitRegions() {
         shape.addEventListener('mouseleave', () => handleHitRegionLeave());
         shape.addEventListener('click', (e) => handleHitRegionClick(e, key, enrichedBbox));
 
-        // Add mousedown for drag on all elements (checks panel bounds in handler)
+        // Add mousedown for drag (legend or panel)
         shape.addEventListener('mousedown', (e) => {
             if (e.button !== 0 || e.ctrlKey || e.metaKey || e.altKey) return;
+            if (bbox.type === 'legend' && typeof startLegendDrag === 'function') { startLegendDrag(e, key); return; }
             if (typeof handlePanelDragStart === 'function') handlePanelDragStart(e);
         });
 
@@ -373,10 +373,11 @@ function findOverlappingElements(screenPos) {
         }
     }
 
-    // Sort by z-order priority
-    const priority = { 'line': 0, 'scatter': 1, 'legend': 2, 'title': 3, 'xlabel': 4, 'ylabel': 4,
-                       'xticks': 5, 'yticks': 5, 'spine': 6, 'bar': 3, 'fill': 4, 'axes': 7 };
-    overlapping.sort((a, b) => (priority[a.type] || 5) - (priority[b.type] || 5));
+    // Click priority: smaller/precise elements first, large background last (lower = higher priority)
+    const clickPriority = { 'scatter': 0, 'legend': 1, 'title': 2, 'xlabel': 2, 'ylabel': 2,
+        'line': 3, 'bar': 4, 'pie': 4, 'contour': 5, 'quiver': 5, 'image': 5, 'fill': 6,
+        'xticks': 7, 'yticks': 7, 'spine': 8, 'axes': 9 };
+    overlapping.sort((a, b) => (clickPriority[a.type] ?? 5) - (clickPriority[b.type] ?? 5));
 
     return overlapping;
 }
