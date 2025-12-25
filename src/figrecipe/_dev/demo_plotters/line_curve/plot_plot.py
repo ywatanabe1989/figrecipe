@@ -16,8 +16,9 @@ def plot_plot(plt, rng, ax=None):
         fig = ax.get_figure() if hasattr(ax, "get_figure") else ax.fig
 
     x = np.linspace(0, 2 * np.pi, 100)
-    ax.plot(x, np.sin(x), id="sin")
-    ax.plot(x, np.cos(x), id="cos")
+    ax.plot(x, np.sin(x), label="sin", id="sin")
+    ax.plot(x, np.cos(x), label="cos", id="cos")
+    ax.legend()
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("plot")
