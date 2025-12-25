@@ -145,6 +145,11 @@ HTML_TEMPLATE = """
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>?</kbd></span><span class="shortcut-desc">Show this help</span></div>
                         </div>
                         <div class="shortcut-section">
+                            <h4>Panel Editing</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys">Drag</span><span class="shortcut-desc">Move panel (snaps to grid)</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+Drag</span><span class="shortcut-desc">Move panel (no snapping)</span></div>
+                        </div>
+                        <div class="shortcut-section">
                             <h4>Developer</h4>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Toggle element inspector</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Screenshot + console logs</span></div>
