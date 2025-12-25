@@ -16,7 +16,9 @@ SCRIPTS_PANEL_SNAP = """
 const SNAP_CONFIG = {
     enabled: true,
     gridSize: 5,         // mm - snap to 5mm grid
-    snapThreshold: 3,    // mm - distance to trigger snap
+    snapThreshold: 3,    // mm - distance to trigger hard snap
+    magneticZone: 8,     // mm - distance where magnetic attraction starts
+    magneticStrength: 0.7, // 0-1, how strongly to pull toward target
     showGuides: true     // Show visual alignment guides
 };
 
@@ -84,16 +86,36 @@ function getSnapTargets(excludeIndex) {
     return targets;
 }
 
+// Apply magnetic attraction - eases movement toward target
+function applyMagnetic(value, targetPos, dist) {
+    const zone = SNAP_CONFIG.magneticZone;
+    const strength = SNAP_CONFIG.magneticStrength;
+    const threshold = SNAP_CONFIG.snapThreshold;
+
+    if (dist <= threshold) {
+        // Hard snap - lock to target
+        return targetPos;
+    } else if (dist <= zone) {
+        // Magnetic zone - gradual attraction
+        // Strength increases as we get closer (quadratic easing)
+        const progress = 1 - (dist - threshold) / (zone - threshold);
+        const eased = progress * progress * strength;
+        return value + (targetPos - value) * eased;
+    }
+    return value;
+}
+
 // Apply snapping to a position
-// Returns { pos: {left, top}, snapped: {h: bool, v: bool}, guides: [...] }
+// Returns { pos: {left, top}, snapped: {h: bool, v: bool}, guides: [...], magnetic: {h: bool, v: bool} }
 function applySnapping(left, top, width, height, excludeIndex) {
     if (!SNAP_CONFIG.enabled) {
-        return { pos: { left, top }, snapped: { h: false, v: false }, guides: [] };
+        return { pos: { left, top }, snapped: { h: false, v: false }, guides: [], magnetic: { h: false, v: false } };
     }
 
     const result = {
         pos: { left, top },
         snapped: { h: false, v: false },
+        magnetic: { h: false, v: false },
         guides: []
     };
 
@@ -107,82 +129,89 @@ function applySnapping(left, top, width, height, excludeIndex) {
 
     const targets = getSnapTargets(excludeIndex);
     const threshold = SNAP_CONFIG.snapThreshold;
+    const zone = SNAP_CONFIG.magneticZone;
 
     // Find best vertical snap (for X position)
     let bestVSnap = null;
-    let bestVDist = threshold + 1;
+    let bestVDist = zone + 1;
 
     for (const target of targets.v) {
         // Check left edge
         const distLeft = Math.abs(panelLeft - target.pos);
         if (distLeft < bestVDist) {
             bestVDist = distLeft;
-            bestVSnap = { offset: target.pos - panelLeft, target };
+            bestVSnap = { offset: target.pos - panelLeft, target, edge: 'left' };
         }
         // Check right edge
         const distRight = Math.abs(panelRight - target.pos);
         if (distRight < bestVDist) {
             bestVDist = distRight;
-            bestVSnap = { offset: target.pos - panelRight, target };
+            bestVSnap = { offset: target.pos - panelRight, target, edge: 'right' };
         }
         // Check center
         const distCenter = Math.abs(panelCenterX - target.pos);
         if (distCenter < bestVDist) {
             bestVDist = distCenter;
-            bestVSnap = { offset: target.pos - panelCenterX, target };
+            bestVSnap = { offset: target.pos - panelCenterX, target, edge: 'center' };
         }
     }
 
-    if (bestVSnap && bestVDist <= threshold) {
-        result.pos.left = left + bestVSnap.offset;
-        result.snapped.v = true;
+    if (bestVSnap && bestVDist <= zone) {
+        const targetLeft = left + bestVSnap.offset;
+        result.pos.left = applyMagnetic(left, targetLeft, bestVDist);
+        result.snapped.v = bestVDist <= threshold;
+        result.magnetic.v = bestVDist > threshold && bestVDist <= zone;
         result.guides.push({
             type: 'vertical',
             pos: bestVSnap.target.pos,
-            targetType: bestVSnap.target.type
+            targetType: bestVSnap.target.type,
+            strength: result.snapped.v ? 1 : 1 - (bestVDist - threshold) / (zone - threshold)
         });
     }
 
     // Find best horizontal snap (for Y position)
     let bestHSnap = null;
-    let bestHDist = threshold + 1;
+    let bestHDist = zone + 1;
 
     for (const target of targets.h) {
         // Check top edge
         const distTop = Math.abs(panelTop - target.pos);
         if (distTop < bestHDist) {
             bestHDist = distTop;
-            bestHSnap = { offset: target.pos - panelTop, target };
+            bestHSnap = { offset: target.pos - panelTop, target, edge: 'top' };
         }
         // Check bottom edge
         const distBottom = Math.abs(panelBottom - target.pos);
         if (distBottom < bestHDist) {
             bestHDist = distBottom;
-            bestHSnap = { offset: target.pos - panelBottom, target };
+            bestHSnap = { offset: target.pos - panelBottom, target, edge: 'bottom' };
         }
         // Check center
         const distCenter = Math.abs(panelCenterY - target.pos);
         if (distCenter < bestHDist) {
             bestHDist = distCenter;
-            bestHSnap = { offset: target.pos - panelCenterY, target };
+            bestHSnap = { offset: target.pos - panelCenterY, target, edge: 'center' };
         }
     }
 
-    if (bestHSnap && bestHDist <= threshold) {
-        result.pos.top = top + bestHSnap.offset;
-        result.snapped.h = true;
+    if (bestHSnap && bestHDist <= zone) {
+        const targetTop = top + bestHSnap.offset;
+        result.pos.top = applyMagnetic(top, targetTop, bestHDist);
+        result.snapped.h = bestHDist <= threshold;
+        result.magnetic.h = bestHDist > threshold && bestHDist <= zone;
         result.guides.push({
             type: 'horizontal',
             pos: bestHSnap.target.pos,
-            targetType: bestHSnap.target.type
+            targetType: bestHSnap.target.type,
+            strength: result.snapped.h ? 1 : 1 - (bestHDist - threshold) / (zone - threshold)
         });
     }
 
-    // Apply grid snapping if no edge/center snap
-    if (!result.snapped.v) {
+    // Apply grid snapping if no edge/center snap or magnetic attraction
+    if (!result.snapped.v && !result.magnetic.v) {
         result.pos.left = snapToGrid(result.pos.left);
     }
-    if (!result.snapped.h) {
+    if (!result.snapped.h && !result.magnetic.h) {
         result.pos.top = snapToGrid(result.pos.top);
     }
 
@@ -195,7 +224,7 @@ function snapToGrid(value) {
     return Math.round(value / grid) * grid;
 }
 
-// Show alignment guides
+// Show alignment guides with opacity based on magnetic strength
 function showSnapGuides(guides, imgRect) {
     if (!SNAP_CONFIG.showGuides) {
         hideSnapGuides();
@@ -214,19 +243,23 @@ function showSnapGuides(guides, imgRect) {
         if (guideIndex >= snapGuides.length) break;
 
         const el = snapGuides[guideIndex];
+        const isCenter = guide.targetType.includes('center');
+        const baseColor = isCenter ? '139, 92, 246' : '245, 158, 11';  // RGB values
+        const strength = guide.strength || 1;
+        const opacity = 0.3 + strength * 0.7;  // 0.3-1.0 opacity range
+
         if (guide.type === 'vertical') {
             el.style.left = `${guide.pos * scaleX}px`;
             el.style.top = '0';
-            el.style.width = '2px';
+            el.style.width = strength >= 1 ? '3px' : '2px';  // Thicker when snapped
             el.style.height = `${imgRect.height}px`;
-            el.style.background = guide.targetType.includes('center') ? '#8b5cf6' : '#f59e0b';
         } else {
             el.style.left = '0';
             el.style.top = `${guide.pos * scaleY}px`;
             el.style.width = `${imgRect.width}px`;
-            el.style.height = '2px';
-            el.style.background = guide.targetType.includes('center') ? '#8b5cf6' : '#f59e0b';
+            el.style.height = strength >= 1 ? '3px' : '2px';  // Thicker when snapped
         }
+        el.style.background = `rgba(${baseColor}, ${opacity})`;
         el.style.display = 'block';
         guideIndex++;
     }
