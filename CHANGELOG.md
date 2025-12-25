@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.4] - 2025-12-25
+
+### Added
+- **Click priority z-index** - Scatter/legend have highest click priority, axes lowest
+- **Legend drag-to-move** - Drag legends to reposition with x,y coordinates
+- **Expanded panel bounds** - Panel drag includes title/label areas (15mm left, 8mm top, 12mm bottom margins)
+
+### Fixed
+- **Coordinate precision** - Legend drag uses upper-left corner for precise bbox_to_anchor positioning
+- **Demo plot legend** - Added legend to plot demo for testing
+
 ## [0.7.3] - 2025-12-25
 
 ### Added
