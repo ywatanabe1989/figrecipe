@@ -53,55 +53,70 @@ class TestGetAxesPositions:
     """Tests for /get_axes_positions route."""
 
     def test_returns_positions_for_all_axes(self, editor_app):
-        """Test that positions are returned for all 4 axes."""
+        """Test that positions are returned for all 4 axes plus figsize."""
         response = editor_app.get("/get_axes_positions")
         assert response.status_code == 200
 
         data = json.loads(response.data)
-        assert len(data) == 4  # 2x2 grid
+        # 2x2 grid = 4 axes + 1 _figsize metadata
+        assert len(data) == 5
+        assert "_figsize" in data
+        for i in range(4):
+            assert f"ax_{i}" in data
 
-    def test_position_values_are_valid(self, editor_app):
-        """Test that position values are in valid range."""
+    def test_position_values_are_in_mm(self, editor_app):
+        """Test that position values are in mm (upper-left origin)."""
         response = editor_app.get("/get_axes_positions")
         data = json.loads(response.data)
 
+        # Get figure dimensions
+        figsize = data["_figsize"]
+        fig_width_mm = figsize["width_mm"]
+        fig_height_mm = figsize["height_mm"]
+
         for ax_key, pos in data.items():
-            assert 0 <= pos["left"] <= 1
-            assert 0 <= pos["bottom"] <= 1
-            assert 0 <= pos["width"] <= 1
-            assert 0 <= pos["height"] <= 1
-            assert pos["right"] == pytest.approx(pos["left"] + pos["width"], rel=0.01)
-            assert pos["top"] == pytest.approx(pos["bottom"] + pos["height"], rel=0.01)
+            if ax_key == "_figsize":
+                continue
+            # Positions should be positive and within figure bounds
+            assert 0 <= pos["left"] <= fig_width_mm
+            assert 0 <= pos["top"] <= fig_height_mm
+            assert pos["width"] > 0
+            assert pos["height"] > 0
+            assert pos["left"] + pos["width"] <= fig_width_mm + 0.1  # Small tolerance
+            assert pos["top"] + pos["height"] <= fig_height_mm + 0.1
 
     def test_position_has_all_fields(self, editor_app):
-        """Test that position data has all required fields."""
+        """Test that position data has all required fields (mm, upper-left origin)."""
         response = editor_app.get("/get_axes_positions")
         data = json.loads(response.data)
 
         for ax_key, pos in data.items():
-            assert "index" in pos
-            assert "left" in pos
-            assert "bottom" in pos
-            assert "width" in pos
-            assert "height" in pos
-            assert "right" in pos
-            assert "top" in pos
+            if ax_key == "_figsize":
+                assert "width_mm" in pos
+                assert "height_mm" in pos
+            else:
+                assert "index" in pos
+                assert "left" in pos
+                assert "top" in pos
+                assert "width" in pos
+                assert "height" in pos
 
 
 class TestUpdateAxesPosition:
-    """Tests for /update_axes_position route."""
+    """Tests for /update_axes_position route (mm coordinates, upper-left origin)."""
 
     def test_update_position_succeeds(self, editor_app):
-        """Test that updating position succeeds."""
+        """Test that updating position succeeds with mm coordinates."""
+        # Use mm values with upper-left origin
         response = editor_app.post(
             "/update_axes_position",
             data=json.dumps(
                 {
                     "ax_index": 0,
-                    "left": 0.1,
-                    "bottom": 0.1,
-                    "width": 0.4,
-                    "height": 0.4,
+                    "left": 20.0,  # mm from left
+                    "top": 20.0,  # mm from top
+                    "width": 50.0,  # mm width
+                    "height": 40.0,  # mm height
                 }
             ),
             content_type="application/json",
@@ -114,16 +129,16 @@ class TestUpdateAxesPosition:
         assert "bboxes" in data
 
     def test_update_validates_range(self, editor_app):
-        """Test that out-of-range values are rejected."""
+        """Test that out-of-range mm values are rejected."""
         response = editor_app.post(
             "/update_axes_position",
             data=json.dumps(
                 {
                     "ax_index": 0,
-                    "left": 1.5,  # Invalid
-                    "bottom": 0.1,
-                    "width": 0.4,
-                    "height": 0.4,
+                    "left": -10.0,  # Invalid - negative
+                    "top": 20.0,
+                    "width": 50.0,
+                    "height": 40.0,
                 }
             ),
             content_type="application/json",
@@ -132,7 +147,6 @@ class TestUpdateAxesPosition:
 
         data = json.loads(response.data)
         assert "error" in data
-        assert "left" in data["error"]
 
     def test_update_requires_all_values(self, editor_app):
         """Test that missing values are rejected."""
@@ -141,8 +155,8 @@ class TestUpdateAxesPosition:
             data=json.dumps(
                 {
                     "ax_index": 0,
-                    "left": 0.1,
-                    # Missing bottom, width, height
+                    "left": 20.0,
+                    # Missing top, width, height
                 }
             ),
             content_type="application/json",
@@ -158,11 +172,11 @@ class TestUpdateAxesPosition:
             "/update_axes_position",
             data=json.dumps(
                 {
-                    "ax_index": 99,  # Invalid
-                    "left": 0.1,
-                    "bottom": 0.1,
-                    "width": 0.4,
-                    "height": 0.4,
+                    "ax_index": 99,  # Invalid - only 4 axes exist
+                    "left": 20.0,
+                    "top": 20.0,
+                    "width": 50.0,
+                    "height": 40.0,
                 }
             ),
             content_type="application/json",

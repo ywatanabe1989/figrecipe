@@ -25,6 +25,7 @@ HTML_TEMPLATE = """
                     <img src="data:image/png;base64,SCITEX_ICON_PLACEHOLDER" alt="SciTeX" class="scitex-icon">
                     <span class="figrecipe-title">FigRecipe Editor</span>
                 </a>
+                <span id="server-start-time" style="font-size: 10px; color: #888; margin-left: 8px;">Started: SERVER_START_TIME_PLACEHOLDER</span>
                 <div class="file-switcher">
                     <select id="file-selector" class="file-selector" title="Switch between recipe files">
                         <option value="">Loading files...</option>
@@ -233,20 +234,20 @@ HTML_TEMPLATE = """
                             </div>
                             <div class="position-grid">
                                 <div class="form-row">
-                                    <label>Left</label>
-                                    <input type="number" id="panel_left" step="0.01" min="0" max="1" placeholder="0.125">
+                                    <label>Left (mm)</label>
+                                    <input type="number" id="panel_left" step="1" min="0" placeholder="20">
                                 </div>
                                 <div class="form-row">
-                                    <label>Bottom</label>
-                                    <input type="number" id="panel_bottom" step="0.01" min="0" max="1" placeholder="0.11">
+                                    <label>Top (mm)</label>
+                                    <input type="number" id="panel_top" step="1" min="0" placeholder="15">
                                 </div>
                                 <div class="form-row">
-                                    <label>Width</label>
-                                    <input type="number" id="panel_width" step="0.01" min="0" max="1" placeholder="0.775">
+                                    <label>Width (mm)</label>
+                                    <input type="number" id="panel_width" step="1" min="0" placeholder="120">
                                 </div>
                                 <div class="form-row">
-                                    <label>Height</label>
-                                    <input type="number" id="panel_height" step="0.01" min="0" max="1" placeholder="0.77">
+                                    <label>Height (mm)</label>
+                                    <input type="number" id="panel_height" step="1" min="0" placeholder="90">
                                 </div>
                             </div>
                             <div class="form-row" style="margin-top: 8px;">
