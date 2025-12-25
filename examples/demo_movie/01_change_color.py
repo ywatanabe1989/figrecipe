@@ -5,7 +5,7 @@
 Shows how to click on a bar chart element and change its color
 using the figrecipe editor.
 
-Duration target: ~8 seconds
+Duration target: ~10 seconds
 """
 
 import sys
@@ -21,83 +21,36 @@ class ChangeColorDemo(DemoRecorder):
     """Demo showing how to change element color in the editor."""
 
     title = "Change Element Color"
-    duration_target = 8
+    duration_target = 10
     url = "http://127.0.0.1:5050"
 
     async def run(self, page):
         """Execute demo actions."""
         # Wait for page to fully load
-        await self.wait(1)
+        await self.wait(1.5)
 
         # Step 1: Click on bar chart element
         await self.caption("Step 1: Click on a bar chart element")
-        await self.wait(1)
+        await self.wait(1.5)
 
-        # Click on a bar element via the hitregion overlay
-        # The figrecipe editor uses an SVG overlay for hit detection
-        # We click at a position where bar charts are typically located
-        try:
-            # Try clicking on the hitregion overlay at bar chart position
-            await page.click(
-                "#hitregion-overlay", position={"x": 200, "y": 150}, timeout=5000
-            )
-        except Exception:
-            # Fallback: force click on preview image
-            await page.click(
-                "#preview-image",
-                position={"x": 200, "y": 150},
-                force=True,
-                timeout=5000,
-            )
+        # Click on a bar element using the correct selector
+        # The elements are <g> tags with text like "bar: bar"
+        bar_locator = page.locator("g").filter(has_text="bar: bar").first
+        await bar_locator.click(timeout=5000)
+        await self.wait(1.5)
 
-        await self.wait(1)
+        # Step 2: Find and click color dropdown
+        await self.caption("Step 2: Select red color from dropdown")
+        await self.wait(1.5)
 
-        # Step 2: Open color picker
-        await self.caption("Step 2: Open color picker")
-        await self.wait(1)
-
-        # Look for color input or dropdown
-        color_selectors = [
-            "#color-select",
-            "[id*='color']",
-            "select[id*='color']",
-            ".color-picker",
-        ]
-
-        clicked = False
-        for selector in color_selectors:
-            try:
-                if await page.locator(selector).count() > 0:
-                    await self.highlight(selector, duration=0.5)
-                    await page.click(selector, timeout=2000)
-                    clicked = True
-                    break
-            except Exception:
-                continue
-
-        if not clicked:
-            await self.caption("(Color picker not found - demo continues)")
-
-        await self.wait(1)
-
-        # Step 3: Select a color (red)
-        await self.caption("Step 3: Select red color")
-        await self.wait(1)
-
-        # Try to select red color option
-        try:
-            await page.select_option("select", label="red", timeout=2000)
-        except Exception:
-            try:
-                # Try clicking a red color option
-                await page.click('[data-color="red"]', timeout=2000)
-            except Exception:
-                pass
-
-        await self.wait(1)
+        # The color combobox is the 3rd combobox on the page (index 2)
+        # It appears after clicking a bar element
+        color_dropdown = page.get_by_role("combobox").nth(2)
+        await color_dropdown.select_option("red", timeout=5000)
+        await self.wait(2)
 
         # Final caption
-        await self.caption("Color changed successfully!")
+        await self.caption("Color changed to red!")
         await self.wait(2)
 
 
@@ -128,7 +81,6 @@ if __name__ == "__main__":
     mp4_path, gif_path = demo.execute()
 
     print("\nOutput files:")
-    print(f"  MP4: {mp4_path}")
     if gif_path:
         print(f"  GIF: {gif_path}")
 
