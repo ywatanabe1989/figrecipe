@@ -13,6 +13,7 @@ This package contains modular JavaScript organized by functionality:
 - _inspector.py: Element inspector debugging
 - _labels.py: Label inputs and axis/legend controls
 - _modals.py: Theme and shortcuts modals
+- _panel_position.py: Panel position editing (left, bottom, width, height)
 - _overlays.py: Measurement overlays (ruler, grid, columns)
 - _selection.py: Selection drawing and property sync
 - _tabs.py: Tab navigation (Figure/Axis/Element)
@@ -31,6 +32,7 @@ from ._inspector import SCRIPTS_INSPECTOR
 from ._labels import SCRIPTS_LABELS
 from ._modals import SCRIPTS_MODALS
 from ._overlays import SCRIPTS_OVERLAYS
+from ._panel_position import SCRIPTS_PANEL_POSITION
 from ._selection import SCRIPTS_SELECTION
 from ._tabs import SCRIPTS_TABS
 from ._view_mode import SCRIPTS_VIEW_MODE
@@ -54,6 +56,7 @@ SCRIPTS = (
     + SCRIPTS_OVERLAYS
     + SCRIPTS_INSPECTOR
     + SCRIPTS_FILES
+    + SCRIPTS_PANEL_POSITION
 )
 
 
@@ -77,6 +80,7 @@ def get_all_scripts():
         "labels": SCRIPTS_LABELS,
         "modals": SCRIPTS_MODALS,
         "overlays": SCRIPTS_OVERLAYS,
+        "panel_position": SCRIPTS_PANEL_POSITION,
         "selection": SCRIPTS_SELECTION,
         "tabs": SCRIPTS_TABS,
         "view_mode": SCRIPTS_VIEW_MODE,
@@ -97,6 +101,7 @@ __all__ = [
     "SCRIPTS_LABELS",
     "SCRIPTS_MODALS",
     "SCRIPTS_OVERLAYS",
+    "SCRIPTS_PANEL_POSITION",
     "SCRIPTS_SELECTION",
     "SCRIPTS_TABS",
     "SCRIPTS_VIEW_MODE",
