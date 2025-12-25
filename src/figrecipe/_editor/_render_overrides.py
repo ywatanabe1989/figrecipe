@@ -202,7 +202,7 @@ def apply_color_palette(
     # Apply to different element types
     _apply_colors_to_lines(ax, normalized_palette, ax_record, call_color_map)
     _apply_colors_to_bars(ax, normalized_palette, ax_record, call_color_map)
-    _apply_colors_to_pie(ax, normalized_palette)
+    _apply_colors_to_pie(ax, normalized_palette, ax_record)
     _apply_colors_to_scatter(ax, normalized_palette, ax_record, call_color_map)
     _apply_colors_to_poly(ax, normalized_palette)
     _update_legend_colors(ax, normalized_palette)
@@ -304,13 +304,47 @@ def _apply_colors_to_bars(
             patch.set_facecolor(color)
 
 
-def _apply_colors_to_pie(ax: Axes, palette: List[Any]) -> None:
-    """Apply colors to pie chart wedges."""
+def _apply_colors_to_pie(
+    ax: Axes, palette: List[Any], ax_record: Optional[Any] = None
+) -> None:
+    """Apply colors to pie chart wedges.
+
+    If the pie call has custom colors in kwargs, those are used.
+    Otherwise, the theme palette is applied.
+    """
     from matplotlib.patches import Wedge
 
     wedges = [p for p in ax.patches if isinstance(p, Wedge)]
+    if not wedges:
+        return
+
+    # Check if pie call has custom colors
+    custom_colors = None
+    if ax_record:
+        for call in ax_record.calls:
+            if call.function == "pie" and "colors" in call.kwargs:
+                custom_colors = call.kwargs["colors"]
+                break
+
+    # Use custom colors if available, otherwise use palette
+    if custom_colors and isinstance(custom_colors, list):
+        # Normalize custom colors
+        colors_to_use = []
+        for c in custom_colors:
+            if isinstance(c, str):
+                colors_to_use.append(c)
+            elif isinstance(c, (list, tuple)) and len(c) >= 3:
+                if all(v <= 1.0 for v in c):
+                    colors_to_use.append(tuple(c))
+                else:
+                    colors_to_use.append(tuple(v / 255.0 for v in c))
+            else:
+                colors_to_use.append(c)
+    else:
+        colors_to_use = palette
+
     for i, wedge in enumerate(wedges):
-        color = palette[i % len(palette)]
+        color = colors_to_use[i % len(colors_to_use)]
         wedge.set_facecolor(color)
         wedge.set_edgecolor("black")
 
