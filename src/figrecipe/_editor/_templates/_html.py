@@ -221,8 +221,42 @@ HTML_TEMPLATE = """
                 <div id="tab-content-axis" class="tab-content">
                     <div class="tab-hint" id="axis-tab-hint">Select an axis element (title, label, ticks, legend) to edit</div>
 
-                    <!-- Axes Size Section -->
+                    <!-- Panel Position Section -->
                     <details class="section" open>
+                        <summary>Panel Position</summary>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <label>Panel</label>
+                                <select id="panel_selector">
+                                    <option value="0">Panel 0</option>
+                                </select>
+                            </div>
+                            <div class="position-grid">
+                                <div class="form-row">
+                                    <label>Left</label>
+                                    <input type="number" id="panel_left" step="0.01" min="0" max="1" placeholder="0.125">
+                                </div>
+                                <div class="form-row">
+                                    <label>Bottom</label>
+                                    <input type="number" id="panel_bottom" step="0.01" min="0" max="1" placeholder="0.11">
+                                </div>
+                                <div class="form-row">
+                                    <label>Width</label>
+                                    <input type="number" id="panel_width" step="0.01" min="0" max="1" placeholder="0.775">
+                                </div>
+                                <div class="form-row">
+                                    <label>Height</label>
+                                    <input type="number" id="panel_height" step="0.01" min="0" max="1" placeholder="0.77">
+                                </div>
+                            </div>
+                            <div class="form-row" style="margin-top: 8px;">
+                                <button id="apply_panel_position" class="btn-small">Apply Position</button>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Axes Size Section -->
+                    <details class="section">
                         <summary>Axes Size</summary>
                         <div class="section-content">
                             <div class="form-row">
