@@ -21,6 +21,7 @@ class ChangeColorDemo(DemoRecorder):
     """Demo showing how to change element color in the editor."""
 
     title = "Change Element Color"
+    demo_id = "02"
     duration_target = 10
     url = "http://127.0.0.1:5050"
 

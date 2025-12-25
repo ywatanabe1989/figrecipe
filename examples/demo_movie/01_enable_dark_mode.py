@@ -21,20 +21,24 @@ class DarkModeDemo(DemoRecorder):
     """Demo showing how to toggle dark mode in the editor."""
 
     title = "Enable Dark Mode"
+    demo_id = "01"
     duration_target = 8
     url = "http://127.0.0.1:5050"
 
     async def run(self, page):
         """Execute demo actions."""
-        # Wait for page to fully load
-        await self.wait(1.0)
+        # Ensure we start from light mode
+        dark_toggle = page.locator("#dark-mode-toggle")
+        is_checked = await dark_toggle.is_checked()
+        if is_checked:
+            await dark_toggle.click()
+            await self.wait(0.5)
 
         # Show caption
         await self.caption("Toggle Dark Mode for comfortable viewing")
         await self.wait(1.0)
 
-        # Find and move to dark mode toggle
-        dark_toggle = page.locator("#dark-mode-toggle")
+        # Move cursor to dark mode toggle
         await self.move_to(dark_toggle, duration=0.6)
         await self.wait(0.3)
 
@@ -44,7 +48,7 @@ class DarkModeDemo(DemoRecorder):
 
         # Show result
         await self.caption("Dark mode enabled!")
-        await self.wait(2.0)
+        await self.wait(1.5)
 
 
 if __name__ == "__main__":

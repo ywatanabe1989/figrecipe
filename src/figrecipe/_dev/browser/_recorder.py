@@ -56,6 +56,7 @@ class DemoRecorder(ABC):
     """
 
     title: str = "Demo"
+    demo_id: str = ""  # e.g., "01" for numbered output filenames
     duration_target: int = 10
     url: str = "http://127.0.0.1:5050"
     output_dir: Path = Path("examples/demo_movie/outputs")
@@ -171,7 +172,11 @@ class DemoRecorder(ABC):
         return False
 
     async def title_screen(
-        self, title: str, subtitle: str = "", duration: float = 2.0
+        self,
+        title: str,
+        subtitle: str = "",
+        timestamp: str = "",
+        duration: float = 2.0,
     ) -> None:
         """Show title screen with blur overlay.
 
@@ -181,13 +186,30 @@ class DemoRecorder(ABC):
             Main title text.
         subtitle : str, optional
             Subtitle text.
+        timestamp : str, optional
+            Timestamp to display.
         duration : float, optional
             Duration in seconds (default: 2.0).
         """
         if self._page:
             from ._caption import show_title_screen
 
-            await show_title_screen(self._page, title, subtitle, int(duration * 1000))
+            await show_title_screen(
+                self._page, title, subtitle, timestamp, int(duration * 1000)
+            )
+
+    async def closing_screen(self, duration: float = 2.5) -> None:
+        """Show closing branding screen.
+
+        Parameters
+        ----------
+        duration : float, optional
+            Duration in seconds (default: 2.5).
+        """
+        if self._page:
+            from ._caption import show_closing_screen
+
+            await show_closing_screen(self._page, int(duration * 1000))
 
     def _get_output_paths(self) -> tuple:
         """Get output file paths.
@@ -199,8 +221,13 @@ class DemoRecorder(ABC):
         """
         self.output_dir.mkdir(parents=True, exist_ok=True)
         safe_name = self.title.lower().replace(" ", "_").replace("-", "_")
-        mp4_path = self.output_dir / f"{safe_name}.mp4"
-        gif_path = self.output_dir / f"{safe_name}.gif"
+        # Add demo_id prefix if provided (e.g., "01_enable_dark_mode")
+        if self.demo_id:
+            filename = f"{self.demo_id}_{safe_name}"
+        else:
+            filename = safe_name
+        mp4_path = self.output_dir / f"{filename}.mp4"
+        gif_path = self.output_dir / f"{filename}.gif"
         return mp4_path, gif_path
 
     async def _setup_page(self, page) -> None:
@@ -257,27 +284,39 @@ class DemoRecorder(ABC):
             try:
                 # Navigate to URL (fresh load resets state)
                 await page.goto(self.url, wait_until="networkidle")
-                await asyncio.sleep(1)  # Wait for page to stabilize
+
+                # Wait for preview image to load (avoids white screen at start)
+                try:
+                    await page.wait_for_selector("#preview-image", timeout=5000)
+                except Exception:
+                    pass  # Continue even if selector not found
+                await asyncio.sleep(0.5)  # Extra stabilization
 
                 # Setup visual effects
                 await self._setup_page(page)
 
                 # Show title screen with blur overlay
+                from datetime import datetime
+
                 import figrecipe
 
                 version = figrecipe.__version__
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
                 await self.title_screen(
                     title=self.title,
                     subtitle=f"figrecipe v{version}",
-                    duration=2.5,
+                    timestamp=timestamp,
+                    duration=2.0,
                 )
 
                 # Run demo actions
                 await self.run(page)
 
+                # Show closing branding screen
+                await self.closing_screen(duration=2.0)
+
                 # Cleanup
                 await self._cleanup_page(page)
-                await asyncio.sleep(0.5)
 
             finally:
                 await context.close()
