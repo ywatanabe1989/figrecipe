@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.5] - 2025-12-25
+
+### Added
+- **Panel snapping** - Snap to grid (5mm), panel edges, and centers during drag
+- **Visual alignment guides** - Orange/purple lines show snap targets during drag
+- **Alt+Drag fine control** - Hold Alt to disable snapping for precise positioning
+
 ## [0.7.4] - 2025-12-25
 
 ### Added

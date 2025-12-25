@@ -182,9 +182,17 @@ function handlePanelDragMove(event) {
     const deltaMmX = (event.clientX - dragStartPos.x) / rect.width * figSize.width_mm;
     const deltaMmY = (event.clientY - dragStartPos.y) / rect.height * figSize.height_mm;
 
-    // Calculate new position (clamped to figure bounds)
-    const newLeft = Math.max(0, Math.min(figSize.width_mm - dragStartPanelPos.width, dragStartPanelPos.left + deltaMmX));
-    const newTop = Math.max(0, Math.min(figSize.height_mm - dragStartPanelPos.height, dragStartPanelPos.top + deltaMmY));
+    // Calculate raw new position (clamped to figure bounds)
+    let newLeft = Math.max(0, Math.min(figSize.width_mm - dragStartPanelPos.width, dragStartPanelPos.left + deltaMmX));
+    let newTop = Math.max(0, Math.min(figSize.height_mm - dragStartPanelPos.height, dragStartPanelPos.top + deltaMmY));
+
+    // Apply snapping (Alt key disables snapping for fine control)
+    let snapResult = { pos: { left: newLeft, top: newTop }, guides: [] };
+    if (typeof applySnapping === 'function' && !event.altKey) {
+        snapResult = applySnapping(newLeft, newTop, dragStartPanelPos.width, dragStartPanelPos.height, draggedPanelIndex);
+        newLeft = snapResult.pos.left;
+        newTop = snapResult.pos.top;
+    }
 
     const newPos = {
         left: newLeft,
@@ -195,6 +203,11 @@ function handlePanelDragMove(event) {
 
     // Update visual overlay
     updateDragOverlayMm(newPos, rect);
+
+    // Show/hide alignment guides
+    if (typeof showSnapGuides === 'function') {
+        showSnapGuides(snapResult.guides, rect);
+    }
 }
 
 // Update the drag overlay position (pos in mm, upper-left origin)
@@ -221,10 +234,13 @@ async function handlePanelDragEnd(event) {
     console.log('[PanelDrag] handlePanelDragEnd called, isDraggingPanel:', isDraggingPanel);
     if (!isDraggingPanel) return;
 
-    // Hide overlay (with null check)
+    // Hide overlay and snap guides
     if (panelDragOverlay) {
         panelDragOverlay.style.display = 'none';
         console.log('[PanelDrag] Overlay hidden');
+    }
+    if (typeof hideSnapGuides === 'function') {
+        hideSnapGuides();
     }
     document.body.style.cursor = '';
 
@@ -240,8 +256,15 @@ async function handlePanelDragEnd(event) {
     const deltaMmX = (event.clientX - dragStartPos.x) / rect.width * figSize.width_mm;
     const deltaMmY = (event.clientY - dragStartPos.y) / rect.height * figSize.height_mm;
 
-    const newLeft = Math.max(0, Math.min(figSize.width_mm - dragStartPanelPos.width, dragStartPanelPos.left + deltaMmX));
-    const newTop = Math.max(0, Math.min(figSize.height_mm - dragStartPanelPos.height, dragStartPanelPos.top + deltaMmY));
+    let newLeft = Math.max(0, Math.min(figSize.width_mm - dragStartPanelPos.width, dragStartPanelPos.left + deltaMmX));
+    let newTop = Math.max(0, Math.min(figSize.height_mm - dragStartPanelPos.height, dragStartPanelPos.top + deltaMmY));
+
+    // Apply snapping to final position (unless Alt was held)
+    if (typeof applySnapping === 'function' && !event.altKey) {
+        const snapResult = applySnapping(newLeft, newTop, dragStartPanelPos.width, dragStartPanelPos.height, draggedPanelIndex);
+        newLeft = snapResult.pos.left;
+        newTop = snapResult.pos.top;
+    }
 
     // Only update if position actually changed (threshold in mm)
     const threshold = 1.0;  // 1mm threshold
