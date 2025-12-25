@@ -58,12 +58,15 @@ class StyleOverrides:
         Returns
         -------
         dict
-            Merged style dictionary.
+            Merged style dictionary including call_overrides.
         """
         result = {}
         result.update(self.base_style)
         result.update(self.programmatic_style)
         result.update(self.manual_overrides)
+        # Include call_overrides for apply_overrides to use
+        if self.call_overrides:
+            result["call_overrides"] = self.call_overrides
         return result
 
     def get_original_style(self) -> Dict[str, Any]:

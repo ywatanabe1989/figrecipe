@@ -137,7 +137,7 @@ function clearPanelSelectionHighlight() {
 }
 
 // Select panel by index (called when clicking on axes in canvas)
-function selectPanelByIndex(axIndex) {
+function selectPanelByIndex(axIndex, switchToAxisTab = true) {
     const selector = document.getElementById('panel_selector');
     if (!selector) return;
 
@@ -150,8 +150,10 @@ function selectPanelByIndex(axIndex) {
     // Update inputs and highlight
     updatePanelPositionInputs();
 
-    // Switch to Axis tab
-    switchTab('axis');
+    // Switch to Axis tab only if requested (default true for backwards compat)
+    if (switchToAxisTab) {
+        switchTab('axis');
+    }
 
     console.log('Selected panel', axIndex);
 }

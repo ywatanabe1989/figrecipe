@@ -24,12 +24,11 @@ import numpy as np
 sys.path.insert(0, "src")
 
 import figrecipe as fr
+from figrecipe._dev.demo_plotters import get_representative_plots
 
 output_path = Path(os.path.dirname(__file__))
 
 # Use representative plots from each category (one per category)
-from figrecipe._dev.demo_plotters import get_representative_plots
-
 SELECTED_PLOTTERS = get_representative_plots()
 # Result: ['plot', 'scatter', 'bar', 'hist', 'imshow', 'contourf', 'specgram', 'quiver', 'pie']
 
@@ -41,9 +40,7 @@ def kill_port(port=5050):
         stderr=subprocess.DEVNULL,
     )
     time.sleep(1)
-    result = subprocess.run(
-        f"lsof -i :{port}", shell=True, capture_output=True
-    )
+    result = subprocess.run(f"lsof -i :{port}", shell=True, capture_output=True)
     if result.returncode == 0:
         subprocess.run(
             f"lsof -ti :{port} | xargs kill -9",
@@ -78,9 +75,7 @@ def plot_figure():
             results[name] = {"success": True, "error": None}
         except Exception as e:
             ax.set_title(f"{name} (failed)")
-            ax.text(
-                0.5, 0.5, str(e)[:50], ha="center", va="center", fontsize=8
-            )
+            ax.text(0.5, 0.5, str(e)[:50], ha="center", va="center", fontsize=8)
             results[name] = {"success": False, "error": str(e)}
 
     # Hide unused axes
@@ -106,9 +101,7 @@ def main():
     fig = plot_figure()
 
     # validate_error_level="warning" needed as some plots have non-deterministic elements
-    fr.save(
-        fig, output_path / "demo_editor.png", validate_error_level="warning"
-    )
+    fr.save(fig, output_path / "demo_editor.png", validate_error_level="warning")
 
     fig, axes = fr.reproduce(output_path / "demo_editor.yaml")
 

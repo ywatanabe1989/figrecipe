@@ -81,7 +81,7 @@ def generate_hitmap(
     element_id = 1
 
     # Detect plot types from record
-    plot_types = detect_plot_types(fig)
+    plot_types = detect_plot_types(fig, debug=False)
 
     # Get all axes (handle RecordingFigure wrapper)
     if hasattr(fig, "fig"):
@@ -135,10 +135,10 @@ def generate_hitmap(
         ax.set_facecolor(normalize_color(BACKGROUND_COLOR))
 
     # Render to buffer
+    # IMPORTANT: Do NOT use bbox_inches="tight" - it causes dimension changes
+    # between renders when elements change (e.g., color). Must match main render.
     buf = io.BytesIO()
-    fig.savefig(
-        buf, format="png", dpi=dpi, facecolor=fig.get_facecolor(), bbox_inches="tight"
-    )
+    fig.savefig(buf, format="png", dpi=dpi, facecolor=fig.get_facecolor())
     buf.seek(0)
 
     # Load as PIL Image

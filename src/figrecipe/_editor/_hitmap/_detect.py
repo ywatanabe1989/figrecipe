@@ -5,18 +5,20 @@
 from typing import Any, Dict
 
 
-def detect_plot_types(fig) -> Dict[int, Dict[str, Any]]:
+def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
     """Detect plot types from recorded calls in figure.
 
     Parameters
     ----------
     fig : Figure
         The figure to analyze.
+    debug : bool
+        If True, print debug information.
 
     Returns
     -------
     dict
-        Mapping from ax_index to plot type info.
+        Mapping from ax_index (matching fig.get_axes() order) to plot type info.
     """
     # Get figure record if available
     if hasattr(fig, "record"):
@@ -24,48 +26,103 @@ def detect_plot_types(fig) -> Dict[int, Dict[str, Any]]:
     elif hasattr(fig, "fig") and hasattr(fig.fig, "_record"):
         record = fig.fig._record
     else:
+        if debug:
+            print("[detect_plot_types] No record found")
         return {}
+
+    # Get the actual matplotlib figure and its axes
+    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+    axes_list = mpl_fig.get_axes()
 
     result = {}
 
     # Process each axes in the record
     if hasattr(record, "axes"):
-        # First pass: collect all ax_keys to determine grid dimensions
-        ax_keys = list(record.axes.keys())
-        max_row, max_col = 0, 0
-        for ax_key in ax_keys:
-            try:
-                parts = ax_key.split("_")
-                row, col = int(parts[1]), int(parts[2])
-                max_row = max(max_row, row)
-                max_col = max(max_col, col)
-            except (ValueError, IndexError):
-                pass
-        ncols = max_col + 1
-
+        # Build mapping from ax_key to ax_record's plot info
+        ax_key_to_info = {}
         for ax_key, ax_record in record.axes.items():
-            # Extract ax_index from key (e.g., "ax_0_0" -> 0, "ax_2_2" -> 8 for 3x3)
-            try:
-                parts = ax_key.split("_")
-                row, col = int(parts[1]), int(parts[2])
-                ax_idx = row * ncols + col
-            except (ValueError, IndexError):
-                ax_idx = 0
+            info = {"types": set(), "call_ids": {}}
 
-            if ax_idx not in result:
-                result[ax_idx] = {"types": set(), "call_ids": {}}
-
-            # Collect all call types and their IDs
             if hasattr(ax_record, "calls"):
                 for call in ax_record.calls:
                     func_name = call.function
                     call_id = call.id
 
-                    result[ax_idx]["types"].add(func_name)
+                    info["types"].add(func_name)
 
-                    if func_name not in result[ax_idx]["call_ids"]:
-                        result[ax_idx]["call_ids"][func_name] = []
-                    result[ax_idx]["call_ids"][func_name].append(call_id)
+                    if func_name not in info["call_ids"]:
+                        info["call_ids"][func_name] = []
+                    info["call_ids"][func_name].append(call_id)
+
+            ax_key_to_info[ax_key] = info
+
+        # Map ax_keys to current axes positions using position matching
+        # This handles the case where panels have been dragged to new positions
+        ax_keys_sorted = sorted(record.axes.keys())
+
+        # Debug: Check which ax_keys have position_override
+        overrides = {
+            k: getattr(record.axes[k], "position_override", None)
+            for k in ax_keys_sorted
+            if hasattr(record.axes[k], "position_override")
+            and record.axes[k].position_override
+        }
+        if overrides:
+            print(f"[detect_plot_types] Position overrides: {overrides}")
+
+        for ax_idx, ax in enumerate(axes_list):
+            # Try to find the matching ax_record by comparing positions
+            # or fall back to index-based matching
+            matched = False
+            ax_pos = ax.get_position()
+
+            for ax_key in ax_keys_sorted:
+                ax_record = record.axes[ax_key]
+                # Check if there's a position_override that matches
+                # Must check ALL 4 coordinates to avoid false matches
+                if (
+                    hasattr(ax_record, "position_override")
+                    and ax_record.position_override
+                ):
+                    rec_pos = ax_record.position_override
+                    # Position override is [x0, y0, width, height]
+                    if len(rec_pos) >= 4:
+                        if (
+                            abs(rec_pos[0] - ax_pos.x0) < 0.01
+                            and abs(rec_pos[1] - ax_pos.y0) < 0.01
+                            and abs(rec_pos[2] - ax_pos.width) < 0.01
+                            and abs(rec_pos[3] - ax_pos.height) < 0.01
+                        ):
+                            print(
+                                f"[detect_plot_types] ax_idx={ax_idx} matched {ax_key} "
+                                f"via position_override"
+                            )
+                            result[ax_idx] = ax_key_to_info.get(
+                                ax_key, {"types": set(), "call_ids": {}}
+                            )
+                            matched = True
+                            break
+                    else:
+                        # Fallback for old format with only x0, y0
+                        if (
+                            abs(rec_pos[0] - ax_pos.x0) < 0.01
+                            and abs(rec_pos[1] - ax_pos.y0) < 0.01
+                        ):
+                            result[ax_idx] = ax_key_to_info.get(
+                                ax_key, {"types": set(), "call_ids": {}}
+                            )
+                            matched = True
+                            break
+
+            # Fall back to index-based matching if position match failed
+            if not matched and ax_idx < len(ax_keys_sorted):
+                ax_key = ax_keys_sorted[ax_idx]
+                info = ax_key_to_info.get(ax_key, {"types": set(), "call_ids": {}})
+                print(
+                    f"[detect_plot_types] ax_idx={ax_idx} fallback to {ax_key}, "
+                    f"types={info.get('types', set())}"
+                )
+                result[ax_idx] = info
 
     return result
 

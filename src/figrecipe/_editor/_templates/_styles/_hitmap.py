@@ -65,6 +65,13 @@ STYLES_HITMAP = """
     filter: none;
 }
 
+/* Axes regions: disable pointer events to let clicks pass through to
+   elements inside (pie, scatter, bar, etc.). Axes selection happens via
+   the panel drag system which uses mousedown on the preview area. */
+.hitregion-rect.axes-region {
+    pointer-events: none;
+}
+
 .hitregion-polyline {
     --element-color: #888888;  /* Default fallback */
     fill: none !important;
