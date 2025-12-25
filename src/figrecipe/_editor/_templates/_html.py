@@ -78,6 +78,8 @@ HTML_TEMPLATE = """
             <div class="controls-header">
                 <h2>Properties</h2>
                 <div class="controls-actions">
+                    <button id="btn-undo" class="btn-small" title="Undo (Ctrl+Z)" disabled>Undo</button>
+                    <button id="btn-redo" class="btn-small" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button>
                     <button id="btn-restore" class="btn-warning" title="Restore to original programmatic style">Restore</button>
                     <button id="btn-reset" class="btn-secondary" title="Reset to last saved">Reset</button>
                     <button id="btn-save" class="btn-primary">Save</button>
@@ -119,6 +121,8 @@ HTML_TEMPLATE = """
                     <div class="shortcuts-content">
                         <div class="shortcut-section">
                             <h4>General</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Z</kbd></span><span class="shortcut-desc">Undo</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></span><span class="shortcut-desc">Redo</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Save overrides</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Download PNG</span></div>
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Debug snapshot</span></div>
