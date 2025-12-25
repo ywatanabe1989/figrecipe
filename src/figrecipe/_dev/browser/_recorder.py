@@ -232,8 +232,11 @@ class DemoRecorder(ABC):
                 # Setup visual effects
                 await self._setup_page(page)
 
-                # Show title
-                await self.caption(f"Demo: {self.title}", duration=2.0)
+                # Show title with version
+                import figrecipe
+
+                version = figrecipe.__version__
+                await self.caption(f"figrecipe v{version} - {self.title}", duration=2.0)
 
                 # Run demo actions
                 await self.run(page)
