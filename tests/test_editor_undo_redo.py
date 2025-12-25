@@ -226,6 +226,13 @@ class TestUndoRedoPanelPositions:
         assert "savedPos.left" in SCRIPTS_UNDO_REDO
         assert "savedPos.top" in SCRIPTS_UNDO_REDO
 
+    def test_apply_state_updates_local_panel_positions(self):
+        """Test that applyState updates local panelPositions after API call."""
+        from figrecipe._editor._templates._scripts._undo_redo import SCRIPTS_UNDO_REDO
+
+        # After restoring via API, local state must be updated for redo to work
+        assert "panelPositions[axKey] = { ...savedPos }" in SCRIPTS_UNDO_REDO
+
     def test_panel_drag_captures_history(self):
         """Test that panel drag start captures history."""
         from figrecipe._editor._templates._scripts._panel_drag import SCRIPTS_PANEL_DRAG
