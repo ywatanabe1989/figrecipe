@@ -33,19 +33,22 @@ class ChangeColorDemo(DemoRecorder):
         await self.caption("Step 1: Click on a bar chart element")
         await self.wait(1)
 
-        # Find and click a bar element (adjust selector as needed)
-        # The bar elements have data-key attributes like "bar_0", "bar_1", etc.
-        bar_selector = '[data-key^="bar_"]'
-
-        # Highlight the element first
-        await self.highlight(bar_selector, duration=1.0)
-
-        # Click the element
+        # Click on a bar element via the hitregion overlay
+        # The figrecipe editor uses an SVG overlay for hit detection
+        # We click at a position where bar charts are typically located
         try:
-            await page.click(bar_selector, timeout=5000)
+            # Try clicking on the hitregion overlay at bar chart position
+            await page.click(
+                "#hitregion-overlay", position={"x": 200, "y": 150}, timeout=5000
+            )
         except Exception:
-            # Fallback: click on the preview image area for bars
-            await page.click("#preview-image", position={"x": 200, "y": 300})
+            # Fallback: force click on preview image
+            await page.click(
+                "#preview-image",
+                position={"x": 200, "y": 150},
+                force=True,
+                timeout=5000,
+            )
 
         await self.wait(1)
 

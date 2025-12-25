@@ -8,8 +8,8 @@ during demo recordings. Based on scitex browser debugging patterns.
 
 # JavaScript for highlighting element
 HIGHLIGHT_JS = """
-async (selector, options) => {
-    const { duration = 1000, color = '#FF4444' } = options || {};
+async (args) => {
+    const { selector, duration = 1000, color = '#FF4444' } = args;
 
     // Find element
     const element = document.querySelector(selector);
@@ -96,8 +96,8 @@ async def highlight_element(
     bool
         True if element was found and highlighted.
     """
-    options = {"duration": duration_ms, "color": color}
-    return await page.evaluate(HIGHLIGHT_JS, selector, options)
+    args = {"selector": selector, "duration": duration_ms, "color": color}
+    return await page.evaluate(HIGHLIGHT_JS, args)
 
 
 __all__ = ["highlight_element"]
