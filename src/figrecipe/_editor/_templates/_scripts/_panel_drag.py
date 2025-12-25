@@ -18,6 +18,8 @@ let draggedPanelIndex = null;
 let dragStartPos = null;
 let dragStartPanelPos = null;
 let panelDragOverlay = null;
+let panelHoverOverlay = null;
+let hoveredPanelIndex = null;
 
 // Initialize panel drag functionality
 function initPanelDrag() {
@@ -46,7 +48,26 @@ function initPanelDrag() {
         z-index: 1000;
     `;
     zoomContainer.appendChild(panelDragOverlay);
-    console.log('[PanelDrag] Overlay created:', panelDragOverlay ? 'success' : 'failed');
+
+    // Create hover overlay element for visual feedback
+    panelHoverOverlay = document.createElement('div');
+    panelHoverOverlay.id = 'panel-hover-overlay';
+    panelHoverOverlay.style.cssText = `
+        position: absolute;
+        border: 2px solid rgba(37, 99, 235, 0.5);
+        background: rgba(37, 99, 235, 0.05);
+        pointer-events: none;
+        display: none;
+        z-index: 999;
+        transition: opacity 0.15s ease-in-out;
+    `;
+    zoomContainer.appendChild(panelHoverOverlay);
+
+    // Add hover detection on zoom container
+    zoomContainer.addEventListener('mousemove', handlePanelHover);
+    zoomContainer.addEventListener('mouseleave', hidePanelHover);
+
+    console.log('[PanelDrag] Overlays created');
 }
 
 // Handle mouse down - check if on a panel/axes (only drag from empty panel area)
@@ -101,6 +122,9 @@ function handlePanelDragStart(event) {
         isDraggingPanel = true;
         draggedPanelIndex = panelIndex;
         dragStartPos = { x: event.clientX, y: event.clientY };
+
+        // Hide hover overlay when starting drag
+        hidePanelHover();
 
         // Get current panel position (in mm)
         const axKey = Object.keys(panelPositions).sort()[panelIndex];
@@ -170,6 +194,84 @@ function findPanelAtPositionMm(mmX, mmY) {
         }
     }
     return null;
+}
+
+// Handle mouse hover over panels - show visual feedback
+function handlePanelHover(event) {
+    // Skip if dragging
+    if (isDraggingPanel) {
+        hidePanelHover();
+        return;
+    }
+
+    const img = document.getElementById('preview-image');
+    if (!img || !figSize.width_mm || !figSize.height_mm) return;
+
+    const rect = img.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Check if mouse is within image bounds
+    if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+        hidePanelHover();
+        return;
+    }
+
+    // Convert to mm coordinates
+    const mmX = (x / rect.width) * figSize.width_mm;
+    const mmY = (y / rect.height) * figSize.height_mm;
+
+    // Find panel at position
+    const panelIndex = findPanelAtPositionMm(mmX, mmY);
+
+    if (panelIndex !== null && panelIndex !== hoveredPanelIndex) {
+        showPanelHover(panelIndex, rect);
+    } else if (panelIndex === null) {
+        hidePanelHover();
+    }
+}
+
+// Show hover feedback for a panel
+function showPanelHover(panelIndex, imgRect) {
+    if (!panelHoverOverlay) return;
+
+    hoveredPanelIndex = panelIndex;
+
+    // Get panel position
+    const axKey = Object.keys(panelPositions).sort()[panelIndex];
+    const pos = panelPositions[axKey];
+    if (!pos) return;
+
+    // Convert mm to screen pixels
+    const scaleX = imgRect.width / figSize.width_mm;
+    const scaleY = imgRect.height / figSize.height_mm;
+
+    const left = pos.left * scaleX;
+    const top = pos.top * scaleY;
+    const width = pos.width * scaleX;
+    const height = pos.height * scaleY;
+
+    panelHoverOverlay.style.left = `${left}px`;
+    panelHoverOverlay.style.top = `${top}px`;
+    panelHoverOverlay.style.width = `${width}px`;
+    panelHoverOverlay.style.height = `${height}px`;
+    panelHoverOverlay.style.display = 'block';
+
+    // Change cursor to indicate draggable
+    document.body.style.cursor = 'move';
+}
+
+// Hide hover feedback
+function hidePanelHover() {
+    if (panelHoverOverlay) {
+        panelHoverOverlay.style.display = 'none';
+    }
+    hoveredPanelIndex = null;
+
+    // Reset cursor if not dragging
+    if (!isDraggingPanel) {
+        document.body.style.cursor = '';
+    }
 }
 
 // Handle mouse move during drag
