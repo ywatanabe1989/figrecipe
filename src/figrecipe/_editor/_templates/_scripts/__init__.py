@@ -13,6 +13,7 @@ This package contains modular JavaScript organized by functionality:
 - _inspector.py: Element inspector debugging
 - _labels.py: Label inputs and axis/legend controls
 - _modals.py: Theme and shortcuts modals
+- _panel_snap.py: Panel snapping (grid, edge, center alignment)
 - _panel_drag.py: Panel drag-to-move (click+drag on empty panel area)
 - _legend_drag.py: Legend drag-to-move (click+drag on legend)
 - _panel_position.py: Panel position editing (left, bottom, width, height)
@@ -37,6 +38,7 @@ from ._modals import SCRIPTS_MODALS
 from ._overlays import SCRIPTS_OVERLAYS
 from ._panel_drag import SCRIPTS_PANEL_DRAG
 from ._panel_position import SCRIPTS_PANEL_POSITION
+from ._panel_snap import SCRIPTS_PANEL_SNAP
 from ._selection import SCRIPTS_SELECTION
 from ._tabs import SCRIPTS_TABS
 from ._view_mode import SCRIPTS_VIEW_MODE
@@ -61,6 +63,7 @@ SCRIPTS = (
     + SCRIPTS_INSPECTOR
     + SCRIPTS_FILES
     + SCRIPTS_PANEL_POSITION
+    + SCRIPTS_PANEL_SNAP
     + SCRIPTS_PANEL_DRAG
     + SCRIPTS_LEGEND_DRAG
 )
@@ -89,6 +92,7 @@ def get_all_scripts():
         "overlays": SCRIPTS_OVERLAYS,
         "panel_drag": SCRIPTS_PANEL_DRAG,
         "panel_position": SCRIPTS_PANEL_POSITION,
+        "panel_snap": SCRIPTS_PANEL_SNAP,
         "selection": SCRIPTS_SELECTION,
         "tabs": SCRIPTS_TABS,
         "view_mode": SCRIPTS_VIEW_MODE,
@@ -112,6 +116,7 @@ __all__ = [
     "SCRIPTS_OVERLAYS",
     "SCRIPTS_PANEL_DRAG",
     "SCRIPTS_PANEL_POSITION",
+    "SCRIPTS_PANEL_SNAP",
     "SCRIPTS_SELECTION",
     "SCRIPTS_TABS",
     "SCRIPTS_VIEW_MODE",
