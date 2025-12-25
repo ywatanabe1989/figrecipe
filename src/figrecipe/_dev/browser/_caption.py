@@ -73,7 +73,7 @@ HIDE_CAPTION_JS = """
 # JavaScript for title screen with blur overlay
 TITLE_SCREEN_JS = """
 async (args) => {
-    const { title, subtitle = '', duration = 2000 } = args;
+    const { title, subtitle = '', timestamp = '', duration = 2000 } = args;
 
     // Add CSS animations if not exists
     if (!document.getElementById('demo-title-style')) {
@@ -146,6 +146,21 @@ async (args) => {
         overlay.appendChild(subtitleEl);
     }
 
+    // Create timestamp if provided
+    if (timestamp) {
+        const timestampEl = document.createElement('div');
+        timestampEl.style.cssText = `
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            font-family: monospace;
+            margin-top: 24px;
+            text-align: center;
+            animation: demo-title-text-in 0.6s ease-out 0.5s both;
+        `;
+        timestampEl.textContent = timestamp;
+        overlay.appendChild(timestampEl);
+    }
+
     document.body.appendChild(overlay);
 
     // Wait and fade out
@@ -198,6 +213,7 @@ async def show_title_screen(
     page,
     title: str,
     subtitle: str = "",
+    timestamp: str = "",
     duration_ms: int = 2000,
 ) -> bool:
     """Show title screen with blur overlay and fade effect.
@@ -210,6 +226,8 @@ async def show_title_screen(
         Main title text.
     subtitle : str, optional
         Subtitle text (default: "").
+    timestamp : str, optional
+        Timestamp to display (default: "").
     duration_ms : int, optional
         Duration to show title in milliseconds (default: 2000).
 
@@ -218,10 +236,121 @@ async def show_title_screen(
     bool
         True if successful.
     """
-    args = {"title": title, "subtitle": subtitle, "duration": duration_ms}
+    args = {
+        "title": title,
+        "subtitle": subtitle,
+        "timestamp": timestamp,
+        "duration": duration_ms,
+    }
     return await page.evaluate(TITLE_SCREEN_JS, args)
 
 
-__all__ = ["show_caption", "hide_caption", "show_title_screen"]
+# JavaScript for closing branding screen
+CLOSING_SCREEN_JS = """
+async (args) => {
+    const { duration = 2500 } = args;
+
+    // Add CSS animations
+    if (!document.getElementById('demo-closing-style')) {
+        const style = document.createElement('style');
+        style.id = 'demo-closing-style';
+        style.textContent = `
+            @keyframes demo-closing-fade-in {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+            @keyframes demo-closing-fade-out {
+                0% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'demo-closing-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        z-index: 2147483646;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        animation: demo-closing-fade-in 0.5s ease-out forwards;
+    `;
+
+    // FigRecipe title
+    const title = document.createElement('div');
+    title.style.cssText = `
+        color: white;
+        font-size: 56px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 700;
+        margin-bottom: 16px;
+    `;
+    title.textContent = 'FigRecipe';
+    overlay.appendChild(title);
+
+    // Part of SciTeX
+    const scitex = document.createElement('div');
+    scitex.style.cssText = `
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin-bottom: 24px;
+    `;
+    scitex.innerHTML = 'Part of SciTeX&trade;';
+    overlay.appendChild(scitex);
+
+    // URL
+    const url = document.createElement('div');
+    url.style.cssText = `
+        color: #4da6ff;
+        font-size: 18px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    url.textContent = 'https://scitex.ai';
+    overlay.appendChild(url);
+
+    document.body.appendChild(overlay);
+
+    // Wait and fade out
+    await new Promise(r => setTimeout(r, duration));
+
+    overlay.style.animation = 'demo-closing-fade-out 0.5s ease-out forwards';
+    await new Promise(r => setTimeout(r, 500));
+    overlay.remove();
+
+    return true;
+}
+"""
+
+
+async def show_closing_screen(page, duration_ms: int = 2500) -> bool:
+    """Show closing branding screen with FigRecipe and SciTeX.
+
+    Parameters
+    ----------
+    page : playwright.async_api.Page
+        Playwright page object.
+    duration_ms : int, optional
+        Duration to show screen in milliseconds (default: 2500).
+
+    Returns
+    -------
+    bool
+        True if successful.
+    """
+    args = {"duration": duration_ms}
+    return await page.evaluate(CLOSING_SCREEN_JS, args)
+
+
+__all__ = ["show_caption", "hide_caption", "show_title_screen", "show_closing_screen"]
 
 # EOF
