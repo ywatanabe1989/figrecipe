@@ -70,5 +70,15 @@ pre-commit:
 gui:
 	$(PYTHON) examples/demo_editor.py
 
+gui-browser:
+	@echo "Starting editor and opening in Windows Chrome..."
+	@$(PYTHON) examples/demo_editor.py & \
+	sleep 3 && \
+	(cmd.exe /c start chrome http://127.0.0.1:5050 2>/dev/null || \
+	 "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" http://127.0.0.1:5050 2>/dev/null || \
+	 wslview http://127.0.0.1:5050 2>/dev/null || \
+	 echo "Could not open browser. Please open http://127.0.0.1:5050 manually") && \
+	wait
+
 gui-periodic:
 	./scripts/gui_periodic.sh 60
