@@ -239,7 +239,9 @@ function _createScatterShape(bbox, key, originalColor, offsetX, offsetY, scaleX,
 // Helper: Create rectangle shape for other elements
 function _createRectShape(bbox, key, originalColor, offsetX, offsetY, scaleX, scaleY) {
     let regionClass = 'hitregion-rect';
-    if (bbox.type === 'line' || bbox.type === 'scatter') {
+    if (bbox.type === 'axes') {
+        regionClass += ' axes-region';  // Special class for axes - lower z-order
+    } else if (bbox.type === 'line' || bbox.type === 'scatter') {
         regionClass += ' line-region';
     } else if (['title', 'xlabel', 'ylabel', 'suptitle', 'supxlabel', 'supylabel'].includes(bbox.type)) {
         regionClass += ' text-region';
@@ -495,12 +497,10 @@ function selectElement(element) {
     updateTabHints();
     syncPropertiesToElement(element);
 
-    // Sync with panel position if axes type or has ax_index
+    // Sync panel position; only switch to Axis tab for axes type (not elements like pie/bar)
     if (element.type === 'axes' || element.ax_index !== undefined) {
         const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);
-        if (axIndex !== null && typeof selectPanelByIndex === 'function') {
-            selectPanelByIndex(axIndex);
-        }
+        if (axIndex !== null && typeof selectPanelByIndex === 'function') selectPanelByIndex(axIndex, element.type === 'axes');
     }
 }
 """
