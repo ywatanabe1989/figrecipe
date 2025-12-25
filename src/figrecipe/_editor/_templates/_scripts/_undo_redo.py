@@ -110,6 +110,8 @@ async function applyState(state) {
                                 height: savedPos.height
                             })
                         });
+                        // Update local panelPositions to match restored state
+                        panelPositions[axKey] = { ...savedPos };
                     } catch (e) {
                         console.error('[History] Failed to restore panel position:', e);
                     }
