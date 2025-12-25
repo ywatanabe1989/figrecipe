@@ -7,7 +7,7 @@ This module contains the JavaScript code for:
 - Updating panel positions via numerical inputs
 """
 
-SCRIPTS_PANEL_POSITION = """
+SCRIPTS_PANEL_POSITION = r"""
 // ===== PANEL POSITION =====
 
 let panelPositions = {};
@@ -65,6 +65,92 @@ function updatePanelPositionInputs() {
     if (bottomInput) bottomInput.value = pos.bottom;
     if (widthInput) widthInput.value = pos.width;
     if (heightInput) heightInput.value = pos.height;
+
+    // Draw visual highlight for selected panel
+    drawPanelSelectionHighlight(pos);
+}
+
+// Draw visual highlight around selected panel
+function drawPanelSelectionHighlight(pos) {
+    const overlay = document.getElementById('selection-overlay');
+    if (!overlay) return;
+
+    // Clear previous panel highlight (but keep element selections)
+    const existingHighlight = document.getElementById('panel-selection-highlight');
+    if (existingHighlight) existingHighlight.remove();
+
+    const img = document.getElementById('preview-image');
+    if (!img || !img.naturalWidth || !img.naturalHeight) return;
+
+    // Ensure viewBox is set
+    overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+    overlay.style.width = `${img.naturalWidth}px`;
+    overlay.style.height = `${img.naturalHeight}px`;
+
+    // Convert figure coords to image coords
+    const x = pos.left * img.naturalWidth;
+    const y = (1 - pos.top) * img.naturalHeight;  // Flip Y axis
+    const width = pos.width * img.naturalWidth;
+    const height = pos.height * img.naturalHeight;
+
+    // Create highlight rectangle
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.id = 'panel-selection-highlight';
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', width);
+    rect.setAttribute('height', height);
+    rect.setAttribute('fill', 'none');
+    rect.setAttribute('stroke', '#f59e0b');
+    rect.setAttribute('stroke-width', '3');
+    rect.setAttribute('stroke-dasharray', '8,4');
+    rect.style.pointerEvents = 'none';
+
+    overlay.appendChild(rect);
+}
+
+// Clear panel selection highlight
+function clearPanelSelectionHighlight() {
+    const existingHighlight = document.getElementById('panel-selection-highlight');
+    if (existingHighlight) existingHighlight.remove();
+}
+
+// Select panel by index (called when clicking on axes in canvas)
+function selectPanelByIndex(axIndex) {
+    const selector = document.getElementById('panel_selector');
+    if (!selector) return;
+
+    // Update dropdown selection
+    selector.value = axIndex;
+
+    // Update inputs and highlight
+    updatePanelPositionInputs();
+
+    // Switch to Axis tab
+    switchTab('axis');
+
+    console.log('Selected panel', axIndex);
+}
+
+// Find panel index from axes key (e.g., "ax_0" -> 0)
+function getPanelIndexFromKey(key) {
+    if (!key) return null;
+
+    // Handle "ax_N" format
+    const match = key.match(/ax_(\d+)/);
+    if (match) {
+        return parseInt(match[1], 10);
+    }
+
+    // Handle axes type elements - find by checking bboxes
+    const axKeys = Object.keys(panelPositions).sort();
+    for (let i = 0; i < axKeys.length; i++) {
+        if (axKeys[i] === key) {
+            return i;
+        }
+    }
+
+    return null;
 }
 
 // Apply panel position changes
