@@ -309,5 +309,103 @@ def register_axis_routes(app, editor):
 
         return jsonify(info)
 
+    @app.route("/get_axes_positions")
+    def get_axes_positions():
+        """Get positions for all axes in figure coordinates [left, bottom, width, height]."""
+        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+        axes = mpl_fig.get_axes()
+
+        positions = {}
+        for i, ax in enumerate(axes):
+            bbox = ax.get_position()
+            positions[f"ax_{i}"] = {
+                "index": i,
+                "left": round(bbox.x0, 4),
+                "bottom": round(bbox.y0, 4),
+                "width": round(bbox.width, 4),
+                "height": round(bbox.height, 4),
+                # Convenience: also provide right/top
+                "right": round(bbox.x1, 4),
+                "top": round(bbox.y1, 4),
+            }
+
+        return jsonify(positions)
+
+    @app.route("/update_axes_position", methods=["POST"])
+    def update_axes_position():
+        """Update position of a specific axes.
+
+        Expects JSON: {ax_index: int, left, bottom, width, height}
+        Values are in figure coordinates (0-1).
+        """
+        from ._hitmap import generate_hitmap, hitmap_to_base64
+
+        data = request.get_json() or {}
+        ax_index = data.get("ax_index", 0)
+        left = data.get("left")
+        bottom = data.get("bottom")
+        width = data.get("width")
+        height = data.get("height")
+
+        if any(v is None for v in [left, bottom, width, height]):
+            return jsonify({"error": "Missing position values"}), 400
+
+        # Validate range
+        for name, val in [
+            ("left", left),
+            ("bottom", bottom),
+            ("width", width),
+            ("height", height),
+        ]:
+            if not (0 <= val <= 1):
+                return jsonify({"error": f"{name} must be between 0 and 1"}), 400
+
+        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+        axes = mpl_fig.get_axes()
+
+        if ax_index >= len(axes):
+            return jsonify({"error": f"Invalid ax_index: {ax_index}"}), 400
+
+        try:
+            ax = axes[ax_index]
+            ax.set_position([left, bottom, width, height])
+
+            # Update record if available
+            if hasattr(editor.fig, "record"):
+                # Find the axes record key
+                ax_keys = sorted(editor.fig.record.axes.keys())
+                if ax_index < len(ax_keys):
+                    ax_key = ax_keys[ax_index]
+                    ax_record = editor.fig.record.axes[ax_key]
+                    ax_record.position_override = [left, bottom, width, height]
+
+            # Re-render
+            base64_img, bboxes, img_size = render_with_overrides(
+                editor.fig,
+                editor.get_effective_style(),
+                editor.dark_mode,
+            )
+
+            # Regenerate hitmap
+            hitmap_img, color_map = generate_hitmap(mpl_fig, img_size[0], img_size[1])
+            editor._color_map = color_map
+            editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
+            editor._hitmap_generated = True
+
+            return jsonify(
+                {
+                    "success": True,
+                    "image": base64_img,
+                    "bboxes": bboxes,
+                    "img_size": {"width": img_size[0], "height": img_size[1]},
+                }
+            )
+
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            return jsonify({"error": f"Update failed: {str(e)}"}), 500
+
 
 __all__ = ["register_axis_routes"]
