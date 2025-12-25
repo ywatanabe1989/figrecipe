@@ -200,5 +200,46 @@ class TestUndoRedoStateManagement:
         assert "showToast('Nothing to redo'" in SCRIPTS_UNDO_REDO
 
 
+class TestUndoRedoPanelPositions:
+    """Test panel position undo/redo."""
+
+    def test_capture_state_includes_panel_positions(self):
+        """Test that captureState includes panelPositions."""
+        from figrecipe._editor._templates._scripts._undo_redo import SCRIPTS_UNDO_REDO
+
+        assert "panelPositions" in SCRIPTS_UNDO_REDO
+        assert "JSON.parse(JSON.stringify(panelPositions))" in SCRIPTS_UNDO_REDO
+
+    def test_states_equal_compares_panel_positions(self):
+        """Test that statesEqual compares panelPositions."""
+        from figrecipe._editor._templates._scripts._undo_redo import SCRIPTS_UNDO_REDO
+
+        assert "function statesEqual(a, b)" in SCRIPTS_UNDO_REDO
+        assert "a.panelPositions" in SCRIPTS_UNDO_REDO
+        assert "b.panelPositions" in SCRIPTS_UNDO_REDO
+
+    def test_apply_state_restores_panel_positions(self):
+        """Test that applyState restores panelPositions via API."""
+        from figrecipe._editor._templates._scripts._undo_redo import SCRIPTS_UNDO_REDO
+
+        assert "/update_axes_position" in SCRIPTS_UNDO_REDO
+        assert "savedPos.left" in SCRIPTS_UNDO_REDO
+        assert "savedPos.top" in SCRIPTS_UNDO_REDO
+
+    def test_panel_drag_captures_history(self):
+        """Test that panel drag start captures history."""
+        from figrecipe._editor._templates._scripts._panel_drag import SCRIPTS_PANEL_DRAG
+
+        assert "pushToHistory" in SCRIPTS_PANEL_DRAG
+
+    def test_legend_drag_captures_history(self):
+        """Test that legend drag start captures history."""
+        from figrecipe._editor._templates._scripts._legend_drag import (
+            SCRIPTS_LEGEND_DRAG,
+        )
+
+        assert "pushToHistory" in SCRIPTS_LEGEND_DRAG
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -19,9 +19,16 @@ let isUndoRedoInProgress = false;  // Prevent recursive history recording
 function captureState() {
     const state = {
         overrides: collectOverrides(),
+        panelPositions: typeof panelPositions !== 'undefined' ? JSON.parse(JSON.stringify(panelPositions)) : {},
         timestamp: Date.now()
     };
     return state;
+}
+
+// Compare two states for equality
+function statesEqual(a, b) {
+    return JSON.stringify(a.overrides) === JSON.stringify(b.overrides) &&
+           JSON.stringify(a.panelPositions) === JSON.stringify(b.panelPositions);
 }
 
 // Push current state to history (call before making changes)
@@ -33,7 +40,7 @@ function pushToHistory() {
     // Don't push if identical to last state
     if (historyStack.length > 0) {
         const lastState = historyStack[historyStack.length - 1];
-        if (JSON.stringify(lastState.overrides) === JSON.stringify(state.overrides)) {
+        if (statesEqual(lastState, state)) {
             return;
         }
     }
@@ -53,7 +60,7 @@ function pushToHistory() {
 }
 
 // Apply a state snapshot to the form
-function applyState(state) {
+async function applyState(state) {
     isUndoRedoInProgress = true;
 
     try {
@@ -78,6 +85,38 @@ function applyState(state) {
             }
         }
 
+        // Restore panel positions if they differ
+        if (state.panelPositions && typeof panelPositions !== 'undefined') {
+            const axKeys = Object.keys(state.panelPositions).sort();
+            for (let i = 0; i < axKeys.length; i++) {
+                const axKey = axKeys[i];
+                const savedPos = state.panelPositions[axKey];
+                const currentPos = panelPositions[axKey];
+
+                // Check if position changed
+                if (currentPos && savedPos &&
+                    (Math.abs(savedPos.left - currentPos.left) > 0.1 ||
+                     Math.abs(savedPos.top - currentPos.top) > 0.1)) {
+                    // Restore panel position via API
+                    try {
+                        await fetch('/update_axes_position', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ax_index: i,
+                                left: savedPos.left,
+                                top: savedPos.top,
+                                width: savedPos.width,
+                                height: savedPos.height
+                            })
+                        });
+                    } catch (e) {
+                        console.error('[History] Failed to restore panel position:', e);
+                    }
+                }
+            }
+        }
+
         // Update preview with the restored state
         updatePreview();
 
@@ -87,7 +126,7 @@ function applyState(state) {
 }
 
 // Undo last action
-function undo() {
+async function undo() {
     if (historyStack.length === 0) {
         showToast('Nothing to undo', 'info');
         return;
@@ -99,7 +138,7 @@ function undo() {
 
     // Pop and apply previous state
     const previousState = historyStack.pop();
-    applyState(previousState);
+    await applyState(previousState);
 
     updateUndoRedoButtons();
     showToast('Undo', 'info');
@@ -107,7 +146,7 @@ function undo() {
 }
 
 // Redo last undone action
-function redo() {
+async function redo() {
     if (redoStack.length === 0) {
         showToast('Nothing to redo', 'info');
         return;
@@ -119,7 +158,7 @@ function redo() {
 
     // Pop and apply redo state
     const redoState = redoStack.pop();
-    applyState(redoState);
+    await applyState(redoState);
 
     updateUndoRedoButtons();
     showToast('Redo', 'info');
