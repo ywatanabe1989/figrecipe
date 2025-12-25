@@ -482,6 +482,14 @@ function selectElement(element) {
     autoSwitchTab(element.type);
     updateTabHints();
     syncPropertiesToElement(element);
+
+    // Sync with panel position if axes type or has ax_index
+    if (element.type === 'axes' || element.ax_index !== undefined) {
+        const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);
+        if (axIndex !== null && typeof selectPanelByIndex === 'function') {
+            selectPanelByIndex(axIndex);
+        }
+    }
 }
 """
 
