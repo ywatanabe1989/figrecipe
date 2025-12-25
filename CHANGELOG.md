@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2025-12-25
+
+### Added
+- **Panel drag-to-move** - Drag panels directly without modifier keys
+- **mm coordinates** - Panel positions use mm units with upper-left origin
+- **Restore positions** - Restore button now restores original panel coordinates
+- **Server timestamp** - Debug timestamp visible in editor header
+
+### Fixed
+- **Container ID fix** - Fixed drag initialization (preview-container → zoom-container)
+- **Null overlay check** - Added safety checks for drag overlay element
+
+## [0.7.2] - 2025-12-25
+
+### Added
+- **Panel position editing** - View and edit panel positions numerically
+
+## [0.7.1] - 2025-12-24
+
+### Added
+- **Panel selection** - Click to select panels in figure editor
+
+## [0.7.0] - 2025-12-24
+
+### Added
+- **Hitmap improvements** - Enhanced element hit detection
+
 ## [0.6.0] - 2025-12-23
 
 ### Added
