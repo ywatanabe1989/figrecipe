@@ -297,7 +297,11 @@ async function handleDynamicParamChange(callId, param, input) {
             loadHitmap();
             updateHitRegions();
 
-            if (callsData[callId]) {
+            // Sync callsData from server response (source of truth)
+            if (callsData[callId] && data.updated_call) {
+                callsData[callId].kwargs = data.updated_call.kwargs;
+            } else if (callsData[callId]) {
+                // Fallback: manual update
                 if (value === null) {
                     delete callsData[callId].kwargs[param];
                 } else {

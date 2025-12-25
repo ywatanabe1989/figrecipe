@@ -228,9 +228,27 @@ class TestHitmapSpecialCases:
                     for c in range(3)
                 }
 
+        class MockAx:
+            def __init__(self):
+                pass
+
+            def get_position(self):
+                class Pos:
+                    x0 = 0
+                    y0 = 0
+                    width = 0.3
+                    height = 0.3
+
+                return Pos()
+
         class MockFig:
             def __init__(self):
                 self.record = MockRecord()
+                self._axes = [MockAx() for _ in range(9)]
+                self.fig = self  # detect_plot_types checks for fig.fig
+
+            def get_axes(self):
+                return self._axes
 
         fig = MockFig()
         result = detect_plot_types(fig)
