@@ -65,6 +65,54 @@ function updatePanelPositionInputs() {
     if (bottomInput) bottomInput.value = pos.bottom;
     if (widthInput) widthInput.value = pos.width;
     if (heightInput) heightInput.value = pos.height;
+
+    // Draw visual highlight for selected panel
+    drawPanelSelectionHighlight(pos);
+}
+
+// Draw visual highlight around selected panel
+function drawPanelSelectionHighlight(pos) {
+    const overlay = document.getElementById('selection-overlay');
+    if (!overlay) return;
+
+    // Clear previous panel highlight (but keep element selections)
+    const existingHighlight = document.getElementById('panel-selection-highlight');
+    if (existingHighlight) existingHighlight.remove();
+
+    const img = document.getElementById('preview-image');
+    if (!img || !img.naturalWidth || !img.naturalHeight) return;
+
+    // Ensure viewBox is set
+    overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+    overlay.style.width = `${img.naturalWidth}px`;
+    overlay.style.height = `${img.naturalHeight}px`;
+
+    // Convert figure coords to image coords
+    const x = pos.left * img.naturalWidth;
+    const y = (1 - pos.top) * img.naturalHeight;  // Flip Y axis
+    const width = pos.width * img.naturalWidth;
+    const height = pos.height * img.naturalHeight;
+
+    // Create highlight rectangle
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.id = 'panel-selection-highlight';
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', width);
+    rect.setAttribute('height', height);
+    rect.setAttribute('fill', 'none');
+    rect.setAttribute('stroke', '#f59e0b');
+    rect.setAttribute('stroke-width', '3');
+    rect.setAttribute('stroke-dasharray', '8,4');
+    rect.style.pointerEvents = 'none';
+
+    overlay.appendChild(rect);
+}
+
+// Clear panel selection highlight
+function clearPanelSelectionHighlight() {
+    const existingHighlight = document.getElementById('panel-selection-highlight');
+    if (existingHighlight) existingHighlight.remove();
 }
 
 // Apply panel position changes
