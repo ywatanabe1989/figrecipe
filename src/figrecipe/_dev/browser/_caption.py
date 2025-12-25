@@ -36,14 +36,14 @@ SHOW_CAPTION_JS = """
     caption.textContent = text;
     caption.style.cssText = `
         position: fixed;
-        bottom: 40px;
+        bottom: 50px;
         left: 50%;
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.85);
         color: white;
-        padding: 16px 32px;
-        border-radius: 8px;
-        font-size: 18px;
+        padding: 18px 40px;
+        border-radius: 10px;
+        font-size: 24px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-weight: 500;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -66,6 +66,95 @@ HIDE_CAPTION_JS = """
         caption.style.animation = 'demo-caption-fade-out 0.3s ease-out forwards';
         setTimeout(() => caption.remove(), 300);
     }
+    return true;
+}
+"""
+
+# JavaScript for title screen with blur overlay
+TITLE_SCREEN_JS = """
+async (args) => {
+    const { title, subtitle = '', duration = 2000 } = args;
+
+    // Add CSS animations if not exists
+    if (!document.getElementById('demo-title-style')) {
+        const style = document.createElement('style');
+        style.id = 'demo-title-style';
+        style.textContent = `
+            @keyframes demo-title-fade-in {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+            @keyframes demo-title-fade-out {
+                0% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            @keyframes demo-title-text-in {
+                0% { opacity: 0; transform: scale(0.9); }
+                100% { opacity: 1; transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Create blur overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'demo-title-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 2147483646;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        animation: demo-title-fade-in 0.5s ease-out forwards;
+    `;
+
+    // Create title text
+    const titleEl = document.createElement('div');
+    titleEl.style.cssText = `
+        color: white;
+        font-size: 48px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 700;
+        text-align: center;
+        animation: demo-title-text-in 0.6s ease-out 0.2s both;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    `;
+    titleEl.textContent = title;
+    overlay.appendChild(titleEl);
+
+    // Create subtitle if provided
+    if (subtitle) {
+        const subtitleEl = document.createElement('div');
+        subtitleEl.style.cssText = `
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 24px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            margin-top: 16px;
+            text-align: center;
+            animation: demo-title-text-in 0.6s ease-out 0.4s both;
+        `;
+        subtitleEl.textContent = subtitle;
+        overlay.appendChild(subtitleEl);
+    }
+
+    document.body.appendChild(overlay);
+
+    // Wait and fade out
+    await new Promise(r => setTimeout(r, duration));
+
+    overlay.style.animation = 'demo-title-fade-out 0.5s ease-out forwards';
+    await new Promise(r => setTimeout(r, 500));
+    overlay.remove();
+
     return true;
 }
 """
@@ -105,6 +194,34 @@ async def hide_caption(page) -> bool:
     return await page.evaluate(HIDE_CAPTION_JS)
 
 
-__all__ = ["show_caption", "hide_caption"]
+async def show_title_screen(
+    page,
+    title: str,
+    subtitle: str = "",
+    duration_ms: int = 2000,
+) -> bool:
+    """Show title screen with blur overlay and fade effect.
+
+    Parameters
+    ----------
+    page : playwright.async_api.Page
+        Playwright page object.
+    title : str
+        Main title text.
+    subtitle : str, optional
+        Subtitle text (default: "").
+    duration_ms : int, optional
+        Duration to show title in milliseconds (default: 2000).
+
+    Returns
+    -------
+    bool
+        True if successful.
+    """
+    args = {"title": title, "subtitle": subtitle, "duration": duration_ms}
+    return await page.evaluate(TITLE_SCREEN_JS, args)
+
+
+__all__ = ["show_caption", "hide_caption", "show_title_screen"]
 
 # EOF

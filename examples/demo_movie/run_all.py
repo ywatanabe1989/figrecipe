@@ -33,6 +33,7 @@ def load_demo_class(demo_file: str, class_name: str):
 
 # Register all demos: (filename, class_name)
 DEMO_REGISTRY = {
+    "00": ("00_dark_mode.py", "DarkModeDemo"),
     "01": ("01_change_color.py", "ChangeColorDemo"),
     # Add more demos here as they are created:
     # "02": ("02_panel_drag.py", "PanelDragDemo"),

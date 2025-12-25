@@ -27,31 +27,33 @@ class ChangeColorDemo(DemoRecorder):
     async def run(self, page):
         """Execute demo actions."""
         # Wait for page to fully load
-        await self.wait(1.5)
+        await self.wait(1.0)
 
         # Step 1: Click on bar chart element
-        await self.caption("Step 1: Click on a bar chart element")
-        await self.wait(1.5)
+        await self.caption("Click on a bar chart element")
+        await self.wait(1.0)
 
-        # Click on a bar element using the correct selector
-        # The elements are <g> tags with text like "bar: bar"
+        # Move cursor naturally (trajectory) to bar element, then click
         bar_locator = page.locator("g").filter(has_text="bar: bar").first
+        await self.move_to(bar_locator, duration=0.6)
+        await self.wait(0.3)
         await bar_locator.click(timeout=5000)
-        await self.wait(1.5)
+        await self.wait(1.0)
 
         # Step 2: Find and click color dropdown
-        await self.caption("Step 2: Select red color from dropdown")
-        await self.wait(1.5)
+        await self.caption("Select red color from dropdown")
+        await self.wait(1.0)
 
-        # The color combobox is the 3rd combobox on the page (index 2)
-        # It appears after clicking a bar element
+        # Move cursor to dropdown (trajectory animation), then select
         color_dropdown = page.get_by_role("combobox").nth(2)
+        await self.move_to(color_dropdown, duration=0.5)
+        await self.wait(0.3)
         await color_dropdown.select_option("red", timeout=5000)
-        await self.wait(2)
+        await self.wait(1.5)
 
         # Final caption
         await self.caption("Color changed to red!")
-        await self.wait(2)
+        await self.wait(1.5)
 
 
 if __name__ == "__main__":
