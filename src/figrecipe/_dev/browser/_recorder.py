@@ -3,10 +3,10 @@
 """DemoRecorder base class for creating demo videos.
 
 Provides a framework for recording browser demos with:
-- Video recording via Playwright
+- Video recording via Playwright (no audio)
 - Cursor and click visualization
 - Caption overlays
-- Audio narration (via TTS)
+- Title screen with blur effect
 - GIF conversion
 """
 
@@ -147,17 +147,47 @@ class DemoRecorder(ABC):
         """
         await asyncio.sleep(seconds)
 
-    async def speak(self, text: str) -> None:
-        """Speak text using TTS (non-blocking).
+    async def move_to(self, locator, duration: float = 0.5) -> bool:
+        """Move cursor to an element naturally.
 
         Parameters
         ----------
-        text : str
-            Text to speak.
+        locator : playwright.async_api.Locator
+            Playwright locator for target element.
+        duration : float, optional
+            Animation duration in seconds (default: 0.5).
+
+        Returns
+        -------
+        bool
+            True if successful.
         """
-        # TTS is handled externally via MCP - this is a placeholder
-        # In practice, call mcp__scitex-audio__speak from the demo script
-        print(f"[TTS] {text}")
+        if self._page:
+            from ._cursor import move_cursor_to_element
+
+            return await move_cursor_to_element(
+                self._page, locator, int(duration * 1000)
+            )
+        return False
+
+    async def title_screen(
+        self, title: str, subtitle: str = "", duration: float = 2.0
+    ) -> None:
+        """Show title screen with blur overlay.
+
+        Parameters
+        ----------
+        title : str
+            Main title text.
+        subtitle : str, optional
+            Subtitle text.
+        duration : float, optional
+            Duration in seconds (default: 2.0).
+        """
+        if self._page:
+            from ._caption import show_title_screen
+
+            await show_title_screen(self._page, title, subtitle, int(duration * 1000))
 
     def _get_output_paths(self) -> tuple:
         """Get output file paths.
@@ -225,18 +255,22 @@ class DemoRecorder(ABC):
             page = await context.new_page()
 
             try:
-                # Navigate to URL
+                # Navigate to URL (fresh load resets state)
                 await page.goto(self.url, wait_until="networkidle")
                 await asyncio.sleep(1)  # Wait for page to stabilize
 
                 # Setup visual effects
                 await self._setup_page(page)
 
-                # Show title with version
+                # Show title screen with blur overlay
                 import figrecipe
 
                 version = figrecipe.__version__
-                await self.caption(f"figrecipe v{version} - {self.title}", duration=2.0)
+                await self.title_screen(
+                    title=self.title,
+                    subtitle=f"figrecipe v{version}",
+                    duration=2.5,
+                )
 
                 # Run demo actions
                 await self.run(page)

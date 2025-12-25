@@ -13,9 +13,14 @@ Features:
 - Video/GIF recording
 """
 
-from ._caption import hide_caption, show_caption
+from ._caption import hide_caption, show_caption, show_title_screen
 from ._click_effect import inject_click_effect, remove_click_effect
-from ._cursor import inject_cursor, remove_cursor
+from ._cursor import (
+    inject_cursor,
+    move_cursor_to,
+    move_cursor_to_element,
+    remove_cursor,
+)
 from ._highlight import highlight_element
 from ._recorder import DemoRecorder
 from ._utils import concatenate_videos, convert_to_gif
@@ -23,10 +28,13 @@ from ._utils import concatenate_videos, convert_to_gif
 __all__ = [
     "inject_cursor",
     "remove_cursor",
+    "move_cursor_to",
+    "move_cursor_to_element",
     "inject_click_effect",
     "remove_click_effect",
     "show_caption",
     "hide_caption",
+    "show_title_screen",
     "highlight_element",
     "DemoRecorder",
     "convert_to_gif",
