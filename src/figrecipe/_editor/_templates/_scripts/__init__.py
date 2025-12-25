@@ -13,7 +13,8 @@ This package contains modular JavaScript organized by functionality:
 - _inspector.py: Element inspector debugging
 - _labels.py: Label inputs and axis/legend controls
 - _modals.py: Theme and shortcuts modals
-- _panel_drag.py: Panel drag-to-move (Shift+Click+Drag)
+- _panel_drag.py: Panel drag-to-move (click+drag on empty panel area)
+- _legend_drag.py: Legend drag-to-move (click+drag on legend)
 - _panel_position.py: Panel position editing (left, bottom, width, height)
 - _overlays.py: Measurement overlays (ruler, grid, columns)
 - _selection.py: Selection drawing and property sync
@@ -31,6 +32,7 @@ from ._files import SCRIPTS_FILES
 from ._hitmap import SCRIPTS_HITMAP
 from ._inspector import SCRIPTS_INSPECTOR
 from ._labels import SCRIPTS_LABELS
+from ._legend_drag import SCRIPTS_LEGEND_DRAG
 from ._modals import SCRIPTS_MODALS
 from ._overlays import SCRIPTS_OVERLAYS
 from ._panel_drag import SCRIPTS_PANEL_DRAG
@@ -60,6 +62,7 @@ SCRIPTS = (
     + SCRIPTS_FILES
     + SCRIPTS_PANEL_POSITION
     + SCRIPTS_PANEL_DRAG
+    + SCRIPTS_LEGEND_DRAG
 )
 
 
@@ -81,6 +84,7 @@ def get_all_scripts():
         "hitmap": SCRIPTS_HITMAP,
         "inspector": SCRIPTS_INSPECTOR,
         "labels": SCRIPTS_LABELS,
+        "legend_drag": SCRIPTS_LEGEND_DRAG,
         "modals": SCRIPTS_MODALS,
         "overlays": SCRIPTS_OVERLAYS,
         "panel_drag": SCRIPTS_PANEL_DRAG,
@@ -103,6 +107,7 @@ __all__ = [
     "SCRIPTS_HITMAP",
     "SCRIPTS_INSPECTOR",
     "SCRIPTS_LABELS",
+    "SCRIPTS_LEGEND_DRAG",
     "SCRIPTS_MODALS",
     "SCRIPTS_OVERLAYS",
     "SCRIPTS_PANEL_DRAG",

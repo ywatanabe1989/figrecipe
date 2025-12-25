@@ -49,13 +49,26 @@ function initPanelDrag() {
     console.log('[PanelDrag] Overlay created:', panelDragOverlay ? 'success' : 'failed');
 }
 
-// Handle mouse down - check if on a panel/axes
+// Handle mouse down - check if on a panel/axes (only drag from empty panel area)
 function handlePanelDragStart(event) {
     console.log('[PanelDrag] handlePanelDragStart called, button:', event.button);
     // Skip if using modifier keys for other actions
     if (event.ctrlKey || event.metaKey || event.altKey) {
         console.log('[PanelDrag] Skipped - modifier key pressed');
         return;
+    }
+
+    // Only start drag if clicking on axes element or empty panel area
+    // Skip if clicking on specific elements (they should be selected instead)
+    const target = event.target;
+    const targetKey = target.getAttribute ? target.getAttribute('data-key') : null;
+    if (targetKey && typeof currentBboxes !== 'undefined' && currentBboxes[targetKey]) {
+        const elemType = currentBboxes[targetKey].type;
+        // Only allow drag from axes bbox or if no specific element type
+        if (elemType && elemType !== 'axes') {
+            console.log('[PanelDrag] Skipped - clicked on element:', elemType);
+            return;
+        }
     }
 
     const img = document.getElementById('preview-image');
@@ -72,7 +85,7 @@ function handlePanelDragStart(event) {
     const mmX = (x / rect.width) * figSize.width_mm;
     const mmY = (y / rect.height) * figSize.height_mm;
 
-    // Find which panel was clicked
+    // Find which panel was clicked (using expanded bounds including labels)
     const panelIndex = findPanelAtPositionMm(mmX, mmY);
     console.log('[PanelDrag] Click at mm:', mmX.toFixed(1), mmY.toFixed(1), '-> panel:', panelIndex);
 
@@ -126,16 +139,28 @@ function handlePanelDragStart(event) {
 }
 
 // Find which panel contains the given position (in mm, upper-left origin)
+// Uses expanded bounds to include title, labels, and tick areas
 function findPanelAtPositionMm(mmX, mmY) {
     const axKeys = Object.keys(panelPositions).sort();
+
+    // Margins in mm to expand panel bounds for labels/title/ticks
+    const marginLeft = 15;   // Space for y-axis label and ticks
+    const marginRight = 5;   // Small buffer on right
+    const marginTop = 8;     // Space for title
+    const marginBottom = 12; // Space for x-axis label and ticks
 
     for (let i = 0; i < axKeys.length; i++) {
         const pos = panelPositions[axKeys[i]];
 
-        // Check if point is within panel bounds
-        // pos.left, pos.top, pos.width, pos.height are in mm
-        if (mmX >= pos.left && mmX <= pos.left + pos.width &&
-            mmY >= pos.top && mmY <= pos.top + pos.height) {
+        // Expanded bounds including label/title areas
+        const expandedLeft = Math.max(0, pos.left - marginLeft);
+        const expandedTop = Math.max(0, pos.top - marginTop);
+        const expandedRight = Math.min(figSize.width_mm, pos.left + pos.width + marginRight);
+        const expandedBottom = Math.min(figSize.height_mm, pos.top + pos.height + marginBottom);
+
+        // Check if point is within expanded panel bounds
+        if (mmX >= expandedLeft && mmX <= expandedRight &&
+            mmY >= expandedTop && mmY <= expandedBottom) {
             return i;
         }
     }
