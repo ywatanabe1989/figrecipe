@@ -97,5 +97,6 @@ examples/.ipynb_checkpoints/
 examples/.old/
 tts_cache/
 
-# BGM files (too large for git, download separately)
+# BGM files (large files excluded, except smile.mp3 for demo)
 docs/bgm/*.mp3
+!docs/bgm/smile.mp3
