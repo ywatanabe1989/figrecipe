@@ -32,6 +32,7 @@ from ._debug_snapshot import SCRIPTS_DEBUG_SNAPSHOT
 from ._element_editor import SCRIPTS_ELEMENT_EDITOR
 from ._files import SCRIPTS_FILES
 from ._hitmap import SCRIPTS_HITMAP
+from ._image_drop import SCRIPTS_IMAGE_DROP
 from ._inspector import SCRIPTS_INSPECTOR
 from ._labels import SCRIPTS_LABELS
 from ._legend_drag import SCRIPTS_LEGEND_DRAG
@@ -68,6 +69,7 @@ SCRIPTS = (
     + SCRIPTS_PANEL_SNAP
     + SCRIPTS_PANEL_DRAG
     + SCRIPTS_LEGEND_DRAG
+    + SCRIPTS_IMAGE_DROP
     + SCRIPTS_UNDO_REDO
 )
 
@@ -88,6 +90,7 @@ def get_all_scripts():
         "element_editor": SCRIPTS_ELEMENT_EDITOR,
         "files": SCRIPTS_FILES,
         "hitmap": SCRIPTS_HITMAP,
+        "image_drop": SCRIPTS_IMAGE_DROP,
         "inspector": SCRIPTS_INSPECTOR,
         "labels": SCRIPTS_LABELS,
         "legend_drag": SCRIPTS_LEGEND_DRAG,
@@ -113,6 +116,7 @@ __all__ = [
     "SCRIPTS_ELEMENT_EDITOR",
     "SCRIPTS_FILES",
     "SCRIPTS_HITMAP",
+    "SCRIPTS_IMAGE_DROP",
     "SCRIPTS_INSPECTOR",
     "SCRIPTS_LABELS",
     "SCRIPTS_LEGEND_DRAG",

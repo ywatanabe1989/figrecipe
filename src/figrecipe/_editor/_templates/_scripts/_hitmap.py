@@ -497,8 +497,8 @@ function selectElement(element) {
     updateTabHints();
     syncPropertiesToElement(element);
 
-    // Sync panel position; only switch to Axis tab for axes type (not elements like pie/bar)
-    if (element.type === 'axes' || element.ax_index !== undefined) {
+    // Sync panel position; axes switches tab, image (from imshow) syncs position only (fills panel)
+    if (['axes', 'image'].includes(element.type) || element.ax_index !== undefined) {
         const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);
         if (axIndex !== null && typeof selectPanelByIndex === 'function') selectPanelByIndex(axIndex, element.type === 'axes');
     }

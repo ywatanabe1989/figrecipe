@@ -215,6 +215,7 @@ class FigureEditor:
         from ._routes_axis import register_axis_routes
         from ._routes_core import register_core_routes
         from ._routes_element import register_element_routes
+        from ._routes_image import register_image_routes
         from ._routes_style import register_style_routes
 
         # Defer hitmap generation until first request (lazy loading)
@@ -224,10 +225,14 @@ class FigureEditor:
         app = Flask(__name__)
 
         # Register all routes
+        from ._routes_object import register_object_routes
+
         register_core_routes(app, self)
         register_style_routes(app, self)
         register_axis_routes(app, self)
         register_element_routes(app, self)
+        register_object_routes(app, self)
+        register_image_routes(app, self)
 
         # Start server
         url = f"http://{self.host}:{self.port}"
