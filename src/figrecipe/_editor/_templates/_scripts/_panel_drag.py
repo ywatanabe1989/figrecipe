@@ -79,14 +79,16 @@ function handlePanelDragStart(event) {
         return;
     }
 
-    // Only start drag if clicking on axes element or empty panel area
+    // Only start drag if clicking on axes element, imshow, or empty panel area
     // Skip if clicking on specific elements (they should be selected instead)
     const target = event.target;
     const targetKey = target.getAttribute ? target.getAttribute('data-key') : null;
     if (targetKey && typeof currentBboxes !== 'undefined' && currentBboxes[targetKey]) {
         const elemType = currentBboxes[targetKey].type;
-        // Only allow drag from axes bbox or if no specific element type
-        if (elemType && elemType !== 'axes') {
+        // Allow drag from axes bbox, image (imshow fills whole panel), or no specific element type
+        // imshow panels have no empty area to click, so must allow drag from image itself
+        const dragAllowedTypes = ['axes', 'image'];
+        if (elemType && !dragAllowedTypes.includes(elemType)) {
             console.log('[PanelDrag] Skipped - clicked on element:', elemType);
             return;
         }
