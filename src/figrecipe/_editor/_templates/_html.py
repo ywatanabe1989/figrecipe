@@ -19,6 +19,7 @@ HTML_TEMPLATE = """
 <body>
     <div class="spinner-overlay"><div class="spinner-container"><div class="spinner"></div><div class="spinner-text">Loading...</div></div></div>
     <div class="editor-container">
+        <!-- FILE_BROWSER_PLACEHOLDER -->
         <!-- Preview Panel -->
         <div class="preview-panel">
             <div class="preview-header">
@@ -27,12 +28,6 @@ HTML_TEMPLATE = """
                     <span class="figrecipe-title">FigRecipe Editor</span>
                 </a>
                 <span id="server-start-time" style="font-size: 10px; color: #888; margin-left: 8px;">Started: SERVER_START_TIME_PLACEHOLDER</span>
-                <div class="file-switcher">
-                    <select id="file-selector" class="file-selector" title="Switch between recipe files">
-                        <option value="">Loading files...</option>
-                    </select>
-                    <button id="btn-new-figure" class="btn-new" title="Create new blank figure">+</button>
-                </div>
                 <div class="preview-controls">
                     <div class="download-dropdown">
                         <button id="btn-download-main" class="btn-primary download-main" title="Download as PNG">Download PNG</button>
