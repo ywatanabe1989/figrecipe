@@ -1,9 +1,13 @@
-<!-- ---
-!-- Timestamp: 2025-12-27 01:50:49
-!-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/figrecipe/docs/bgm/README.md
-!-- --- -->
+# Background Music for Demo Videos
 
-https://www.bensound.com/royalty-free-music?type=free&category=Genre&energy[]=Medium&filters[]=Acoustic&sort=relevance&type=free
+## Included Files
 
-<!-- EOF -->
+- **smile.mp3** — Upbeat acoustic track for demo videos (git-tracked)
+
+## Source
+
+Royalty-free music from [Bensound](https://www.bensound.com/royalty-free-music?type=free&category=Genre&energy[]=Medium&filters[]=Acoustic&sort=relevance&type=free)
+
+## Usage
+
+Used in `examples/demo_movie/process_all_demos.py` for background music in demo videos.

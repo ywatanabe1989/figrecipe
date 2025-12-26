@@ -78,7 +78,7 @@ from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from .styles._style_applier import check_font, list_available_fonts
 
-__version__ = "0.7.2"
+__version__ = "0.7.6"
 __all__ = [
     # Main API
     "subplots",

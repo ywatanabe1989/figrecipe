@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2025-12-22 14:49:10
+!-- Timestamp: 2025-12-27 02:15:07
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -10,51 +10,29 @@
   </a>
 </p>
 
-# FigRecipe
+# FigRecipe — **Reproducible matplotlib figures with mm-precision layouts.**
 
-**Reproducible matplotlib figures with mm-precision layouts.**
-FigRecipe is a lightweight recording & reproduction layer for matplotlib,
-designed for scientific figures that must remain **editable, inspectable,
-and reproducible**.
+FigRecipe separates **what** is plotted (data) from **how** it is styled, storing both in a structured format. This enables reproducible figures with GUI editing while preserving scientific integrity, and allows AI integration in a scientifically rigorous manner. Ultimately, FigRecipe will bundle: (1) reproducible, style-editable figures, and (2) metadata such as statistical values—creating atomic, portable, and traceable scientific figure objects essential for automated research in the AI era.
 
-Part of **SciTeX™ – Research OS for reproducible science**
-https://scitex.ai
+FigRecipe is part of [**SciTeX™ (pending) – Research OS for reproducible science**](https://scitex.ai)
 
 [![PyPI version](https://badge.fury.io/py/figrecipe.svg)](https://badge.fury.io/py/figrecipe)
 [![Tests](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
----
-
-## Why FigRecipe?
-
-In scientific workflows, figures are often:
-- hard to reproduce once scripts change,
-- resized manually in pixels or inches,
-- impossible to partially reuse or inspect later.
-
-**FigRecipe solves this by recording plotting calls as a structured “recipe”**,
-allowing figures to be:
-- faithfully reproduced,
-- partially re-rendered,
-- inspected for underlying data,
-- laid out in **exact millimeters** for publication.
 
 ---
 
 ## Key Features
 
-- ✅ Drop-in replacement for `matplotlib.pyplot` (use `figrecipe.pyplot` to enable recording)
-- ✅ Automatic recording of plotting calls
-- ✅ Reproduce figures from a YAML recipe
-- ✅ Extract plotted data programmatically
-- ✅ Selective reproduction of specific plots
-- ✅ Millimeter-based layout (journal-ready)
+- ✅ Drop-in replacement for `matplotlib.pyplot`—minimal migration and learning cost
+- ✅ All intermediate files use familiar formats (PNG/SVG/PDF/YAML/JSON)
+- ✅ Import/Export to integrate with your existing workflow
+- ✅ Millimeter-based layout (journal-ready)—difficult to achieve manually with matplotlib
 - ✅ Publication-quality style presets
-- ✅ Dark theme support (data colors preserved)
-- ✅ Seamless seaborn integration
-- ✅ Crop figures to content with mm margins
-- ✅ **Interactive GUI editor** with live preview
+- ✅ Dark theme support (data colors preserved), with light theme export for journal compliance
+- ✅ Research-focused features: automatic cropping, axis alignment, panel labels, and caption embedding
+- ✅ Interactive GUI editor for manual adjustments
 
 ---
 
@@ -62,20 +40,29 @@ allowing figures to be:
 
 📓 **[View Demo Notebook on nbviewer](https://nbviewer.org/github/ywatanabe1989/figrecipe/blob/main/examples/figrecipe_demo.ipynb)** (recommended)
 
-The notebook includes side-by-side comparisons of original and reproduced figures.
+<details>
+<summary><b>Demo Videos</b> — GUI Editor in action</summary>
 
-Source: [examples/figrecipe_demo.ipynb](examples/figrecipe_demo.ipynb)
+| Dark Mode | Change Color | Drag Panel |
+|:---:|:---:|:---:|
+| ![Dark Mode](examples/demo_movie/outputs/01_enable_dark_mode.gif) | ![Change Color](examples/demo_movie/outputs/02_change_element_color.gif) | ![Drag Panel](examples/demo_movie/outputs/03_drag_panel_position.gif) |
 
-### Supported Plot Types
+| Move Legend | Undo/Redo | Toggle Theme |
+|:---:|:---:|:---:|
+| ![Move Legend](examples/demo_movie/outputs/04_move_legend.gif) | ![Undo Redo](examples/demo_movie/outputs/05_undo_and_redo.gif) | ![Toggle Theme](examples/demo_movie/outputs/06_toggle_theme.gif) |
 
-FigRecipe supports 46 matplotlib plot types, organized into 9 categories:
+| Hover Feedback | Edit Labels | Zoom Controls |
+|:---:|:---:|:---:|
+| ![Hover](examples/demo_movie/outputs/07_hover_feedback.gif) | ![Edit Labels](examples/demo_movie/outputs/08_edit_labels.gif) | ![Zoom](examples/demo_movie/outputs/09_zoom_controls.gif) |
+
+</details>
 
 <details>
-<summary><b>All Plot Types</b> (click to expand)</summary>
+<summary><b>Supported Plot Types</b> — 46 matplotlib plot types in 9 categories</summary>
+
 <p align="center">
   <img src="docs/images/plot_types/all_plot_types.png" alt="All Plot Types" width="100%"/>
 </p>
-</details>
 
 | Line & Curve | Scatter | Distribution |
 |:---:|:---:|:---:|
@@ -90,6 +77,7 @@ FigRecipe supports 46 matplotlib plot types, organized into 9 categories:
 | ![Vector](docs/images/plot_types/category_vector_flow.png) | ![Spectral](docs/images/plot_types/category_spectral_signal.png) | ![Special](docs/images/plot_types/category_special.png) |
 
 Generate all plots: `python examples/demo_plot_all.py`
+</details>
 
 ## Installation
 
@@ -147,18 +135,6 @@ data = fr.extract_data('figure.yaml')
 # {'sine_wave': {'x': array([...]), 'y': array([...])}}
 ```
 
-### Millimeter-Based Layout (Publication-Ready)
-
-``` python
-fig, ax = fr.subplots(
-    axes_width_mm=60,
-    axes_height_mm=40,
-    margin_left_mm=15,
-    margin_bottom_mm=12,
-)
-```
-This guarantees consistent sizing across editors, exports, and journals.
-
 ### Style Presets
 
 ``` python
@@ -178,6 +154,18 @@ fr.load_style('/path/to/my_style.yaml')
 ```
 
 See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for full examples.
+
+### Millimeter-Based Layout (Publication-Ready)
+
+``` python
+fig, ax = fr.subplots(
+    axes_width_mm=60,
+    axes_height_mm=40,
+    margin_left_mm=15,
+    margin_bottom_mm=12,
+)
+```
+This guarantees consistent sizing across editors, exports, and journals.
 
 ### Interactive GUI Editor
 
@@ -211,16 +199,11 @@ The editor provides:
 |:---:|:---:|:---:|
 | ![Axis Panel](docs/images/editor_axis_panel.png) | ![Download](docs/images/editor_download_options.png) | ![Dark Mode](docs/images/editor_dark_mode.png) |
 
-### Style Format (YAML)
+<details>
+<summary><b>Style Format (YAML)</b> — Full preset example</summary>
 
 ``` yaml
-# Timestamp: "2025-12-22 12:40:36 (ywatanabe)"
-# File: ./src/figrecipe/styles/presets/SCITEX.yaml
-# FIGRECIPE Style Preset
-# ======================
-# Publication-quality settings for scientific figures.
-# Optimized for scientific journals with Arial font.
-
+# FIGRECIPE Style Preset (SCITEX)
 axes:
   width_mm: 40
   height_mm: 28
@@ -232,112 +215,45 @@ margins:
   bottom_mm: 1
   top_mm: 1
 
-spacing:
-  horizontal_mm: 8
-  vertical_mm: 10
-
 fonts:
   family: "Arial"
   axis_label_pt: 7
   tick_label_pt: 7
   title_pt: 8
-  suptitle_pt: 8
-  legend_pt: 6
-  annotation_pt: 6
-
-padding:
-  label_pt: 2.0
-  tick_pt: 2.0
-  title_pt: 4.0
 
 lines:
   trace_mm: 0.2
   errorbar_mm: 0.2
-  errorbar_cap_mm: 0.8
 
 ticks:
   length_mm: 0.8
   thickness_mm: 0.2
   direction: "out"
-  n_ticks: 4
-
-markers:
-  size_mm: 0.8
-  scatter_mm: 0.8
-  edge_width_mm: null  # None = no border (cleaner than 0)
-
-legend:
-  frameon: false         # No frame for clean look
-  bg: null               # Background (null = use theme.legend_bg)
-  edgecolor: null        # Frame edge color
-  alpha: 1.0             # Transparency
-  loc: "best"
 
 output:
   dpi: 300
   transparent: true
   format: "pdf"
 
-behavior:
-  auto_scale_axes: true
-  hide_top_spine: true
-  hide_right_spine: true
-  grid: false
-
 theme:
   mode: "light"
   dark:
-    figure_bg: "transparent"
-    axes_bg: "transparent"
-    legend_bg: "transparent"
     text: "#d4d4d4"
     spine: "#d4d4d4"
-    tick: "#d4d4d4"
-    grid: "#3a3a3a"
   light:
-    figure_bg: "transparent"
-    axes_bg: "transparent"
-    legend_bg: "transparent"
     text: "black"
     spine: "black"
-    tick: "black"
-    grid: "#cccccc"
 
-# SciTeX Color Palette (RGB format)
 colors:
   palette:
     - [0, 128, 192]      # blue
     - [255, 70, 50]      # red
     - [20, 180, 20]      # green
-    - [230, 160, 20]     # yellow
-    - [200, 50, 255]     # purple
-    - [20, 200, 200]     # lightblue
-    - [228, 94, 50]      # orange
-    - [255, 150, 200]    # pink
-
-  # Named colors
-  white: [255, 255, 255]
-  black: [0, 0, 0]
-  blue: [0, 128, 192]
-  red: [255, 70, 50]
-  pink: [255, 150, 200]
-  green: [20, 180, 20]
-  yellow: [230, 160, 20]
-  gray: [128, 128, 128]
-  grey: [128, 128, 128]
-  purple: [200, 50, 255]
-  lightblue: [20, 200, 200]
-  brown: [128, 0, 0]
-  navy: [0, 0, 100]
-  orange: [228, 94, 50]
-
-  # Semantic
-  primary: [0, 128, 192]
-  secondary: [255, 70, 50]
-  accent: [20, 180, 20]
-
 # EOF
 ```
+
+See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for complete examples.
+</details>
 
 
 ### API Overview
@@ -346,7 +262,7 @@ colors:
 |----------------------------------|---------------------------------------------------|
 | `import figrecipe.pyplot as plt` | Drop-in replacement of `matplotlib.pyplot as plt` |
 | `import figrecipe as fr`         | Import figrecipe package                          |
-|----------------------------------|---------------------------------------------------|
+
 | Function                         |                                                   |
 |----------------------------------|---------------------------------------------------|
 | `fr.subplots()`                  | Create a recording-enabled figure                 |
@@ -359,23 +275,18 @@ colors:
 | `fr.list_presets()`              | List available presets                            |
 | `fr.crop('fig.png')`             | Crop to content with mm margin                    |
 
-## Positioning
-
-FigRecipe focuses on *how* figures are constructed, not *what* they represent.
-
-FigRecipe provides recording, reproduction, layout fidelity, and interactive editing.
-
-Higher-level workflows (figures–tables–statistics bundle, integration with manuscript writing) are handled in:
-
-FTS (Figure-Table-Statistics Bundle) in SciTeX Ecosystem:
-https://github.com/ywatanabe1989/scitex-code
-https://scitex.ai/vis/
-https://scitex.ai/writer/
-
 
 ## License
 
 AGPL-3.0 See [LICENSE](LICENSE)
-.
+
+## Contact
+Yusuke Watanabe (ywatanabe@scitex.ai)
+
+<p align="center">
+  <a href="https://scitex.ai" target="_blank">
+    <img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="80"/>
+  </a>
+</p>
 
 <!-- EOF -->
