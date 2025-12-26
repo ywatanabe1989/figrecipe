@@ -23,6 +23,7 @@ from ._buttons import STYLES_BUTTONS
 from ._color_input import STYLES_COLOR_INPUT
 from ._controls import STYLES_CONTROLS
 from ._dynamic_props import STYLES_DYNAMIC_PROPS
+from ._file_browser import STYLES_FILE_BROWSER
 from ._forms import STYLES_FORMS
 from ._hitmap import STYLES_HITMAP
 from ._inspector import STYLES_INSPECTOR
@@ -36,6 +37,7 @@ from ._spinner import STYLES_SPINNER
 # Combined STYLES constant for backward compatibility
 STYLES = (
     STYLES_BASE
+    + STYLES_FILE_BROWSER
     + STYLES_PREVIEW
     + STYLES_HITMAP
     + STYLES_SELECTION
@@ -54,6 +56,7 @@ STYLES = (
 __all__ = [
     "STYLES",
     "STYLES_BASE",
+    "STYLES_FILE_BROWSER",
     "STYLES_PREVIEW",
     "STYLES_HITMAP",
     "STYLES_SELECTION",

@@ -91,8 +91,9 @@ class TestNewFigureAPI:
         # Check that it updates bboxes
         assert "window.currentBboxes = data.bboxes" in SCRIPTS_FILES
 
-        # Check that it shows success toast
-        assert "'New blank figure created'" in SCRIPTS_FILES
+        # Check that it shows success toast with filename
+        assert "Created:" in SCRIPTS_FILES
+        assert ".yaml" in SCRIPTS_FILES
 
         # Check that it reloads file list
         assert "loadFileList()" in SCRIPTS_FILES
@@ -124,19 +125,39 @@ class TestFileSwitcherUI:
     """Test file switcher UI elements."""
 
     def test_html_has_new_button(self):
-        """Test that HTML template includes the + button."""
-        from figrecipe._editor._templates._html import HTML_TEMPLATE
+        """Test that HTML template includes the + button in file browser panel."""
+        from figrecipe._editor._templates import build_html_template
 
-        assert 'id="btn-new-figure"' in HTML_TEMPLATE
-        assert 'class="btn-new"' in HTML_TEMPLATE
-        assert "+" in HTML_TEMPLATE  # The button text
+        html = build_html_template(
+            image_base64="test",
+            bboxes={},
+            color_map={},
+            style={},
+            overrides={},
+            img_size=(100, 100),
+        )
 
-    def test_html_has_file_selector(self):
-        """Test that HTML template includes file selector dropdown."""
-        from figrecipe._editor._templates._html import HTML_TEMPLATE
+        # New button is now in file browser panel
+        assert 'id="btn-new-file"' in html
+        assert 'class="btn-new-file"' in html
+        assert "+" in html  # The button text
 
-        assert 'id="file-selector"' in HTML_TEMPLATE
-        assert "<select" in HTML_TEMPLATE
+    def test_html_has_file_browser(self):
+        """Test that HTML template includes file browser panel."""
+        from figrecipe._editor._templates import build_html_template
+
+        html = build_html_template(
+            image_base64="test",
+            bboxes={},
+            color_map={},
+            style={},
+            overrides={},
+            img_size=(100, 100),
+        )
+
+        # File browser panel with file tree
+        assert 'id="file-browser-panel"' in html
+        assert 'id="file-tree"' in html
 
 
 class TestFileSwitcherClearSelection:
