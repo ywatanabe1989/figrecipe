@@ -27,6 +27,11 @@ def register_style_routes(app, editor):
             }
         )
 
+    @app.route("/overrides")
+    def get_overrides():
+        """Get current manual overrides."""
+        return jsonify(editor.style_overrides.manual_overrides)
+
     @app.route("/theme")
     def get_theme():
         """Get current theme YAML content for display."""
