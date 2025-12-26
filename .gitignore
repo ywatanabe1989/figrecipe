@@ -95,3 +95,7 @@ outputs/
 GITIGNORED/
 examples/.ipynb_checkpoints/
 examples/.old/
+tts_cache/
+
+# BGM files (too large for git, download separately)
+docs/bgm/*.mp3
