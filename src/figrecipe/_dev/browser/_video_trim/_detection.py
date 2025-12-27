@@ -201,9 +201,11 @@ def detect_markers(
             metadata["end"] = marker_groups[-1][2]
             metadata["end"]["marker_type"] = "end"
 
-    # Skip past marker frame (add 0.5s to ensure we're past the marker)
+    # Trim margins: drop first 1.5s after start marker, drop last 1s before end marker
     if start_time is not None:
-        start_time += 0.5
+        start_time += 1.5  # Drop first 1.5 seconds
+    if end_time is not None:
+        end_time -= 1.0  # Drop last 1 second
 
     return start_time, end_time, metadata
 

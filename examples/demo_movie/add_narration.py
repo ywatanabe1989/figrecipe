@@ -77,8 +77,13 @@ def main():
         captions = extract_captions_from_script(script_path)
         print(f"  Found {len(captions)} captions")
 
-        # Generate title text from script name
-        title_text = script_path.stem.replace("_", " ").title() + " Demo"
+        # Generate title text from script name (remove leading number prefix)
+        import re
+
+        title_base = script_path.stem
+        # Remove leading "01_", "02_", etc.
+        title_base = re.sub(r"^\d+_", "", title_base)
+        title_text = title_base.replace("_", " ").title() + " Demo"
 
         # Create output path
         output_path = video_path.with_name(video_path.stem + "_FINAL.mp4")

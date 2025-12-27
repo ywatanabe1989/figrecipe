@@ -38,6 +38,20 @@ CLICK_EFFECT_JS = """
         document.head.appendChild(style);
     }
 
+    // Initialize click sound audio element
+    if (!window._demoClickAudio) {
+        window._demoClickAudio = new Audio('/static/click.mp3');
+        window._demoClickAudio.volume = 0.15;
+    }
+
+    // Function to play click sound
+    window._playClickSound = () => {
+        if (window._demoClickAudio) {
+            window._demoClickAudio.currentTime = 0;
+            window._demoClickAudio.play().catch(() => {});
+        }
+    };
+
     // Remove existing handler if any
     if (window._demoClickHandler) {
         document.removeEventListener('mousedown', window._demoClickHandler);
@@ -45,6 +59,9 @@ CLICK_EFFECT_JS = """
 
     // Add click handler
     window._demoClickHandler = (e) => {
+        // Play click sound
+        if (window._playClickSound) window._playClickSound();
+
         const ripple = document.createElement('div');
         ripple.className = 'demo-click-ripple';
         ripple.style.left = e.clientX + 'px';
@@ -76,6 +93,12 @@ REMOVE_CLICK_EFFECT_JS = """
         document.removeEventListener('mousedown', window._demoClickHandler);
         delete window._demoClickHandler;
     }
+    // Remove audio element
+    if (window._demoClickAudio) {
+        window._demoClickAudio.pause();
+        delete window._demoClickAudio;
+    }
+    delete window._playClickSound;
     // Remove style
     const style = document.getElementById('demo-click-style');
     if (style) style.remove();
