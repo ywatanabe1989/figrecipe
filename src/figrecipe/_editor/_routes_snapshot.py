@@ -4,6 +4,10 @@
 
 import base64
 import io
+import threading
+
+# Lock to prevent concurrent matplotlib figure access (not thread-safe)
+_figure_lock = threading.Lock()
 
 
 def register_snapshot_routes(app, editor):
@@ -34,46 +38,51 @@ def register_snapshot_routes(app, editor):
         dict
             JSON with success status and base64-encoded PNG image.
         """
+        # DISABLED: Modifying figure visibility corrupts shared state
+        # TODO: Implement proper solution (deep copy figure or pre-render)
+        return {"success": False, "error": "Snapshot temporarily disabled"}
+
         try:
-            # Get matplotlib figure from RecordingFigure wrapper
-            mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-            axes = mpl_fig.get_axes()
+            # Use lock to prevent concurrent matplotlib access (not thread-safe)
+            with _figure_lock:
+                # Get matplotlib figure from RecordingFigure wrapper
+                mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+                axes = mpl_fig.get_axes()
 
-            if ax_index < 0 or ax_index >= len(axes):
-                return {"success": False, "error": f"Invalid ax_index: {ax_index}"}
+                if ax_index < 0 or ax_index >= len(axes):
+                    return {"success": False, "error": f"Invalid ax_index: {ax_index}"}
 
-            # Store original visibility states
-            original_visibility = [ax.get_visible() for ax in axes]
+                # Store original visibility states
+                original_visibility = [ax.get_visible() for ax in axes]
 
-            try:
-                # Hide all axes except the target
-                for i, ax in enumerate(axes):
-                    ax.set_visible(i == ax_index)
+                try:
+                    # Hide all axes except the target
+                    for i, ax in enumerate(axes):
+                        ax.set_visible(i == ax_index)
 
-                # Render to buffer with transparent background
-                buf = io.BytesIO()
-                mpl_fig.savefig(
-                    buf,
-                    format="png",
-                    transparent=True,
-                    bbox_inches="tight",
-                    pad_inches=0.1,
-                    facecolor="none",
-                    edgecolor="none",
-                )
-                buf.seek(0)
-                image_base64 = base64.b64encode(buf.read()).decode("utf-8")
+                    # Render to buffer with transparent background
+                    # Use full figure size (no bbox_inches="tight" to preserve dimensions)
+                    buf = io.BytesIO()
+                    mpl_fig.savefig(
+                        buf,
+                        format="png",
+                        transparent=True,
+                        facecolor="none",
+                        edgecolor="none",
+                    )
+                    buf.seek(0)
+                    image_base64 = base64.b64encode(buf.read()).decode("utf-8")
 
-                return {
-                    "success": True,
-                    "image": image_base64,
-                    "ax_index": ax_index,
-                }
+                    return {
+                        "success": True,
+                        "image": image_base64,
+                        "ax_index": ax_index,
+                    }
 
-            finally:
-                # Restore original visibility
-                for i, ax in enumerate(axes):
-                    ax.set_visible(original_visibility[i])
+                finally:
+                    # Restore original visibility
+                    for i, ax in enumerate(axes):
+                        ax.set_visible(original_visibility[i])
 
         except Exception as e:
             # Return JSON error instead of 500 to avoid console errors
