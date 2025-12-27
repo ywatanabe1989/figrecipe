@@ -85,9 +85,9 @@ function handlePanelDragStart(event) {
     const targetKey = target.getAttribute ? target.getAttribute('data-key') : null;
     if (targetKey && typeof currentBboxes !== 'undefined' && currentBboxes[targetKey]) {
         const elemType = currentBboxes[targetKey].type;
-        // Allow drag from axes bbox, image (imshow fills whole panel), or no specific element type
-        // imshow panels have no empty area to click, so must allow drag from image itself
-        const dragAllowedTypes = ['axes', 'image'];
+        // Allow drag from axes bbox and plot types that fill the panel area
+        // These panels have no empty area to click, so must allow drag from the plot itself
+        const dragAllowedTypes = ['axes', 'image', 'contour', 'quadmesh', 'quiver'];
         if (elemType && !dragAllowedTypes.includes(elemType)) {
             console.log('[PanelDrag] Skipped - clicked on element:', elemType);
             return;
@@ -164,7 +164,7 @@ function handlePanelDragStart(event) {
 
         // Create and show panel snapshot for visual feedback
         if (typeof startSnapshotDrag === 'function') {
-            startSnapshotDrag(panelIndex, rect);
+            startSnapshotDrag(panelIndex, rect, pos);
         }
 
         // Change cursor
