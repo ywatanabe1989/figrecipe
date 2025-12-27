@@ -112,6 +112,13 @@ legend:
   alpha: 1.0             # Transparency
   loc: "best"
 
+stat_annotation:
+  bracket_height: 0.03   # Height of bracket tips as fraction of y-range
+  text_offset: 0.01      # Text offset above bracket as fraction of y-range
+  linewidth_mm: 0.2      # Bracket line width in mm
+  fontsize_pt: 6         # Font size for annotation text (stars and p-values)
+  stars_fontweight: "bold"  # Font weight for stars
+
 output:
   dpi: 300
   transparent: true

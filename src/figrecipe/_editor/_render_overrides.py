@@ -482,6 +482,15 @@ def _apply_dark_mode_to_axes(ax: Axes, bg_color: str, text_color: str) -> None:
     for text in ax.texts:
         text.set_color(text_color)
 
+    # Stat annotation bracket lines (Line2D with clip_on=False)
+    for line in ax.get_lines():
+        # Bracket lines have clip_on=False and are typically black
+        if not line.get_clip_on():
+            current_color = line.get_color()
+            # Only update if it's a dark color (black or near-black)
+            if current_color in ["black", "k", "#000000", (0, 0, 0), (0.0, 0.0, 0.0)]:
+                line.set_color(text_color)
+
     # Legend
     legend = ax.get_legend()
     if legend is not None:
