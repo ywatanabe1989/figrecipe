@@ -31,9 +31,9 @@ class TestPToStars:
         assert p_to_stars(0.049) == "*"
 
     def test_not_significant(self):
-        assert p_to_stars(0.05) == "ns"
-        assert p_to_stars(0.1) == "ns"
-        assert p_to_stars(0.5) == "ns"
+        assert p_to_stars(0.05) == "n.s."
+        assert p_to_stars(0.1) == "n.s."
+        assert p_to_stars(0.5) == "n.s."
 
     def test_ns_symbol_false(self):
         assert p_to_stars(0.1, ns_symbol=False) == ""
