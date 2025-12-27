@@ -24,6 +24,13 @@ from ._cursor import (
 from ._highlight import highlight_element
 from ._recorder import DemoRecorder
 from ._utils import concatenate_videos, convert_to_gif
+from ._video_trim import (
+    detect_markers,
+    inject_end_marker,
+    inject_start_marker,
+    process_video_with_markers,
+    trim_video_by_markers,
+)
 
 __all__ = [
     "inject_cursor",
@@ -39,6 +46,11 @@ __all__ = [
     "DemoRecorder",
     "convert_to_gif",
     "concatenate_videos",
+    "inject_start_marker",
+    "inject_end_marker",
+    "detect_markers",
+    "trim_video_by_markers",
+    "process_video_with_markers",
 ]
 
 # EOF
