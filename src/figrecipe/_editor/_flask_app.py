@@ -214,6 +214,7 @@ class FigureEditor:
 
         from ._routes_axis import register_axis_routes
         from ._routes_core import register_core_routes
+        from ._routes_datatable import register_datatable_routes
         from ._routes_element import register_element_routes
         from ._routes_image import register_image_routes
 
@@ -233,6 +234,7 @@ class FigureEditor:
         register_axis_routes(app, self)
         register_element_routes(app, self)
         register_image_routes(app, self)
+        register_datatable_routes(app, self)
         # DISABLED: register_snapshot_routes(app, self)
 
         # Start server

@@ -28,6 +28,7 @@ This package contains modular JavaScript organized by functionality:
 from ._api import SCRIPTS_API
 from ._colors import SCRIPTS_COLORS
 from ._core import SCRIPTS_CORE
+from ._datatable import SCRIPTS_DATATABLE
 from ._debug_snapshot import SCRIPTS_DEBUG_SNAPSHOT
 from ._element_editor import SCRIPTS_ELEMENT_EDITOR
 from ._files import SCRIPTS_FILES
@@ -73,6 +74,7 @@ SCRIPTS = (
     + SCRIPTS_LEGEND_DRAG
     + SCRIPTS_IMAGE_DROP
     + SCRIPTS_UNDO_REDO
+    + SCRIPTS_DATATABLE
 )
 
 
@@ -88,6 +90,7 @@ def get_all_scripts():
         "api": SCRIPTS_API,
         "colors": SCRIPTS_COLORS,
         "core": SCRIPTS_CORE,
+        "datatable": SCRIPTS_DATATABLE,
         "debug_snapshot": SCRIPTS_DEBUG_SNAPSHOT,
         "element_editor": SCRIPTS_ELEMENT_EDITOR,
         "files": SCRIPTS_FILES,
@@ -115,6 +118,7 @@ __all__ = [
     "SCRIPTS_API",
     "SCRIPTS_COLORS",
     "SCRIPTS_CORE",
+    "SCRIPTS_DATATABLE",
     "SCRIPTS_DEBUG_SNAPSHOT",
     "SCRIPTS_ELEMENT_EDITOR",
     "SCRIPTS_FILES",

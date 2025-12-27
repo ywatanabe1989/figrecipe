@@ -22,6 +22,7 @@ from ._base import STYLES_BASE
 from ._buttons import STYLES_BUTTONS
 from ._color_input import STYLES_COLOR_INPUT
 from ._controls import STYLES_CONTROLS
+from ._datatable import STYLES_DATATABLE
 from ._dynamic_props import STYLES_DYNAMIC_PROPS
 from ._file_browser import STYLES_FILE_BROWSER
 from ._forms import STYLES_FORMS
@@ -51,6 +52,7 @@ STYLES = (
     + STYLES_MODALS
     + STYLES_INSPECTOR
     + STYLES_SPINNER
+    + STYLES_DATATABLE
 )
 
 __all__ = [
@@ -70,6 +72,7 @@ __all__ = [
     "STYLES_MODALS",
     "STYLES_INSPECTOR",
     "STYLES_SPINNER",
+    "STYLES_DATATABLE",
 ]
 
 # EOF
