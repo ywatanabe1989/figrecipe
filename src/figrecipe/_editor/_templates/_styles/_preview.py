@@ -156,8 +156,8 @@ STYLES_PREVIEW = """
 .preview-wrapper {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     padding: 20px;
     background: var(--bg-tertiary);
     position: relative;

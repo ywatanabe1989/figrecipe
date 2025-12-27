@@ -314,6 +314,15 @@ def _replay_call(
 
         return replay_swarmplot_call(ax, call)
 
+    # Handle stat_annotation specially (custom method)
+    if method_name == "stat_annotation":
+        from .._wrappers._stat_annotation import draw_stat_annotation
+
+        kwargs = call.kwargs.copy()
+        x1 = kwargs.pop("x1", 0)
+        x2 = kwargs.pop("x2", 1)
+        return draw_stat_annotation(ax, x1, x2, **kwargs)
+
     method = getattr(ax, method_name, None)
 
     if method is None:
