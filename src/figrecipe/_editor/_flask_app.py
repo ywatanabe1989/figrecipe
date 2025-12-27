@@ -214,6 +214,7 @@ class FigureEditor:
 
         from ._routes_axis import register_axis_routes
         from ._routes_core import register_core_routes
+        from ._routes_datatable import register_datatable_routes
         from ._routes_element import register_element_routes
         from ._routes_style import register_style_routes
 
@@ -228,6 +229,7 @@ class FigureEditor:
         register_style_routes(app, self)
         register_axis_routes(app, self)
         register_element_routes(app, self)
+        register_datatable_routes(app, self)
 
         # Start server
         url = f"http://{self.host}:{self.port}"
