@@ -25,16 +25,21 @@ class CallRecord:
     kwargs: Dict[str, Any]
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     ax_position: Tuple[int, int] = (0, 0)
+    # Statistics associated with this plot call (e.g., n, mean, sem)
+    stats: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return {
+        result = {
             "id": self.id,
             "function": self.function,
             "args": self.args,
             "kwargs": self.kwargs,
             "timestamp": self.timestamp,
         }
+        if self.stats is not None:
+            result["stats"] = self.stats
+        return result
 
     @classmethod
     def from_dict(
@@ -48,6 +53,7 @@ class CallRecord:
             kwargs=data["kwargs"],
             timestamp=data.get("timestamp", ""),
             ax_position=ax_position,
+            stats=data.get("stats"),
         )
 
 
@@ -60,6 +66,10 @@ class AxesRecord:
     decorations: List[CallRecord] = field(default_factory=list)
     # Panel-level caption (e.g., "(A) Description of this panel")
     caption: Optional[str] = None
+    # Panel-level statistics (e.g., summary stats, comparison results)
+    stats: Optional[Dict[str, Any]] = None
+    # Panel visibility (for composition)
+    visible: bool = True
 
     def add_call(self, record: CallRecord) -> None:
         """Add a plotting call record."""
@@ -77,6 +87,10 @@ class AxesRecord:
         }
         if self.caption is not None:
             result["caption"] = self.caption
+        if self.stats is not None:
+            result["stats"] = self.stats
+        if not self.visible:  # Only serialize if hidden (default is True)
+            result["visible"] = False
         return result
 
 
@@ -105,6 +119,8 @@ class FigureRecord:
     # Metadata for scientific figures (not rendered, stored in recipe)
     title_metadata: Optional[str] = None  # Figure title for publication/reference
     caption: Optional[str] = None  # Figure caption (e.g., "Fig. 1. Description...")
+    # Figure-level statistics (e.g., comparisons across panels, summary)
+    stats: Optional[Dict[str, Any]] = None
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -157,6 +173,8 @@ class FigureRecord:
             metadata["title"] = self.title_metadata
         if self.caption is not None:
             metadata["caption"] = self.caption
+        if self.stats is not None:
+            metadata["stats"] = self.stats
         if metadata:
             result["metadata"] = metadata
         return result
@@ -181,6 +199,7 @@ class FigureRecord:
             panel_labels=fig_data.get("panel_labels"),
             title_metadata=metadata.get("title"),
             caption=metadata.get("caption"),
+            stats=metadata.get("stats"),
         )
 
         # Reconstruct axes
@@ -195,6 +214,8 @@ class FigureRecord:
             ax_record = AxesRecord(
                 position=(row, col),
                 caption=ax_data.get("caption"),
+                stats=ax_data.get("stats"),
+                visible=ax_data.get("visible", True),
             )
             for call_data in ax_data.get("calls", []):
                 ax_record.calls.append(CallRecord.from_dict(call_data, (row, col)))
@@ -271,6 +292,9 @@ class Recorder:
         if call_id is None:
             call_id = self._generate_call_id(method_name)
 
+        # Extract stats from kwargs before processing (stats is metadata, not matplotlib arg)
+        call_stats = kwargs.pop("stats", None) if "stats" in kwargs else None
+
         # Process args into serializable format
         processed_args = self._process_args(args, method_name)
 
@@ -283,6 +307,7 @@ class Recorder:
             args=processed_args,
             kwargs=processed_kwargs,
             ax_position=ax_position,
+            stats=call_stats,
         )
 
         # Add to appropriate axes
@@ -365,8 +390,8 @@ class Recorder:
         except Exception:
             pass
 
-        # Remove internal keys
-        skip_keys = {"id", "track", "_array"}
+        # Remove internal keys (stats is handled separately as metadata)
+        skip_keys = {"id", "track", "_array", "stats"}
         processed = {}
 
         for key, value in kwargs.items():

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "figrecipe"
-version = "0.7.5"
+version = "0.8.1"
 description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
@@ -59,6 +59,10 @@ editor = [
     "flask>=2.0.0",
     "Pillow>=9.0.0",
 ]
+demo = [
+    "playwright>=1.40.0",
+    "pytesseract>=0.3.0",
+]
 all = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -66,6 +70,8 @@ all = [
     "seaborn>=0.12.0",
     "pandas>=1.3.0",
     "flask>=2.0.0",
+    "playwright>=1.40.0",
+    "pytesseract>=0.3.0",
 ]
 
 [project.urls]

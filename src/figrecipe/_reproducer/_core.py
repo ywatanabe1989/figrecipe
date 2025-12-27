@@ -195,6 +195,10 @@ def reproduce_from_record(
                 if result is not None:
                     result_cache[call.id] = result
 
+        # Apply panel visibility
+        if not getattr(ax_record, "visible", True):
+            ax.set_visible(False)
+
     # Finalize tick configuration and special plot types (avoids categorical axis interference)
     from ..styles._style_applier import finalize_special_plots, finalize_ticks
 
@@ -313,6 +317,15 @@ def _replay_call(
         from ._custom_plots import replay_swarmplot_call
 
         return replay_swarmplot_call(ax, call)
+
+    # Handle stat_annotation specially (custom method)
+    if method_name == "stat_annotation":
+        from .._wrappers._stat_annotation import draw_stat_annotation
+
+        kwargs = call.kwargs.copy()
+        x1 = kwargs.pop("x1", 0)
+        x2 = kwargs.pop("x2", 1)
+        return draw_stat_annotation(ax, x1, x2, **kwargs)
 
     method = getattr(ax, method_name, None)
 

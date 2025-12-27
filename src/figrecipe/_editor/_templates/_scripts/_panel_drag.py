@@ -79,14 +79,16 @@ function handlePanelDragStart(event) {
         return;
     }
 
-    // Only start drag if clicking on axes element or empty panel area
+    // Only start drag if clicking on axes element, imshow, or empty panel area
     // Skip if clicking on specific elements (they should be selected instead)
     const target = event.target;
     const targetKey = target.getAttribute ? target.getAttribute('data-key') : null;
     if (targetKey && typeof currentBboxes !== 'undefined' && currentBboxes[targetKey]) {
         const elemType = currentBboxes[targetKey].type;
-        // Only allow drag from axes bbox or if no specific element type
-        if (elemType && elemType !== 'axes') {
+        // Allow drag from axes bbox and plot types that fill the panel area
+        // These panels have no empty area to click, so must allow drag from the plot itself
+        const dragAllowedTypes = ['axes', 'image', 'contour', 'quadmesh', 'quiver'];
+        if (elemType && !dragAllowedTypes.includes(elemType)) {
             console.log('[PanelDrag] Skipped - clicked on element:', elemType);
             return;
         }
@@ -158,6 +160,11 @@ function handlePanelDragStart(event) {
             console.log('[PanelDrag] Overlay shown');
         } else {
             console.warn('[PanelDrag] Overlay still null after creation attempt');
+        }
+
+        // Create and show panel snapshot for visual feedback
+        if (typeof startSnapshotDrag === 'function') {
+            startSnapshotDrag(panelIndex, rect, pos);
         }
 
         // Change cursor
@@ -311,6 +318,11 @@ function handlePanelDragMove(event) {
     // Update visual overlay
     updateDragOverlayMm(newPos, rect);
 
+    // Update snapshot position
+    if (typeof updateSnapshotPosition === 'function') {
+        updateSnapshotPosition(newPos, rect);
+    }
+
     // Show/hide alignment guides
     if (typeof showSnapGuides === 'function') {
         showSnapGuides(snapResult.guides, rect);
@@ -341,10 +353,13 @@ async function handlePanelDragEnd(event) {
     console.log('[PanelDrag] handlePanelDragEnd called, isDraggingPanel:', isDraggingPanel);
     if (!isDraggingPanel) return;
 
-    // Hide overlay and snap guides
+    // Hide overlay, snapshot, and snap guides
     if (panelDragOverlay) {
         panelDragOverlay.style.display = 'none';
         console.log('[PanelDrag] Overlay hidden');
+    }
+    if (typeof endSnapshotDrag === 'function') {
+        endSnapshotDrag();
     }
     if (typeof hideSnapGuides === 'function') {
         hideSnapGuides();

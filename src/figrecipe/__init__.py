@@ -59,8 +59,31 @@ from numpy.typing import NDArray
 # Notebook utilities
 from ._api._notebook import enable_svg
 
+# Panel label
+from ._api._panel import panel_label
+
 # Seaborn proxy
 from ._api._seaborn_proxy import sns
+
+# Composition API
+from ._composition import (
+    AlignmentMode,
+    align_panels,
+    compose,
+    distribute_panels,
+    hide_panel,
+    import_axes,
+    show_panel,
+    smart_align,
+    toggle_panel,
+)
+
+# scitex.stats integration
+from ._integrations import (
+    SCITEX_STATS_AVAILABLE,
+    annotate_from_stats,
+    from_scitex_stats,
+)
 from ._recorder import CallRecord, FigureRecord
 from ._reproducer import get_recipe_info
 from ._reproducer import reproduce as _reproduce
@@ -78,7 +101,7 @@ from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from .styles._style_applier import check_font, list_available_fonts
 
-__version__ = "0.7.2"
+__version__ = "0.7.6"
 __all__ = [
     # Main API
     "subplots",
@@ -120,6 +143,21 @@ __all__ = [
     "crop",
     # Panel labels
     "panel_label",
+    # Composition
+    "compose",
+    "import_axes",
+    "hide_panel",
+    "show_panel",
+    "toggle_panel",
+    # Alignment
+    "AlignmentMode",
+    "align_panels",
+    "distribute_panels",
+    "smart_align",
+    # scitex.stats integration
+    "from_scitex_stats",
+    "annotate_from_stats",
+    "SCITEX_STATS_AVAILABLE",
     # Version
     "__version__",
 ]
@@ -430,71 +468,3 @@ def edit(
         open_browser=open_browser,
         hot_reload=hot_reload,
     )
-
-
-def panel_label(
-    ax,
-    label: str,
-    loc: str = "upper left",
-    fontsize: Optional[float] = None,
-    fontweight: str = "bold",
-    offset: Tuple[float, float] = (-0.1, 1.05),
-    **kwargs,
-):
-    """Add a panel label (A, B, C, ...) to an axes.
-
-    Parameters
-    ----------
-    ax : Axes or RecordingAxes
-        The axes to label.
-    label : str
-        The label text (e.g., 'A', 'B', 'a)', '(1)').
-    loc : str, optional
-        Label location: 'upper left', 'upper right', etc.
-    fontsize : float, optional
-        Font size in points.
-    fontweight : str, optional
-        Font weight (default: 'bold').
-    offset : tuple of float, optional
-        (x, y) offset in axes coordinates.
-    **kwargs
-        Additional arguments passed to ax.text().
-
-    Returns
-    -------
-    Text
-        The matplotlib Text object.
-    """
-    import matplotlib.pyplot as mpl_plt
-
-    from ._api._panel import calculate_panel_position, get_panel_label_fontsize
-
-    fontsize = get_panel_label_fontsize(fontsize)
-    x, y = calculate_panel_position(loc, offset)
-
-    default_color = mpl_plt.rcParams.get("text.color", "black")
-
-    text_kwargs = {
-        "fontsize": fontsize,
-        "fontweight": fontweight,
-        "color": default_color,
-        "transform": "axes",
-        "va": "bottom",
-        "ha": "right" if "right" in loc else "left",
-    }
-    text_kwargs.update(kwargs)
-
-    mpl_ax = ax._ax if hasattr(ax, "_ax") else ax
-
-    render_kwargs = text_kwargs.copy()
-    render_kwargs["transform"] = mpl_ax.transAxes
-
-    if hasattr(ax, "_recorder") and hasattr(ax, "_position"):
-        ax._recorder.record_call(
-            ax_position=ax._position,
-            method_name="text",
-            args=(x, y, label),
-            kwargs=text_kwargs,
-        )
-
-    return mpl_ax.text(x, y, label, **render_kwargs)

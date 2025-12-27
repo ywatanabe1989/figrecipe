@@ -42,7 +42,7 @@ class TestEditorHitDetection:
         assert len(critical) == 0, "Click errors:\n" + "\n".join(critical)
 
     def test_hitmap_loads_without_error(self, editor_server):
-        """Verify hitmap image loads correctly."""
+        """Verify hitmap endpoint returns valid JSON with image data."""
         from playwright.sync_api import sync_playwright
 
         js_errors: List[str] = []
@@ -57,9 +57,16 @@ class TestEditorHitDetection:
 
             response = page.request.get(f"{editor_server.url}/hitmap")
             assert response.ok, f"Hitmap request failed: {response.status}"
-            assert "image" in response.headers.get(
+            assert "application/json" in response.headers.get(
                 "content-type", ""
-            ), "Hitmap not an image"
+            ), "Hitmap endpoint should return JSON"
+
+            # Verify JSON structure
+            data = response.json()
+            assert "image" in data, "Response missing 'image' field"
+            assert "color_map" in data, "Response missing 'color_map' field"
+            # Check for valid PNG base64 (PNG signature starts with iVBOR)
+            assert data["image"].startswith("iVBOR"), "Invalid PNG base64 image"
 
             browser.close()
 
