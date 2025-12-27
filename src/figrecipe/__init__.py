@@ -61,6 +61,13 @@ from ._api._notebook import enable_svg
 
 # Seaborn proxy
 from ._api._seaborn_proxy import sns
+
+# scitex.stats integration
+from ._integrations import (
+    SCITEX_STATS_AVAILABLE,
+    annotate_from_stats,
+    from_scitex_stats,
+)
 from ._recorder import CallRecord, FigureRecord
 from ._reproducer import get_recipe_info
 from ._reproducer import reproduce as _reproduce
@@ -120,6 +127,10 @@ __all__ = [
     "crop",
     # Panel labels
     "panel_label",
+    # scitex.stats integration
+    "from_scitex_stats",
+    "annotate_from_stats",
+    "SCITEX_STATS_AVAILABLE",
     # Version
     "__version__",
 ]

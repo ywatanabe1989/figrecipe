@@ -15,6 +15,48 @@ from ._bbox import extract_bboxes
 from ._render_overrides import apply_dark_mode, apply_overrides
 
 
+def _restore_light_mode(fig) -> None:
+    """Restore light mode colors to figure (undo dark mode changes)."""
+    text_color = "black"
+
+    # Figure background (transparent)
+    fig.patch.set_facecolor("none")
+
+    # Figure-level text
+    if hasattr(fig, "_suptitle") and fig._suptitle is not None:
+        fig._suptitle.set_color(text_color)
+    if hasattr(fig, "_supxlabel") and fig._supxlabel is not None:
+        fig._supxlabel.set_color(text_color)
+    if hasattr(fig, "_supylabel") and fig._supylabel is not None:
+        fig._supylabel.set_color(text_color)
+
+    for ax in fig.get_axes():
+        # Axes background (transparent)
+        ax.set_facecolor("none")
+        # Text colors
+        ax.xaxis.label.set_color(text_color)
+        ax.yaxis.label.set_color(text_color)
+        ax.title.set_color(text_color)
+        ax.tick_params(colors=text_color)
+        # Spines
+        for spine in ax.spines.values():
+            spine.set_edgecolor(text_color)
+        # Text objects (panel labels, annotations)
+        for text in ax.texts:
+            text.set_color(text_color)
+        # Bracket lines (Line2D with clip_on=False)
+        for line in ax.get_lines():
+            if not line.get_clip_on():
+                line.set_color(text_color)
+        # Legend
+        legend = ax.get_legend()
+        if legend is not None:
+            legend.get_frame().set_facecolor("none")
+            legend.get_frame().set_edgecolor(text_color)
+            for text in legend.get_texts():
+                text.set_color(text_color)
+
+
 def render_preview(
     fig: RecordingFigure,
     overrides: Optional[Dict[str, Any]] = None,
@@ -54,9 +96,12 @@ def render_preview(
     if overrides:
         apply_overrides(mpl_fig, overrides, record)
 
-    # Apply dark mode if requested
+    # Apply dark mode if requested, or restore light mode colors
     if dark_mode:
         apply_dark_mode(mpl_fig)
+    else:
+        # Restore light mode colors (needed because figure is reused)
+        _restore_light_mode(mpl_fig)
 
     # Finalize ticks and special plots (must be done after all plotting)
     _finalize_figure(fig, mpl_fig)

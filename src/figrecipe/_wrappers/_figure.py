@@ -3,7 +3,7 @@
 """Wrapped Figure that manages recording."""
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -302,6 +302,31 @@ class RecordingFigure:
     def caption(self) -> Optional[str]:
         """Get the figure caption metadata."""
         return self._recorder.figure_record.caption
+
+    def set_stats(self, stats: Dict[str, Any]) -> "RecordingFigure":
+        """Set figure-level statistics metadata (not rendered, stored in recipe).
+
+        Parameters
+        ----------
+        stats : dict
+            Statistics dictionary (comparisons, summary, correction_method, alpha).
+        """
+        self._recorder.figure_record.stats = stats
+        return self
+
+    @property
+    def stats(self) -> Optional[Dict[str, Any]]:
+        """Get the figure-level statistics metadata."""
+        return self._recorder.figure_record.stats
+
+    def generate_caption(self, style: str = "publication", template: str = None) -> str:
+        """Generate caption from stored stats. Styles: publication, brief, detailed."""
+        from ._caption_generator import generate_figure_caption
+
+        panels = [ax.caption for ax in self.flat if ax.caption]
+        return generate_figure_caption(
+            self.title_metadata, panels, self.stats, style, template
+        )
 
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to underlying figure."""
