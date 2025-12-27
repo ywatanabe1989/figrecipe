@@ -217,6 +217,7 @@ class FigureEditor:
         from ._routes_datatable import register_datatable_routes
         from ._routes_element import register_element_routes
         from ._routes_image import register_image_routes
+        from ._routes_selection import register_selection_routes
 
         # DISABLED: Snapshot feature corrupts figure state via visibility changes
         # from ._routes_snapshot import register_snapshot_routes
@@ -238,6 +239,7 @@ class FigureEditor:
         register_element_routes(app, self)
         register_image_routes(app, self)
         register_datatable_routes(app, self)
+        register_selection_routes(app, self)
         # DISABLED: register_snapshot_routes(app, self)
 
         # Start server
