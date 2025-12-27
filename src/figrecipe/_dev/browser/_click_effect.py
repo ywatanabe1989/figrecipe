@@ -40,7 +40,7 @@ CLICK_EFFECT_JS = """
 
     // Initialize click sound audio element
     if (!window._demoClickAudio) {
-        window._demoClickAudio = new Audio('/static/click.mp3');
+        window._demoClickAudio = new Audio('/static/audio/click.mp3');
         window._demoClickAudio.volume = 0.15;
     }
 

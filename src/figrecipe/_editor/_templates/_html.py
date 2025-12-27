@@ -10,7 +10,10 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>figrecipe Editor</title>
+    <title>FigRecipe Editor</title>
+    <link rel="icon" type="image/x-icon" href="/static/icons/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/static/icons/scitex-icon.png">
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         /* STYLES_PLACEHOLDER */
