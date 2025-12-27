@@ -2,6 +2,7 @@
 
 PYTHON := python3
 PIP := pip3
+PORT ?= 5050
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
@@ -18,8 +19,9 @@ help:
 	@echo "  make lint-fix      Run linter with auto-fix"
 	@echo "  make format        Format code"
 	@echo "  make pre-commit    Install pre-commit hooks"
-	@echo "  make gui           Launch GUI editor demo"
-	@echo "  make gui-periodic  Launch GUI editor with 60s auto-restart"
+	@echo "  make gui           Launch GUI editor demo (PORT=5050 by default)"
+	@echo "  make gui PORT=5051 Launch GUI editor on custom port"
+	@echo "  make gui-periodic  Launch GUI editor with 60s auto-restart (supports PORT=)"
 
 install:
 	$(PIP) install -e .
@@ -68,17 +70,17 @@ pre-commit:
 	pre-commit install
 
 gui:
-	$(PYTHON) examples/demo_editor.py
+	$(PYTHON) examples/demo_editor.py $(PORT)
 
 gui-browser:
-	@echo "Starting editor and opening in Windows Chrome..."
-	@$(PYTHON) examples/demo_editor.py & \
+	@echo "Starting editor and opening in Windows Chrome on port $(PORT)..."
+	@$(PYTHON) examples/demo_editor.py $(PORT) & \
 	sleep 3 && \
-	(cmd.exe /c start chrome http://127.0.0.1:5050 2>/dev/null || \
-	 "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" http://127.0.0.1:5050 2>/dev/null || \
-	 wslview http://127.0.0.1:5050 2>/dev/null || \
-	 echo "Could not open browser. Please open http://127.0.0.1:5050 manually") && \
+	(cmd.exe /c start chrome http://127.0.0.1:$(PORT) 2>/dev/null || \
+	 "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" http://127.0.0.1:$(PORT) 2>/dev/null || \
+	 wslview http://127.0.0.1:$(PORT) 2>/dev/null || \
+	 echo "Could not open browser. Please open http://127.0.0.1:$(PORT) manually") && \
 	wait
 
 gui-periodic:
-	./scripts/gui_periodic.sh 60
+	./scripts/gui_periodic.sh 60 $(PORT)
