@@ -19,7 +19,7 @@ from figrecipe._dev.browser import DemoRecorder
 class DatatableDemo(DemoRecorder):
     """Demo showing datatable import and plot creation."""
 
-    title = "Import Data and Create Plots"
+    title = "Data Import and Plot Creation"
     demo_id = "03"
     duration_target = 15
     url = "http://127.0.0.1:5050"

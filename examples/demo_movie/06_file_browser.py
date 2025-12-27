@@ -19,7 +19,7 @@ from figrecipe._dev.browser import DemoRecorder
 class FileBrowserDemo(DemoRecorder):
     """Demo showing file browser functionality."""
 
-    title = "Manage Recipe Files"
+    title = "Recipe File Management"
     demo_id = "06"
     duration_target = 12
     url = "http://127.0.0.1:5050"
