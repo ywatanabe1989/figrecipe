@@ -275,9 +275,9 @@ class DemoRecorder(ABC):
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=self.headless)
             context = await browser.new_context(
-                viewport={"width": 1280, "height": 720},
+                viewport={"width": 1920, "height": 1080},
                 record_video_dir=str(self.output_dir),
-                record_video_size={"width": 1280, "height": 720},
+                record_video_size={"width": 1920, "height": 1080},
             )
             page = await context.new_page()
 
@@ -287,10 +287,10 @@ class DemoRecorder(ABC):
 
                 # Wait for preview image to load (avoids white screen at start)
                 try:
-                    await page.wait_for_selector("#preview-image", timeout=5000)
+                    await page.wait_for_selector("#preview-image", timeout=10000)
                 except Exception:
                     pass  # Continue even if selector not found
-                await asyncio.sleep(0.5)  # Extra stabilization
+                await asyncio.sleep(1.5)  # Extra stabilization for full render
 
                 # Setup visual effects
                 await self._setup_page(page)
@@ -315,6 +315,9 @@ class DemoRecorder(ABC):
                 # Show closing branding screen
                 await self.closing_screen(duration=2.0)
 
+                # Wait to ensure closing screen is captured
+                await asyncio.sleep(0.5)
+
                 # Cleanup
                 await self._cleanup_page(page)
 
@@ -322,10 +325,35 @@ class DemoRecorder(ABC):
                 await context.close()
                 await browser.close()
 
-            # Get recorded video path and rename
+            # Get recorded video path (webm) and convert to mp4
             video_path = await page.video.path()
             if video_path and Path(video_path).exists():
-                Path(video_path).rename(mp4_path)
+                # Convert VP8/webm to H.264/mp4 for compatibility
+                import subprocess
+
+                webm_path = Path(video_path)
+                try:
+                    subprocess.run(
+                        [
+                            "ffmpeg",
+                            "-y",
+                            "-i",
+                            str(webm_path),
+                            "-c:v",
+                            "libx264",
+                            "-preset",
+                            "fast",
+                            "-crf",
+                            "23",
+                            str(mp4_path),
+                        ],
+                        check=True,
+                        capture_output=True,
+                    )
+                    webm_path.unlink()  # Remove original webm
+                except subprocess.CalledProcessError:
+                    # Fallback: just rename if ffmpeg fails
+                    webm_path.rename(mp4_path)
 
         print(f"Recorded: {mp4_path}")
         return mp4_path
