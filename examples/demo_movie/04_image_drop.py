@@ -19,7 +19,7 @@ from figrecipe._dev.browser import DemoRecorder
 class ImageDropDemo(DemoRecorder):
     """Demo showing image drop functionality."""
 
-    title = "Drop Images onto Canvas"
+    title = "Image Drop Support"
     demo_id = "04"
     duration_target = 12
     url = "http://127.0.0.1:5050"

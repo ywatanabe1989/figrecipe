@@ -20,7 +20,7 @@ from figrecipe._dev.browser import DemoRecorder
 class DarkModeDemo(DemoRecorder):
     """Demo showing how to toggle dark mode in the editor."""
 
-    title = "Enable Dark Mode"
+    title = "Dark Mode Toggle"
     demo_id = "01"
     duration_target = 8
     url = "http://127.0.0.1:5050"

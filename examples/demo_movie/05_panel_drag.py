@@ -20,7 +20,7 @@ from figrecipe._dev.browser import DemoRecorder
 class PanelDragDemo(DemoRecorder):
     """Demo showing panel drag functionality."""
 
-    title = "Drag Panels to Rearrange"
+    title = "Panel Drag Rearrangement"
     demo_id = "05"
     duration_target = 12
     url = "http://127.0.0.1:5050"
