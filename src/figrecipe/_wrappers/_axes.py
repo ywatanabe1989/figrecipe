@@ -82,15 +82,26 @@ class RecordingAxes:
         """Create a wrapper function that records the call."""
         from ._axes_helpers import record_call_with_color_capture
 
-        def wrapper(*args, id: Optional[str] = None, track: bool = True, **kwargs):
+        def wrapper(
+            *args,
+            id: Optional[str] = None,
+            track: bool = True,
+            stats: Optional[Dict[str, Any]] = None,
+            **kwargs,
+        ):
+            # Call matplotlib method (without stats - it's metadata only)
             result = method(*args, **kwargs)
             if self._track and track:
+                # Re-add stats to kwargs for recording
+                record_kwargs = kwargs.copy()
+                if stats is not None:
+                    record_kwargs["stats"] = stats
                 record_call_with_color_capture(
                     self._recorder,
                     self._position,
                     method_name,
                     args,
-                    kwargs,
+                    record_kwargs,
                     result,
                     id,
                     self._result_refs,
@@ -133,6 +144,48 @@ class RecordingAxes:
         """Get the panel caption metadata."""
         ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
         return ax_record.caption
+
+    def set_stats(self, stats: Dict[str, Any]) -> "RecordingAxes":
+        """Set panel-level statistics metadata (not rendered, stored in recipe).
+
+        This is for storing statistical summary or comparison results
+        for this panel/axis, such as group means, sample sizes, or
+        comparison p-values.
+
+        Parameters
+        ----------
+        stats : dict
+            Statistics dictionary. Common keys include:
+            - n: sample size
+            - mean: mean value
+            - std: standard deviation
+            - sem: standard error of the mean
+            - comparisons: list of comparison results
+
+        Returns
+        -------
+        RecordingAxes
+            Self for method chaining.
+
+        Examples
+        --------
+        >>> fig, axes = fr.subplots(1, 2)
+        >>> axes[0].set_stats({"n": 50, "mean": 3.2, "std": 1.1})
+        >>> axes[1].set_stats({
+        ...     "n": 48,
+        ...     "mean": 5.1,
+        ...     "comparisons": [{"vs": "control", "p_value": 0.003}]
+        ... })
+        """
+        ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+        ax_record.stats = stats
+        return self
+
+    @property
+    def stats(self) -> Optional[Dict[str, Any]]:
+        """Get the panel-level statistics metadata."""
+        ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+        return ax_record.stats
 
     def no_record(self):
         """Context manager to temporarily disable recording.
@@ -332,6 +385,101 @@ class RecordingAxes:
         """Get the panel caption metadata."""
         ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
         return ax_record.caption
+
+    def generate_panel_caption(
+        self, label: Optional[str] = None, style: str = "publication"
+    ) -> str:
+        """Generate a caption for this panel from stats metadata."""
+        from ._caption_generator import generate_panel_caption
+
+        return generate_panel_caption(label=label, stats=self.stats, style=style)
+
+    def add_stat_annotation(
+        self,
+        x1: float,
+        x2: float,
+        p_value: Optional[float] = None,
+        text: Optional[str] = None,
+        y: Optional[float] = None,
+        style: str = "stars",
+        bracket_height: Optional[float] = None,
+        text_offset: Optional[float] = None,
+        color: Optional[str] = None,
+        linewidth: Optional[float] = None,
+        fontsize: Optional[float] = None,
+        fontweight: Optional[str] = None,
+        id: Optional[str] = None,
+        track: bool = True,
+        **kwargs,
+    ):
+        """Add a statistical comparison annotation (bracket with stars/p-value).
+
+        Parameters
+        ----------
+        x1, x2 : float
+            X positions of the two groups being compared.
+        p_value : float, optional
+            P-value for automatic star conversion.
+        text : str, optional
+            Custom text (overrides p_value formatting).
+        y : float, optional
+            Y position for bracket (auto-calculated if None).
+        style : str
+            "stars", "p_value", "both", or "bracket_only".
+        """
+        from ._stat_annotation import draw_stat_annotation
+
+        # Draw the annotation
+        artists = draw_stat_annotation(
+            self._ax,
+            x1,
+            x2,
+            y=y,
+            text=text,
+            p_value=p_value,
+            style=style,
+            bracket_height=bracket_height,
+            text_offset=text_offset,
+            color=color,
+            linewidth=linewidth,
+            fontsize=fontsize,
+            fontweight=fontweight,
+            **kwargs,
+        )
+
+        # Record if tracking
+        if self._track and track:
+            call_id = id if id else self._recorder._generate_call_id("stat_annotation")
+            record_kwargs = {
+                "x1": x1,
+                "x2": x2,
+                "p_value": p_value,
+                "text": text,
+                "y": y,
+                "style": style,
+                "bracket_height": bracket_height,
+                "text_offset": text_offset,
+                "color": color,
+                "linewidth": linewidth,
+                "fontsize": fontsize,
+            }
+            record_kwargs.update(kwargs)
+            # Remove None values
+            record_kwargs = {k: v for k, v in record_kwargs.items() if v is not None}
+
+            from .._recorder import CallRecord
+
+            record = CallRecord(
+                id=call_id,
+                function="stat_annotation",
+                args=[],
+                kwargs=record_kwargs,
+                ax_position=self._position,
+            )
+            ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+            ax_record.add_decoration(record)
+
+        return artists
 
 
 class _NoRecordContext:
