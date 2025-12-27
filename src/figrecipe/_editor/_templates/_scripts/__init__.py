@@ -39,6 +39,7 @@ from ._legend_drag import SCRIPTS_LEGEND_DRAG
 from ._modals import SCRIPTS_MODALS
 from ._overlays import SCRIPTS_OVERLAYS
 from ._panel_drag import SCRIPTS_PANEL_DRAG
+from ._panel_drag_snapshot import SCRIPTS_PANEL_DRAG_SNAPSHOT
 from ._panel_position import SCRIPTS_PANEL_POSITION
 from ._panel_snap import SCRIPTS_PANEL_SNAP
 from ._selection import SCRIPTS_SELECTION
@@ -67,6 +68,7 @@ SCRIPTS = (
     + SCRIPTS_FILES
     + SCRIPTS_PANEL_POSITION
     + SCRIPTS_PANEL_SNAP
+    + SCRIPTS_PANEL_DRAG_SNAPSHOT
     + SCRIPTS_PANEL_DRAG
     + SCRIPTS_LEGEND_DRAG
     + SCRIPTS_IMAGE_DROP
@@ -97,6 +99,7 @@ def get_all_scripts():
         "modals": SCRIPTS_MODALS,
         "overlays": SCRIPTS_OVERLAYS,
         "panel_drag": SCRIPTS_PANEL_DRAG,
+        "panel_drag_snapshot": SCRIPTS_PANEL_DRAG_SNAPSHOT,
         "panel_position": SCRIPTS_PANEL_POSITION,
         "panel_snap": SCRIPTS_PANEL_SNAP,
         "selection": SCRIPTS_SELECTION,
@@ -123,6 +126,7 @@ __all__ = [
     "SCRIPTS_MODALS",
     "SCRIPTS_OVERLAYS",
     "SCRIPTS_PANEL_DRAG",
+    "SCRIPTS_PANEL_DRAG_SNAPSHOT",
     "SCRIPTS_PANEL_POSITION",
     "SCRIPTS_PANEL_SNAP",
     "SCRIPTS_SELECTION",

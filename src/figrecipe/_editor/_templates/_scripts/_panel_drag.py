@@ -162,6 +162,11 @@ function handlePanelDragStart(event) {
             console.warn('[PanelDrag] Overlay still null after creation attempt');
         }
 
+        // Create and show panel snapshot for visual feedback
+        if (typeof startSnapshotDrag === 'function') {
+            startSnapshotDrag(panelIndex, rect);
+        }
+
         // Change cursor
         document.body.style.cursor = 'move';
 
@@ -313,6 +318,11 @@ function handlePanelDragMove(event) {
     // Update visual overlay
     updateDragOverlayMm(newPos, rect);
 
+    // Update snapshot position
+    if (typeof updateSnapshotPosition === 'function') {
+        updateSnapshotPosition(newPos, rect);
+    }
+
     // Show/hide alignment guides
     if (typeof showSnapGuides === 'function') {
         showSnapGuides(snapResult.guides, rect);
@@ -343,10 +353,13 @@ async function handlePanelDragEnd(event) {
     console.log('[PanelDrag] handlePanelDragEnd called, isDraggingPanel:', isDraggingPanel);
     if (!isDraggingPanel) return;
 
-    // Hide overlay and snap guides
+    // Hide overlay, snapshot, and snap guides
     if (panelDragOverlay) {
         panelDragOverlay.style.display = 'none';
         console.log('[PanelDrag] Overlay hidden');
+    }
+    if (typeof endSnapshotDrag === 'function') {
+        endSnapshotDrag();
     }
     if (typeof hideSnapGuides === 'function') {
         hideSnapGuides();
