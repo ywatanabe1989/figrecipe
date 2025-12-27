@@ -8,10 +8,96 @@ SCRIPTS_FILES = """
 
 let currentFilePath = null;
 let fileBrowserCollapsed = false;
+let expandedFolders = new Set();
+
+// Load expanded state from localStorage
+function loadExpandedState() {
+    try {
+        const saved = localStorage.getItem('figrecipe-expanded-folders');
+        if (saved) {
+            expandedFolders = new Set(JSON.parse(saved));
+        }
+    } catch (e) {
+        console.warn('[FileBrowser] Failed to load expanded state:', e);
+    }
+}
+
+// Save expanded state to localStorage
+function saveExpandedState() {
+    try {
+        localStorage.setItem('figrecipe-expanded-folders', JSON.stringify([...expandedFolders]));
+    } catch (e) {
+        console.warn('[FileBrowser] Failed to save expanded state:', e);
+    }
+}
+
+// Toggle folder expand/collapse
+function toggleFolder(folderPath) {
+    if (expandedFolders.has(folderPath)) {
+        expandedFolders.delete(folderPath);
+    } else {
+        expandedFolders.add(folderPath);
+    }
+    saveExpandedState();
+
+    // Update DOM
+    const folderEl = document.querySelector(`.file-tree-folder[data-path="${folderPath}"]`);
+    if (folderEl) {
+        folderEl.classList.toggle('expanded', expandedFolders.has(folderPath));
+    }
+}
+
+// Render a tree item (file or folder)
+function renderTreeItem(item, level = 0) {
+    const indent = level * 16; // 16px per level
+
+    if (item.type === 'directory') {
+        const isExpanded = expandedFolders.has(item.path);
+        const expandedClass = isExpanded ? ' expanded' : '';
+
+        let childrenHtml = '';
+        if (item.children && item.children.length > 0) {
+            childrenHtml = item.children.map(child => renderTreeItem(child, level + 1)).join('');
+        }
+
+        return `<li class="file-tree-folder${expandedClass}" data-path="${item.path}">
+            <div class="file-tree-entry" data-path="${item.path}" data-type="folder" style="padding-left: ${12 + indent}px;">
+                <span class="file-tree-icon">📁</span>
+                <span class="file-tree-name">${item.name}</span>
+                <span class="file-tree-badge folder-badge">${item.children ? item.children.length : 0}</span>
+            </div>
+            <ul class="file-tree-children">
+                ${childrenHtml}
+            </ul>
+        </li>`;
+    } else {
+        // File item
+        const isCurrent = item.is_current;
+        const currentClass = isCurrent ? ' current' : '';
+        const hasImageClass = item.has_image ? ' has-image' : '';
+        const icon = item.has_image ? '📊' : '📄';
+        const badge = item.has_image ? '<span class="file-tree-badge">PNG</span>' : '';
+
+        return `<li class="file-tree-item">
+            <div class="file-tree-entry${currentClass}${hasImageClass}" data-path="${item.path}" data-type="file" style="padding-left: ${12 + indent}px;">
+                <span class="file-tree-icon">${icon}</span>
+                <span class="file-tree-name">${item.name}</span>
+                ${badge}
+                <span class="file-tree-actions">
+                    <button class="file-action-btn btn-rename" data-path="${item.path}" title="Rename">✏️</button>
+                    <button class="file-action-btn btn-delete" data-path="${item.path}" title="Delete">🗑️</button>
+                </span>
+            </div>
+        </li>`;
+    }
+}
 
 async function loadFileList() {
     const fileTree = document.getElementById('file-tree');
     if (!fileTree) return;
+
+    // Load saved expanded state
+    loadExpandedState();
 
     try {
         const response = await fetch('/api/files');
@@ -21,6 +107,7 @@ async function loadFileList() {
         }
 
         const data = await response.json();
+        const tree = data.tree || [];
         const files = data.files || [];
         currentFilePath = data.current_file;
 
@@ -30,7 +117,7 @@ async function loadFileList() {
         // Show unsaved figure entry when no current file path (new/unsaved figure)
         if (!currentFilePath) {
             treeHtml += `<li class="file-tree-item">
-                <div class="file-tree-entry current" data-path="">
+                <div class="file-tree-entry current" data-path="" data-type="file">
                     <span class="file-tree-icon">✨</span>
                     <span class="file-tree-name">(Unsaved figure)</span>
                 </div>
@@ -38,34 +125,30 @@ async function loadFileList() {
         }
 
         // Show empty state only if no unsaved figure AND no files
-        if (files.length === 0 && currentFilePath !== null) {
+        if (tree.length === 0 && files.length === 0 && currentFilePath !== null) {
             fileTree.innerHTML = '<li class="file-tree-empty"><p>No recipe files</p><p>Create one with figrecipe.subplots()</p></li>';
             return;
         }
 
-        files.forEach(file => {
-            const isCurrent = file.is_current;
-            const currentClass = isCurrent ? ' current' : '';
-            const hasImageClass = file.has_image ? ' has-image' : '';
-            const icon = file.has_image ? '📊' : '📄';
-            const badge = file.has_image ? '<span class="file-tree-badge">PNG</span>' : '';
-            treeHtml += `<li class="file-tree-item">
-                <div class="file-tree-entry${currentClass}${hasImageClass}" data-path="${file.path}">
-                    <span class="file-tree-icon">${icon}</span>
-                    <span class="file-tree-name">${file.name}</span>
-                    ${badge}
-                    <span class="file-tree-actions">
-                        <button class="file-action-btn btn-rename" data-path="${file.path}" title="Rename">✏️</button>
-                        <button class="file-action-btn btn-delete" data-path="${file.path}" title="Delete">🗑️</button>
-                    </span>
-                </div>
-            </li>`;
+        // Render tree structure
+        tree.forEach(item => {
+            treeHtml += renderTreeItem(item, 0);
         });
 
         fileTree.innerHTML = treeHtml;
 
+        // Add click handlers for folder entries (expand/collapse)
+        fileTree.querySelectorAll('.file-tree-folder > .file-tree-entry').forEach(entry => {
+            entry.addEventListener('click', (e) => {
+                const folderPath = entry.dataset.path;
+                if (folderPath !== undefined) {
+                    toggleFolder(folderPath);
+                }
+            });
+        });
+
         // Add click handlers for file entries
-        fileTree.querySelectorAll('.file-tree-entry').forEach(entry => {
+        fileTree.querySelectorAll('.file-tree-entry[data-type="file"]').forEach(entry => {
             entry.addEventListener('click', (e) => {
                 // Don't switch if clicking action buttons
                 if (e.target.closest('.file-action-btn')) return;
@@ -92,7 +175,7 @@ async function loadFileList() {
             });
         });
 
-        console.log('[FileBrowser] Loaded', files.length, 'files');
+        console.log('[FileBrowser] Loaded', files.length, 'files in', tree.length, 'root items');
 
     } catch (error) {
         console.error('[FileBrowser] Error loading files:', error);
