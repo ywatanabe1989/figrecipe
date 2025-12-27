@@ -35,10 +35,10 @@ def load_demo_class(demo_file: str, class_name: str):
 DEMO_REGISTRY = {
     "01": ("01_enable_dark_mode.py", "DarkModeDemo"),
     "02": ("02_change_color.py", "ChangeColorDemo"),
-    # Add more demos here as they are created:
-    # "03": ("03_panel_drag.py", "PanelDragDemo"),
-    # "04": ("04_legend_move.py", "LegendMoveDemo"),
-    # etc.
+    "03": ("03_datatable_import.py", "DatatableDemo"),
+    "04": ("04_image_drop.py", "ImageDropDemo"),
+    "05": ("05_panel_drag.py", "PanelDragDemo"),
+    "06": ("06_file_browser.py", "FileBrowserDemo"),
 }
 
 OUTPUT_DIR = Path(__file__).parent / "outputs"
