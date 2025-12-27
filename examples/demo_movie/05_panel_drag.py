@@ -27,6 +27,8 @@ class PanelDragDemo(DemoRecorder):
 
     async def run(self, page):
         """Execute demo actions."""
+        from figrecipe._dev.browser._cursor import move_cursor_to
+
         # Show intro
         await self.caption("Drag panels to rearrange figure layout")
         await self.wait(1.5)
@@ -37,24 +39,32 @@ class PanelDragDemo(DemoRecorder):
 
         if box:
             # Calculate position for panel at row 1, col 1 (imshow)
-            # Grid is 3x3, so panel 4 is at (1,1)
-            panel_x = box["x"] + box["width"] * 0.5  # center column
-            panel_y = box["y"] + box["height"] * 0.5  # center row
+            panel_x = box["x"] + box["width"] * 0.5
+            panel_y = box["y"] + box["height"] * 0.5
 
             await self.caption("Click and drag any panel")
+
+            # Move visual cursor AND actual mouse together
+            await move_cursor_to(page, panel_x, panel_y, 600)
             await page.mouse.move(panel_x, panel_y)
             await self.wait(0.5)
 
-            # Simulate drag motion
+            # Mouse down to start drag
             await page.mouse.down()
             await self.wait(0.3)
 
-            # Drag to new position
-            new_x = panel_x + 50
-            new_y = panel_y + 30
-            await page.mouse.move(new_x, new_y, steps=10)
-            await self.wait(0.5)
+            # Drag to new position - animate both cursor and mouse
+            new_x = panel_x + 100
+            new_y = panel_y + 60
+            steps = 20
+            for i in range(steps + 1):
+                progress = i / steps
+                curr_x = panel_x + (new_x - panel_x) * progress
+                curr_y = panel_y + (new_y - panel_y) * progress
+                await page.mouse.move(curr_x, curr_y)
+                await move_cursor_to(page, curr_x, curr_y, 30)
 
+            await self.wait(0.3)
             await self.caption("Panels snap to grid and edges")
             await self.wait(1.0)
 

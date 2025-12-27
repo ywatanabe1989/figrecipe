@@ -13,6 +13,7 @@ Features:
 - Video/GIF recording
 """
 
+from ._audio import generate_tts_segments, mix_narration_with_bgm
 from ._caption import hide_caption, show_caption, show_title_screen
 from ._click_effect import inject_click_effect, remove_click_effect
 from ._cursor import (
@@ -22,6 +23,12 @@ from ._cursor import (
     remove_cursor,
 )
 from ._highlight import highlight_element
+from ._narration import (
+    add_narration_to_video,
+    estimate_caption_times,
+    extract_captions_from_script,
+    get_video_duration,
+)
 from ._recorder import DemoRecorder
 from ._utils import concatenate_videos, convert_to_gif
 from ._video_trim import (
@@ -51,6 +58,12 @@ __all__ = [
     "detect_markers",
     "trim_video_by_markers",
     "process_video_with_markers",
+    "generate_tts_segments",
+    "mix_narration_with_bgm",
+    "extract_captions_from_script",
+    "get_video_duration",
+    "estimate_caption_times",
+    "add_narration_to_video",
 ]
 
 # EOF

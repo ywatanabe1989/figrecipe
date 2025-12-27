@@ -105,10 +105,10 @@ def add_narration_to_video(
     bgm_path: Path,
     tts_cache_dir: Path,
     title_text: str = "",
-    bgm_volume: float = 0.12,
+    bgm_volume: float = 0.08,
     narration_delay: float = 0.2,
     fade_in_duration: float = 0.5,
-    fade_out_duration: float = 1.0,
+    fade_out_duration: float = 2.0,
     verbose: bool = True,
 ) -> Tuple[bool, Dict]:
     """Add TTS narration and BGM to a video.

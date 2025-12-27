@@ -225,8 +225,11 @@ class FigureEditor:
         # Defer hitmap generation until first request (lazy loading)
         self._hitmap_generated = self._hitmap_base64 is not None
 
-        # Create Flask app
-        app = Flask(__name__)
+        # Create Flask app with static folder for assets (click sounds, etc.)
+        static_folder = Path(__file__).parent / "static"
+        app = Flask(
+            __name__, static_folder=str(static_folder), static_url_path="/static"
+        )
 
         # Register all routes
         register_core_routes(app, self)
