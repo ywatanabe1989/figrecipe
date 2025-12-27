@@ -25,7 +25,7 @@ _SERVER_START_TIME = datetime.now().strftime("%H:%M:%S")
 
 # Load SciTeX icon as base64
 _SCITEX_ICON_PATH = (
-    Path(__file__).parent.parent.parent.parent.parent / "docs" / "scitex-icon.png"
+    Path(__file__).parent.parent / "static" / "icons" / "scitex-icon.png"
 )
 _SCITEX_ICON_BASE64 = ""
 if _SCITEX_ICON_PATH.exists():
