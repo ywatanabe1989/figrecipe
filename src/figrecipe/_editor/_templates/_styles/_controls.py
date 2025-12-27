@@ -13,29 +13,127 @@ STYLES_CONTROLS = """
 /* Controls Panel */
 .controls-panel {
     width: 350px;
+    min-width: 280px;
+    max-width: 500px;
     display: flex;
     flex-direction: column;
     background: var(--bg-primary);
     overflow: hidden;
+    position: relative;
+    border-left: 1px solid var(--border-color);
+    transition: width 0.2s ease-out, min-width 0.2s ease-out;
+    order: 20;  /* Always stay at far right */
+}
+
+.controls-panel.collapsed {
+    width: 42px;
+    min-width: 42px;
+}
+
+.controls-panel.collapsed .controls-sections,
+.controls-panel.collapsed .style-info,
+.controls-panel.collapsed .override-status,
+.controls-panel.collapsed #theme-modal,
+.controls-panel.collapsed #shortcuts-modal,
+.controls-panel.collapsed .properties-resize {
+    display: none;
+}
+
+.controls-panel.collapsed .controls-header {
+    flex-direction: column;
+    padding: 10px 6px;
+    gap: 8px;
+}
+
+.controls-panel.collapsed .controls-header .header-title {
+    justify-content: center;
+}
+
+.controls-panel.collapsed .controls-header h2 {
+    display: none;
+}
+
+.controls-panel.collapsed .controls-actions {
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.controls-panel.collapsed .controls-actions {
+    display: none;
+}
+
+/* Flip collapse button when collapsed (now points left to expand) */
+.controls-panel.collapsed .header-title .btn-collapse {
+    transform: rotate(180deg);
+}
+
+/* Properties resize handle */
+.properties-resize {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.properties-resize:hover,
+.properties-resize.resizing {
+    background: var(--accent-color);
 }
 
 .controls-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: var(--bg-secondary);
+    padding: 0 12px;
+    height: var(--panel-header-height);
+    min-height: var(--panel-header-height);
+    background: var(--panel-header-bg);
     border-bottom: 1px solid var(--border-color);
+}
+
+.controls-header .header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.controls-header .header-title .btn-collapse {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.controls-header .header-title .btn-collapse:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .controls-header h2 {
     font-size: 16px;
     font-weight: 600;
+    margin: 0;
 }
 
 .controls-actions {
     display: flex;
     gap: 8px;
+    align-items: center;
 }
 
 .controls-sections {

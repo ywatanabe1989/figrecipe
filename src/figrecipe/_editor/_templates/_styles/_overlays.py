@@ -96,13 +96,13 @@ STYLES_OVERLAYS = """
 
 /* Column guide styles */
 .column-line {
-    stroke: #22cc22;
+    stroke: #2e8b57;
     stroke-width: 2;
     stroke-dasharray: 8, 4;
 }
 
 .column-text {
-    fill: #22cc22;
+    fill: #2e8b57;
     font-size: 12px;
     font-family: monospace;
     font-weight: bold;
@@ -113,11 +113,11 @@ STYLES_OVERLAYS = """
 }
 
 [data-theme="dark"] .column-line {
-    stroke: #44ff44;
+    stroke: #66c68a;
 }
 
 [data-theme="dark"] .column-text {
-    fill: #44ff44;
+    fill: #66c68a;
 }
 
 [data-theme="dark"] .column-bg {

@@ -32,8 +32,10 @@ STYLES_FILE_BROWSER = """
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
-    background: var(--bg-tertiary);
+    padding: 0 10px;
+    height: var(--panel-header-height);
+    min-height: var(--panel-header-height);
+    background: var(--panel-header-bg);
     border-bottom: 1px solid var(--border-color);
     font-size: 11px;
     font-weight: 600;
@@ -88,12 +90,17 @@ STYLES_FILE_BROWSER = """
 }
 
 .file-browser-panel.collapsed .file-browser-actions {
+    display: flex;
+}
+
+.file-browser-panel.collapsed .file-browser-actions button:not(.btn-collapse) {
     display: none;
 }
 
-/* Keep collapse button visible when collapsed */
+/* Flip collapse button when collapsed (now points right to expand) */
 .file-browser-panel.collapsed .btn-collapse {
     display: flex;
+    transform: rotate(180deg);
 }
 
 .file-browser-actions button {

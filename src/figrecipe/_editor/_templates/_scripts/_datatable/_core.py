@@ -13,34 +13,9 @@ let datatableTargetAxis = null;  // null = new figure, 0+ = existing axis index
 let datatableVarAssignments = {};  // Variable name -> column index mapping
 
 // ============================================================================
-// Panel Toggle
+// Panel Initialization
 // ============================================================================
-function toggleDatatablePanel() {
-    const panel = document.getElementById('datatable-panel');
-    if (panel) {
-        panel.classList.toggle('expanded');
-        localStorage.setItem('figrecipe_datatable_expanded', panel.classList.contains('expanded'));
-    }
-}
-
 function initDatatablePanel() {
-    const panel = document.getElementById('datatable-panel');
-    const toggleBtn = document.getElementById('datatable-toggle');
-    const closeBtn = document.getElementById('btn-close-datatable');
-
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', toggleDatatablePanel);
-    }
-    if (closeBtn) {
-        closeBtn.addEventListener('click', toggleDatatablePanel);
-    }
-
-    // Restore expanded state from localStorage
-    const wasExpanded = localStorage.getItem('figrecipe_datatable_expanded');
-    if (wasExpanded === 'true' && panel) {
-        panel.classList.add('expanded');
-    }
-
     // Initialize sub-modules
     initDatatableDropzone();
     initPlotTypeButtons();
