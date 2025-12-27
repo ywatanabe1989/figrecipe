@@ -230,6 +230,28 @@ class DemoRecorder(ABC):
         gif_path = self.output_dir / f"{filename}.gif"
         return mp4_path, gif_path
 
+    def _get_version_from_pyproject(self) -> str:
+        """Get version from pyproject.toml instead of installed package.
+
+        Returns
+        -------
+        str
+            Version string (e.g., "0.8.0").
+        """
+        import re
+
+        # Find pyproject.toml by traversing up from this file
+        current = Path(__file__).resolve()
+        for _ in range(10):  # Max 10 levels up
+            pyproject = current / "pyproject.toml"
+            if pyproject.exists():
+                content = pyproject.read_text()
+                match = re.search(r'^version\s*=\s*"([^"]+)"', content, re.MULTILINE)
+                if match:
+                    return match.group(1)
+            current = current.parent
+        return "0.0.0"  # Fallback
+
     async def _setup_page(self, page) -> None:
         """Setup page with visual effects.
 
@@ -258,6 +280,9 @@ class DemoRecorder(ABC):
     async def record(self) -> Path:
         """Record the demo and save video.
 
+        Uses visual markers (yellow flash) to reliably detect
+        content start/end for trimming, regardless of page load time.
+
         Returns
         -------
         Path
@@ -270,7 +295,15 @@ class DemoRecorder(ABC):
                 "Playwright not installed. Install with: pip install playwright && playwright install chromium"
             )
 
-        mp4_path, gif_path = self._get_output_paths()
+        from datetime import datetime
+
+        from ._video_trim import (
+            inject_end_marker,
+            inject_start_marker,
+            process_video_with_markers,
+        )
+
+        mp4_path, _ = self._get_output_paths()
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=self.headless)
@@ -285,38 +318,57 @@ class DemoRecorder(ABC):
                 # Navigate to URL (fresh load resets state)
                 await page.goto(self.url, wait_until="networkidle")
 
-                # Wait for preview image to load (avoids white screen at start)
+                # Wait for preview image to load
                 try:
                     await page.wait_for_selector("#preview-image", timeout=10000)
                 except Exception:
                     pass  # Continue even if selector not found
-                await asyncio.sleep(1.5)  # Extra stabilization for full render
 
-                # Setup visual effects
-                await self._setup_page(page)
+                # Wait for video recording to stabilize
+                # Playwright needs time to start capturing frames
+                await asyncio.sleep(1.0)
 
-                # Show title screen with blur overlay
-                from datetime import datetime
+                # Get version and timestamp for markers
+                version = self._get_version_from_pyproject()
+                timestamp_str = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-                import figrecipe
-
-                version = figrecipe.__version__
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+                # === START MARKER === (dark frame with OCR metadata)
+                # Duration 500ms = ~8 frames at 15fps for reliable detection
+                await inject_start_marker(
+                    page,
+                    version=f"figrecipe v{version}",
+                    timestamp=timestamp_str,
+                    duration_ms=500,
+                )
+                # Brief pause after marker
+                await asyncio.sleep(0.2)
+                self._page = page
                 await self.title_screen(
                     title=self.title,
                     subtitle=f"figrecipe v{version}",
-                    timestamp=timestamp,
+                    timestamp=timestamp_str,
                     duration=2.0,
                 )
+
+                # Setup cursor AFTER title screen
+                await self._setup_page(page)
 
                 # Run demo actions
                 await self.run(page)
 
                 # Show closing branding screen
                 await self.closing_screen(duration=2.0)
+                await asyncio.sleep(0.3)
 
-                # Wait to ensure closing screen is captured
-                await asyncio.sleep(0.5)
+                # === END MARKER === (dark frame with OCR metadata)
+                # Duration 500ms = ~5 frames at 10fps for reliable detection
+                await inject_end_marker(
+                    page,
+                    version=f"figrecipe v{version}",
+                    timestamp=timestamp_str,
+                    duration_ms=500,
+                )
+                await asyncio.sleep(0.1)
 
                 # Cleanup
                 await self._cleanup_page(page)
@@ -325,14 +377,18 @@ class DemoRecorder(ABC):
                 await context.close()
                 await browser.close()
 
-            # Get recorded video path (webm) and convert to mp4
+            # Get recorded video and process with marker detection
             video_path = await page.video.path()
             if video_path and Path(video_path).exists():
-                # Convert VP8/webm to H.264/mp4 for compatibility
-                import subprocess
-
                 webm_path = Path(video_path)
                 try:
+                    # Detect markers and trim automatically
+                    process_video_with_markers(webm_path, mp4_path, cleanup=True)
+                except Exception as e:
+                    print(f"Warning: Marker-based trim failed ({e}), using fallback")
+                    # Fallback: simple conversion without trim
+                    import subprocess
+
                     subprocess.run(
                         [
                             "ffmpeg",
@@ -347,13 +403,9 @@ class DemoRecorder(ABC):
                             "23",
                             str(mp4_path),
                         ],
-                        check=True,
                         capture_output=True,
                     )
-                    webm_path.unlink()  # Remove original webm
-                except subprocess.CalledProcessError:
-                    # Fallback: just rename if ffmpeg fails
-                    webm_path.rename(mp4_path)
+                    webm_path.unlink(missing_ok=True)
 
         print(f"Recorded: {mp4_path}")
         return mp4_path
