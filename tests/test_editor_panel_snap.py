@@ -92,16 +92,18 @@ class TestPanelSnapUI:
         """Test that Alt+Drag is documented in shortcuts modal."""
         from figrecipe._editor._templates._html import HTML_TEMPLATE
 
-        assert "Panel Editing" in HTML_TEMPLATE
+        # Condensed shortcuts modal: "Panel" section with "Move (snap/free)"
+        assert "Panel" in HTML_TEMPLATE
         assert "Alt" in HTML_TEMPLATE
         assert "Drag" in HTML_TEMPLATE
-        assert "no snapping" in HTML_TEMPLATE
+        assert "snap/free" in HTML_TEMPLATE
 
     def test_drag_snapping_documented(self):
         """Test that drag snapping is documented."""
         from figrecipe._editor._templates._html import HTML_TEMPLATE
 
-        assert "snaps to grid" in HTML_TEMPLATE
+        # Condensed format: "Move (snap/free)" indicates snap behavior
+        assert "snap" in HTML_TEMPLATE
 
 
 class TestSnapGuides:
