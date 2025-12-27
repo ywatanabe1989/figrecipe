@@ -85,7 +85,11 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     import matplotlib as mpl
 
     # Apply theme colors (dark/light mode)
-    theme = style.get("theme", "light")
+    theme_section = style.get("theme", {})
+    if isinstance(theme_section, dict):
+        theme = theme_section.get("mode", "light")
+    else:
+        theme = str(theme_section) if theme_section else "light"
     theme_colors = style.get("theme_colors", None)
     apply_theme_colors(ax, theme, theme_colors)
 
@@ -171,7 +175,11 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     mpl.rcParams["legend.title_fontsize"] = legend_fs
 
     # Set legend colors from theme
-    theme = style.get("theme", "light")
+    theme_section = style.get("theme", {})
+    if isinstance(theme_section, dict):
+        theme = theme_section.get("mode", "light")
+    else:
+        theme = str(theme_section) if theme_section else "light"
     theme_colors = style.get("theme_colors", None)
     if theme_colors:
         legend_bg = theme_colors.get("legend_bg", theme_colors.get("axes_bg", "white"))

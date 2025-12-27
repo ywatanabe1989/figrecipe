@@ -96,7 +96,7 @@ def register_style_routes(app, editor):
             # Extract color_palette from nested colors.palette
             if "colors" in new_style and isinstance(new_style["colors"], dict):
                 colors_dict = new_style["colors"]
-                if "palette" in colors_dict:
+                if "palette" in colors_dict and colors_dict["palette"] is not None:
                     flat_style["color_palette"] = list(colors_dict["palette"])
 
             editor.style_overrides.base_style = flat_style
