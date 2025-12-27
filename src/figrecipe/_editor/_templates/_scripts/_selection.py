@@ -21,6 +21,11 @@ function clearSelection() {
     document.querySelectorAll('.section-highlighted').forEach(s => s.classList.remove('section-highlighted'));
     document.querySelectorAll('.field-highlighted').forEach(f => f.classList.remove('field-highlighted'));
 
+    // Clear panel selection
+    if (typeof clearPanelSelection === 'function') {
+        clearPanelSelection();
+    }
+
     // Switch back to Figure tab when nothing selected
     switchTab('figure');
 

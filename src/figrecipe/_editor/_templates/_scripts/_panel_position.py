@@ -12,6 +12,7 @@ SCRIPTS_PANEL_POSITION = r"""
 
 let panelPositions = {};
 let figSize = { width_mm: 0, height_mm: 0 };
+let currentSelectedPanelIndex = null;  // Track currently selected panel
 
 // Load panel positions from server
 async function loadPanelPositions() {
@@ -26,54 +27,57 @@ async function loadPanelPositions() {
         }
 
         panelPositions = data;
-        updatePanelSelector();
-        updatePanelPositionInputs();
+        // Update inputs if a panel is selected
+        if (currentSelectedPanelIndex !== null) {
+            updatePanelPositionInputs();
+        }
     } catch (error) {
         console.error('Failed to load panel positions:', error);
     }
 }
 
-// Update panel selector dropdown
-function updatePanelSelector() {
-    const selector = document.getElementById('panel_selector');
-    if (!selector) return;
-
-    selector.innerHTML = '';
-    const axKeys = Object.keys(panelPositions).sort();
-
-    axKeys.forEach((key, index) => {
-        const opt = document.createElement('option');
-        opt.value = index;
-        // Show panel label (A, B, C...) if available
-        const label = String.fromCharCode(65 + index); // A, B, C...
-        opt.textContent = `Panel ${label} (${key})`;
-        selector.appendChild(opt);
-    });
-
-    // Add change event listener - mark as explicitly selected on dropdown change
-    selector.addEventListener('change', () => {
-        panelExplicitlySelected = true;
-        updatePanelPositionInputs();
-    });
-}
-
-let panelExplicitlySelected = false;
-
-// Update position input fields based on selected panel
+// Update position input fields based on currently selected panel
 function updatePanelPositionInputs(showHighlight = true) {
-    const selector = document.getElementById('panel_selector');
-    if (!selector) return;
-
-    const axIndex = parseInt(selector.value, 10);
-    const axKey = Object.keys(panelPositions).sort()[axIndex];
-    const pos = panelPositions[axKey];
-
-    if (!pos) return;
-
+    const indicator = document.getElementById('current_panel_indicator');
     const leftInput = document.getElementById('panel_left');
     const topInput = document.getElementById('panel_top');
     const widthInput = document.getElementById('panel_width');
     const heightInput = document.getElementById('panel_height');
+    const applyBtn = document.getElementById('apply_panel_position');
+
+    // If no panel selected, show placeholder and disable inputs
+    if (currentSelectedPanelIndex === null) {
+        if (indicator) {
+            indicator.textContent = 'Select an element';
+            indicator.classList.remove('panel-selected');
+        }
+        [leftInput, topInput, widthInput, heightInput].forEach(input => {
+            if (input) {
+                input.value = '';
+                input.disabled = true;
+            }
+        });
+        if (applyBtn) applyBtn.disabled = true;
+        return;
+    }
+
+    const axKey = Object.keys(panelPositions).sort()[currentSelectedPanelIndex];
+    const pos = panelPositions[axKey];
+
+    if (!pos) return;
+
+    // Update indicator
+    if (indicator) {
+        const label = String.fromCharCode(65 + currentSelectedPanelIndex); // A, B, C...
+        indicator.textContent = `Panel ${label}`;
+        indicator.classList.add('panel-selected');
+    }
+
+    // Enable inputs and update values
+    [leftInput, topInput, widthInput, heightInput].forEach(input => {
+        if (input) input.disabled = false;
+    });
+    if (applyBtn) applyBtn.disabled = false;
 
     // Values are already in mm from server
     if (leftInput) leftInput.value = pos.left;
@@ -81,8 +85,8 @@ function updatePanelPositionInputs(showHighlight = true) {
     if (widthInput) widthInput.value = pos.width;
     if (heightInput) heightInput.value = pos.height;
 
-    // Only draw highlight if explicitly selected (not on initial load)
-    if (showHighlight && panelExplicitlySelected) {
+    // Draw highlight
+    if (showHighlight) {
         drawPanelSelectionHighlight(pos);
     }
 }
@@ -138,14 +142,8 @@ function clearPanelSelectionHighlight() {
 
 // Select panel by index (called when clicking on axes in canvas)
 function selectPanelByIndex(axIndex, switchToAxisTab = true) {
-    const selector = document.getElementById('panel_selector');
-    if (!selector) return;
-
-    // Mark as explicitly selected
-    panelExplicitlySelected = true;
-
-    // Update dropdown selection
-    selector.value = axIndex;
+    // Update the current selected panel index
+    currentSelectedPanelIndex = axIndex;
 
     // Update inputs and highlight
     updatePanelPositionInputs();
@@ -156,6 +154,13 @@ function selectPanelByIndex(axIndex, switchToAxisTab = true) {
     }
 
     console.log('Selected panel', axIndex);
+}
+
+// Clear panel selection (called when selection is cleared)
+function clearPanelSelection() {
+    currentSelectedPanelIndex = null;
+    updatePanelPositionInputs(false);
+    clearPanelSelectionHighlight();
 }
 
 // Find panel index from axes key (e.g., "ax_0" -> 0)
@@ -181,18 +186,22 @@ function getPanelIndexFromKey(key) {
 
 // Apply panel position changes
 async function applyPanelPosition() {
-    const selector = document.getElementById('panel_selector');
     const leftInput = document.getElementById('panel_left');
     const topInput = document.getElementById('panel_top');
     const widthInput = document.getElementById('panel_width');
     const heightInput = document.getElementById('panel_height');
 
-    if (!selector || !leftInput || !topInput || !widthInput || !heightInput) {
+    if (currentSelectedPanelIndex === null) {
+        console.error('No panel selected');
+        return;
+    }
+
+    if (!leftInput || !topInput || !widthInput || !heightInput) {
         console.error('Panel position inputs not found');
         return;
     }
 
-    const axIndex = parseInt(selector.value, 10);
+    const axIndex = currentSelectedPanelIndex;
     const left = parseFloat(leftInput.value);
     const top = parseFloat(topInput.value);
     const width = parseFloat(widthInput.value);
