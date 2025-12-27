@@ -30,10 +30,9 @@ class FileBrowserDemo(DemoRecorder):
         await self.caption("File Browser: Manage your recipe files")
         await self.wait(1.5)
 
-        # Look for file browser toggle or section
-        # The file browser is typically in the sidebar
-        sidebar = page.locator(".editor-sidebar")
-        await self.move_to(sidebar, duration=0.5)
+        # Look for file browser panel (correct class name)
+        file_browser = page.locator(".file-browser-panel")
+        await self.move_to(file_browser, duration=0.5)
         await self.wait(0.5)
 
         # Explain features

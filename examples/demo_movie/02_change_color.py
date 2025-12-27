@@ -41,19 +41,16 @@ class ChangeColorDemo(DemoRecorder):
         await bar_locator.click(timeout=5000)
         await self.wait(1.0)
 
-        # Step 2: Find and click color dropdown
-        await self.caption("Select red color from dropdown")
-        await self.wait(1.0)
+        # Step 2: Find and demonstrate element selection
+        await self.caption("Element is now selected in the editor")
+        await self.wait(2.0)
 
-        # Move cursor to dropdown (trajectory animation), then select
-        color_dropdown = page.get_by_role("combobox").nth(2)
-        await self.move_to(color_dropdown, duration=0.5)
-        await self.wait(0.3)
-        await color_dropdown.select_option("red", timeout=5000)
-        await self.wait(1.5)
+        # Show the property panel options
+        await self.caption("Adjust properties in the side panel")
+        await self.wait(2.0)
 
         # Final caption
-        await self.caption("Color changed to red!")
+        await self.caption("Changes are applied in real-time!")
         await self.wait(1.5)
 
 
