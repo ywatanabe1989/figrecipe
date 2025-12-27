@@ -110,41 +110,89 @@ def register_core_routes(app, editor):
 
     @app.route("/api/files")
     def list_files():
-        """List available recipe files in working directory."""
+        """List available recipe files in working directory as a tree structure."""
         from pathlib import Path
 
         working_dir = getattr(editor, "working_dir", Path.cwd())
-        files = []
 
-        # Find all YAML recipe files
-        for pattern in ["*.yaml", "*.yml"]:
-            for f in working_dir.glob(pattern):
-                # Skip hidden files and overrides files
-                if f.name.startswith(".") or f.name.endswith(".overrides.yaml"):
+        def build_tree(directory: Path, relative_base: Path = None) -> list:
+            """Recursively build tree structure from directory."""
+            if relative_base is None:
+                relative_base = directory
+
+            items = []
+
+            # Get all entries and sort (directories first, then files)
+            try:
+                entries = sorted(
+                    directory.iterdir(),
+                    key=lambda x: (not x.is_dir(), x.name.lower()),
+                )
+            except PermissionError:
+                return items
+
+            for entry in entries:
+                # Skip hidden files and special files
+                if entry.name.startswith("."):
+                    continue
+                if entry.name.endswith(".overrides.yaml"):
+                    continue
+                if entry.name == "__pycache__":
                     continue
 
-                # Check for associated PNG
-                png_path = f.with_suffix(".png")
-                has_png = png_path.exists()
+                rel_path = str(entry.relative_to(relative_base))
 
-                files.append(
-                    {
-                        "path": str(f.relative_to(working_dir)),
-                        "name": f.stem,
-                        "has_image": has_png,
-                        "is_current": (
-                            editor.recipe_path
-                            and f.resolve() == editor.recipe_path.resolve()
-                        ),
-                    }
-                )
+                if entry.is_dir():
+                    # Recursively get children
+                    children = build_tree(entry, relative_base)
+                    # Only include directories that have recipe files (or subdirs with recipes)
+                    if children:
+                        items.append(
+                            {
+                                "path": rel_path,
+                                "name": entry.name,
+                                "type": "directory",
+                                "children": children,
+                            }
+                        )
+                elif entry.suffix.lower() in (".yaml", ".yml"):
+                    # Check for associated PNG
+                    png_path = entry.with_suffix(".png")
+                    has_png = png_path.exists()
 
-        # Sort by name
-        files.sort(key=lambda x: x["name"].lower())
+                    items.append(
+                        {
+                            "path": rel_path,
+                            "name": entry.stem,
+                            "type": "file",
+                            "has_image": has_png,
+                            "is_current": (
+                                editor.recipe_path
+                                and entry.resolve() == editor.recipe_path.resolve()
+                            ),
+                        }
+                    )
+
+            return items
+
+        tree = build_tree(working_dir)
+
+        # Also provide flat list for backwards compatibility
+        flat_files = []
+
+        def flatten_tree(items):
+            for item in items:
+                if item["type"] == "directory":
+                    flatten_tree(item.get("children", []))
+                else:
+                    flat_files.append(item)
+
+        flatten_tree(tree)
 
         return jsonify(
             {
-                "files": files,
+                "tree": tree,
+                "files": flat_files,  # Backwards compatibility
                 "working_dir": str(working_dir),
                 "current_file": (
                     str(editor.recipe_path.name) if editor.recipe_path else None
