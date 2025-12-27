@@ -7,6 +7,10 @@
 """Demo script for GUI editor with diverse plot types (subset).
 
 For ALL plot types, see demo_editor_full.py
+
+Usage:
+    python demo_editor.py [PORT]
+    python demo_editor.py 5051
 """
 
 import matplotlib
@@ -93,8 +97,8 @@ def plot_figure():
     return fig
 
 
-def main():
-    kill_port()
+def main(port=5050):
+    kill_port(port)
 
     fr.load_style("SCITEX")
 
@@ -105,11 +109,12 @@ def main():
 
     fig, axes = fr.reproduce(output_path / "demo_editor.yaml")
 
-    print("Launching editor...")
-    fr.edit(fig, host="0.0.0.0")  # 0.0.0.0 for WSL2-to-Windows access
+    print(f"Launching editor on port {port}...")
+    fr.edit(fig, host="0.0.0.0", port=port)  # 0.0.0.0 for WSL2-to-Windows access
 
 
 if __name__ == "__main__":
-    main()
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 5050
+    main(port)
 
 # EOF
