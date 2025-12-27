@@ -106,7 +106,7 @@ def main():
     fig, axes = fr.reproduce(output_path / "demo_editor.yaml")
 
     print("Launching editor...")
-    fr.edit(fig)
+    fr.edit(fig, host="0.0.0.0")  # 0.0.0.0 for WSL2-to-Windows access
 
 
 if __name__ == "__main__":

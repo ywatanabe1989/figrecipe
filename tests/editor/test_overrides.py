@@ -12,8 +12,8 @@ from .conftest import requires_playwright
 class TestEditorOverrides:
     """Test style override functionality."""
 
-    def test_overrides_api_endpoint(self, editor_server):
-        """Verify overrides API endpoint works."""
+    def test_style_api_endpoint(self, editor_server):
+        """Verify style API endpoint works (contains overrides)."""
         from playwright.sync_api import sync_playwright
 
         with sync_playwright() as p:
@@ -23,11 +23,12 @@ class TestEditorOverrides:
             page.goto(editor_server.url)
             page.wait_for_load_state("networkidle")
 
-            response = page.request.get(f"{editor_server.url}/overrides")
-            assert response.ok, f"Overrides request failed: {response.status}"
+            response = page.request.get(f"{editor_server.url}/style")
+            assert response.ok, f"Style request failed: {response.status}"
 
             data = response.json()
-            assert isinstance(data, dict), "Overrides should return a dict"
+            assert isinstance(data, dict), "Style should return a dict"
+            assert "manual_overrides" in data, "Style should contain manual_overrides"
 
             browser.close()
 
@@ -64,10 +65,11 @@ class TestEditorOverrides:
             page.goto(editor_server.url)
             page.wait_for_load_state("networkidle")
 
-            # POST to update endpoint
+            # POST to update endpoint with JSON body
             response = page.request.post(
                 f"{editor_server.url}/update",
-                data={"overrides": "{}"},
+                headers={"Content-Type": "application/json"},
+                data='{"overrides": {}}',
             )
             # May return 200 or 400 depending on implementation
             assert response.status in [
@@ -79,7 +81,7 @@ class TestEditorOverrides:
             browser.close()
 
     def test_preview_api_endpoint(self, editor_server):
-        """Verify preview image endpoint works."""
+        """Verify preview endpoint returns JSON with image data."""
         from playwright.sync_api import sync_playwright
 
         with sync_playwright() as p:
@@ -91,8 +93,15 @@ class TestEditorOverrides:
 
             response = page.request.get(f"{editor_server.url}/preview")
             assert response.ok, f"Preview request failed: {response.status}"
-            assert "image" in response.headers.get(
+            assert "application/json" in response.headers.get(
                 "content-type", ""
-            ), "Preview not an image"
+            ), "Preview should return JSON"
+
+            # Verify JSON structure
+            data = response.json()
+            assert "image" in data, "Response missing 'image' field"
+            assert "bboxes" in data, "Response missing 'bboxes' field"
+            # Check for valid PNG base64 (PNG signature starts with iVBOR)
+            assert data["image"].startswith("iVBOR"), "Invalid PNG base64 image"
 
             browser.close()

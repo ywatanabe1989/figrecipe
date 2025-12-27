@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from ._html import HTML_TEMPLATE
+from ._html_components import HTML_FILE_BROWSER
+from ._html_datatable import HTML_DATATABLE_PANEL
 from ._scripts import SCRIPTS
 from ._styles import STYLES
 
@@ -128,6 +130,13 @@ def build_html_template(
 
     # Inject data into template
     html = HTML_TEMPLATE
+    html = html.replace("<!-- FILE_BROWSER_PLACEHOLDER -->", HTML_FILE_BROWSER)
+
+    # Insert datatable panel before preview panel
+    html = html.replace(
+        "<!-- Preview Panel -->",
+        HTML_DATATABLE_PANEL + "\n        <!-- Preview Panel -->",
+    )
     html = html.replace("/* STYLES_PLACEHOLDER */", STYLES)
     html = html.replace("/* SCRIPTS_PLACEHOLDER */", SCRIPTS + hot_reload_script)
     html = html.replace("IMAGE_BASE64_PLACEHOLDER", image_base64)

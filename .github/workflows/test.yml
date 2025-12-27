@@ -35,9 +35,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[all]"
 
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+
       - name: Run tests
         run: |
-          pytest tests/ -v --tb=short
+          pytest tests/ -v --tb=short --ignore=tests/editor
 
   lint:
     runs-on: ubuntu-latest

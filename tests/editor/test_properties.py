@@ -85,11 +85,16 @@ class TestEditorProperties:
             page.goto(editor_server.url)
             page.wait_for_load_state("networkidle")
 
-            color_swatch = page.locator(".color-swatch, input[type='color']").first
-            if color_swatch.count() > 0:
-                color_swatch.click()
-                time.sleep(0.2)
+            # Try to find and click a visible color picker
+            color_swatches = page.locator(".color-swatch, input[type='color']")
+            for i in range(color_swatches.count()):
+                swatch = color_swatches.nth(i)
+                if swatch.is_visible():
+                    swatch.click()
+                    time.sleep(0.2)
+                    break
 
+            # It's OK if no visible color picker found (may be in collapsed section)
             browser.close()
 
         critical = [e for e in js_errors if "SyntaxError" in e or "TypeError" in e]

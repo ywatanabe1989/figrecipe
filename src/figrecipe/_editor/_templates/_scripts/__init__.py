@@ -28,16 +28,19 @@ This package contains modular JavaScript organized by functionality:
 from ._api import SCRIPTS_API
 from ._colors import SCRIPTS_COLORS
 from ._core import SCRIPTS_CORE
+from ._datatable import SCRIPTS_DATATABLE
 from ._debug_snapshot import SCRIPTS_DEBUG_SNAPSHOT
 from ._element_editor import SCRIPTS_ELEMENT_EDITOR
 from ._files import SCRIPTS_FILES
 from ._hitmap import SCRIPTS_HITMAP
+from ._image_drop import SCRIPTS_IMAGE_DROP
 from ._inspector import SCRIPTS_INSPECTOR
 from ._labels import SCRIPTS_LABELS
 from ._legend_drag import SCRIPTS_LEGEND_DRAG
 from ._modals import SCRIPTS_MODALS
 from ._overlays import SCRIPTS_OVERLAYS
 from ._panel_drag import SCRIPTS_PANEL_DRAG
+from ._panel_drag_snapshot import SCRIPTS_PANEL_DRAG_SNAPSHOT
 from ._panel_position import SCRIPTS_PANEL_POSITION
 from ._panel_snap import SCRIPTS_PANEL_SNAP
 from ._selection import SCRIPTS_SELECTION
@@ -66,9 +69,12 @@ SCRIPTS = (
     + SCRIPTS_FILES
     + SCRIPTS_PANEL_POSITION
     + SCRIPTS_PANEL_SNAP
+    + SCRIPTS_PANEL_DRAG_SNAPSHOT
     + SCRIPTS_PANEL_DRAG
     + SCRIPTS_LEGEND_DRAG
+    + SCRIPTS_IMAGE_DROP
     + SCRIPTS_UNDO_REDO
+    + SCRIPTS_DATATABLE
 )
 
 
@@ -84,16 +90,19 @@ def get_all_scripts():
         "api": SCRIPTS_API,
         "colors": SCRIPTS_COLORS,
         "core": SCRIPTS_CORE,
+        "datatable": SCRIPTS_DATATABLE,
         "debug_snapshot": SCRIPTS_DEBUG_SNAPSHOT,
         "element_editor": SCRIPTS_ELEMENT_EDITOR,
         "files": SCRIPTS_FILES,
         "hitmap": SCRIPTS_HITMAP,
+        "image_drop": SCRIPTS_IMAGE_DROP,
         "inspector": SCRIPTS_INSPECTOR,
         "labels": SCRIPTS_LABELS,
         "legend_drag": SCRIPTS_LEGEND_DRAG,
         "modals": SCRIPTS_MODALS,
         "overlays": SCRIPTS_OVERLAYS,
         "panel_drag": SCRIPTS_PANEL_DRAG,
+        "panel_drag_snapshot": SCRIPTS_PANEL_DRAG_SNAPSHOT,
         "panel_position": SCRIPTS_PANEL_POSITION,
         "panel_snap": SCRIPTS_PANEL_SNAP,
         "selection": SCRIPTS_SELECTION,
@@ -109,16 +118,19 @@ __all__ = [
     "SCRIPTS_API",
     "SCRIPTS_COLORS",
     "SCRIPTS_CORE",
+    "SCRIPTS_DATATABLE",
     "SCRIPTS_DEBUG_SNAPSHOT",
     "SCRIPTS_ELEMENT_EDITOR",
     "SCRIPTS_FILES",
     "SCRIPTS_HITMAP",
+    "SCRIPTS_IMAGE_DROP",
     "SCRIPTS_INSPECTOR",
     "SCRIPTS_LABELS",
     "SCRIPTS_LEGEND_DRAG",
     "SCRIPTS_MODALS",
     "SCRIPTS_OVERLAYS",
     "SCRIPTS_PANEL_DRAG",
+    "SCRIPTS_PANEL_DRAG_SNAPSHOT",
     "SCRIPTS_PANEL_POSITION",
     "SCRIPTS_PANEL_SNAP",
     "SCRIPTS_SELECTION",

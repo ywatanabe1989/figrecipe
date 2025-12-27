@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.6] - 2025-12-27
+
+### Added
+- **Demo movie infrastructure** - Automated recording and processing of demo videos
+- **Full HD recording** - 1920x1080 resolution for demo videos
+- **Timing metadata** - Automatic `.timing.json` generation for precise TTS sync
+- **Parallel processing** - `process_all_demos.py` with `--workers` option
+- **TTS integration** - ElevenLabs with gTTS fallback for narration
+- **BGM support** - Background music with fade in/out effects
+
+### Changed
+- **README improvements** - Collapsible sections, enhanced readability
+
 ## [0.7.5] - 2025-12-25
 
 ### Added
