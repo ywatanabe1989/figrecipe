@@ -496,6 +496,7 @@ function selectElement(element) {
     autoSwitchTab(element.type);
     updateTabHints();
     syncPropertiesToElement(element);
+    if (callId && typeof syncDatatableToElement === 'function') syncDatatableToElement(callId);
 
     // Sync panel position; axes switches tab, image (from imshow) syncs position only (fills panel)
     if (['axes', 'image'].includes(element.type) || element.ax_index !== undefined) {
