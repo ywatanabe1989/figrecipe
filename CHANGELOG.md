@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2025-12-28
+
+### Added
+- **GUI PORT configuration** - `make gui PORT=5051` to specify custom port (default: 5050)
+- **Click sound effects** - Browser demo recordings now include click sounds
+- **Narration utilities export** - `extract_captions_from_script`, `add_narration_to_video` in browser module
+
+### Changed
+- **Demo recording improvements** - Color change and panel drag demos with better cursor synchronization
+- **Video trimming margins** - Adjusted trim margins for cleaner demo output (1.5s start, 1s end)
+- **Narration settings** - Lower BGM volume (0.08), longer fade-out (2s)
+
+## [0.8.0] - 2025-12-27
+
+### Added
+- **Statistical annotations** - `fr.stats.add_significance()` for adding p-value annotations
+- **p-value formatting** - `p_to_stars()` converts p-values to significance stars (*, **, ***, n.s.)
+- **Smart alignment** - `fr.composition.smart_align()` for automatic panel alignment with asymmetric margins
+
+### Fixed
+- **Stats test assertions** - Correct n.s. assertion in p_to_stars test
+- **Composition margins** - Use asymmetric margin variables in smart_align
+
 ## [0.7.6] - 2025-12-27
 
 ### Added
@@ -231,6 +254,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.8.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.7.6...v0.8.0
+[0.7.6]: https://github.com/ywatanabe1989/figrecipe/compare/v0.7.5...v0.7.6
 [0.6.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.3.4...v0.5.0
