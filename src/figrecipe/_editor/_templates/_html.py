@@ -115,41 +115,18 @@ HTML_TEMPLATE = """
                         <button id="shortcuts-modal-close" class="modal-close">&times;</button>
                     </div>
                     <div class="shortcuts-content">
-                        <div class="shortcut-section">
-                            <h4>General</h4>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Z</kbd></span><span class="shortcut-desc">Undo</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></span><span class="shortcut-desc">Redo</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Save overrides</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></span><span class="shortcut-desc">Download PNG</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Debug snapshot</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>F5</kbd> / <kbd>Ctrl</kbd>+<kbd>R</kbd></span><span class="shortcut-desc">Refresh preview</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Esc</kbd></span><span class="shortcut-desc">Clear selection</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>R</kbd></span><span class="shortcut-desc">Reset to theme defaults</span></div>
-                        </div>
-                        <div class="shortcut-section">
-                            <h4>Navigation</h4>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>1</kbd></span><span class="shortcut-desc">Figure tab</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>2</kbd></span><span class="shortcut-desc">Axis tab</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>3</kbd></span><span class="shortcut-desc">Element tab</span></div>
-                        </div>
-                        <div class="shortcut-section">
-                            <h4>View</h4>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>G</kbd></span><span class="shortcut-desc">Toggle ruler &amp; grid</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>+</kbd> / <kbd>-</kbd></span><span class="shortcut-desc">Zoom in/out</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>0</kbd></span><span class="shortcut-desc">Reset zoom</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>F</kbd></span><span class="shortcut-desc">Fit to view</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>?</kbd></span><span class="shortcut-desc">Show this help</span></div>
-                        </div>
-                        <div class="shortcut-section">
-                            <h4>Panel Editing</h4>
-                            <div class="shortcut-row"><span class="shortcut-keys">Drag</span><span class="shortcut-desc">Move panel (snaps to grid)</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+Drag</span><span class="shortcut-desc">Move panel (no snapping)</span></div>
-                        </div>
-                        <div class="shortcut-section">
-                            <h4>Developer</h4>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Toggle element inspector</span></div>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Screenshot + console logs</span></div>
-                        </div>
+                        <div class="shortcut-section"><h4>General</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Shift+Z</kbd></span><span class="shortcut-desc">Undo/Redo</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>S</kbd>/<kbd>Shift+S</kbd></span><span class="shortcut-desc">Save/Download</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>F5</kbd>/<kbd>Esc</kbd>/<kbd>R</kbd></span><span class="shortcut-desc">Refresh/Clear/Reset</span></div></div>
+                        <div class="shortcut-section"><h4>Navigation</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd></span><span class="shortcut-desc">Figure/Axis/Element tab</span></div></div>
+                        <div class="shortcut-section"><h4>View</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>G</kbd>/<kbd>+</kbd>/<kbd>-</kbd>/<kbd>0</kbd>/<kbd>F</kbd></span><span class="shortcut-desc">Grid/Zoom/Reset/Fit</span></div></div>
+                        <div class="shortcut-section"><h4>Panel</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys">Drag/<kbd>Alt</kbd>+Drag</span><span class="shortcut-desc">Move (snap/free)</span></div></div>
+                        <div class="shortcut-section"><h4>Developer</h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Inspector</span></div></div>
                     </div>
                 </div>
             </div>
@@ -231,11 +208,9 @@ HTML_TEMPLATE = """
                     <details class="section" open>
                         <summary>Panel Position</summary>
                         <div class="section-content">
-                            <div class="form-row">
+                            <div class="form-row panel-indicator-row">
                                 <label>Panel</label>
-                                <select id="panel_selector">
-                                    <option value="0">Panel 0</option>
-                                </select>
+                                <span id="current_panel_indicator" class="panel-indicator">Select an element</span>
                             </div>
                             <div class="position-grid">
                                 <div class="form-row">
@@ -401,13 +376,11 @@ HTML_TEMPLATE = """
                                 <label>Thickness (mm)</label>
                                 <input type="number" id="axes_thickness_mm" step="0.05" min="0.1" max="2" placeholder="0.35">
                             </div>
-                            <div class="form-row">
-                                <label>Hide Top</label>
-                                <input type="checkbox" id="behavior_hide_top_spine">
-                            </div>
-                            <div class="form-row">
-                                <label>Hide Right</label>
-                                <input type="checkbox" id="behavior_hide_right_spine">
+                            <div class="spine-visibility-grid">
+                                <div class="form-row"><label>Hide Top</label><input type="checkbox" id="behavior_hide_top_spine"></div>
+                                <div class="form-row"><label>Hide Right</label><input type="checkbox" id="behavior_hide_right_spine"></div>
+                                <div class="form-row"><label>Hide Bottom</label><input type="checkbox" id="behavior_hide_bottom_spine"></div>
+                                <div class="form-row"><label>Hide Left</label><input type="checkbox" id="behavior_hide_left_spine"></div>
                             </div>
                             <div class="form-row">
                                 <label>Grid</label>

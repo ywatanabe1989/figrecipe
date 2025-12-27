@@ -115,16 +115,13 @@ def _apply_behavior_overrides(ax: Axes, overrides: Dict[str, Any]) -> None:
         else:
             ax.grid(False)
 
-    # Spines (YAML: behavior_hide_top_spine, legacy: hide_top_spine)
-    hide_top = overrides.get("behavior_hide_top_spine", overrides.get("hide_top_spine"))
-    if hide_top is not None:
-        ax.spines["top"].set_visible(not hide_top)
-
-    hide_right = overrides.get(
-        "behavior_hide_right_spine", overrides.get("hide_right_spine")
-    )
-    if hide_right is not None:
-        ax.spines["right"].set_visible(not hide_right)
+    # Spines visibility (all four directions)
+    for side in ["top", "right", "bottom", "left"]:
+        key = f"behavior_hide_{side}_spine"
+        legacy_key = f"hide_{side}_spine"
+        hide_value = overrides.get(key, overrides.get(legacy_key))
+        if hide_value is not None:
+            ax.spines[side].set_visible(not hide_value)
 
 
 def _apply_legend_overrides(ax: Axes, overrides: Dict[str, Any]) -> None:
