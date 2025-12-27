@@ -68,6 +68,8 @@ class AxesRecord:
     caption: Optional[str] = None
     # Panel-level statistics (e.g., summary stats, comparison results)
     stats: Optional[Dict[str, Any]] = None
+    # Panel visibility (for composition)
+    visible: bool = True
 
     def add_call(self, record: CallRecord) -> None:
         """Add a plotting call record."""
@@ -87,6 +89,8 @@ class AxesRecord:
             result["caption"] = self.caption
         if self.stats is not None:
             result["stats"] = self.stats
+        if not self.visible:  # Only serialize if hidden (default is True)
+            result["visible"] = False
         return result
 
 
@@ -211,6 +215,7 @@ class FigureRecord:
                 position=(row, col),
                 caption=ax_data.get("caption"),
                 stats=ax_data.get("stats"),
+                visible=ax_data.get("visible", True),
             )
             for call_data in ax_data.get("calls", []):
                 ax_record.calls.append(CallRecord.from_dict(call_data, (row, col)))

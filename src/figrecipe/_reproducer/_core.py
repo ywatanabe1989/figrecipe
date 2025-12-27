@@ -195,6 +195,10 @@ def reproduce_from_record(
                 if result is not None:
                     result_cache[call.id] = result
 
+        # Apply panel visibility
+        if not getattr(ax_record, "visible", True):
+            ax.set_visible(False)
+
     # Finalize tick configuration and special plot types (avoids categorical axis interference)
     from ..styles._style_applier import finalize_special_plots, finalize_ticks
 
