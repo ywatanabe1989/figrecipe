@@ -258,6 +258,33 @@ STYLES_CONTROLS = """
     padding: 12px 14px;
     background: var(--bg-primary);
 }
+
+/* Panel Indicator */
+.panel-indicator-row {
+    align-items: center;
+}
+
+.panel-indicator {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    display: inline-block;
+}
+
+.panel-indicator.panel-selected {
+    color: var(--accent-color);
+    background: rgba(37, 99, 235, 0.1);
+    border-color: var(--accent-color);
+    font-weight: 600;
+}
+
+[data-theme="dark"] .panel-indicator.panel-selected {
+    background: rgba(59, 130, 246, 0.15);
+}
 """
 
 __all__ = ["STYLES_CONTROLS"]
