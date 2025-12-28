@@ -3,7 +3,7 @@
 """Tests for selection features in the figure editor.
 
 This module tests:
-- Panel labels (draggable A, B, C... labels)
+- Annotation drag (draggable panel labels, text annotations)
 - Multi-selection with Ctrl+Click
 - Region selection (marquee/rectangle selection)
 """
@@ -16,87 +16,87 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-class TestPanelLabelsScript:
-    """Test that panel labels JavaScript module is properly defined."""
+class TestAnnotationDragScript:
+    """Test that annotation drag JavaScript module is properly defined."""
 
-    def test_panel_labels_script_exists(self):
-        """Test that SCRIPTS_PANEL_LABELS is defined and exported."""
-        from figrecipe._editor._templates._scripts import SCRIPTS_PANEL_LABELS
+    def test_annotation_drag_script_exists(self):
+        """Test that SCRIPTS_ANNOTATION_DRAG is defined and exported."""
+        from figrecipe._editor._templates._scripts import SCRIPTS_ANNOTATION_DRAG
 
-        assert SCRIPTS_PANEL_LABELS is not None
-        assert len(SCRIPTS_PANEL_LABELS) > 0
+        assert SCRIPTS_ANNOTATION_DRAG is not None
+        assert len(SCRIPTS_ANNOTATION_DRAG) > 0
 
-    def test_label_config_defined(self):
-        """Test that LABEL_CONFIG is defined with expected properties."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_annotation_snap_config_defined(self):
+        """Test that ANNOTATION_SNAP is defined with expected properties."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "LABEL_CONFIG" in SCRIPTS_PANEL_LABELS
-        assert "fontSize" in SCRIPTS_PANEL_LABELS
-        assert "offsetX" in SCRIPTS_PANEL_LABELS
-        assert "offsetY" in SCRIPTS_PANEL_LABELS
+        assert "ANNOTATION_SNAP" in SCRIPTS_ANNOTATION_DRAG
+        assert "threshold" in SCRIPTS_ANNOTATION_DRAG
+        assert "magneticZone" in SCRIPTS_ANNOTATION_DRAG
+        assert "snapToEdges" in SCRIPTS_ANNOTATION_DRAG
 
-    def test_init_panel_labels_function(self):
-        """Test that initPanelLabels function is defined."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_init_annotation_drag_function(self):
+        """Test that initAnnotationDrag function is defined."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "function initPanelLabels(" in SCRIPTS_PANEL_LABELS
+        assert "function initAnnotationDrag(" in SCRIPTS_ANNOTATION_DRAG
 
-    def test_draw_panel_labels_function(self):
-        """Test that drawPanelLabels function is defined."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_is_annotation_element_function(self):
+        """Test that isAnnotationElement function is defined."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "function drawPanelLabels(" in SCRIPTS_PANEL_LABELS
+        assert "function isAnnotationElement(" in SCRIPTS_ANNOTATION_DRAG
 
-    def test_label_drag_handlers(self):
-        """Test that label drag handlers are defined."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_annotation_drag_handlers(self):
+        """Test that annotation drag handlers are defined."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "function handleLabelDragStart(" in SCRIPTS_PANEL_LABELS
-        assert "function handleLabelDragMove(" in SCRIPTS_PANEL_LABELS
-        assert "function handleLabelDragEnd(" in SCRIPTS_PANEL_LABELS
+        assert "function startAnnotationDrag(" in SCRIPTS_ANNOTATION_DRAG
+        assert "function handleAnnotationDragMove(" in SCRIPTS_ANNOTATION_DRAG
+        assert "function handleAnnotationDragEnd(" in SCRIPTS_ANNOTATION_DRAG
 
-    def test_label_snapping_function(self):
-        """Test that applyLabelSnapping function is defined."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_annotation_snapping_function(self):
+        """Test that applyAnnotationSnap function is defined."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "function applyLabelSnapping(" in SCRIPTS_PANEL_LABELS
+        assert "function applyAnnotationSnap(" in SCRIPTS_ANNOTATION_DRAG
 
-    def test_label_positions_persistence(self):
-        """Test that label positions can be saved and loaded."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_annotation_positions_tracking(self):
+        """Test that annotation positions are tracked."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "function saveLabelPositions(" in SCRIPTS_PANEL_LABELS
-        assert "function loadLabelPositions(" in SCRIPTS_PANEL_LABELS
-        assert "/api/label-positions" in SCRIPTS_PANEL_LABELS
+        assert "annotationPositions" in SCRIPTS_ANNOTATION_DRAG
+        assert "function initAnnotationPositions(" in SCRIPTS_ANNOTATION_DRAG
 
-    def test_double_click_reset(self):
-        """Test that double-click resets label position."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_apply_annotation_position_function(self):
+        """Test that applyAnnotationPosition function is defined."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "handleLabelDoubleClick" in SCRIPTS_PANEL_LABELS
+        assert "async function applyAnnotationPosition(" in SCRIPTS_ANNOTATION_DRAG
+        assert "/update_annotation_position" in SCRIPTS_ANNOTATION_DRAG
 
-    def test_toggle_labels_visibility(self):
-        """Test that togglePanelLabels function exists."""
-        from figrecipe._editor._templates._scripts._panel_labels import (
-            SCRIPTS_PANEL_LABELS,
+    def test_annotation_drag_overlay(self):
+        """Test that annotation drag overlay is created."""
+        from figrecipe._editor._templates._scripts._annotation_drag import (
+            SCRIPTS_ANNOTATION_DRAG,
         )
 
-        assert "function togglePanelLabels(" in SCRIPTS_PANEL_LABELS
-        assert "labelsVisible" in SCRIPTS_PANEL_LABELS
+        assert "annotation-drag-overlay" in SCRIPTS_ANNOTATION_DRAG
+        assert "annotation-drag-label" in SCRIPTS_ANNOTATION_DRAG
 
 
 class TestMultiSelectScript:
@@ -253,21 +253,21 @@ class TestRegionSelectScript:
         assert "addToExisting" in SCRIPTS_REGION_SELECT
 
 
-class TestSelectionRoutesAPI:
-    """Test selection-related Flask routes."""
+class TestAnnotationRoutesAPI:
+    """Test annotation-related Flask routes."""
 
     def test_routes_module_exists(self):
-        """Test that _routes_selection module exists."""
-        from figrecipe._editor._routes_selection import register_selection_routes
+        """Test that _routes_annotation module exists."""
+        from figrecipe._editor._routes_annotation import register_annotation_routes
 
-        assert register_selection_routes is not None
+        assert register_annotation_routes is not None
 
-    def test_label_positions_api_routes(self):
-        """Test that label positions API is documented in routes."""
-        from figrecipe._editor._routes_selection import register_selection_routes
+    def test_annotation_position_api_routes(self):
+        """Test that annotation positions API is documented in routes."""
+        from figrecipe._editor._routes_annotation import register_annotation_routes
 
         # Check that the function is callable
-        assert callable(register_selection_routes)
+        assert callable(register_annotation_routes)
 
 
 class TestScriptsIntegration:
@@ -285,9 +285,9 @@ class TestScriptsIntegration:
         assert "isRegionSelecting" in SCRIPTS
         assert "handleRegionSelectStart" in SCRIPTS
 
-        # Check panel labels functions
-        assert "initPanelLabels" in SCRIPTS
-        assert "drawPanelLabels" in SCRIPTS
+        # Check annotation drag functions
+        assert "initAnnotationDrag" in SCRIPTS
+        assert "startAnnotationDrag" in SCRIPTS
 
     def test_new_scripts_in_get_all_scripts(self):
         """Test that new scripts are in get_all_scripts dictionary."""
@@ -295,7 +295,7 @@ class TestScriptsIntegration:
 
         scripts = get_all_scripts()
         assert "multi_select" in scripts
-        assert "panel_labels" in scripts
+        assert "annotation_drag" in scripts
         assert "region_select" in scripts
 
     def test_new_scripts_in_all_exports(self):
@@ -303,7 +303,7 @@ class TestScriptsIntegration:
         from figrecipe._editor._templates._scripts import __all__
 
         assert "SCRIPTS_MULTI_SELECT" in __all__
-        assert "SCRIPTS_PANEL_LABELS" in __all__
+        assert "SCRIPTS_ANNOTATION_DRAG" in __all__
         assert "SCRIPTS_REGION_SELECT" in __all__
 
 

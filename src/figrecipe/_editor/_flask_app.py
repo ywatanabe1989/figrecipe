@@ -104,10 +104,7 @@ class FigureEditor:
             with open(static_png_path, "rb") as f:
                 self._initial_base64 = base64.b64encode(f.read()).decode("utf-8")
 
-        # Store original axes positions for restore functionality
-        self._initial_axes_positions = self._capture_axes_positions()
-
-        # Initialize style overrides system
+        # Initialize style overrides system (captures original positions into base_style)
         self._init_style_overrides(style)
 
         # Pre-generated hitmap and color_map
@@ -125,6 +122,8 @@ class FigureEditor:
                 self.style_overrides = existing
                 if programmatic_style:
                     self.style_overrides.programmatic_style = programmatic_style
+                # Ensure original positions are captured even when loading existing overrides
+                self._ensure_original_positions_in_base_style()
                 return
 
         # Get base style from global preset
@@ -151,6 +150,16 @@ class FigureEditor:
 
         self._style_name = style_name
 
+        # Capture original annotation positions into base_style for restore
+        annotation_positions = self._capture_annotation_positions()
+        for key, pos_data in annotation_positions.items():
+            base_style[f"_original_{key}"] = pos_data
+
+        # Capture original axes positions into base_style for restore
+        axes_positions = self._capture_axes_positions()
+        for ax_idx, pos in axes_positions.items():
+            base_style[f"_original_axes_position_{ax_idx}"] = pos
+
         self.style_overrides = create_overrides_from_style(
             base_style=base_style,
             programmatic_style=programmatic_style or {},
@@ -175,6 +184,24 @@ class FigureEditor:
         """Get the final merged style."""
         return self.style_overrides.get_effective_style()
 
+    def _ensure_original_positions_in_base_style(self) -> None:
+        """Ensure original positions are captured in base_style (for existing overrides)."""
+        base_style = self.style_overrides.base_style
+
+        # Add annotation positions if not present
+        annotation_positions = self._capture_annotation_positions()
+        for key, pos_data in annotation_positions.items():
+            base_key = f"_original_{key}"
+            if base_key not in base_style:
+                base_style[base_key] = pos_data
+
+        # Add axes positions if not present
+        axes_positions = self._capture_axes_positions()
+        for ax_idx, pos in axes_positions.items():
+            base_key = f"_original_axes_position_{ax_idx}"
+            if base_key not in base_style:
+                base_style[base_key] = pos
+
     def _capture_axes_positions(self) -> Dict[int, list]:
         """Capture current axes positions (matplotlib coords: [left, bottom, width, height])."""
         mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
@@ -186,15 +213,45 @@ class FigureEditor:
         return positions
 
     def restore_axes_positions(self) -> None:
-        """Restore axes to their original positions."""
-        if not self._initial_axes_positions:
-            return
+        """Restore axes to their original positions from base_style."""
+        base_style = self.style_overrides.base_style
         mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
         axes = mpl_fig.get_axes()
         for i, ax in enumerate(axes):
-            if i in self._initial_axes_positions:
-                pos = self._initial_axes_positions[i]
+            key = f"_original_axes_position_{i}"
+            if key in base_style:
+                pos = base_style[key]
                 ax.set_position(pos)
+
+    def _capture_annotation_positions(self) -> Dict[str, dict]:
+        """Capture current annotation (text) positions for each axis."""
+        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
+        axes = mpl_fig.get_axes()
+        positions = {}
+        for ax_idx, ax in enumerate(axes):
+            for text_idx, text_obj in enumerate(ax.texts):
+                key = f"ax{ax_idx}_text{text_idx}"
+                pos = text_obj.get_position()
+                positions[key] = {
+                    "position": [
+                        float(pos[0]),
+                        float(pos[1]),
+                    ],  # Convert to float for JSON
+                    "transform_is_axes": bool(text_obj.get_transform() == ax.transAxes),
+                }
+        return positions
+
+    def restore_annotation_positions(self) -> None:
+        """Restore annotations to their original positions from base_style."""
+        base_style = self.style_overrides.base_style
+        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
+        axes = mpl_fig.get_axes()
+        for ax_idx, ax in enumerate(axes):
+            for text_idx, text_obj in enumerate(ax.texts):
+                key = f"_original_ax{ax_idx}_text{text_idx}"
+                if key in base_style:
+                    orig = base_style[key]
+                    text_obj.set_position(tuple(orig["position"]))
 
     def run(self, open_browser: bool = True) -> Dict[str, Any]:
         """
@@ -212,12 +269,12 @@ class FigureEditor:
         """
         from flask import Flask
 
+        from ._routes_annotation import register_annotation_routes
         from ._routes_axis import register_axis_routes
         from ._routes_core import register_core_routes
         from ._routes_datatable import register_datatable_routes
         from ._routes_element import register_element_routes
         from ._routes_image import register_image_routes
-        from ._routes_selection import register_selection_routes
 
         # DISABLED: Snapshot feature corrupts figure state via visibility changes
         # from ._routes_snapshot import register_snapshot_routes
@@ -239,7 +296,7 @@ class FigureEditor:
         register_element_routes(app, self)
         register_image_routes(app, self)
         register_datatable_routes(app, self)
-        register_selection_routes(app, self)
+        register_annotation_routes(app, self)
         # DISABLED: register_snapshot_routes(app, self)
 
         # Start server

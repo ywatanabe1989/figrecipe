@@ -19,7 +19,6 @@ This package contains modular JavaScript organized by functionality:
 - _panel_position.py: Panel position editing (left, bottom, width, height)
 - _multi_select.py: Multi-selection with Ctrl+Click
 - _overlays.py: Measurement overlays (ruler, grid, columns)
-- _panel_labels.py: Draggable panel labels (A, B, C...) on canvas
 - _region_select.py: Region/marquee selection by dragging rectangle
 - _selection.py: Selection drawing and property sync
 - _tabs.py: Tab navigation (Figure/Axis/Element)
@@ -28,6 +27,7 @@ This package contains modular JavaScript organized by functionality:
 - _undo_redo.py: Undo/redo history (Ctrl+Z, Ctrl+Shift+Z)
 """
 
+from ._annotation_drag import SCRIPTS_ANNOTATION_DRAG
 from ._api import SCRIPTS_API
 from ._colors import SCRIPTS_COLORS
 from ._core import SCRIPTS_CORE
@@ -45,7 +45,6 @@ from ._multi_select import SCRIPTS_MULTI_SELECT
 from ._overlays import SCRIPTS_OVERLAYS
 from ._panel_drag import SCRIPTS_PANEL_DRAG
 from ._panel_drag_snapshot import SCRIPTS_PANEL_DRAG_SNAPSHOT
-from ._panel_labels import SCRIPTS_PANEL_LABELS
 from ._panel_position import SCRIPTS_PANEL_POSITION
 from ._panel_snap import SCRIPTS_PANEL_SNAP
 from ._region_select import SCRIPTS_REGION_SELECT
@@ -79,8 +78,8 @@ SCRIPTS = (
     + SCRIPTS_PANEL_SNAP
     + SCRIPTS_PANEL_DRAG_SNAPSHOT
     + SCRIPTS_PANEL_DRAG
-    + SCRIPTS_PANEL_LABELS
     + SCRIPTS_LEGEND_DRAG
+    + SCRIPTS_ANNOTATION_DRAG
     + SCRIPTS_IMAGE_DROP
     + SCRIPTS_UNDO_REDO
     + SCRIPTS_DATATABLE
@@ -96,6 +95,7 @@ def get_all_scripts():
         Mapping of script name to script content.
     """
     return {
+        "annotation_drag": SCRIPTS_ANNOTATION_DRAG,
         "api": SCRIPTS_API,
         "colors": SCRIPTS_COLORS,
         "core": SCRIPTS_CORE,
@@ -113,7 +113,6 @@ def get_all_scripts():
         "multi_select": SCRIPTS_MULTI_SELECT,
         "panel_drag": SCRIPTS_PANEL_DRAG,
         "panel_drag_snapshot": SCRIPTS_PANEL_DRAG_SNAPSHOT,
-        "panel_labels": SCRIPTS_PANEL_LABELS,
         "panel_position": SCRIPTS_PANEL_POSITION,
         "panel_snap": SCRIPTS_PANEL_SNAP,
         "region_select": SCRIPTS_REGION_SELECT,
@@ -127,6 +126,7 @@ def get_all_scripts():
 
 __all__ = [
     "SCRIPTS",
+    "SCRIPTS_ANNOTATION_DRAG",
     "SCRIPTS_API",
     "SCRIPTS_COLORS",
     "SCRIPTS_CORE",
@@ -144,7 +144,6 @@ __all__ = [
     "SCRIPTS_OVERLAYS",
     "SCRIPTS_PANEL_DRAG",
     "SCRIPTS_PANEL_DRAG_SNAPSHOT",
-    "SCRIPTS_PANEL_LABELS",
     "SCRIPTS_PANEL_POSITION",
     "SCRIPTS_PANEL_SNAP",
     "SCRIPTS_REGION_SELECT",

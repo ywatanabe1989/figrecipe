@@ -181,6 +181,9 @@ def register_style_routes(app, editor):
         # Restore original axes positions
         editor.restore_axes_positions()
 
+        # Restore original annotation positions (panel labels, text)
+        editor.restore_annotation_positions()
+
         if editor._initial_base64 and not editor.dark_mode:
             base64_img = editor._initial_base64
             import base64 as b64
