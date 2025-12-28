@@ -103,9 +103,10 @@ function drawHitRegions() {
     console.log('Drawing hit regions:', Object.keys(currentBboxes).length, 'elements');
 
     // Drawing z-order: background first (lower), foreground last (higher = on top visually)
+    // panel_label and text must be highest to ensure they receive click events for annotation drag
     const zOrderPriority = { 'axes': 0, 'fill': 1, 'spine': 2, 'image': 3, 'contour': 3,
         'bar': 4, 'pie': 4, 'quiver': 4, 'line': 5, 'scatter': 6, 'xticks': 7, 'yticks': 7,
-        'title': 8, 'xlabel': 8, 'ylabel': 8, 'legend': 9 };
+        'title': 8, 'xlabel': 8, 'ylabel': 8, 'legend': 9, 'panel_label': 10, 'text': 10 };
 
     // Convert to array, filter, and sort by z-order
     // Include axes (panels) - they have lowest z-order so drawn first (background)
@@ -151,10 +152,11 @@ function drawHitRegions() {
         shape.addEventListener('mouseleave', () => handleHitRegionLeave());
         shape.addEventListener('click', (e) => handleHitRegionClick(e, key, enrichedBbox));
 
-        // Add mousedown for drag (legend or panel)
+        // Add mousedown for drag (legend, annotation, or panel)
         shape.addEventListener('mousedown', (e) => {
             if (e.button !== 0 || e.ctrlKey || e.metaKey || e.altKey) return;
             if (bbox.type === 'legend' && typeof startLegendDrag === 'function') { startLegendDrag(e, key); return; }
+            if ((bbox.type === 'panel_label' || bbox.type === 'text') && typeof startAnnotationDrag === 'function') { startAnnotationDrag(e, key); return; }
             if (typeof handlePanelDragStart === 'function') handlePanelDragStart(e);
         });
 
@@ -284,22 +286,13 @@ function handleHitRegionHover(key, bbox) {
     }
 }
 
-// Highlight all elements in a group
 function highlightGroupElements(keys) {
-    keys.forEach(key => {
-        const hitRegion = document.querySelector(`[data-key="${key}"]`);
-        if (hitRegion) {
-            hitRegion.classList.add('group-hovered');
-        }
-    });
+    keys.forEach(key => { const el = document.querySelector(`[data-key="${key}"]`); if (el) el.classList.add('group-hovered'); });
 }
 
-// Handle leaving hit region
 function handleHitRegionLeave() {
     hoveredElement = null;
-    document.querySelectorAll('.group-hovered').forEach(el => {
-        el.classList.remove('group-hovered');
-    });
+    document.querySelectorAll('.group-hovered').forEach(el => el.classList.remove('group-hovered'));
 }
 
 // Handle click on hit region with Alt+Click cycling support
@@ -313,29 +306,27 @@ function handleHitRegionClick(event, key, bbox) {
     const colorMapInfo = (colorMap && colorMap[key]) || {};
     const element = { key, ...bbox, ...colorMapInfo };
 
-    if (event.altKey) {
+    if (event.ctrlKey || event.metaKey) {
+        // Ctrl+Click: toggle multi-selection
+        if (typeof toggleInSelection === 'function') {
+            toggleInSelection(element);
+            if (typeof drawMultiSelection === 'function') drawMultiSelection();
+        } else { selectElement(element); }
+    } else if (event.altKey) {
         // Alt+Click: cycle through overlapping elements
         const clickPos = { x: event.clientX, y: event.clientY };
-        const samePosition = lastClickPosition &&
-            Math.abs(lastClickPosition.x - clickPos.x) < 5 &&
-            Math.abs(lastClickPosition.y - clickPos.y) < 5;
-
+        const samePosition = lastClickPosition && Math.abs(lastClickPosition.x - clickPos.x) < 5 && Math.abs(lastClickPosition.y - clickPos.y) < 5;
         if (samePosition && overlappingElements.length > 1) {
             cycleIndex = (cycleIndex + 1) % overlappingElements.length;
             selectElement(overlappingElements[cycleIndex]);
         } else {
             overlappingElements = findOverlappingElements(clickPos);
-            cycleIndex = 0;
-            lastClickPosition = clickPos;
-
-            if (overlappingElements.length > 0) {
-                selectElement(overlappingElements[0]);
-            } else {
-                selectElement(element);
-            }
+            cycleIndex = 0; lastClickPosition = clickPos;
+            selectElement(overlappingElements.length > 0 ? overlappingElements[0] : element);
         }
     } else {
-        // Normal click: use priority-based selection (pie > axes, etc.)
+        // Normal click: clear multi-selection, use priority-based selection
+        if (typeof clearMultiSelection === 'function') clearMultiSelection();
         const overlapping = findOverlappingElements({ x: event.clientX, y: event.clientY });
         selectElement(overlapping.length > 0 ? overlapping[0] : element);
         lastClickPosition = null; overlappingElements = []; cycleIndex = 0;
