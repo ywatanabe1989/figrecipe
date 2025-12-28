@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Core reproduction logic for figure reproduction."""
 
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -11,6 +12,7 @@ from matplotlib.axes import Axes
 
 from .._recorder import CallRecord, FigureRecord
 from .._serializer import load_recipe
+from .._utils._bundle import resolve_recipe_path
 
 
 def reproduce(
@@ -24,8 +26,11 @@ def reproduce(
     Parameters
     ----------
     path : str or Path
-        Path to .yaml or .png recipe file. If .png is provided,
-        the corresponding .yaml file will be loaded.
+        Path to recipe. Supports multiple formats:
+        - .yaml/.yml file: Direct recipe file
+        - .png/.jpg/etc: Image with associated .yaml
+        - Directory: Bundle containing recipe.yaml
+        - .zip: ZIP archive containing recipe.yaml
     calls : list of str, optional
         If provided, only reproduce these specific call IDs.
     skip_decorations : bool
@@ -43,56 +48,49 @@ def reproduce(
 
     Examples
     --------
-    >>> import figrecipe as ps
-    >>> fig, ax = ps.reproduce("experiment_001.yaml")
-    >>> fig, ax = ps.reproduce("experiment_001.png")  # Also works
+    >>> import figrecipe as fr
+    >>> fig, ax = fr.reproduce("experiment_001.yaml")
+    >>> fig, ax = fr.reproduce("experiment_001.png")  # Also works
+    >>> fig, ax = fr.reproduce("figure_bundle/")      # Directory bundle
+    >>> fig, ax = fr.reproduce("figure.zip")          # ZIP bundle
     >>> plt.show()
     """
-    path = Path(path)
+    # Resolve path to actual recipe YAML (handles directories, ZIPs, images)
+    path, temp_dir = resolve_recipe_path(path)
 
-    # Accept both .png and .yaml - find the yaml file
-    if path.suffix.lower() in (".png", ".jpg", ".jpeg", ".pdf", ".svg"):
-        yaml_path = path.with_suffix(".yaml")
-        if not yaml_path.exists():
-            raise FileNotFoundError(
-                f"Recipe file not found: {yaml_path}. "
-                f"Expected .yaml file alongside {path}"
-            )
-        path = yaml_path
+    try:
+        record = load_recipe(path)
 
-    record = load_recipe(path)
+        # Check for override file and merge if exists
+        if apply_overrides:
+            overrides_path = path.with_suffix(".overrides.json")
+            if overrides_path.exists():
+                import json
 
-    # Check for override file and merge if exists
-    if apply_overrides:
-        overrides_path = path.with_suffix(".overrides.json")
-        if overrides_path.exists():
-            import json
+                with open(overrides_path) as f:
+                    data = json.load(f)
 
-            with open(overrides_path) as f:
-                data = json.load(f)
+                # Apply style overrides
+                manual_overrides = data.get("manual_overrides", {})
+                if manual_overrides:
+                    if record.style is None:
+                        record.style = {}
+                    record.style.update(manual_overrides)
 
-            # Apply style overrides
-            manual_overrides = data.get("manual_overrides", {})
-            if manual_overrides:
-                # Merge overrides into record style
-                if record.style is None:
-                    record.style = {}
-                record.style.update(manual_overrides)
+                # Apply call overrides (kwargs changes from editor)
+                call_overrides = data.get("call_overrides", {})
+                if call_overrides:
+                    for ax_key, ax_record in record.axes.items():
+                        for call in ax_record.calls:
+                            if call.id in call_overrides:
+                                call.kwargs.update(call_overrides[call.id])
 
-            # Apply call overrides (kwargs changes from editor)
-            call_overrides = data.get("call_overrides", {})
-            if call_overrides:
-                for ax_key, ax_record in record.axes.items():
-                    for call in ax_record.calls:
-                        if call.id in call_overrides:
-                            # Merge call kwargs overrides
-                            call.kwargs.update(call_overrides[call.id])
-
-    return reproduce_from_record(
-        record,
-        calls=calls,
-        skip_decorations=skip_decorations,
-    )
+        return reproduce_from_record(
+            record, calls=calls, skip_decorations=skip_decorations
+        )
+    finally:
+        if temp_dir is not None and temp_dir.exists():
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def reproduce_from_record(

@@ -43,8 +43,13 @@ def edit(
     Parameters
     ----------
     source : RecordingFigure, str, Path, or None
-        Either a live RecordingFigure object, path to a .yaml/.png file,
-        or None to create a new blank figure.
+        Figure source. Supports multiple formats:
+        - RecordingFigure: Live figure object
+        - .yaml/.yml: Direct recipe file
+        - .png/.jpg/etc: Image with associated .yaml
+        - Directory: Bundle containing recipe.yaml
+        - .zip: ZIP archive containing recipe.yaml
+        - None: Create new blank figure
     style : str or dict, optional
         Style preset name (e.g., 'SCITEX', 'SCITEX_DARK') or style dict.
         If None, uses the currently loaded global style.
@@ -146,8 +151,13 @@ def _resolve_source(source: Optional[Union[RecordingFigure, str, Path]]):
     Parameters
     ----------
     source : RecordingFigure, str, Path, or None
-        Input source. If None, creates a new blank figure.
-        If PNG path, tries to find associated YAML recipe.
+        Input source. Supports:
+        - None: Creates new blank figure
+        - RecordingFigure: Uses directly
+        - .yaml/.yml: Direct recipe file
+        - .png/.jpg/etc: Image with associated YAML
+        - Directory: Bundle containing recipe.yaml
+        - .zip: ZIP archive containing recipe.yaml
 
     Returns
     -------
@@ -192,28 +202,11 @@ def _resolve_source(source: Optional[Union[RecordingFigure, str, Path]]):
         )
         return wrapped_fig, None
 
-    # Assume it's a path
-    path = Path(source)
-    if not path.exists():
-        raise FileNotFoundError(f"File not found: {path}")
+    # Assume it's a path - use bundle resolution (handles dir, zip, yaml, png)
+    from .._utils._bundle import resolve_recipe_path
 
-    # Handle PNG path - find associated YAML
-    if path.suffix.lower() == ".png":
-        yaml_path = path.with_suffix(".yaml")
-        if yaml_path.exists():
-            path = yaml_path
-        else:
-            yml_path = path.with_suffix(".yml")
-            if yml_path.exists():
-                path = yml_path
-            else:
-                raise FileNotFoundError(
-                    f"No recipe found for {path.name}. "
-                    f"Expected {yaml_path.name} or {yml_path.name}"
-                )
-
-    if path.suffix.lower() not in (".yaml", ".yml"):
-        raise ValueError(f"Expected .yaml, .yml, or .png file, got: {path.suffix}")
+    path, _temp_dir = resolve_recipe_path(source)
+    # Note: temp_dir cleanup handled by reproduce() if ZIP was extracted
 
     # Load recipe and reproduce figure
     from .._reproducer import reproduce
