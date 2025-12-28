@@ -126,7 +126,7 @@ axes:
         with pytest.raises(FileNotFoundError) as exc_info:
             _resolve_source(png_path)
 
-        assert "No recipe found" in str(exc_info.value)
+        assert "Recipe file not found" in str(exc_info.value)
 
     def test_edit_with_yml_extension(self, tmp_path):
         """Test edit() works with .yml extension."""
@@ -184,7 +184,7 @@ axes:
         with pytest.raises(ValueError) as exc_info:
             _resolve_source(txt_path)
 
-        assert "Expected .yaml, .yml, or .png file" in str(exc_info.value)
+        assert "Unsupported path type" in str(exc_info.value)
 
 
 class TestResolveStyle:

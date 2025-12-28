@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Utility modules for figrecipe."""
 
+from ._bundle import is_bundle_path, resolve_recipe_path
 from ._diff import get_non_default_kwargs, is_default_value
 from ._numpy_io import load_array, save_array
 from ._units import inch_to_mm, mm_to_inch, mm_to_pt, pt_to_mm
@@ -15,6 +16,8 @@ __all__ = [
     "inch_to_mm",
     "mm_to_pt",
     "pt_to_mm",
+    "resolve_recipe_path",
+    "is_bundle_path",
 ]
 
 # Optional: image comparison (requires PIL)
