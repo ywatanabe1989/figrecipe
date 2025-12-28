@@ -15,13 +15,15 @@ def get_html_datatable_panel() -> str:
     plot_options = generate_html_options()
 
     return f"""
-        <!-- Datatable Panel (collapsible left side) -->
+        <!-- Datatable Panel (always visible, collapsible) -->
         <div id="datatable-panel" class="datatable-panel">
             <div class="datatable-header">
-                <h3>Data Table</h3>
+                <div class="header-title">
+                    <h3>Data</h3>
+                </div>
                 <div class="datatable-header-actions">
                     <button id="btn-clear-data" class="btn-small" title="Clear data" onclick="clearDatatableData()">Clear</button>
-                    <button id="btn-close-datatable" class="btn-close-datatable" title="Close panel">&times;</button>
+                    <button id="btn-collapse-datatable" class="btn-collapse" title="Collapse panel">&#x276E;</button>
                 </div>
             </div>
 
@@ -74,10 +76,9 @@ def get_html_datatable_panel() -> str:
                     <span class="selected-count">0</span> columns selected
                 </div>
             </div>
+            <!-- Resize handle -->
+            <div class="datatable-resize" id="datatable-resize"></div>
         </div>
-
-        <!-- Toggle button for datatable (visible when panel collapsed) -->
-        <button id="datatable-toggle" class="datatable-toggle" title="Show data table">Data</button>
 """
 
 

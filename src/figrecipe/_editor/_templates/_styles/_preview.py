@@ -18,15 +18,81 @@ STYLES_PREVIEW = """
     flex-direction: column;
     border-right: 1px solid var(--border-color);
     min-width: 400px;
+    max-width: none;
+    width: auto;
+    order: 0;  /* Default order when expanded */
+    transition: flex 0.2s ease-out, min-width 0.2s ease-out, width 0.2s ease-out, order 0s;
+    position: relative;
+}
+
+/* Collapsed preview panel - collapses to RIGHT side */
+.preview-panel.collapsed {
+    flex: 0 0 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    width: 42px !important;
+    order: 10;  /* Move to end (after data panel expands) */
+}
+
+/* When canvas collapses, data panel expands to fill space */
+.editor-container:has(.preview-panel.collapsed) .datatable-panel {
+    flex: 1 !important;
+    max-width: none !important;
+    width: auto !important;
+}
+
+.preview-panel.collapsed .preview-wrapper,
+.preview-panel.collapsed .preview-controls,
+.preview-panel.collapsed .scitex-branding,
+.preview-panel.collapsed #server-start-time {
+    display: none;
+}
+
+.preview-panel.collapsed .preview-header {
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 12px 8px;
+    height: 100%;
+}
+
+/* Flip button to point right (expand direction) when collapsed */
+.preview-panel.collapsed .btn-collapse {
+    transform: rotate(180deg);
 }
 
 .preview-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: var(--bg-secondary);
+    padding: 0 12px;
+    height: var(--panel-header-height);
+    min-height: var(--panel-header-height);
+    background: var(--panel-header-bg);
     border-bottom: 1px solid var(--border-color);
+}
+
+/* Preview header collapse button */
+.preview-header .btn-collapse {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-right: 8px;
+}
+
+.preview-header .btn-collapse:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .preview-header h2 {
