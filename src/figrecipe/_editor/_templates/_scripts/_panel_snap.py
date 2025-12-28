@@ -231,8 +231,23 @@ function showSnapGuides(guides, imgRect) {
         return;
     }
 
-    const scaleX = imgRect.width / figSize.width_mm;
-    const scaleY = imgRect.height / figSize.height_mm;
+    const img = document.getElementById('preview-image');
+    if (!img) return;
+
+    // IMPORTANT: Use offsetWidth/offsetHeight (CSS dimensions) NOT imgRect (transformed by zoom)
+    // The guides are positioned in the zoom-container's local coordinate space,
+    // which is NOT affected by the CSS transform scale.
+    // imgRect.width/height = naturalWidth * zoomLevel (visual size, WRONG for positioning)
+    // img.offsetWidth/Height = naturalWidth (CSS size, CORRECT for positioning)
+    const scaleX = img.offsetWidth / figSize.width_mm;
+    const scaleY = img.offsetHeight / figSize.height_mm;
+
+    // Get image offset relative to zoom-container (its offset parent)
+    const imgOffsetX = img.offsetLeft;
+    const imgOffsetY = img.offsetTop;
+
+    // Debug logging for guide positioning
+    console.log('[SnapGuide] imgOffset:', imgOffsetX, imgOffsetY, '| offsetSize:', img.offsetWidth, img.offsetHeight, '| scale:', scaleX.toFixed(3), scaleY.toFixed(3));
 
     // Hide all guides first
     snapGuides.forEach(g => g.style.display = 'none');
@@ -249,14 +264,14 @@ function showSnapGuides(guides, imgRect) {
         const opacity = 0.3 + strength * 0.7;  // 0.3-1.0 opacity range
 
         if (guide.type === 'vertical') {
-            el.style.left = `${guide.pos * scaleX}px`;
-            el.style.top = '0';
+            el.style.left = `${imgOffsetX + guide.pos * scaleX}px`;
+            el.style.top = `${imgOffsetY}px`;
             el.style.width = strength >= 1 ? '3px' : '2px';  // Thicker when snapped
-            el.style.height = `${imgRect.height}px`;
+            el.style.height = `${img.offsetHeight}px`;  // Use CSS size, not transformed
         } else {
-            el.style.left = '0';
-            el.style.top = `${guide.pos * scaleY}px`;
-            el.style.width = `${imgRect.width}px`;
+            el.style.left = `${imgOffsetX}px`;
+            el.style.top = `${imgOffsetY + guide.pos * scaleY}px`;
+            el.style.width = `${img.offsetWidth}px`;  // Use CSS size, not transformed
             el.style.height = strength >= 1 ? '3px' : '2px';  // Thicker when snapped
         }
         el.style.background = `rgba(${baseColor}, ${opacity})`;
