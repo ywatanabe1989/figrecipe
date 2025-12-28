@@ -3,70 +3,108 @@
 """CSS styles for datatable panel layout."""
 
 CSS_DATATABLE_PANEL = """
-/* Datatable panel - collapsible left panel */
+/* Datatable panel - always visible, collapsible */
 .datatable-panel {
-    width: 0;
-    min-width: 0;
-    max-width: 400px;
+    width: 280px;
+    min-width: 200px;
+    max-width: 450px;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: width 0.2s ease, min-width 0.2s ease;
+    transition: width 0.2s ease-out, min-width 0.2s ease-out;
+    position: relative;
 }
 
-.datatable-panel.expanded {
-    width: 320px;
-    min-width: 320px;
+/* Collapsed state */
+.datatable-panel.collapsed {
+    width: 36px;
+    min-width: 36px;
 }
 
-.datatable-toggle {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 100;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-left: none;
-    border-radius: 0 4px 4px 0;
-    padding: 8px 4px;
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 12px;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-}
-
-.datatable-toggle:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-}
-
-.datatable-panel.expanded + .preview-panel .datatable-toggle {
+.datatable-panel.collapsed .datatable-tabs,
+.datatable-panel.collapsed .datatable-tab-content,
+.datatable-panel.collapsed .datatable-resize {
     display: none;
+}
+
+.datatable-panel.collapsed .datatable-header {
+    padding: 10px 6px;
+    justify-content: center;
+}
+
+.datatable-panel.collapsed .datatable-header .header-title {
+    display: none;
+}
+
+.datatable-panel.collapsed .datatable-header h3 {
+    display: none;
+}
+
+.datatable-panel.collapsed .datatable-header-actions {
+    display: flex;
+}
+
+.datatable-panel.collapsed .datatable-header-actions button:not(.btn-collapse) {
+    display: none;
+}
+
+/* Flip collapse button when collapsed (now points right to expand) */
+.datatable-panel.collapsed .btn-collapse {
+    transform: rotate(180deg);
+}
+
+/* Resize handle */
+.datatable-resize {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.datatable-resize:hover,
+.datatable-resize.resizing {
+    background: var(--accent-color);
 }
 
 /* Datatable header */
 .datatable-header {
-    padding: 8px 12px;
+    padding: 0 10px;
+    height: var(--panel-header-height);
+    min-height: var(--panel-header-height);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+    background: var(--panel-header-bg);
+}
+
+.datatable-header .header-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .datatable-header h3 {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
 }
 
 .datatable-header-actions {
     display: flex;
     gap: 4px;
+    align-items: center;
 }
 
 .datatable-header-actions button {
@@ -83,6 +121,27 @@ CSS_DATATABLE_PANEL = """
     background: var(--accent-color);
     color: white;
     border-color: var(--accent-color);
+}
+
+.datatable-header-actions .btn-collapse {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.datatable-header-actions .btn-collapse:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 .btn-close-datatable {

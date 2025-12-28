@@ -24,8 +24,9 @@ HTML_TEMPLATE = """
     <div class="editor-container">
         <!-- FILE_BROWSER_PLACEHOLDER -->
         <!-- Preview Panel -->
-        <div class="preview-panel">
+        <div class="preview-panel" id="preview-panel">
             <div class="preview-header">
+                <button id="btn-collapse-preview" class="btn-collapse" title="Collapse canvas">&#x276F;</button>
                 <a href="https://scitex.ai" target="_blank" class="scitex-branding" title="FigRecipe - Part of SciTeX">
                     <img src="data:image/png;base64,SCITEX_ICON_PLACEHOLDER" alt="SciTeX" class="scitex-icon">
                     <span class="figrecipe-title">FigRecipe Editor</span>
@@ -73,9 +74,12 @@ HTML_TEMPLATE = """
         </div>
 
         <!-- Controls Panel -->
-        <div class="controls-panel">
+        <div class="controls-panel" id="controls-panel">
             <div class="controls-header">
-                <h2>Properties</h2>
+                <div class="header-title">
+                    <button id="btn-collapse-properties" class="btn-collapse" title="Collapse panel">&#x276F;</button>
+                    <h2>Properties</h2>
+                </div>
                 <div class="controls-actions">
                     <button id="btn-undo" class="btn-small" title="Undo (Ctrl+Z)" disabled>Undo</button>
                     <button id="btn-redo" class="btn-small" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button>
