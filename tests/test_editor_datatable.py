@@ -44,7 +44,7 @@ class TestDatatableModules:
 
         assert "datatable-panel" in HTML_DATATABLE_PANEL
         assert "datatable-dropzone" in HTML_DATATABLE_PANEL
-        assert "datatable-toggle" in HTML_DATATABLE_PANEL
+        assert "btn-collapse-datatable" in HTML_DATATABLE_PANEL
 
 
 class TestDatatableScriptIntegrity:
@@ -64,7 +64,6 @@ class TestDatatableScriptIntegrity:
         from figrecipe._editor._templates._scripts import SCRIPTS_DATATABLE
 
         required_functions = [
-            "toggleDatatablePanel",
             "initDatatablePanel",
             "handleDataFile",
             "parseCSV",
@@ -79,9 +78,9 @@ class TestDatatableScriptIntegrity:
         ]
 
         for func_name in required_functions:
-            assert (
-                f"function {func_name}" in SCRIPTS_DATATABLE
-            ), f"Function {func_name} not found"
+            assert f"function {func_name}" in SCRIPTS_DATATABLE, (
+                f"Function {func_name} not found"
+            )
 
 
 class TestDatatableRoutes:
