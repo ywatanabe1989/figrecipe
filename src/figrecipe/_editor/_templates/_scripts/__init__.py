@@ -3,6 +3,7 @@
 """JavaScript modules for the figure editor.
 
 This package contains modular JavaScript organized by functionality:
+- _accordion.py: Panel collapse/expand with state persistence
 - _api.py: API calls (save, load, update, download)
 - _colors.py: Color presets and conversion utilities
 - _core.py: State variables and initialization
@@ -15,6 +16,7 @@ This package contains modular JavaScript organized by functionality:
 - _modals.py: Theme and shortcuts modals
 - _panel_snap.py: Panel snapping (grid, edge, center alignment)
 - _panel_drag.py: Panel drag-to-move (click+drag on empty panel area)
+- _panel_resize.py: Panel divider drag-to-resize
 - _legend_drag.py: Legend drag-to-move (click+drag on legend)
 - _panel_position.py: Panel position editing (left, bottom, width, height)
 - _multi_select.py: Multi-selection with Ctrl+Click
@@ -27,6 +29,7 @@ This package contains modular JavaScript organized by functionality:
 - _undo_redo.py: Undo/redo history (Ctrl+Z, Ctrl+Shift+Z)
 """
 
+from ._accordion import SCRIPTS_ACCORDION
 from ._annotation_drag import SCRIPTS_ANNOTATION_DRAG
 from ._api import SCRIPTS_API
 from ._colors import SCRIPTS_COLORS
@@ -46,6 +49,7 @@ from ._overlays import SCRIPTS_OVERLAYS
 from ._panel_drag import SCRIPTS_PANEL_DRAG
 from ._panel_drag_snapshot import SCRIPTS_PANEL_DRAG_SNAPSHOT
 from ._panel_position import SCRIPTS_PANEL_POSITION
+from ._panel_resize import SCRIPTS_PANEL_RESIZE
 from ._panel_snap import SCRIPTS_PANEL_SNAP
 from ._region_select import SCRIPTS_REGION_SELECT
 from ._selection import SCRIPTS_SELECTION
@@ -78,6 +82,8 @@ SCRIPTS = (
     + SCRIPTS_PANEL_SNAP
     + SCRIPTS_PANEL_DRAG_SNAPSHOT
     + SCRIPTS_PANEL_DRAG
+    + SCRIPTS_PANEL_RESIZE
+    + SCRIPTS_ACCORDION
     + SCRIPTS_LEGEND_DRAG
     + SCRIPTS_ANNOTATION_DRAG
     + SCRIPTS_IMAGE_DROP
@@ -95,6 +101,7 @@ def get_all_scripts():
         Mapping of script name to script content.
     """
     return {
+        "accordion": SCRIPTS_ACCORDION,
         "annotation_drag": SCRIPTS_ANNOTATION_DRAG,
         "api": SCRIPTS_API,
         "colors": SCRIPTS_COLORS,
@@ -114,6 +121,7 @@ def get_all_scripts():
         "panel_drag": SCRIPTS_PANEL_DRAG,
         "panel_drag_snapshot": SCRIPTS_PANEL_DRAG_SNAPSHOT,
         "panel_position": SCRIPTS_PANEL_POSITION,
+        "panel_resize": SCRIPTS_PANEL_RESIZE,
         "panel_snap": SCRIPTS_PANEL_SNAP,
         "region_select": SCRIPTS_REGION_SELECT,
         "selection": SCRIPTS_SELECTION,
@@ -126,6 +134,7 @@ def get_all_scripts():
 
 __all__ = [
     "SCRIPTS",
+    "SCRIPTS_ACCORDION",
     "SCRIPTS_ANNOTATION_DRAG",
     "SCRIPTS_API",
     "SCRIPTS_COLORS",
@@ -145,6 +154,7 @@ __all__ = [
     "SCRIPTS_PANEL_DRAG",
     "SCRIPTS_PANEL_DRAG_SNAPSHOT",
     "SCRIPTS_PANEL_POSITION",
+    "SCRIPTS_PANEL_RESIZE",
     "SCRIPTS_PANEL_SNAP",
     "SCRIPTS_REGION_SELECT",
     "SCRIPTS_SELECTION",

@@ -119,6 +119,26 @@ STYLES_FORMS = """
 .form-grid .form-row label {
     flex: 0 0 60px;
 }
+
+/* Spine visibility grid - 2x2 layout */
+.spine-visibility-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    margin: 8px 0;
+    padding: 8px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+}
+
+.spine-visibility-grid .form-row {
+    margin-bottom: 0;
+}
+
+.spine-visibility-grid .form-row label {
+    flex: 0 0 80px;
+    font-size: 12px;
+}
 """
 
 __all__ = ["STYLES_FORMS"]

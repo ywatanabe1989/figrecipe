@@ -68,13 +68,19 @@ def get_form_values_from_style(style: Dict[str, Any]) -> Dict[str, Any]:
     if "output" in style:
         values["output_dpi"] = style["output"].get("dpi", 300)
 
-    # Behavior
+    # Behavior - spine visibility for all four sides
     if "behavior" in style:
         values["behavior_hide_top_spine"] = style["behavior"].get(
             "hide_top_spine", True
         )
         values["behavior_hide_right_spine"] = style["behavior"].get(
             "hide_right_spine", True
+        )
+        values["behavior_hide_bottom_spine"] = style["behavior"].get(
+            "hide_bottom_spine", False
+        )
+        values["behavior_hide_left_spine"] = style["behavior"].get(
+            "hide_left_spine", False
         )
         values["behavior_grid"] = style["behavior"].get("grid", False)
 

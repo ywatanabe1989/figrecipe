@@ -32,8 +32,10 @@ STYLES_FILE_BROWSER = """
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
-    background: var(--bg-tertiary);
+    padding: 0 10px;
+    height: var(--panel-header-height);
+    min-height: var(--panel-header-height);
+    background: var(--panel-header-bg);
     border-bottom: 1px solid var(--border-color);
     font-size: 11px;
     font-weight: 600;
@@ -88,12 +90,17 @@ STYLES_FILE_BROWSER = """
 }
 
 .file-browser-panel.collapsed .file-browser-actions {
+    display: flex;
+}
+
+.file-browser-panel.collapsed .file-browser-actions button:not(.btn-collapse) {
     display: none;
 }
 
-/* Keep collapse button visible when collapsed */
+/* Flip collapse button when collapsed (now points right to expand) */
 .file-browser-panel.collapsed .btn-collapse {
     display: flex;
+    transform: rotate(180deg);
 }
 
 .file-browser-actions button {
@@ -256,6 +263,16 @@ STYLES_FILE_BROWSER = """
 /* Folder items */
 .file-tree-folder > .file-tree-entry {
     font-weight: 500;
+    cursor: pointer;
+}
+
+.file-tree-folder > .file-tree-entry:hover {
+    background: var(--bg-tertiary);
+}
+
+/* Folder chevron indicator */
+.file-tree-folder > .file-tree-entry .file-tree-icon {
+    position: relative;
 }
 
 .file-tree-folder > .file-tree-entry .file-tree-icon::before {
@@ -263,26 +280,57 @@ STYLES_FILE_BROWSER = """
     display: inline-block;
     width: 0;
     height: 0;
-    border-left: 4px solid var(--text-secondary);
-    border-top: 3px solid transparent;
-    border-bottom: 3px solid transparent;
-    margin-right: 2px;
-    transition: transform 0.15s;
+    border-left: 5px solid var(--text-secondary);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.15s ease;
 }
 
 .file-tree-folder.expanded > .file-tree-entry .file-tree-icon::before {
-    transform: rotate(90deg);
+    transform: translateY(-50%) rotate(90deg);
 }
 
+/* Folder badge (item count) */
+.file-tree-badge.folder-badge {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 9px;
+    min-width: 16px;
+    text-align: center;
+}
+
+/* File tree children container */
 .file-tree-children {
     list-style: none;
     margin: 0;
-    padding: 0 0 0 16px;
+    padding: 0;
     display: none;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
 }
 
 .file-tree-folder.expanded > .file-tree-children {
     display: block;
+}
+
+/* Tree indentation guide lines */
+.file-tree-folder > .file-tree-children {
+    position: relative;
+}
+
+.file-tree-folder > .file-tree-children::before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    top: 0;
+    bottom: 8px;
+    width: 1px;
+    background: var(--border-color);
+    opacity: 0.5;
 }
 
 /* Empty state */

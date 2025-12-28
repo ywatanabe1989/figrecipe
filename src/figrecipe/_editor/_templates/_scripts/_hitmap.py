@@ -463,24 +463,15 @@ function findGroupElements(callId) {
 // Get representative color for a call_id group
 function getGroupRepresentativeColor(callId, fallbackColor) {
     if (!callId || !colorMap) return fallbackColor;
-
     const groupElements = findGroupElements(callId);
-    if (groupElements.length === 0) return fallbackColor;
-
-    const firstColor = groupElements[0].original_color;
-    if (!firstColor) return fallbackColor;
-
-    const allSameColor = groupElements.every(el => el.original_color === firstColor);
-    return allSameColor ? firstColor : firstColor;
+    return groupElements.length > 0 && groupElements[0].original_color ? groupElements[0].original_color : fallbackColor;
 }
 
 // Select an element (and its logical group if applicable)
 function selectElement(element) {
     selectedElement = element;
-
     const callId = element.call_id || element.label;
     const groupElements = findGroupElements(callId);
-
     selectedElement.groupElements = groupElements.length > 1 ? groupElements : null;
 
     drawSelection(element.key);
@@ -489,10 +480,10 @@ function selectElement(element) {
     syncPropertiesToElement(element);
     if (callId && typeof syncDatatableToElement === 'function') syncDatatableToElement(callId);
 
-    // Sync panel position; axes switches tab, image (from imshow) syncs position only (fills panel)
-    if (['axes', 'image'].includes(element.type) || element.ax_index !== undefined) {
-        const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);
-        if (axIndex !== null && typeof selectPanelByIndex === 'function') selectPanelByIndex(axIndex, element.type === 'axes');
+    // Always sync panel position for any element that belongs to a panel
+    const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);
+    if (axIndex !== null && typeof selectPanelByIndex === 'function') {
+        selectPanelByIndex(axIndex, element.type === 'axes');
     }
 }
 """
