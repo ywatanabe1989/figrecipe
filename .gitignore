@@ -100,3 +100,12 @@ tts_cache/
 # BGM files (large files excluded, except smile.mp3 for demo)
 docs/bgm/*.mp3
 !docs/bgm/smile.mp3
+
+# Claude worktree symlinks
+.worktree-*
+
+# Claude worktree symlink
+/feature-demo-movie
+/.claude-worktree-symlinks
+# Claude worktree symlink
+/feature-cli
