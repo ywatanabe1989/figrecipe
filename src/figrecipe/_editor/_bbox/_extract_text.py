@@ -332,11 +332,135 @@ def extract_figure_text(
                 pass
 
 
+def extract_annotations(
+    ax,
+    ax_idx,
+    fig,
+    renderer,
+    tight_bbox,
+    img_width,
+    img_height,
+    scale_x,
+    scale_y,
+    pad_inches,
+    saved_height_inches,
+    bboxes,
+):
+    """Extract bboxes for decorative elements (ax.text, ax.annotate, panel labels).
+
+    These are cosmetic elements that can be repositioned without affecting data.
+    """
+    import string
+
+    panel_label_chars = set(string.ascii_uppercase)
+
+    # Extract ax.texts (includes panel labels and other text annotations)
+    for i, text_obj in enumerate(ax.texts):
+        text_content = text_obj.get_text().strip()
+        if not text_content:
+            continue
+
+        try:
+            bbox = get_text_bbox(
+                text_obj,
+                fig,
+                renderer,
+                tight_bbox,
+                img_width,
+                img_height,
+                scale_x,
+                scale_y,
+                pad_inches,
+                saved_height_inches,
+            )
+            if bbox:
+                # Determine if this is a panel label
+                is_panel_label = (
+                    text_content in panel_label_chars
+                    and text_obj.get_transform() == ax.transAxes
+                )
+
+                # Get position
+                pos = text_obj.get_position()
+
+                # Calculate axes-relative position (0-1)
+                if text_obj.get_transform() == ax.transAxes:
+                    # Already in axes coordinates
+                    rel_x, rel_y = pos[0], pos[1]
+                else:
+                    # Convert from data coordinates to axes
+                    xlim = ax.get_xlim()
+                    ylim = ax.get_ylim()
+                    rel_x = (
+                        (pos[0] - xlim[0]) / (xlim[1] - xlim[0])
+                        if xlim[1] != xlim[0]
+                        else 0.5
+                    )
+                    rel_y = (
+                        (pos[1] - ylim[0]) / (ylim[1] - ylim[0])
+                        if ylim[1] != ylim[0]
+                        else 0.5
+                    )
+
+                if is_panel_label:
+                    key = f"ax{ax_idx}_panel_label"
+                    elem_type = "panel_label"
+                else:
+                    key = f"ax{ax_idx}_text_{i}"
+                    elem_type = "text"
+
+                bboxes[key] = {
+                    **bbox,
+                    "type": elem_type,
+                    "label": elem_type,
+                    "ax_index": ax_idx,
+                    "text": text_content,
+                    "text_index": i,
+                    "pos_x": pos[0],
+                    "pos_y": pos[1],
+                    "rel_x": rel_x,
+                    "rel_y": rel_y,
+                }
+        except Exception:
+            pass
+
+    # Extract ax.patches that are arrows (FancyArrowPatch)
+    from matplotlib.patches import FancyArrowPatch
+
+    for i, patch in enumerate(ax.patches):
+        if isinstance(patch, FancyArrowPatch):
+            try:
+                patch_bbox = patch.get_window_extent(renderer)
+                if patch_bbox is not None:
+                    bbox = transform_bbox(
+                        patch_bbox,
+                        fig,
+                        tight_bbox,
+                        img_width,
+                        img_height,
+                        scale_x,
+                        scale_y,
+                        pad_inches,
+                        saved_height_inches,
+                    )
+                    if bbox:
+                        bboxes[f"ax{ax_idx}_arrow_{i}"] = {
+                            **bbox,
+                            "type": "arrow",
+                            "label": "arrow",
+                            "ax_index": ax_idx,
+                            "arrow_index": i,
+                        }
+            except Exception:
+                pass
+
+
 __all__ = [
     "extract_text_elements",
     "extract_legend",
     "extract_spines",
     "extract_figure_text",
+    "extract_annotations",
 ]
 
 # EOF

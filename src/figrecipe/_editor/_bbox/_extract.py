@@ -20,6 +20,7 @@ from ._extract_axes import (
     extract_patches,
 )
 from ._extract_text import (
+    extract_annotations,
     extract_figure_text,
     extract_legend,
     extract_spines,
@@ -253,6 +254,20 @@ def _extract_axes_bboxes(
         bboxes,
     )
     extract_spines(
+        ax,
+        ax_idx,
+        fig,
+        renderer,
+        tight_bbox,
+        img_width,
+        img_height,
+        scale_x,
+        scale_y,
+        pad_inches,
+        saved_height_inches,
+        bboxes,
+    )
+    extract_annotations(
         ax,
         ax_idx,
         fig,

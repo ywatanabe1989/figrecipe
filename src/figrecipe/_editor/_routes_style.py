@@ -96,7 +96,7 @@ def register_style_routes(app, editor):
             # Extract color_palette from nested colors.palette
             if "colors" in new_style and isinstance(new_style["colors"], dict):
                 colors_dict = new_style["colors"]
-                if "palette" in colors_dict:
+                if "palette" in colors_dict and colors_dict["palette"] is not None:
                     flat_style["color_palette"] = list(colors_dict["palette"])
 
             editor.style_overrides.base_style = flat_style
@@ -110,10 +110,15 @@ def register_style_routes(app, editor):
             mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
             behavior = new_style.get("behavior", {})
             for ax in mpl_fig.get_axes():
-                hide_top = behavior.get("hide_top_spine", True)
-                hide_right = behavior.get("hide_right_spine", True)
-                ax.spines["top"].set_visible(not hide_top)
-                ax.spines["right"].set_visible(not hide_right)
+                # Handle all four spine directions
+                for side, default in [
+                    ("top", True),
+                    ("right", True),
+                    ("bottom", False),
+                    ("left", False),
+                ]:
+                    hide = behavior.get(f"hide_{side}_spine", default)
+                    ax.spines[side].set_visible(not hide)
 
                 if behavior.get("grid", False):
                     ax.grid(True, alpha=0.3)
@@ -180,6 +185,9 @@ def register_style_routes(app, editor):
 
         # Restore original axes positions
         editor.restore_axes_positions()
+
+        # Restore original annotation positions (panel labels, text)
+        editor.restore_annotation_positions()
 
         if editor._initial_base64 and not editor.dark_mode:
             base64_img = editor._initial_base64

@@ -136,9 +136,9 @@ class TestUndoRedoUI:
         from figrecipe._editor._templates._html import HTML_TEMPLATE
 
         assert "<kbd>Ctrl</kbd>+<kbd>Z</kbd>" in HTML_TEMPLATE
-        assert "<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>" in HTML_TEMPLATE
-        assert "Undo</span>" in HTML_TEMPLATE
-        assert "Redo</span>" in HTML_TEMPLATE
+        # Condensed format: Shift+Z instead of Ctrl+Shift+Z
+        assert "Shift+Z" in HTML_TEMPLATE
+        assert "Undo/Redo</span>" in HTML_TEMPLATE
 
 
 class TestUndoRedoIntegration:

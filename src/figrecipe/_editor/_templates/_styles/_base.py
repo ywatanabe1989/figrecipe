@@ -22,6 +22,9 @@ STYLES_BASE = """
     --success-color: #10b981;
     --error-color: #ef4444;
     --selection-color: rgba(37, 99, 235, 0.3);
+    /* Consistent panel header styling */
+    --panel-header-height: 42px;
+    --panel-header-bg: var(--bg-tertiary);
 }
 
 [data-theme="dark"] {
@@ -56,6 +59,32 @@ body {
 .editor-container {
     display: flex;
     height: 100vh;
+}
+
+/* Global scrollbar styling - thin and theme-responsive */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) var(--bg-secondary);
 }
 """
 

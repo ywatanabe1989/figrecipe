@@ -20,6 +20,7 @@ function captureState() {
     const state = {
         overrides: collectOverrides(),
         panelPositions: typeof panelPositions !== 'undefined' ? JSON.parse(JSON.stringify(panelPositions)) : {},
+        annotationPositions: typeof annotationPositions !== 'undefined' ? JSON.parse(JSON.stringify(annotationPositions)) : {},
         timestamp: Date.now()
     };
     return state;
@@ -28,7 +29,8 @@ function captureState() {
 // Compare two states for equality
 function statesEqual(a, b) {
     return JSON.stringify(a.overrides) === JSON.stringify(b.overrides) &&
-           JSON.stringify(a.panelPositions) === JSON.stringify(b.panelPositions);
+           JSON.stringify(a.panelPositions) === JSON.stringify(b.panelPositions) &&
+           JSON.stringify(a.annotationPositions) === JSON.stringify(b.annotationPositions);
 }
 
 // Push current state to history (call before making changes)
@@ -115,6 +117,88 @@ async function applyState(state) {
                     } catch (e) {
                         console.error('[History] Failed to restore panel position:', e);
                     }
+                }
+            }
+        }
+
+        // Restore annotation positions if they differ
+        if (state.annotationPositions && typeof annotationPositions !== 'undefined') {
+            let needsRefresh = false;
+            for (const [key, savedPos] of Object.entries(state.annotationPositions)) {
+                const currentPos = annotationPositions[key];
+
+                // Check if position changed
+                if (!currentPos ||
+                    Math.abs(savedPos.x - (currentPos?.x || 0)) > 0.001 ||
+                    Math.abs(savedPos.y - (currentPos?.y || 0)) > 0.001) {
+
+                    // Parse key formats:
+                    // "ax0_panel_label" -> axIndex=0, type=panel_label, textIndex=0
+                    // "ax0_text_0" -> axIndex=0, type=text, textIndex=0
+                    let axIndex, annotationType, textIndex;
+
+                    if (key.includes('_panel_label')) {
+                        const match = key.match(/ax(\\d+)_panel_label/);
+                        if (match) {
+                            axIndex = parseInt(match[1], 10);
+                            annotationType = 'panel_label';
+                            textIndex = 0;
+                        }
+                    } else if (key.includes('_text_')) {
+                        const match = key.match(/ax(\\d+)_text_(\\d+)/);
+                        if (match) {
+                            axIndex = parseInt(match[1], 10);
+                            annotationType = 'text';
+                            textIndex = parseInt(match[2], 10);
+                        }
+                    }
+
+                    if (axIndex !== undefined) {
+                        try {
+                            const response = await fetch('/update_annotation_position', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    ax_index: axIndex,
+                                    annotation_type: annotationType,
+                                    text_index: textIndex,
+                                    x: savedPos.x,
+                                    y: savedPos.y
+                                })
+                            });
+                            const data = await response.json();
+
+                            if (data.success && data.image) {
+                                // Update preview image
+                                const img = document.getElementById('preview-image');
+                                if (img) {
+                                    img.src = 'data:image/png;base64,' + data.image;
+                                }
+                                // Update bboxes
+                                if (data.bboxes && typeof currentBboxes !== 'undefined') {
+                                    currentBboxes = data.bboxes;
+                                }
+                                needsRefresh = true;
+                            }
+
+                            // Update local annotationPositions to match restored state
+                            annotationPositions[key] = { ...savedPos };
+                            console.log('[History] Restored annotation position:', key);
+                        } catch (e) {
+                            console.error('[History] Failed to restore annotation position:', e);
+                        }
+                    }
+                }
+            }
+
+            // Refresh hitmap if positions were restored
+            if (needsRefresh && typeof loadHitmap === 'function') {
+                loadHitmap();
+                if (typeof updateHitRegions === 'function') {
+                    updateHitRegions();
+                }
+                if (typeof initAnnotationPositions === 'function') {
+                    initAnnotationPositions();
                 }
             }
         }

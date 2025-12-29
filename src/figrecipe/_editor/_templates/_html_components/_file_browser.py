@@ -7,12 +7,12 @@ HTML_FILE_BROWSER = """
         <div class="file-browser-panel" id="file-browser-panel">
             <div class="file-browser-header">
                 <div class="header-title">
-                    <button id="btn-collapse-browser" class="btn-collapse" title="Collapse panel">&#x276E;</button>
                     <span>Files</span>
                 </div>
                 <div class="file-browser-actions">
                     <button id="btn-new-file" class="btn-new-file" title="Create new figure">+</button>
                     <button id="btn-refresh-files" title="Refresh file list">&#x21bb;</button>
+                    <button id="btn-collapse-browser" class="btn-collapse" title="Collapse panel">&#x276E;</button>
                 </div>
             </div>
             <div class="file-tree-container" id="file-tree-container">
@@ -20,6 +20,7 @@ HTML_FILE_BROWSER = """
                     <!-- File tree items populated by JavaScript -->
                 </ul>
             </div>
+            <div class="file-browser-resize" id="file-browser-resize"></div>
         </div>
 """
 

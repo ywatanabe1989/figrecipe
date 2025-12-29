@@ -434,6 +434,7 @@ def edit(
     host: str = "127.0.0.1",
     open_browser: bool = True,
     hot_reload: bool = False,
+    working_dir=None,
 ):
     """Launch interactive GUI editor for figure styling.
 
@@ -452,6 +453,8 @@ def edit(
         Whether to open browser automatically (default: True).
     hot_reload : bool, optional
         Enable hot reload (default: False).
+    working_dir : str or Path, optional
+        Working directory for file browser (default: directory containing source).
 
     Returns
     -------
@@ -467,4 +470,5 @@ def edit(
         host=host,
         open_browser=open_browser,
         hot_reload=hot_reload,
+        working_dir=working_dir,
     )
