@@ -109,3 +109,8 @@ docs/bgm/*.mp3
 /.claude-worktree-symlinks
 # Claude worktree symlink
 /feature-cli
+# Claude worktree symlink
+/feature-datatable-direct-edit
+
+# Example outputs (generated files)
+examples/*/outputs_*/
