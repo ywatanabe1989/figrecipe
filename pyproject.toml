@@ -40,6 +40,7 @@ dependencies = [
     "numpy>=1.20.0",
     "ruamel.yaml>=0.17.0",
     "scipy>=1.7.0",
+    "click>=8.0.0",
 ]
 
 [project.optional-dependencies]
@@ -73,6 +74,9 @@ all = [
     "playwright>=1.40.0",
     "pytesseract>=0.3.0",
 ]
+
+[project.scripts]
+figrecipe = "figrecipe._cli:main"
 
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/figrecipe"
