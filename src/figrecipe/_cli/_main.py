@@ -2,10 +2,20 @@
 # -*- coding: utf-8 -*-
 """Main CLI entry point for figrecipe."""
 
-
 import click
 
 from .. import __version__
+from ._compose import compose
+from ._convert import convert
+from ._crop import crop
+from ._edit import edit
+from ._extract import extract
+from ._fonts import fonts
+from ._info import info
+from ._reproduce import reproduce
+from ._style import style
+from ._validate import validate
+from ._version import version as version_cmd
 
 
 @click.group(invoke_without_command=True)
@@ -25,19 +35,7 @@ def main(ctx: click.Context, version: bool) -> None:
         click.echo(ctx.get_help())
 
 
-# Import and register commands
-from ._compose import compose
-from ._convert import convert
-from ._crop import crop
-from ._edit import edit
-from ._extract import extract
-from ._fonts import fonts
-from ._info import info
-from ._reproduce import reproduce
-from ._style import style
-from ._validate import validate
-from ._version import version
-
+# Register commands
 main.add_command(reproduce)
 main.add_command(info)
 main.add_command(extract)
@@ -48,7 +46,7 @@ main.add_command(compose)
 main.add_command(style)
 main.add_command(convert)
 main.add_command(fonts)
-main.add_command(version)
+main.add_command(version_cmd)
 
 
 if __name__ == "__main__":
