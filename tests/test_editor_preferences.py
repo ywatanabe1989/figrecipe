@@ -228,8 +228,8 @@ class TestDarkModeTemplate:
 
         # Check data-theme attribute is set to dark
         assert 'data-theme="dark"' in html
-        # Check checkbox is checked
-        assert 'id="dark-mode-toggle" checked' in html
+        # Check dark mode toggle button exists
+        assert 'id="dark-mode-toggle"' in html
 
     def test_html_template_dark_mode_disabled(self):
         """Test that HTML template excludes dark mode when disabled."""
@@ -247,8 +247,8 @@ class TestDarkModeTemplate:
 
         # Check data-theme attribute is set to light
         assert 'data-theme="light"' in html
-        # Check checkbox is not checked (empty placeholder replaced)
-        assert 'id="dark-mode-toggle" >' in html or 'id="dark-mode-toggle">' in html
+        # Check dark mode toggle button exists
+        assert 'id="dark-mode-toggle"' in html
 
 
 class TestPreferencesPersistence:

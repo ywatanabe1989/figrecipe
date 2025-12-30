@@ -25,9 +25,9 @@ def cleanup():
 class TestNewFigureAPI:
     """Test the /api/new endpoint for creating new blank figures."""
 
-    def test_routes_core_has_new_endpoint(self):
-        """Test that _routes_core contains /api/new route registration."""
-        from figrecipe._editor._routes_core import register_core_routes
+    def test_routes_files_has_new_endpoint(self):
+        """Test that _routes_files contains /api/new route registration."""
+        from figrecipe._editor._routes_files import register_file_routes
 
         # Create mock app to capture routes
         routes = []
@@ -48,17 +48,18 @@ class TestNewFigureAPI:
         mock_editor._color_map = {}
         mock_editor.dark_mode = False
         mock_editor._hitmap_generated = False
+        mock_editor.working_dir = MagicMock()
 
         # Register routes
-        register_core_routes(mock_app, mock_editor)
+        register_file_routes(mock_app, mock_editor)
 
         # Find /api/new route
         new_routes = [r for r in routes if r[0] == "/api/new"]
         assert len(new_routes) == 1, "Expected /api/new route to be registered"
         assert "POST" in new_routes[0][1], "Expected /api/new to accept POST method"
-        assert (
-            new_routes[0][2] == "new_figure"
-        ), "Expected handler name to be 'new_figure'"
+        assert new_routes[0][2] == "new_figure", (
+            "Expected handler name to be 'new_figure'"
+        )
 
     def test_create_new_figure_function_exists(self):
         """Test that createNewFigure JavaScript function is defined."""
