@@ -22,7 +22,7 @@ def get_html_datatable_panel() -> str:
                     <h3>Data</h3>
                 </div>
                 <div class="datatable-header-actions">
-                    <button id="btn-clear-data" class="btn-small" title="Clear data" onclick="clearDatatableData()">Clear</button>
+                    <button id="btn-shortcuts-info" class="btn-small btn-icon" title="Keyboard shortcuts">&#x2328;</button>
                     <button id="btn-collapse-datatable" class="btn-collapse" title="Collapse panel">&#x276E;</button>
                 </div>
             </div>
@@ -43,6 +43,8 @@ def get_html_datatable_panel() -> str:
                         <p>Drop CSV, TSV, or JSON file here</p>
                         <p class="hint">or click to browse</p>
                         <input type="file" id="datatable-file-input" accept=".csv,.tsv,.txt,.json">
+                        <div class="dropzone-divider">or</div>
+                        <button class="btn-create-new" onclick="event.stopPropagation(); createNewCSV()">Create New Table</button>
                     </div>
                 </div>
 

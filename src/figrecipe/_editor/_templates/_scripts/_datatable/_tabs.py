@@ -151,21 +151,22 @@ function createTab(name, data = null, select = true, axIndex = null, plotType = 
 
 function createNewTab() {
     const name = `Data ${tabCounter + 1}`;
-    // Auto-create empty editable table data
-    const defaultData = {
-        columns: [
-            { name: 'col1', type: 'numeric', index: 0 },
-            { name: 'col2', type: 'numeric', index: 1 },
-            { name: 'col3', type: 'string', index: 2 }
-        ],
-        rows: [
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', '']
-        ]
-    };
+    // Auto-create large empty editable table (matches createNewCSV defaults)
+    const numRows = 100;
+    const numCols = 5;
+
+    const columns = [];
+    for (let i = 0; i < numCols; i++) {
+        // Default to 'string' type so users can type anything
+        columns.push({ name: `col${i + 1}`, type: 'string', index: i });
+    }
+
+    const rows = [];
+    for (let i = 0; i < numRows; i++) {
+        rows.push(new Array(numCols).fill(''));
+    }
+
+    const defaultData = { columns, rows };
     createTab(name, defaultData, true);
 }
 
@@ -232,11 +233,16 @@ function restoreTabState(tabId) {
 
     // Update UI
     if (datatableData) {
-        renderDatatable();
+        // Use renderEditableTable for direct editing capability
+        if (typeof renderEditableTable === 'function') {
+            renderEditableTable();
+        } else {
+            renderDatatable();
+        }
 
-        // Show toolbar
-        const dropzone = document.getElementById('datatable-dropzone');
-        if (dropzone) dropzone.style.display = 'none';
+        // Show toolbar, hide entire import section
+        const importSection = document.getElementById('datatable-import-section');
+        if (importSection) importSection.style.display = 'none';
         const toolbar = document.querySelector('.datatable-toolbar');
         if (toolbar) toolbar.style.display = 'flex';
 
@@ -261,8 +267,9 @@ function clearDatatableDisplay() {
     const content = document.getElementById('datatable-content');
     if (content) content.innerHTML = '';
 
-    const dropzone = document.getElementById('datatable-dropzone');
-    if (dropzone) dropzone.style.display = 'block';
+    // Show import section with dropzone
+    const importSection = document.getElementById('datatable-import-section');
+    if (importSection) importSection.style.display = 'block';
 
     const toolbar = document.querySelector('.datatable-toolbar');
     if (toolbar) toolbar.style.display = 'none';
@@ -295,9 +302,9 @@ function handleParsedDataWithTabs(parsedData) {
 
     renderDatatable();
 
-    // Show toolbar
-    const dropzone = document.getElementById('datatable-dropzone');
-    if (dropzone) dropzone.style.display = 'none';
+    // Show toolbar, hide entire import section
+    const importSection = document.getElementById('datatable-import-section');
+    if (importSection) importSection.style.display = 'none';
     const toolbar = document.querySelector('.datatable-toolbar');
     if (toolbar) toolbar.style.display = 'flex';
 

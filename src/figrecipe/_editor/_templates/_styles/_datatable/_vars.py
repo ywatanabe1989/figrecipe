@@ -94,14 +94,29 @@ CSS_DATATABLE_VARS = """
     font-size: 10px;
     padding: 1px 2px;
     border: none;
-    background: transparent;
+    background: var(--bg-secondary);
     color: var(--text-primary);
     cursor: pointer;
     max-width: 90px;
+    border-radius: 2px;
 }
 
 .var-assign-slot select:focus {
     outline: none;
+    background: var(--bg-tertiary);
+}
+
+/* Theme-aware dropdown options */
+.var-assign-slot select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 4px 8px;
+}
+
+.var-assign-slot select option:hover,
+.var-assign-slot select option:checked {
+    background: var(--accent-color);
+    color: white;
 }
 """
 
