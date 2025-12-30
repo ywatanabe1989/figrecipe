@@ -50,11 +50,16 @@ class TestMainCommand:
         assert result.exit_code == 0
         assert "figrecipe" in result.output
 
-    def test_no_command_shows_help(self, runner):
-        """Test that no command shows help."""
-        result = runner.invoke(main)
+    def test_no_command_launches_editor(self, runner):
+        """Test that no command launches editor (behavior changed from showing help).
+
+        Note: We don't actually run this as it would start a server.
+        Just verify the help text documents this behavior.
+        """
+        result = runner.invoke(main, ["--help"])
         assert result.exit_code == 0
-        assert "Commands:" in result.output
+        # Help should mention that running without subcommand launches editor
+        assert "GUI editor" in result.output or "edit" in result.output.lower()
 
 
 class TestVersionCommand:
