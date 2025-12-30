@@ -231,7 +231,7 @@ class TestFileSwitcherEndpoints:
 
     def test_api_files_endpoint_exists(self):
         """Test that /api/files route is registered."""
-        from figrecipe._editor._routes_core import register_core_routes
+        from figrecipe._editor._routes_files import register_file_routes
 
         routes = []
         mock_app = MagicMock()
@@ -248,14 +248,15 @@ class TestFileSwitcherEndpoints:
         mock_editor = MagicMock()
         mock_editor.fig = MagicMock()
         mock_editor._color_map = {}
+        mock_editor.working_dir = MagicMock()
 
-        register_core_routes(mock_app, mock_editor)
+        register_file_routes(mock_app, mock_editor)
 
         assert "/api/files" in routes
 
     def test_api_switch_endpoint_exists(self):
         """Test that /api/switch route is registered."""
-        from figrecipe._editor._routes_core import register_core_routes
+        from figrecipe._editor._routes_files import register_file_routes
 
         routes = []
         mock_app = MagicMock()
@@ -272,8 +273,9 @@ class TestFileSwitcherEndpoints:
         mock_editor = MagicMock()
         mock_editor.fig = MagicMock()
         mock_editor._color_map = {}
+        mock_editor.working_dir = MagicMock()
 
-        register_core_routes(mock_app, mock_editor)
+        register_file_routes(mock_app, mock_editor)
 
         assert "/api/switch" in routes
 
