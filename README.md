@@ -118,6 +118,35 @@ img_path, yaml_path, result = fr.save(fig, 'figure.png')
 # → creates: figure.png + figure.yaml
 ```
 
+<details>
+<summary><b>Save Options</b> — Multiple ways to save figures</summary>
+
+```python
+# Option 1: fr.save() - Recommended (saves both + validates reproducibility)
+fr.save(fig, 'figure.png')   # → figure.png + figure.yaml
+fr.save(fig, 'figure.yaml')  # → figure.yaml + figure.png (infers image format)
+fr.save(fig, 'figure.pdf')   # → figure.pdf + figure.yaml
+
+# Option 2: fig.savefig() - Convenience method (saves recipe by default)
+fig.savefig('figure.png')                      # → figure.png + figure.yaml
+fig.savefig('figure.png', save_recipe=False)   # → figure.png only
+
+# Option 3: plt.savefig() - Standard matplotlib (no recipe)
+import matplotlib.pyplot as plt
+plt.savefig('figure.png')  # Works, but no YAML recipe
+```
+
+| Method | Image | Recipe | Validates |
+|--------|:-----:|:------:|:---------:|
+| `fr.save(fig, path)` | ✓ | ✓ | ✓ |
+| `fig.savefig(path)` | ✓ | ✓ | - |
+| `fig.savefig(path, save_recipe=False)` | ✓ | - | - |
+| `plt.savefig(path)` | ✓ | - | - |
+
+**Supported output formats:** `.png`, `.jpg`, `.jpeg`, `.pdf`, `.svg`, `.tif`, `.tiff`
+
+</details>
+
 ### Reproducing a Figure
 
 ``` python
