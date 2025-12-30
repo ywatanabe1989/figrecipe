@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Datatable table rendering JavaScript."""
+"""Datatable table rendering JavaScript with smart cell truncation."""
 
 JS_DATATABLE_TABLE = """
 // ============================================================================
-// Render Datatable
+// Render Datatable (with span-wrapped cells for smart truncation)
 // ============================================================================
 function renderDatatable() {
     const content = document.getElementById('datatable-content');
@@ -12,15 +12,15 @@ function renderDatatable() {
 
     const { columns, rows } = datatableData;
 
-    // Build table HTML
-    let html = '<table class="datatable-table">';
+    // Build table HTML with span-wrapped content (vis_app pattern)
+    let html = '<table class="datatable-table" tabindex="0">';
 
     // Header row
     html += '<thead><tr>';
     html += '<th class="row-num">#</th>';
     columns.forEach((col, idx) => {
         const isSelected = datatableSelectedColumns.has(idx);
-        html += `<th class="${isSelected ? 'selected' : ''}">
+        html += `<th class="${isSelected ? 'selected' : ''}" data-col="${idx}">
             <div class="datatable-col-header">
                 <input type="checkbox"
                        data-col-idx="${idx}"
@@ -37,23 +37,26 @@ function renderDatatable() {
     html += '<tbody>';
     const maxRows = Math.min(rows.length, 100);
     for (let i = 0; i < maxRows; i++) {
-        html += '<tr>';
+        html += `<tr data-row-idx="${i}">`;
         html += `<td class="row-num">${i + 1}</td>`;
-        columns.forEach((col, idx) => {
-            const value = rows[i][idx];
+        columns.forEach((col, colIdx) => {
+            const value = rows[i][colIdx];
             const displayValue = value === null || value === undefined ? '' : value;
-            html += `<td title="${displayValue}">${displayValue}</td>`;
+            // Wrap in span for smart truncation without interfering with editing
+            html += `<td data-row="${i}" data-col="${colIdx}" tabindex="0" title="${displayValue}">
+                <span class="cell-text">${displayValue}</span>
+            </td>`;
         });
         html += '</tr>';
     }
     html += '</tbody></table>';
 
-    // Add row count info if truncated
-    if (rows.length > 100) {
-        html += `<div class="datatable-truncated">Showing 100 of ${rows.length} rows</div>`;
-    }
-
     content.innerHTML = html;
+
+    // Attach cell event listeners for selection/editing/clipboard
+    if (typeof attachCellEventListeners === 'function') {
+        attachCellEventListeners();
+    }
 
     // Update selection info
     updateSelectionInfo();
@@ -75,11 +78,18 @@ function toggleColumnSelection(colIdx) {
         datatableSelectedColumns.add(colIdx);
     }
 
+    const isSelected = datatableSelectedColumns.has(colIdx);
+
     // Update header styling
     const th = document.querySelector(`th:has(input[data-col-idx="${colIdx}"])`);
     if (th) {
-        th.classList.toggle('selected', datatableSelectedColumns.has(colIdx));
+        th.classList.toggle('selected', isSelected);
     }
+
+    // Update entire column cells highlighting
+    document.querySelectorAll(`td[data-col="${colIdx}"]`).forEach(td => {
+        td.classList.toggle('col-selected', isSelected);
+    });
 
     updateSelectionInfo();
 }
