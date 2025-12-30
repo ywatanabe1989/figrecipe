@@ -38,6 +38,26 @@ CATEGORY_DISPLAY_NAMES: Dict[str, str] = {
 }
 
 
+def _get_docstring(method_name: str) -> str:
+    """Get first line of docstring for a matplotlib method."""
+    try:
+        import matplotlib.pyplot as plt
+        from matplotlib.axes import Axes
+
+        # Try Axes method first, then plt
+        fn = getattr(Axes, method_name, None) or getattr(plt, method_name, None)
+        if fn and fn.__doc__:
+            # Get first non-empty line of docstring
+            first_line = fn.__doc__.strip().split("\n")[0].strip()
+            # Clean up and truncate if needed
+            if len(first_line) > 100:
+                first_line = first_line[:97] + "..."
+            return first_line
+    except Exception:
+        pass
+    return ""
+
+
 def get_plot_type_info(method_name: str) -> Dict[str, Any]:
     """Get plot type information from existing signature infrastructure."""
     sig = get_signature(method_name)
@@ -86,11 +106,15 @@ def get_plot_type_info(method_name: str) -> Dict[str, Any]:
     else:
         hint = f"{method_name}(data)"
 
+    # Get docstring for tooltip
+    docstring = _get_docstring(method_name)
+
     return {
         "name": method_name,
         "required": required_str,
         "optional": optional_str,
         "hint": hint,
+        "docstring": docstring,
     }
 
 
@@ -111,7 +135,10 @@ def generate_html_options() -> str:
 
     Shows required and optional arguments with brackets around optional.
     e.g., "fill_between (x, y1, [y2], [where])"
+    Includes docstring as tooltip on hover.
     """
+    import html
+
     html_parts = []
     first = True
     for cat_key, plots in CATEGORIES.items():
@@ -124,8 +151,11 @@ def generate_html_options() -> str:
             display_text = info["hint"]
             selected = " selected" if first else ""
             first = False
+            # Add docstring as title for tooltip
+            docstring = info.get("docstring", "")
+            title_attr = f' title="{html.escape(docstring)}"' if docstring else ""
             html_parts.append(
-                f'                        <option value="{method}"{selected}>{display_text}</option>'
+                f'                        <option value="{method}"{selected}{title_attr}>{display_text}</option>'
             )
         html_parts.append("                    </optgroup>")
     return "\n".join(html_parts)
@@ -140,8 +170,9 @@ def generate_js_hints() -> str:
             req = info["required"].replace("'", "\\'")
             opt = info["optional"].replace("'", "\\'")
             hint = info["hint"].replace("'", "\\'")
+            doc = info.get("docstring", "").replace("'", "\\'")
             lines.append(
-                f"    {method}: {{ required: '{req}', optional: '{opt}', hint: '{hint}' }},"
+                f"    {method}: {{ required: '{req}', optional: '{opt}', hint: '{hint}', doc: '{doc}' }},"
             )
     lines.append("};")
     return "\n".join(lines)
