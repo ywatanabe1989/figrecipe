@@ -107,8 +107,9 @@ __all__ = [
     "subplots",
     "save",
     "reproduce",
+    "load",  # Alias for reproduce
     "info",
-    "load",
+    "load_record",
     "extract_data",
     "validate",
     # GUI Editor
@@ -340,9 +341,13 @@ def info(path: Union[str, Path]) -> Dict[str, Any]:
     return get_recipe_info(path)
 
 
-def load(path: Union[str, Path]) -> FigureRecord:
-    """Load a recipe as a FigureRecord object."""
+def load_record(path: Union[str, Path]) -> FigureRecord:
+    """Load a recipe as a FigureRecord object (advanced use)."""
     return load_recipe(path)
+
+
+# Alias for intuitive save/load symmetry
+load = reproduce
 
 
 def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:

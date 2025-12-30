@@ -131,13 +131,15 @@ fr.save(fig, 'figure_bundle/')   # → directory with recipe.yaml + figure.png
 fr.save(fig, 'figure.zip')       # → ZIP containing recipe.yaml + figure.png
 
 # Load examples (symmetric with save)
-fig, ax = fr.reproduce('figure.png')       # ← finds figure.yaml
-fig, ax = fr.reproduce('figure.yaml')      # ← direct
-fig, ax = fr.reproduce('figure_bundle/')   # ← finds recipe.yaml inside
-fig, ax = fr.reproduce('figure.zip')       # ← extracts recipe.yaml
+fig, ax = fr.load('figure.png')            # ← finds figure.yaml
+fig, ax = fr.load('figure.yaml')           # ← direct
+fig, ax = fr.load('figure_bundle/')        # ← finds recipe.yaml inside
+fig, ax = fr.load('figure.zip')            # ← extracts recipe.yaml
 
 # Edit also supports all formats
 fr.edit('figure.png')  # Opens editor, finds figure.yaml
+
+# Note: fr.reproduce() is an alias for fr.load()
 ```
 
 | Format | Save | Load | Notes |

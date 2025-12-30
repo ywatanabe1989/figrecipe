@@ -95,7 +95,7 @@ class TestCompose:
         fr.save(fig_src, recipe, validate=False, verbose=False)
 
         # Load as FigureRecord
-        record = fr.load(recipe)
+        record = fr.load_record(recipe)
 
         # Compose using record directly
         fig, axes = fr.compose(
@@ -206,7 +206,7 @@ class TestImportAxes:
         fr.save(fig_src, recipe, validate=False, verbose=False)
 
         # Load as record
-        record = fr.load(recipe)
+        record = fr.load_record(recipe)
 
         # Create target and import
         fig, ax = fr.subplots()
