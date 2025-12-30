@@ -57,6 +57,7 @@ class FigureEditor:
         color_map: Optional[Dict] = None,
         hot_reload: bool = False,
         working_dir: Optional[Path] = None,
+        desktop: bool = False,
     ):
         """
         Initialize figure editor.
@@ -81,8 +82,11 @@ class FigureEditor:
             Enable hot reload - server restarts on source file changes.
         working_dir : Path, optional
             Working directory for file switching (default: current directory).
+        desktop : bool, optional
+            Launch as native desktop window using pywebview.
         """
         self.fig = fig
+        self.desktop = desktop
         self.recipe_path = Path(recipe_path) if recipe_path else None
         self.port = port
         self.host = host
@@ -305,6 +309,16 @@ class FigureEditor:
 
         # Start server
         url = f"http://{self.host}:{self.port}"
+
+        if self.desktop:
+            # Desktop mode using pywebview
+            return self._run_desktop(app, url)
+        else:
+            # Browser mode
+            return self._run_browser(app, url, open_browser)
+
+    def _run_browser(self, app, url: str, open_browser: bool) -> Dict[str, Any]:
+        """Run editor in browser mode."""
         print(f"Figure Editor running at {url}")
 
         if self.hot_reload:
@@ -315,9 +329,6 @@ class FigureEditor:
             webbrowser.open(url)
 
         try:
-            # Use Flask's built-in reloader when hot_reload is enabled
-            # Note: debug and use_reloader are always False when working with
-            # multiple coding agents to avoid file watching conflicts
             app.run(
                 host=self.host,
                 port=self.port,
@@ -328,6 +339,60 @@ class FigureEditor:
         except KeyboardInterrupt:
             print("\nEditor closed")
 
+        return self.overrides
+
+    def _run_desktop(self, app, url: str) -> Dict[str, Any]:
+        """Run editor as native desktop window using pywebview."""
+        try:
+            import webview
+        except ImportError:
+            raise ImportError(
+                "pywebview is required for desktop mode. "
+                "Install with: pip install figrecipe[desktop]"
+            )
+
+        import threading
+
+        print("Figure Editor (Desktop Mode)")
+        print("Close the window to stop and return overrides")
+
+        # Start Flask in a background thread
+        def run_flask():
+            import logging
+
+            # Suppress Flask logging in desktop mode
+            log = logging.getLogger("werkzeug")
+            log.setLevel(logging.ERROR)
+            app.run(
+                host=self.host,
+                port=self.port,
+                debug=False,
+                use_reloader=False,
+                threaded=True,
+            )
+
+        flask_thread = threading.Thread(target=run_flask, daemon=True)
+        flask_thread.start()
+
+        # Wait briefly for Flask to start
+        import time
+
+        time.sleep(0.5)
+
+        # Create native window
+        window = webview.create_window(
+            title="FigRecipe Editor",
+            url=url,
+            width=1400,
+            height=900,
+            resizable=True,
+            min_size=(800, 600),
+        )
+
+        # Start webview (blocks until window is closed)
+        webview.start()
+
+        print("\nEditor closed")
         return self.overrides
 
 

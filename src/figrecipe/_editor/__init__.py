@@ -33,6 +33,7 @@ def edit(
     open_browser: bool = True,
     hot_reload: bool = False,
     working_dir: Optional[Union[str, Path]] = None,
+    desktop: bool = False,
 ) -> Dict[str, Any]:
     """
     Launch interactive GUI editor for figure styling.
@@ -63,6 +64,9 @@ def edit(
     working_dir : str or Path, optional
         Working directory for file switching feature (default: current directory).
         The file switcher will list recipe files from this directory.
+    desktop : bool, optional
+        Launch as native desktop window using pywebview (default: False).
+        Requires: pip install figrecipe[desktop]
 
     Returns
     -------
@@ -139,6 +143,7 @@ def edit(
         color_map=color_map,
         hot_reload=hot_reload,
         working_dir=resolved_working_dir,
+        desktop=desktop,
     )
 
     return editor.run(open_browser=open_browser)
