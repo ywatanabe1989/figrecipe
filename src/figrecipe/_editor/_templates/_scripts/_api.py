@@ -49,7 +49,7 @@ function collectOverrides() {
 // Update preview
 async function updatePreview() {
     const overrides = collectOverrides();
-    const darkMode = document.getElementById('dark-mode-toggle').checked;
+    const darkMode = document.documentElement.getAttribute('data-theme') === 'dark';
 
     document.body.classList.add('loading');
 

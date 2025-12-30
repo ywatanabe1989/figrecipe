@@ -14,6 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
+import figrecipe
+
 from ._html import HTML_TEMPLATE
 from ._html_components import HTML_FILE_BROWSER
 from ._html_datatable import HTML_DATATABLE_PANEL
@@ -43,6 +45,7 @@ def build_html_template(
     style_name: str = "SCITEX",
     hot_reload: bool = False,
     dark_mode: bool = False,
+    figure_has_content: bool = True,
 ) -> str:
     """
     Build complete HTML template for figure editor.
@@ -70,6 +73,8 @@ def build_html_template(
         Enable hot reload auto-reconnect JavaScript.
     dark_mode : bool
         Initial dark mode state from saved preferences.
+    figure_has_content : bool
+        Whether the figure has plot content (hides welcome overlay if True).
 
     Returns
     -------
@@ -150,10 +155,16 @@ def build_html_template(
 
     # Dark mode preference - set initial state
     html = html.replace("DARK_MODE_THEME_PLACEHOLDER", "dark" if dark_mode else "light")
-    html = html.replace("DARK_MODE_CHECKED_PLACEHOLDER", "checked" if dark_mode else "")
 
     # Server start time for debugging
     html = html.replace("SERVER_START_TIME_PLACEHOLDER", _SERVER_START_TIME)
+
+    # Version number
+    html = html.replace("VERSION_PLACEHOLDER", figrecipe.__version__)
+
+    # Welcome overlay - show only for empty figures
+    welcome_display = "none" if figure_has_content else "flex"
+    html = html.replace("WELCOME_DISPLAY_PLACEHOLDER", welcome_display)
 
     return html
 

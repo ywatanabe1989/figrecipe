@@ -31,7 +31,7 @@ STYLES_OVERLAYS = """
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 5;
+    z-index: 15;  /* Above hitregion-overlay (z-index: 10) */
     display: none;
 }
 

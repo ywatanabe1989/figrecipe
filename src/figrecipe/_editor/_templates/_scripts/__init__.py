@@ -32,12 +32,15 @@ This package contains modular JavaScript organized by functionality:
 from ._accordion import SCRIPTS_ACCORDION
 from ._annotation_drag import SCRIPTS_ANNOTATION_DRAG
 from ._api import SCRIPTS_API
+from ._canvas_context_menu import JS_CANVAS_CONTEXT_MENU
+from ._captions import SCRIPTS_CAPTIONS
 from ._colors import SCRIPTS_COLORS
 from ._core import SCRIPTS_CORE
 from ._datatable import SCRIPTS_DATATABLE
 from ._debug_snapshot import SCRIPTS_DEBUG_SNAPSHOT
 from ._element_editor import SCRIPTS_ELEMENT_EDITOR
 from ._files import SCRIPTS_FILES
+from ._files_context_menu import JS_FILES_CONTEXT_MENU
 from ._hitmap import SCRIPTS_HITMAP
 from ._image_drop import SCRIPTS_IMAGE_DROP
 from ._inspector import SCRIPTS_INSPECTOR
@@ -72,6 +75,7 @@ SCRIPTS = (
     + SCRIPTS_REGION_SELECT
     + SCRIPTS_ELEMENT_EDITOR
     + SCRIPTS_LABELS
+    + SCRIPTS_CAPTIONS
     + SCRIPTS_API
     + SCRIPTS_MODALS
     + SCRIPTS_ZOOM
@@ -89,6 +93,8 @@ SCRIPTS = (
     + SCRIPTS_IMAGE_DROP
     + SCRIPTS_UNDO_REDO
     + SCRIPTS_DATATABLE
+    + JS_CANVAS_CONTEXT_MENU
+    + JS_FILES_CONTEXT_MENU
 )
 
 
@@ -104,6 +110,7 @@ def get_all_scripts():
         "accordion": SCRIPTS_ACCORDION,
         "annotation_drag": SCRIPTS_ANNOTATION_DRAG,
         "api": SCRIPTS_API,
+        "captions": SCRIPTS_CAPTIONS,
         "colors": SCRIPTS_COLORS,
         "core": SCRIPTS_CORE,
         "datatable": SCRIPTS_DATATABLE,
@@ -137,6 +144,7 @@ __all__ = [
     "SCRIPTS_ACCORDION",
     "SCRIPTS_ANNOTATION_DRAG",
     "SCRIPTS_API",
+    "SCRIPTS_CAPTIONS",
     "SCRIPTS_COLORS",
     "SCRIPTS_CORE",
     "SCRIPTS_DATATABLE",

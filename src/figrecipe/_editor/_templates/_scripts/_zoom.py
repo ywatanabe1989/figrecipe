@@ -11,10 +11,13 @@ function initializeZoomPan() {
 
     if (!wrapper || !container) return;
 
-    // Zoom buttons
-    document.getElementById('btn-zoom-in')?.addEventListener('click', () => setZoom(zoomLevel + ZOOM_STEP));
-    document.getElementById('btn-zoom-out')?.addEventListener('click', () => setZoom(zoomLevel - ZOOM_STEP));
-    document.getElementById('btn-zoom-reset')?.addEventListener('click', () => setZoom(1.0));
+    // Zoom dropdown
+    const zoomSelect = document.getElementById('zoom-select');
+    zoomSelect?.addEventListener('change', (e) => {
+        setZoom(parseInt(e.target.value) / 100);
+    });
+
+    // Fit button
     document.getElementById('btn-zoom-fit')?.addEventListener('click', zoomToFit);
 
     // Mouse wheel zoom
@@ -122,10 +125,16 @@ function setZoom(newLevel) {
         }
     }
 
-    // Update zoom level display
-    const levelDisplay = document.getElementById('zoom-level');
-    if (levelDisplay) {
-        levelDisplay.textContent = Math.round(zoomLevel * 100) + '%';
+    // Update zoom dropdown to nearest value
+    const zoomSelect = document.getElementById('zoom-select');
+    if (zoomSelect) {
+        const percent = Math.round(zoomLevel * 100);
+        // Find closest option
+        const options = Array.from(zoomSelect.options).map(o => parseInt(o.value));
+        const closest = options.reduce((prev, curr) =>
+            Math.abs(curr - percent) < Math.abs(prev - percent) ? curr : prev
+        );
+        zoomSelect.value = closest;
     }
 }
 
@@ -144,32 +153,56 @@ function zoomToFit() {
     setZoom(Math.min(scaleX, scaleY, 1.0));
 }
 
+// Find nearest scrollable parent element
+function findScrollableParent(element) {
+    while (element && element !== document.body) {
+        const style = window.getComputedStyle(element);
+        const overflowY = style.overflowY;
+        const overflowX = style.overflowX;
+        const isScrollable = (overflowY === 'auto' || overflowY === 'scroll' ||
+                             overflowX === 'auto' || overflowX === 'scroll');
+        const canScroll = element.scrollHeight > element.clientHeight ||
+                         element.scrollWidth > element.clientWidth;
+        if (isScrollable && canScroll) {
+            return element;
+        }
+        element = element.parentElement;
+    }
+    return null;
+}
+
 function startPan(e) {
-    const wrapper = document.getElementById('preview-wrapper');
+    // Find scrollable container under mouse
+    panTarget = findScrollableParent(e.target);
+    if (!panTarget) {
+        // Fallback to preview-wrapper for canvas
+        panTarget = document.getElementById('preview-wrapper');
+    }
+    if (!panTarget) return;
+
     isPanning = true;
     panStartX = e.clientX;
     panStartY = e.clientY;
-    scrollStartX = wrapper.scrollLeft;
-    scrollStartY = wrapper.scrollTop;
-    wrapper.classList.add('panning');
+    scrollStartX = panTarget.scrollLeft;
+    scrollStartY = panTarget.scrollTop;
+    panTarget.classList.add('panning');
 }
 
 function doPan(e) {
-    if (!isPanning) return;
+    if (!isPanning || !panTarget) return;
 
-    const wrapper = document.getElementById('preview-wrapper');
     const dx = e.clientX - panStartX;
     const dy = e.clientY - panStartY;
 
-    wrapper.scrollLeft = scrollStartX - dx;
-    wrapper.scrollTop = scrollStartY - dy;
+    panTarget.scrollLeft = scrollStartX - dx;
+    panTarget.scrollTop = scrollStartY - dy;
 }
 
 function endPan() {
-    if (isPanning) {
-        const wrapper = document.getElementById('preview-wrapper');
-        wrapper.classList.remove('panning');
+    if (isPanning && panTarget) {
+        panTarget.classList.remove('panning');
         isPanning = false;
+        panTarget = null;
     }
 }
 

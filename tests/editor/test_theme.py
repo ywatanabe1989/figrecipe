@@ -58,7 +58,8 @@ class TestEditorTheme:
             ).first
 
             if dark_toggle.count() > 0:
-                dark_toggle.click()
+                # Force click to bypass hitregion-overlay pointer-events interception
+                dark_toggle.click(force=True)
                 time.sleep(0.3)
 
             browser.close()

@@ -148,6 +148,11 @@ function selectPanelByIndex(axIndex, switchToAxisTab = true) {
     // Update inputs and highlight
     updatePanelPositionInputs();
 
+    // Update panel caption input
+    if (typeof updatePanelCaptionInput === 'function') {
+        updatePanelCaptionInput(axIndex);
+    }
+
     // Switch to Axis tab only if requested (default true for backwards compat)
     if (switchToAxisTab) {
         switchTab('axis');

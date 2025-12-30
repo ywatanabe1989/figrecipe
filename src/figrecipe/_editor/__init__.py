@@ -144,46 +144,14 @@ def edit(
     return editor.run(open_browser=open_browser)
 
 
-def _add_guidance_if_empty(fig: RecordingFigure) -> None:
-    """Add guidance text to empty figures."""
-    # Check if figure has any plot content
-    has_content = False
+def _check_figure_has_content(fig: RecordingFigure) -> bool:
+    """Check if figure has any plot content."""
     for ax_row in fig._axes:
         for ax in ax_row:
             # Check for lines, patches, images, collections
             if ax.lines or ax.patches or ax.images or ax.collections or ax.texts:
-                has_content = True
-                break
-        if has_content:
-            break
-
-    if not has_content:
-        # Add guidance to first axis
-        ax = fig._axes[0][0]
-        ax.text(
-            0.5,
-            0.6,
-            "Create plots via:",
-            ha="center",
-            va="center",
-            transform=ax.transAxes,
-            fontsize=12,
-            fontweight="bold",
-            color="gray",
-        )
-        ax.text(
-            0.25,
-            0.45,
-            "a. (CUI) fr.subplots() in Python\n"
-            "b. (GUI) Data panel + Plot button\n"
-            "c. (CUI/GUI) Load saved .yaml recipe",
-            ha="left",
-            va="center",
-            transform=ax.transAxes,
-            fontsize=10,
-            color="gray",
-            linespacing=1.5,
-        )
+                return True
+    return False
 
 
 def _resolve_source(source: Optional[Union[RecordingFigure, str, Path]]):
@@ -212,35 +180,9 @@ def _resolve_source(source: Optional[Union[RecordingFigure, str, Path]]):
 
         fig, ax = subplots()
         ax.set_title("New Figure")
-        ax.text(
-            0.5,
-            0.6,
-            "Create plots via:",
-            ha="center",
-            va="center",
-            transform=ax.transAxes,
-            fontsize=12,
-            fontweight="bold",
-            color="gray",
-        )
-        ax.text(
-            0.25,
-            0.45,
-            "a. (CUI) fr.subplots() in Python\n"
-            "b. (GUI) Data panel + Plot button\n"
-            "c. (CUI/GUI) Load saved .yaml recipe",
-            ha="left",
-            va="center",
-            transform=ax.transAxes,
-            fontsize=10,
-            color="gray",
-            linespacing=1.5,
-        )
         return fig, None
 
     if isinstance(source, RecordingFigure):
-        # Add guidance text to empty figures
-        _add_guidance_if_empty(source)
         return source, None
 
     # Handle matplotlib Figure (e.g., from reproduce())

@@ -70,8 +70,9 @@ function renderEditableTable() {
     // Header row with editable column names and selection checkboxes
     html += '<thead><tr id="datatable-thead-row">';
     html += '<th class="row-num">#</th>';
+    const elemColor = getCurrentTabElementColor();
     for (let idx = 0; idx < initialCols; idx++) {
-        html += renderColumnHeader(idx, columns[idx]);
+        html += renderColumnHeader(idx, columns[idx], elemColor);
     }
     html += '</tr></thead>';
 
@@ -108,10 +109,13 @@ function renderEditableTable() {
     }
 }
 
-// Helper function to render a column header
-function renderColumnHeader(idx, col) {
+// Helper function to render a column header (with optional element color)
+function renderColumnHeader(idx, col, elementColor = null) {
     const isSelected = datatableSelectedColumns && datatableSelectedColumns.has(idx);
-    return `<th class="${isSelected ? 'selected' : ''}" data-col="${idx}">
+    // Apply element color as left border if available
+    const colorStyle = elementColor ? `style="border-left: 3px solid ${elementColor};"` : '';
+    const colorClass = elementColor ? 'has-element-color' : '';
+    return `<th class="${isSelected ? 'selected' : ''} ${colorClass}" data-col="${idx}" ${colorStyle}>
         <div class="datatable-col-header editable-header">
             <input type="checkbox"
                    data-col-idx="${idx}"
@@ -127,6 +131,12 @@ function renderColumnHeader(idx, col) {
             </select>
         </div>
     </th>`;
+}
+
+// Get element color for current tab
+function getCurrentTabElementColor() {
+    if (!activeTabId || !datatableTabs[activeTabId]) return null;
+    return datatableTabs[activeTabId].elementColor || null;
 }
 
 // Helper function to render a single row (renders all provided columns)
@@ -314,8 +324,9 @@ function loadMoreColumns() {
 
     // Add new column headers
     let newHeadersHtml = '';
+    const elemColor = getCurrentTabElementColor();
     for (let colIdx = startCol; colIdx < endCol; colIdx++) {
-        newHeadersHtml += renderColumnHeader(colIdx, columns[colIdx]);
+        newHeadersHtml += renderColumnHeader(colIdx, columns[colIdx], elemColor);
     }
     theadRow.insertAdjacentHTML('beforeend', newHeadersHtml);
 
@@ -373,8 +384,9 @@ function autoExpandColumns() {
 
     // Add new column headers
     let newHeadersHtml = '';
+    const elemColor = getCurrentTabElementColor();
     for (let colIdx = startCol; colIdx < columns.length; colIdx++) {
-        newHeadersHtml += renderColumnHeader(colIdx, columns[colIdx]);
+        newHeadersHtml += renderColumnHeader(colIdx, columns[colIdx], elemColor);
     }
     theadRow.insertAdjacentHTML('beforeend', newHeadersHtml);
 

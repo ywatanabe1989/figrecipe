@@ -33,7 +33,8 @@ CSS_DATATABLE_EDITABLE = """
 .editable-table-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;  /* Allow flex shrinking */
 }
 
 .editable-table-actions {
@@ -73,8 +74,8 @@ CSS_DATATABLE_EDITABLE = """
 /* Table container with scrolling */
 .editable-table-scroll {
     overflow: auto;
-    max-height: calc(100% - 40px);
     flex: 1;
+    min-height: 0;  /* Allow flex shrinking */
 }
 
 /* Fixed row height for predictable scrolling */
@@ -184,6 +185,16 @@ CSS_DATATABLE_EDITABLE = """
     -webkit-appearance: none;
     margin: 0;
     display: none;
+}
+
+/* ============================================================================
+   Element Color Indicator on Column Headers
+   ============================================================================ */
+.datatable-table.editable th.has-element-color {
+    border-left-width: 3px;
+    border-left-style: solid;
+    /* Color is set via inline style */
+    position: relative;
 }
 """
 
