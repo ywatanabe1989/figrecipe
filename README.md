@@ -119,27 +119,37 @@ img_path, yaml_path, result = fr.save(fig, 'figure.png')
 ```
 
 <details>
-<summary><b>Save Options</b> — Multiple output formats</summary>
+<summary><b>Supported I/O Formats</b> — Save and load are fully symmetric</summary>
+
+**Save** creates both image and recipe. **Load** finds recipe from any format:
 
 ```python
-# Standard save (image + YAML recipe side by side)
-fr.save(fig, 'figure.png')   # → figure.png + figure.yaml
-fr.save(fig, 'figure.pdf')   # → figure.pdf + figure.yaml
-fr.save(fig, 'figure.yaml')  # → figure.yaml + figure.png
+# Save examples
+fr.save(fig, 'figure.png')       # → figure.png + figure.yaml
+fr.save(fig, 'figure.yaml')      # → figure.yaml + figure.png
+fr.save(fig, 'figure_bundle/')   # → directory with recipe.yaml + figure.png
+fr.save(fig, 'figure.zip')       # → ZIP containing recipe.yaml + figure.png
 
-# Bundle save (self-contained directory or ZIP)
-fr.save(fig, 'figure_bundle/')  # → figure_bundle/recipe.yaml + figure.png
-fr.save(fig, 'figure.zip')      # → figure.zip containing recipe.yaml + figure.png
+# Load examples (symmetric with save)
+fig, ax = fr.reproduce('figure.png')       # ← finds figure.yaml
+fig, ax = fr.reproduce('figure.yaml')      # ← direct
+fig, ax = fr.reproduce('figure_bundle/')   # ← finds recipe.yaml inside
+fig, ax = fr.reproduce('figure.zip')       # ← extracts recipe.yaml
+
+# Edit also supports all formats
+fr.edit('figure.png')  # Opens editor, finds figure.yaml
 ```
 
-| Output Format | Example | Creates |
-|---------------|---------|---------|
-| `.png` / `.jpg` / `.pdf` / `.svg` / `.tif` | `figure.png` | `figure.png` + `figure.yaml` |
-| `.yaml` / `.yml` | `figure.yaml` | `figure.yaml` + `figure.png` |
-| Directory (trailing `/`) | `bundle/` | `bundle/recipe.yaml` + `bundle/figure.png` |
-| `.zip` | `figure.zip` | ZIP containing `recipe.yaml` + `figure.png` |
+| Format | Save | Load | Notes |
+|--------|:----:|:----:|-------|
+| `.png` / `.jpg` / `.jpeg` | ✓ | ✓ | Creates/finds `.yaml` alongside |
+| `.pdf` / `.svg` | ✓ | ✓ | Creates/finds `.yaml` alongside |
+| `.tif` / `.tiff` | ✓ | ✓ | Creates/finds `.yaml` alongside |
+| `.yaml` / `.yml` | ✓ | ✓ | Creates/finds image alongside |
+| Directory (`path/`) | ✓ | ✓ | Bundle with `recipe.yaml` + image |
+| `.zip` | ✓ | ✓ | ZIP bundle with `recipe.yaml` + image |
 
-**Alternative methods:**
+**Alternative save method:**
 ```python
 fig.savefig('figure.png')                      # Same as fr.save()
 fig.savefig('figure.png', save_recipe=False)   # Image only, no recipe
@@ -152,38 +162,8 @@ fig.savefig('figure.png', save_recipe=False)   # Image only, no recipe
 ``` python
 import figrecipe as fr
 
-fig, ax = fr.reproduce('figure.yaml')
+fig, ax = fr.reproduce('figure.yaml')  # Or .png, .pdf, directory/, .zip
 ```
-
-<details>
-<summary><b>Supported Input Formats</b> — Image, directory, and ZIP bundles</summary>
-
-FigRecipe automatically finds the associated `.yaml` recipe from various input formats:
-
-```python
-# All of these work - finds figure.yaml automatically
-fig, ax = fr.reproduce('figure.yaml')     # Direct YAML
-fig, ax = fr.reproduce('figure.png')      # Image → figure.yaml
-fig, ax = fr.reproduce('figure.pdf')      # PDF → figure.yaml
-fig, ax = fr.reproduce('figure.svg')      # SVG → figure.yaml
-fig, ax = fr.reproduce('figure.tif')      # TIFF → figure.yaml
-fig, ax = fr.reproduce('figure_bundle/')  # Directory → recipe.yaml
-fig, ax = fr.reproduce('figure.zip')      # ZIP → extracts recipe.yaml
-
-# Same for edit()
-fr.edit('figure.png')  # Opens editor with figure.yaml
-```
-
-| Input Format | Example | Resolves To |
-|--------------|---------|-------------|
-| `.yaml` / `.yml` | `figure.yaml` | Direct use |
-| `.png` / `.jpg` / `.jpeg` | `figure.png` | → `figure.yaml` |
-| `.pdf` / `.svg` | `figure.pdf` | → `figure.yaml` |
-| `.tif` / `.tiff` | `figure.tif` | → `figure.yaml` |
-| Directory | `figure_bundle/` | → `recipe.yaml` inside |
-| `.zip` | `figure.zip` | → Extracts and finds `recipe.yaml` |
-
-</details>
 
 ### Extracting Plotted Data
 
