@@ -114,3 +114,5 @@ docs/bgm/*.mp3
 
 # Example outputs (generated files)
 examples/*/outputs_*/
+# Claude worktree symlink
+/feature-object-support
