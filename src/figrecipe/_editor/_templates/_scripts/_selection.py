@@ -67,7 +67,9 @@ function drawSelection(key) {
         const bbox = currentBboxes[elemKey];
         if (!bbox) continue;
 
-        const elementColor = bbox.original_color || '#2563eb';
+        // Get element color from colorMap (primary source) or bbox (fallback)
+        const colorMapInfo = (colorMap && colorMap[elemKey]) || {};
+        const elementColor = colorMapInfo.original_color || bbox.original_color || '#2563eb';
         const isPrimary = elemKey === key;
 
         if (bbox.type === 'line' && bbox.points && bbox.points.length > 1) {

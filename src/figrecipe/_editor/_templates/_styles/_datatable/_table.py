@@ -119,12 +119,12 @@ CSS_DATATABLE_TABLE = """
     z-index: 15;
 }
 
-/* Column header color linking with variables - theme-aware */
+/* Column header color linking with variables - theme-aware monochrome */
 .datatable-table th.var-linked {
     position: relative;
     background: var(--var-linked-bg) !important;
     color: var(--text-primary);
-    box-shadow: inset 0 -4px 0 var(--var-color, var(--accent-color));
+    box-shadow: inset 0 -4px 0 var(--accent-color);
 }
 
 /* Also highlight cells in linked columns - theme-aware */
@@ -132,13 +132,15 @@ CSS_DATATABLE_TABLE = """
     background: var(--var-linked-cell-bg) !important;
 }
 
-/* Color classes for column headers */
-.datatable-table th.var-color-0 { --var-color: #4a9eff; }
-.datatable-table th.var-color-1 { --var-color: #ff6b6b; }
-.datatable-table th.var-color-2 { --var-color: #51cf66; }
-.datatable-table th.var-color-3 { --var-color: #ffd43b; }
-.datatable-table th.var-color-4 { --var-color: #cc5de8; }
-.datatable-table th.var-color-5 { --var-color: #ff922b; }
+/* Color classes for column headers - disabled for cleaner monochrome design */
+.datatable-table th.var-color-0,
+.datatable-table th.var-color-1,
+.datatable-table th.var-color-2,
+.datatable-table th.var-color-3,
+.datatable-table th.var-color-4,
+.datatable-table th.var-color-5 {
+    /* No color overrides - uses accent-color via var-linked class */
+}
 
 /* box-shadow is used for bottom border color in var-linked headers */
 
@@ -447,13 +449,14 @@ CSS_DATATABLE_TABLE = """
 .editable-table-scroll {
     flex: 1;
     overflow: auto;
-    max-height: calc(100vh - 350px);
+    min-height: 0;  /* Allow flex shrinking */
 }
 
 .editable-table-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;  /* Allow flex shrinking */
 }
 """
 

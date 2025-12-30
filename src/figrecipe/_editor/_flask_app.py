@@ -271,13 +271,15 @@ class FigureEditor:
 
         from ._routes_annotation import register_annotation_routes
         from ._routes_axis import register_axis_routes
-        from ._routes_core import register_core_routes
-        from ._routes_datatable import register_datatable_routes
-        from ._routes_element import register_element_routes
-        from ._routes_image import register_image_routes
 
         # DISABLED: Snapshot feature corrupts figure state via visibility changes
         # from ._routes_snapshot import register_snapshot_routes
+        from ._routes_captions import register_caption_routes
+        from ._routes_core import register_core_routes
+        from ._routes_datatable import register_datatable_routes
+        from ._routes_element import register_element_routes
+        from ._routes_files import register_file_routes
+        from ._routes_image import register_image_routes
         from ._routes_style import register_style_routes
 
         # Defer hitmap generation until first request (lazy loading)
@@ -291,12 +293,14 @@ class FigureEditor:
 
         # Register all routes
         register_core_routes(app, self)
+        register_file_routes(app, self)
         register_style_routes(app, self)
         register_axis_routes(app, self)
         register_element_routes(app, self)
         register_image_routes(app, self)
         register_datatable_routes(app, self)
         register_annotation_routes(app, self)
+        register_caption_routes(app, self)
         # DISABLED: register_snapshot_routes(app, self)
 
         # Start server

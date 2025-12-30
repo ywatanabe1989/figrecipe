@@ -18,7 +18,10 @@ from ._validate import validate
 from ._version import version as version_cmd
 
 
-@click.group(invoke_without_command=True)
+@click.group(
+    invoke_without_command=True,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
 @click.option("--version", "-V", is_flag=True, help="Show version and exit.")
 @click.pass_context
 def main(ctx: click.Context, version: bool) -> None:
@@ -26,13 +29,15 @@ def main(ctx: click.Context, version: bool) -> None:
 
     A command-line interface for creating, reproducing, and editing
     matplotlib figures using YAML recipes.
+
+    When run without a subcommand, launches the GUI editor.
     """
     if version:
         click.echo(f"figrecipe {__version__}")
         ctx.exit(0)
 
     if ctx.invoked_subcommand is None:
-        click.echo(ctx.get_help())
+        ctx.invoke(edit)
 
 
 # Register commands

@@ -208,6 +208,35 @@ fig, ax = fr.subplots(
 ```
 This guarantees consistent sizing across editors, exports, and journals.
 
+### Figure Legends (Scientific Captions)
+
+Store publication-ready figure legends as metadata (not rendered on the figure):
+
+``` python
+fig, axes = fr.subplots(1, 2)
+
+# Figure legend (main description)
+fig.set_caption(
+    "Comparison of treatment effects on neural activity. "
+    "Data represent mean ± SEM."
+)
+
+# Panel legends (A, B, C, ...)
+axes[0].set_caption("Representative traces from control condition")
+axes[1].set_caption("Quantification across subjects (n=12)")
+
+# Access captions
+print(fig.caption)       # Figure legend
+print(axes[0].caption)   # Panel A legend
+
+# Auto-generate with statistics
+fig.set_stats({"comparisons": [{"name": "A vs B", "p_value": 0.003}]})
+full_legend = fig.generate_caption(style="publication")
+# → "Comparison of... (A) Representative traces... (B) Quantification... A vs B (p=0.003)."
+```
+
+Captions are saved in the recipe YAML and displayed in the GUI editor's caption pane below the canvas—ready for copy-paste into manuscripts.
+
 ### Interactive GUI Editor
 
 ``` python
@@ -315,6 +344,8 @@ See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for complete 
 | `fr.load_style()`                | Load style preset (global)                        |
 | `fr.list_presets()`              | List available presets                            |
 | `fr.crop('fig.png')`             | Crop to content with mm margin                    |
+| `fig.set_caption(text)`          | Set figure legend (metadata)                      |
+| `ax.set_caption(text)`           | Set panel legend (metadata)                       |
 
 
 ## License

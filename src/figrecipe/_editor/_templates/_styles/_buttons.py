@@ -180,18 +180,139 @@ button:hover {
     flex: 1;
 }
 
-/* Theme toggle */
-.theme-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+/* Theme toggle button */
+.btn-theme {
+    width: 36px;
+    height: 32px;
+    padding: 0;
+    font-size: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: 4px;
     cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-theme:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-color);
+}
+
+/* Icon buttons (Undo/Redo) */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-icon:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-color);
+}
+
+.btn-icon:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Context Menu Styles */
+.canvas-context-menu,
+.files-context-menu,
+.datatable-context-menu {
+    position: fixed;
+    min-width: 180px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    padding: 4px 0;
     font-size: 13px;
 }
 
-.theme-toggle input {
-    width: 18px;
-    height: 18px;
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.1s;
+}
+
+.context-menu-item:hover {
+    background: var(--bg-secondary);
+}
+
+.context-menu-item .shortcut {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-left: 16px;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 8px;
+}
+
+.context-menu-danger {
+    color: #ef4444;
+}
+
+.context-menu-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Toast notification */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10001;
+    font-size: 13px;
+}
+
+.toast-notification.success {
+    border-color: var(--success-color);
+}
+
+.toast-notification.error {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* Inline checkbox */
+.checkbox-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: auto;
+}
+
+.checkbox-inline input {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.checkbox-inline span {
+    user-select: none;
 }
 
 /* Loading state */

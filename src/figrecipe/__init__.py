@@ -101,7 +101,12 @@ from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from .styles._style_applier import check_font, list_available_fonts
 
-__version__ = "0.7.6"
+try:
+    from importlib.metadata import version as _get_version
+
+    __version__ = _get_version("figrecipe")
+except Exception:
+    __version__ = "0.0.0"  # Fallback for development
 __all__ = [
     # Main API
     "subplots",
