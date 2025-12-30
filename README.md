@@ -119,31 +119,31 @@ img_path, yaml_path, result = fr.save(fig, 'figure.png')
 ```
 
 <details>
-<summary><b>Save Options</b> — Multiple ways to save figures</summary>
+<summary><b>Save Options</b> — Multiple output formats</summary>
 
 ```python
-# Option 1: fr.save() - Recommended (saves both + validates reproducibility)
+# Standard save (image + YAML recipe side by side)
 fr.save(fig, 'figure.png')   # → figure.png + figure.yaml
-fr.save(fig, 'figure.yaml')  # → figure.yaml + figure.png (infers image format)
 fr.save(fig, 'figure.pdf')   # → figure.pdf + figure.yaml
+fr.save(fig, 'figure.yaml')  # → figure.yaml + figure.png
 
-# Option 2: fig.savefig() - Convenience method (saves recipe by default)
-fig.savefig('figure.png')                      # → figure.png + figure.yaml
-fig.savefig('figure.png', save_recipe=False)   # → figure.png only
-
-# Option 3: plt.savefig() - Standard matplotlib (no recipe)
-import matplotlib.pyplot as plt
-plt.savefig('figure.png')  # Works, but no YAML recipe
+# Bundle save (self-contained directory or ZIP)
+fr.save(fig, 'figure_bundle/')  # → figure_bundle/recipe.yaml + figure.png
+fr.save(fig, 'figure.zip')      # → figure.zip containing recipe.yaml + figure.png
 ```
 
-| Method | Image | Recipe | Validates |
-|--------|:-----:|:------:|:---------:|
-| `fr.save(fig, path)` | ✓ | ✓ | ✓ |
-| `fig.savefig(path)` | ✓ | ✓ | - |
-| `fig.savefig(path, save_recipe=False)` | ✓ | - | - |
-| `plt.savefig(path)` | ✓ | - | - |
+| Output Format | Example | Creates |
+|---------------|---------|---------|
+| `.png` / `.jpg` / `.pdf` / `.svg` / `.tif` | `figure.png` | `figure.png` + `figure.yaml` |
+| `.yaml` / `.yml` | `figure.yaml` | `figure.yaml` + `figure.png` |
+| Directory (trailing `/`) | `bundle/` | `bundle/recipe.yaml` + `bundle/figure.png` |
+| `.zip` | `figure.zip` | ZIP containing `recipe.yaml` + `figure.png` |
 
-**Supported output formats:** `.png`, `.jpg`, `.jpeg`, `.pdf`, `.svg`, `.tif`, `.tiff`
+**Alternative methods:**
+```python
+fig.savefig('figure.png')                      # Same as fr.save()
+fig.savefig('figure.png', save_recipe=False)   # Image only, no recipe
+```
 
 </details>
 
