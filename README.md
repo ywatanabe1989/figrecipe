@@ -126,6 +126,36 @@ import figrecipe as fr
 fig, ax = fr.reproduce('figure.yaml')
 ```
 
+<details>
+<summary><b>Supported Input Formats</b> — Image, directory, and ZIP bundles</summary>
+
+FigRecipe automatically finds the associated `.yaml` recipe from various input formats:
+
+```python
+# All of these work - finds figure.yaml automatically
+fig, ax = fr.reproduce('figure.yaml')     # Direct YAML
+fig, ax = fr.reproduce('figure.png')      # Image → figure.yaml
+fig, ax = fr.reproduce('figure.pdf')      # PDF → figure.yaml
+fig, ax = fr.reproduce('figure.svg')      # SVG → figure.yaml
+fig, ax = fr.reproduce('figure.tif')      # TIFF → figure.yaml
+fig, ax = fr.reproduce('figure_bundle/')  # Directory → recipe.yaml
+fig, ax = fr.reproduce('figure.zip')      # ZIP → extracts recipe.yaml
+
+# Same for edit()
+fr.edit('figure.png')  # Opens editor with figure.yaml
+```
+
+| Input Format | Example | Resolves To |
+|--------------|---------|-------------|
+| `.yaml` / `.yml` | `figure.yaml` | Direct use |
+| `.png` / `.jpg` / `.jpeg` | `figure.png` | → `figure.yaml` |
+| `.pdf` / `.svg` | `figure.pdf` | → `figure.yaml` |
+| `.tif` / `.tiff` | `figure.tif` | → `figure.yaml` |
+| Directory | `figure_bundle/` | → `recipe.yaml` inside |
+| `.zip` | `figure.zip` | → Extracts and finds `recipe.yaml` |
+
+</details>
+
 ### Extracting Plotted Data
 
 ``` python

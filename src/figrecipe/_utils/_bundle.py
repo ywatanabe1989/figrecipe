@@ -69,7 +69,15 @@ def resolve_recipe_path(
         return path, None
 
     # Case 2: Image file - find associated YAML
-    if path.suffix.lower() in (".png", ".jpg", ".jpeg", ".pdf", ".svg"):
+    if path.suffix.lower() in (
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".pdf",
+        ".svg",
+        ".tif",
+        ".tiff",
+    ):
         return _resolve_from_image(path), None
 
     # Case 3: Directory - look for recipe.yaml
