@@ -445,6 +445,7 @@ def edit(
     open_browser: bool = True,
     hot_reload: bool = False,
     working_dir=None,
+    desktop: bool = False,
 ):
     """Launch interactive GUI editor for figure styling.
 
@@ -465,6 +466,9 @@ def edit(
         Enable hot reload (default: False).
     working_dir : str or Path, optional
         Working directory for file browser (default: directory containing source).
+    desktop : bool, optional
+        Launch as native desktop window using pywebview (default: False).
+        Requires: pip install figrecipe[desktop]
 
     Returns
     -------
@@ -481,4 +485,5 @@ def edit(
         open_browser=open_browser,
         hot_reload=hot_reload,
         working_dir=working_dir,
+        desktop=desktop,
     )
