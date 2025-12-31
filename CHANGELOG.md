@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-01-01
+
+### Added
+- **Desktop mode** - Native window support via pywebview (`fr.edit(desktop=True)`)
+- **Tri-directional pane sync** - Canvas, datatable, and properties panels now synchronize bidirectionally
+- **Datatable direct editing** - Excel-like cell editing with keyboard navigation (Ctrl+C/V/X, arrow keys)
+- **Panel drag dual overlay** - Shows both axis edge (orange) and panel bbox (blue) during drag
+- **Data cell highlighting** - Datatable highlights entire columns (headers + data rows) for selected elements
+- **Figure caption section** - Edit figure caption directly in the editor
+- **`fr.load()` alias** - Shorthand for `fr.reproduce()` for loading recipes
+- **Directory save support** - Save figures to directories with `fr.save(fig, "path/to/dir/")`
+- **ZIP bundle save** - Save complete figure bundles as `.zip` files
+- **TIF/TIFF format** - Added TIF format support for image exports
+- **Debug mode** - `fr.edit(debug=True)` shows server timestamp and detailed logs
+
+### Changed
+- **Panel bbox computation** - Now uses `ax.get_tightbbox()` for accurate bounds
+- **Pre-commit speed** - Parallel pytest execution for faster commits
+- **Server timestamp** - Hidden by default, shown only in debug mode
+
+### Fixed
+- **Pane sync matching** - Improved element-to-tab matching in tri-directional sync
+- **Light mode visibility** - Column labels now visible when highlighted in light mode
+- **Panel selection** - Panel/axes selections no longer overwrite element highlighting
+
 ## [0.8.1] - 2025-12-28
 
 ### Added
@@ -254,6 +279,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.9.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.7.6...v0.8.0
 [0.7.6]: https://github.com/ywatanabe1989/figrecipe/compare/v0.7.5...v0.7.6
