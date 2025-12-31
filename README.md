@@ -1,14 +1,8 @@
 <!-- ---
-!-- Timestamp: 2025-12-27 02:15:07
+!-- Timestamp: 2026-01-01 01:44:36
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
-
-<p align="center">
-  <a href="https://scitex.ai" target="_blank">
-    <img src="docs/figrecipe_logo.png" alt="figrecipe logo" width="200"/>
-  </a>
-</p>
 
 # FigRecipe — **Reproducible matplotlib figures with mm-precision layouts.**
 
