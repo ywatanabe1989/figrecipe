@@ -38,7 +38,8 @@ CSS_DATATABLE_PANEL = """
     display: none;
 }
 
-.datatable-panel.collapsed .datatable-header h3 {
+.datatable-panel.collapsed .datatable-header h3,
+.datatable-panel.collapsed .datatable-header span {
     display: none;
 }
 
@@ -92,7 +93,8 @@ CSS_DATATABLE_PANEL = """
     gap: 6px;
 }
 
-.datatable-header h3 {
+.datatable-header h3,
+.datatable-header span {
     font-size: 11px;
     font-weight: 600;
     margin: 0;
@@ -176,8 +178,8 @@ CSS_DATATABLE_PANEL = """
 }
 
 .datatable-tab {
-    padding: 6px 12px;
-    font-size: 11px;
+    padding: 8px 14px;
+    font-size: 12px;
     background: transparent;
     border: none;
     border-left: 2px solid transparent;
@@ -249,6 +251,7 @@ CSS_DATATABLE_PANEL = """
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;  /* Allow flex shrinking */
 }
 
 /* Responsive adjustments */

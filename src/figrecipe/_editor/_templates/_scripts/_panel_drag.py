@@ -18,8 +18,11 @@ let draggedPanelIndex = null;
 let dragStartPos = null;
 let dragStartPanelPos = null;
 let panelDragOverlay = null;
+let panelBboxDragOverlay = null;  // Outer panel bbox overlay
 let panelHoverOverlay = null;
 let hoveredPanelIndex = null;
+let dragStartPanelBbox = null;  // Initial panel bbox in pixels
+let panelBboxOffset = null;  // Offset from axis to panel bbox (in mm)
 
 // Initialize panel drag functionality
 function initPanelDrag() {
@@ -36,18 +39,31 @@ function initPanelDrag() {
     document.addEventListener('mouseup', handlePanelDragEnd);
     console.log('[PanelDrag] Event listeners attached');
 
-    // Create drag overlay element
+    // Create drag overlay for axis bbox (inner, subtle orange)
     panelDragOverlay = document.createElement('div');
     panelDragOverlay.id = 'panel-drag-overlay';
     panelDragOverlay.style.cssText = `
         position: absolute;
+        border: 2px dashed #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
+        pointer-events: none;
+        display: none;
+        z-index: 999;
+    `;
+    zoomContainer.appendChild(panelDragOverlay);
+
+    // Create outer panel bbox overlay (prominent blue)
+    panelBboxDragOverlay = document.createElement('div');
+    panelBboxDragOverlay.id = 'panel-bbox-drag-overlay';
+    panelBboxDragOverlay.style.cssText = `
+        position: absolute;
         border: 2px dashed #2563eb;
-        background: rgba(37, 99, 235, 0.1);
+        background: rgba(37, 99, 235, 0.05);
         pointer-events: none;
         display: none;
         z-index: 1000;
     `;
-    zoomContainer.appendChild(panelDragOverlay);
+    zoomContainer.appendChild(panelBboxDragOverlay);
 
     // Create hover overlay element for visual feedback
     panelHoverOverlay = document.createElement('div');
@@ -72,33 +88,19 @@ function initPanelDrag() {
 
 // Handle mouse down - check if on a panel/axes (only drag from empty panel area)
 function handlePanelDragStart(event) {
-    console.log('[PanelDrag] handlePanelDragStart called, button:', event.button);
-    // Skip if using modifier keys for other actions
-    if (event.ctrlKey || event.metaKey || event.altKey) {
-        console.log('[PanelDrag] Skipped - modifier key pressed');
-        return;
-    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;  // Skip modifier keys
 
-    // Only start drag if clicking on axes element, imshow, or empty panel area
-    // Skip if clicking on specific elements (they should be selected instead)
+    // Only allow drag from axes/imshow/contour/quadmesh/quiver (fills panel area)
     const target = event.target;
     const targetKey = target.getAttribute ? target.getAttribute('data-key') : null;
     if (targetKey && typeof currentBboxes !== 'undefined' && currentBboxes[targetKey]) {
         const elemType = currentBboxes[targetKey].type;
-        // Allow drag from axes bbox and plot types that fill the panel area
-        // These panels have no empty area to click, so must allow drag from the plot itself
         const dragAllowedTypes = ['axes', 'image', 'contour', 'quadmesh', 'quiver'];
-        if (elemType && !dragAllowedTypes.includes(elemType)) {
-            console.log('[PanelDrag] Skipped - clicked on element:', elemType);
-            return;
-        }
+        if (elemType && !dragAllowedTypes.includes(elemType)) return;
     }
 
     const img = document.getElementById('preview-image');
-    if (!img || !figSize.width_mm || !figSize.height_mm) {
-        console.log('[PanelDrag] Skipped - img or figSize not ready');
-        return;
-    }
+    if (!img || !figSize.width_mm || !figSize.height_mm) return;
 
     const rect = img.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -133,6 +135,24 @@ function handlePanelDragStart(event) {
         const pos = panelPositions[axKey];
         dragStartPanelPos = { ...pos };
 
+        // Get panel bbox (outer bounds including labels) and calculate offset from axis
+        const panelBboxes = currentBboxes?._meta?.panel_bboxes;
+        if (panelBboxes && panelBboxes[panelIndex] && img.naturalWidth) {
+            dragStartPanelBbox = { ...panelBboxes[panelIndex] };
+            // Convert panel bbox to mm and calculate offset from axis position
+            const pxToMmX = figSize.width_mm / img.naturalWidth;
+            const pxToMmY = figSize.height_mm / img.naturalHeight;
+            panelBboxOffset = {
+                left: dragStartPanelBbox.x * pxToMmX - pos.left,
+                top: dragStartPanelBbox.y * pxToMmY - pos.top,
+                width: dragStartPanelBbox.width * pxToMmX,
+                height: dragStartPanelBbox.height * pxToMmY
+            };
+        } else {
+            dragStartPanelBbox = null;
+            panelBboxOffset = null;
+        }
+
         // Create overlay if it doesn't exist
         if (!panelDragOverlay) {
             console.log('[PanelDrag] Creating overlay on-demand');
@@ -153,13 +173,20 @@ function handlePanelDragStart(event) {
             }
         }
 
-        // Show drag overlay
+        // Show drag overlay (axis bbox)
         if (panelDragOverlay) {
             updateDragOverlayMm(pos, rect);
             panelDragOverlay.style.display = 'block';
-            console.log('[PanelDrag] Overlay shown');
+            console.log('[PanelDrag] Axis overlay shown');
         } else {
             console.warn('[PanelDrag] Overlay still null after creation attempt');
+        }
+
+        // Show panel bbox overlay (outer bounds) - follows snapped axis position
+        if (panelBboxDragOverlay && panelBboxOffset) {
+            updatePanelBboxDragOverlayMm(pos, rect);
+            panelBboxDragOverlay.style.display = 'block';
+            console.log('[PanelDrag] Panel bbox overlay shown');
         }
 
         // Create and show panel snapshot for visual feedback
@@ -315,8 +342,9 @@ function handlePanelDragMove(event) {
         height: dragStartPanelPos.height
     };
 
-    // Update visual overlay
+    // Update visual overlays - both use snapped position in mm
     updateDragOverlayMm(newPos, rect);
+    updatePanelBboxDragOverlayMm(newPos, rect);
 
     // Update snapshot position
     if (typeof updateSnapshotPosition === 'function') {
@@ -329,23 +357,25 @@ function handlePanelDragMove(event) {
     }
 }
 
-// Update the drag overlay position (pos in mm, upper-left origin)
+// Update axis drag overlay (mm to screen pixels)
 function updateDragOverlayMm(pos, imgRect) {
     if (!panelDragOverlay || !figSize.width_mm) return;
+    const scaleX = imgRect.width / figSize.width_mm, scaleY = imgRect.height / figSize.height_mm;
+    panelDragOverlay.style.left = `${pos.left * scaleX}px`;
+    panelDragOverlay.style.top = `${pos.top * scaleY}px`;
+    panelDragOverlay.style.width = `${pos.width * scaleX}px`;
+    panelDragOverlay.style.height = `${pos.height * scaleY}px`;
+}
 
-    // Convert mm to screen pixels
-    const scaleX = imgRect.width / figSize.width_mm;
-    const scaleY = imgRect.height / figSize.height_mm;
-
-    const left = pos.left * scaleX;
-    const top = pos.top * scaleY;
-    const width = pos.width * scaleX;
-    const height = pos.height * scaleY;
-
-    panelDragOverlay.style.left = `${left}px`;
-    panelDragOverlay.style.top = `${top}px`;
-    panelDragOverlay.style.width = `${width}px`;
-    panelDragOverlay.style.height = `${height}px`;
+// Update panel bbox overlay based on snapped axis position (in mm)
+function updatePanelBboxDragOverlayMm(axisPos, imgRect) {
+    if (!panelBboxDragOverlay || !panelBboxOffset || !figSize.width_mm) return;
+    const scaleX = imgRect.width / figSize.width_mm, scaleY = imgRect.height / figSize.height_mm;
+    // Panel bbox position = axis position + offset (both in mm, converted to screen pixels)
+    panelBboxDragOverlay.style.left = `${(axisPos.left + panelBboxOffset.left) * scaleX}px`;
+    panelBboxDragOverlay.style.top = `${(axisPos.top + panelBboxOffset.top) * scaleY}px`;
+    panelBboxDragOverlay.style.width = `${panelBboxOffset.width * scaleX}px`;
+    panelBboxDragOverlay.style.height = `${panelBboxOffset.height * scaleY}px`;
 }
 
 // Handle mouse up - complete the drag
@@ -353,18 +383,14 @@ async function handlePanelDragEnd(event) {
     console.log('[PanelDrag] handlePanelDragEnd called, isDraggingPanel:', isDraggingPanel);
     if (!isDraggingPanel) return;
 
-    // Hide overlay, snapshot, and snap guides
-    if (panelDragOverlay) {
-        panelDragOverlay.style.display = 'none';
-        console.log('[PanelDrag] Overlay hidden');
-    }
-    if (typeof endSnapshotDrag === 'function') {
-        endSnapshotDrag();
-    }
-    if (typeof hideSnapGuides === 'function') {
-        hideSnapGuides();
-    }
+    // Hide overlays, snapshot, and snap guides
+    if (panelDragOverlay) panelDragOverlay.style.display = 'none';
+    if (panelBboxDragOverlay) panelBboxDragOverlay.style.display = 'none';
+    if (typeof endSnapshotDrag === 'function') endSnapshotDrag();
+    if (typeof hideSnapGuides === 'function') hideSnapGuides();
     document.body.style.cursor = '';
+    dragStartPanelBbox = null;
+    panelBboxOffset = null;
 
     const img = document.getElementById('preview-image');
     if (!img) {

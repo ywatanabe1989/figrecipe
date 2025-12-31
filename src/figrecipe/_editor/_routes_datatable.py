@@ -178,8 +178,18 @@ def register_datatable_routes(app, editor):
         plot_type = data.get("plot_type", "line")
         target_axis = data.get("target_axis")  # None = new figure
 
-        if not plot_data or not columns:
-            return jsonify({"error": "No data or columns provided"}), 400
+        if not columns:
+            return jsonify({"error": "Please select columns to plot"}), 400
+
+        if not plot_data:
+            return jsonify(
+                {"error": "No data available. Drop CSV/TSV data first."}
+            ), 400
+
+        # Check if all columns have empty data
+        has_data = any(len(plot_data.get(col, [])) > 0 for col in columns)
+        if not has_data:
+            return jsonify({"error": "Selected columns have no data"}), 400
 
         try:
             mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
@@ -257,7 +267,17 @@ def register_datatable_routes(app, editor):
             import traceback
 
             traceback.print_exc()
-            return jsonify({"error": str(e)}), 500
+            # Provide user-friendly error message
+            error_str = str(e)
+            if "Renderer" in error_str or "backend" in error_str:
+                error_msg = (
+                    "Failed to render plot. Please check your data and try again."
+                )
+            elif "empty" in error_str.lower() or "no data" in error_str.lower():
+                error_msg = "No data to plot. Please select columns with numeric data."
+            else:
+                error_msg = f"Plot error: {type(e).__name__}"
+            return jsonify({"error": error_msg}), 500
 
     @app.route("/datatable/import", methods=["POST"])
     def import_datatable():

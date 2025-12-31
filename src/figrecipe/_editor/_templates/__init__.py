@@ -14,6 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
+import figrecipe
+
 from ._html import HTML_TEMPLATE
 from ._html_components import HTML_FILE_BROWSER
 from ._html_datatable import HTML_DATATABLE_PANEL
@@ -43,6 +45,8 @@ def build_html_template(
     style_name: str = "SCITEX",
     hot_reload: bool = False,
     dark_mode: bool = False,
+    figure_has_content: bool = True,
+    debug_mode: bool = False,
 ) -> str:
     """
     Build complete HTML template for figure editor.
@@ -70,6 +74,8 @@ def build_html_template(
         Enable hot reload auto-reconnect JavaScript.
     dark_mode : bool
         Initial dark mode state from saved preferences.
+    figure_has_content : bool
+        Whether the figure has plot content (hides welcome overlay if True).
 
     Returns
     -------
@@ -150,10 +156,33 @@ def build_html_template(
 
     # Dark mode preference - set initial state
     html = html.replace("DARK_MODE_THEME_PLACEHOLDER", "dark" if dark_mode else "light")
-    html = html.replace("DARK_MODE_CHECKED_PLACEHOLDER", "checked" if dark_mode else "")
 
     # Server start time for debugging
     html = html.replace("SERVER_START_TIME_PLACEHOLDER", _SERVER_START_TIME)
+
+    # Version number
+    html = html.replace("VERSION_PLACEHOLDER", figrecipe.__version__)
+
+    # Welcome overlay - show only for empty figures
+    welcome_display = "none" if figure_has_content else "flex"
+    html = html.replace("WELCOME_DISPLAY_PLACEHOLDER", welcome_display)
+
+    # Debug mode - enables Element Inspector and Show All Bboxes
+    html = html.replace("DEBUG_MODE_PLACEHOLDER", "true" if debug_mode else "false")
+
+    # Debug shortcuts section - only shown when debug mode is enabled
+    debug_shortcuts_html = ""
+    if debug_mode:
+        debug_shortcuts_html = """<div class="shortcut-section debug-shortcuts"><h4>Debug <span class="debug-badge">DEBUG MODE</span></h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Element Inspector</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>B</kbd></span><span class="shortcut-desc">Show All Bboxes</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Debug Snapshot</span></div></div>"""
+    html = html.replace("DEBUG_SHORTCUTS_PLACEHOLDER", debug_shortcuts_html)
+
+    # Debug meta (server start time) - only shown in debug mode
+    html = html.replace(
+        "DEBUG_META_DISPLAY_PLACEHOLDER", "" if debug_mode else 'style="display:none"'
+    )
 
     return html
 

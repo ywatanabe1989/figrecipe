@@ -86,6 +86,28 @@ def plot_figure():
     for idx in range(n_plots, len(axes)):
         axes[idx].set_visible(False)
 
+    # Set figure legend (caption)
+    fig.set_caption(
+        "Overview of visualization methods supported by FigRecipe. "
+        "Each panel demonstrates a different plot type with synthetic data."
+    )
+
+    # Set panel legends (captions) - A, B, C, ...
+    panel_captions = [
+        "Line plot showing sinusoidal functions",
+        "Scatter plot with random point distribution",
+        "Bar chart comparing categorical values",
+        "Histogram of normally distributed data",
+        "Heatmap visualization of 2D array",
+        "Filled contour plot of bivariate function",
+        "Spectrogram of frequency-modulated signal",
+        "Quiver plot showing vector field",
+        "Pie chart of proportional data",
+    ]
+    for idx, caption in enumerate(panel_captions):
+        if idx < n_plots:
+            axes[idx].set_caption(caption)
+
     # Report
     successes = sum(1 for r in results.values() if r["success"])
     print(f"Plotted {successes}/{len(results)} plot types successfully")

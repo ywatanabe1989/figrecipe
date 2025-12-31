@@ -45,6 +45,11 @@ async function loadHitmap() {
             if (overlay) {
                 overlay.src = hitmapImg.src;
             }
+
+            // Sync datatable tab colors now that colorMap is loaded
+            if (typeof updateTabColors === 'function') {
+                updateTabColors();
+            }
         };
         hitmapImg.src = 'data:image/png;base64,' + data.image;
     } catch (error) {
@@ -80,16 +85,15 @@ function drawHitRegions() {
     const overlay = document.getElementById('hitregion-overlay');
     overlay.innerHTML = '';
 
-    const img = document.getElementById('preview-image');
-
-    // Wait for image to load before drawing hit regions
-    if (!img.naturalWidth || !img.naturalHeight) {
-        console.log('Image not loaded yet, deferring hit regions draw');
-        return;
+    // Context menu on overlay (pointer-events: auto captures right-clicks)
+    if (!overlay._ctxInit) {
+        overlay.addEventListener('contextmenu', (e) => { if (typeof showCanvasContextMenu === 'function') showCanvasContextMenu(e); });
+        overlay._ctxInit = true;
     }
 
-    // Set SVG viewBox to match natural image size
-    // CSS transform on zoom-container handles all scaling
+    const img = document.getElementById('preview-image');
+    if (!img.naturalWidth || !img.naturalHeight) { console.log('Image not loaded yet'); return; }
+
     overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
     overlay.style.width = `${img.naturalWidth}px`;
     overlay.style.height = `${img.naturalHeight}px`;
@@ -102,14 +106,25 @@ function drawHitRegions() {
 
     console.log('Drawing hit regions:', Object.keys(currentBboxes).length, 'elements');
 
-    // Drawing z-order: background first (lower), foreground last (higher = on top visually)
-    // panel_label and text must be highest to ensure they receive click events for annotation drag
-    const zOrderPriority = { 'axes': 0, 'fill': 1, 'spine': 2, 'image': 3, 'contour': 3,
-        'bar': 4, 'pie': 4, 'quiver': 4, 'line': 5, 'scatter': 6, 'xticks': 7, 'yticks': 7,
-        'title': 8, 'xlabel': 8, 'ylabel': 8, 'legend': 9, 'panel_label': 10, 'text': 10 };
-
-    // Convert to array, filter, and sort by z-order
-    // Include axes (panels) - they have lowest z-order so drawn first (background)
+    // Draw panel hit regions FIRST (lowest z-order) to catch empty space clicks
+    const panelBboxes = currentBboxes?._meta?.panel_bboxes;
+    if (panelBboxes) { for (const [axIdx, pb] of Object.entries(panelBboxes)) {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', pb.x); rect.setAttribute('y', pb.y);
+        rect.setAttribute('width', pb.width); rect.setAttribute('height', pb.height);
+        rect.setAttribute('class', 'hitregion-rect panel-region'); rect.setAttribute('data-key', `ax${axIdx}_axes`);
+        rect.addEventListener('click', (e) => { e.stopPropagation();
+            const el = { key: `ax${axIdx}_axes`, type: 'panel', label: `Panel ${axIdx}`, ax_index: parseInt(axIdx), ...pb };
+            if (e.ctrlKey || e.metaKey) { if (typeof toggleInSelection === 'function') toggleInSelection(el); }
+            else { if (typeof clearMultiSelection === 'function') clearMultiSelection(); selectElement(el); }
+        });
+        rect.addEventListener('mousedown', (e) => { if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.altKey && typeof handlePanelDragStart === 'function') handlePanelDragStart(e); });
+        overlay.appendChild(rect);
+    }}
+    // Drawing z-order: axes lowest (background), panel_label/text highest (foreground)
+    const zOrderPriority = { 'axes': 0, 'fill': 1, 'spine': 2, 'image': 3, 'contour': 3, 'bar': 4, 'pie': 4,
+        'quiver': 4, 'line': 5, 'scatter': 6, 'xticks': 7, 'yticks': 7, 'title': 8, 'xlabel': 8, 'ylabel': 8, 'legend': 9, 'panel_label': 10, 'text': 10 };
+    // Convert to array, filter, and sort by z-order (axes lowest, panel_label highest)
     const sortedEntries = Object.entries(currentBboxes)
         .filter(([key, bbox]) => key !== '_meta' && bbox && typeof bbox.x !== 'undefined')
         .sort((a, b) => (zOrderPriority[a[1].type] || 5) - (zOrderPriority[b[1].type] || 5));
@@ -203,7 +218,7 @@ function _createScatterShape(bbox, key, originalColor, offsetX, offsetY, scaleX,
         shape.style.setProperty('--element-color', originalColor);
     }
 
-    const hitRadius = 5;
+    const hitRadius = 8;  // Larger radius for easier click targeting
     const allCircles = [];
 
     bbox.points.forEach((pt, idx) => {
@@ -337,42 +352,46 @@ function handleHitRegionClick(event, key, bbox) {
 function findOverlappingElements(screenPos) {
     const img = document.getElementById('preview-image');
     const imgRect = img.getBoundingClientRect();
-
     const imgX = (screenPos.x - imgRect.left) * (img.naturalWidth / imgRect.width);
     const imgY = (screenPos.y - imgRect.top) * (img.naturalHeight / imgRect.height);
-
     const overlapping = [];
 
     for (const [key, bbox] of Object.entries(currentBboxes)) {
         if (key === '_meta') continue;
-
-        if (imgX >= bbox.x && imgX <= bbox.x + bbox.width &&
-            imgY >= bbox.y && imgY <= bbox.y + bbox.height) {
-            const info = (colorMap && colorMap[key]) || {};
-            overlapping.push({ key, ...bbox, ...info });
+        if (imgX >= bbox.x && imgX <= bbox.x + bbox.width && imgY >= bbox.y && imgY <= bbox.y + bbox.height) {
+            overlapping.push({ key, ...bbox, ...(colorMap?.[key] || {}) });
         }
-
         // For lines with points, check proximity
-        if (bbox.points && bbox.points.length > 1) {
+        if (bbox.points?.length > 1) {
             for (const pt of bbox.points) {
-                const dist = Math.sqrt(Math.pow(imgX - pt[0], 2) + Math.pow(imgY - pt[1], 2));
-                if (dist < 15) {
-                    if (!overlapping.find(e => e.key === key)) {
-                        const info = (colorMap && colorMap[key]) || {};
-                        overlapping.push({ key, ...bbox, ...info });
-                    }
-                    break;
+                if (Math.hypot(imgX - pt[0], imgY - pt[1]) < 15 && !overlapping.find(e => e.key === key)) {
+                    overlapping.push({ key, ...bbox, ...(colorMap?.[key] || {}) }); break;
                 }
             }
         }
     }
-
-    // Click priority: smaller/precise elements first, large background last (lower = higher priority)
-    const clickPriority = { 'scatter': 0, 'legend': 1, 'title': 2, 'xlabel': 2, 'ylabel': 2,
-        'line': 3, 'bar': 4, 'pie': 4, 'contour': 5, 'quiver': 5, 'image': 5, 'fill': 6,
-        'xticks': 7, 'yticks': 7, 'spine': 8, 'axes': 9 };
-    overlapping.sort((a, b) => (clickPriority[a.type] ?? 5) - (clickPriority[b.type] ?? 5));
-
+    // Panel bboxes as fallback - catches empty space within panels
+    const panelBboxes = currentBboxes?._meta?.panel_bboxes;
+    if (panelBboxes) {
+        for (const [axIdx, pb] of Object.entries(panelBboxes)) {
+            if (imgX >= pb.x && imgX <= pb.x + pb.width && imgY >= pb.y && imgY <= pb.y + pb.height) {
+                const axKey = `ax${axIdx}_axes`;
+                if (!overlapping.find(e => e.key === axKey)) {
+                    overlapping.push({ key: axKey, type: 'panel', label: `Panel ${axIdx}`, ax_index: parseInt(axIdx), ...pb });
+                }
+            }
+        }
+    }
+    // Click priority (lower = higher priority). 'panel' lowest - selected only in empty space
+    const clickPriority = { 'scatter': 0, 'legend': 1, 'panel_label': 2, 'text': 2, 'title': 3, 'xlabel': 3, 'ylabel': 3,
+        'line': 4, 'bar': 5, 'pie': 5, 'hist': 5, 'contour': 6, 'quiver': 6, 'image': 6, 'fill': 7,
+        'xticks': 8, 'yticks': 8, 'spine': 9, 'axes': 10, 'panel': 11 };
+    overlapping.forEach(e => {
+        e._d = Infinity; const bb = currentBboxes[e.key];
+        if (bb?.points?.length) { for (const p of bb.points) { const d = Math.hypot(imgX - p[0], imgY - p[1]); if (d < e._d) e._d = d; } }
+        else { e._d = Math.hypot(imgX - (e.x + e.width/2), imgY - (e.y + e.height/2)); }
+    });
+    overlapping.sort((a, b) => { const p = (clickPriority[a.type] ?? 6) - (clickPriority[b.type] ?? 6); return p !== 0 ? p : a._d - b._d; });
     return overlapping;
 }
 
@@ -478,7 +497,7 @@ function selectElement(element) {
     autoSwitchTab(element.type);
     updateTabHints();
     syncPropertiesToElement(element);
-    if (callId && typeof syncDatatableToElement === 'function') syncDatatableToElement(callId);
+    if (element && typeof syncDatatableToElement === 'function') syncDatatableToElement(element);
 
     // Always sync panel position for any element that belongs to a panel
     const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);

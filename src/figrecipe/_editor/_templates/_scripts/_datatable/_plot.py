@@ -115,9 +115,14 @@ function updateVarAssignSlots() {{
 }}
 
 function updateColumnHighlights() {{
-    // Remove all existing highlights
+    // Remove all existing highlights from headers
     document.querySelectorAll('.datatable-table th').forEach(th => {{
         th.classList.remove('var-linked', 'var-color-0', 'var-color-1', 'var-color-2', 'var-color-3', 'var-color-4', 'var-color-5');
+    }});
+
+    // Remove highlights from cells
+    document.querySelectorAll('.datatable-table td.var-linked-cell').forEach(td => {{
+        td.classList.remove('var-linked-cell');
     }});
 
     // Add highlights based on current assignments
@@ -125,11 +130,16 @@ function updateColumnHighlights() {{
         const colorIdx = datatableVarColors[varName];
         if (colorIdx === undefined) return;
 
-        // Find the column header (colIdx + 1 because of row number column)
-        const th = document.querySelector(`.datatable-table th:nth-child(${{colIdx + 2}})`);
+        // Find the column header using data-col attribute (more reliable)
+        const th = document.querySelector(`.datatable-table th[data-col="${{colIdx}}"]`);
         if (th) {{
             th.classList.add('var-linked', `var-color-${{colorIdx}}`);
         }}
+
+        // Also highlight all cells in this column
+        document.querySelectorAll(`.datatable-table td[data-col="${{colIdx}}"]`).forEach(td => {{
+            td.classList.add('var-linked-cell');
+        }});
     }});
 }}
 

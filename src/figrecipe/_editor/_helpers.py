@@ -169,28 +169,29 @@ def render_with_overrides(
         warnings.filterwarnings("ignore", "constrained_layout not applied")
         warnings.filterwarnings("ignore", category=UserWarning)
         try:
-            # Don't use bbox_inches="tight" - it recalculates bounding box each time
-            # causing layout shifts when elements change (e.g., pie chart colors)
-            new_fig.savefig(buf, format="png", dpi=150)
+            # Standard render - layout handled by figure settings
+            # Use transparent background if specified in overrides
+            transparent = (
+                overrides.get("output_transparent", True) if overrides else True
+            )
+            new_fig.savefig(buf, format="png", dpi=150, transparent=transparent)
         except Exception:
-            # Fall back to saving without bbox_inches="tight"
-            # Catches matplotlib internal exceptions (e.g., Done from _get_renderer)
             buf = io.BytesIO()
-            # Reset canvas and draw method to clean state
             new_fig.set_canvas(FigureCanvasAgg(new_fig))
             if original_draw is not None:
                 new_fig.draw = original_draw
             try:
-                new_fig.savefig(buf, format="png", dpi=150)
+                transparent = (
+                    overrides.get("output_transparent", True) if overrides else True
+                )
+                new_fig.savefig(buf, format="png", dpi=150, transparent=transparent)
             except Exception:
-                # Last resort: create empty placeholder
                 from PIL import Image as PILImage
 
                 placeholder = PILImage.new("RGB", (400, 300), color=(240, 240, 240))
                 placeholder.save(buf, format="PNG")
                 buf.seek(0)
         finally:
-            # Always restore original draw method to prevent corruption
             if original_draw is not None and hasattr(new_fig, "draw"):
                 try:
                     new_fig.draw = original_draw

@@ -5,6 +5,9 @@
 SCRIPTS_CORE = """
 // ==================== CORE STATE & INITIALIZATION ====================
 
+// Debug mode - enabled via FIGRECIPE_DEBUG_MODE=1 env var
+const DEBUG_MODE = DEBUG_MODE_PLACEHOLDER;
+
 // State
 let currentBboxes = initialBboxes;
 let colorMap = initialColorMap;
@@ -34,6 +37,7 @@ const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 5.0;
 const ZOOM_STEP = 0.25;
 let isPanning = false;
+let panTarget = null;  // Current scrollable element being panned
 let panStartX = 0;
 let panStartY = 0;
 let scrollStartX = 0;
@@ -86,6 +90,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize measurement overlay controls
     initializeOverlayControls();
+
+    // Initialize context menus
+    if (typeof initializeCanvasContextMenu === 'function') initializeCanvasContextMenu();
+    if (typeof initializeFilesContextMenu === 'function') initializeFilesContextMenu();
 });
 
 // Theme values are passed from server via initialValues
@@ -164,38 +172,43 @@ function updateAllModifiedStates() {
 function initializeEventListeners() {
     // Preview image click for element selection
     const previewImg = document.getElementById('preview-image');
-    previewImg.addEventListener('click', handlePreviewClick);
+    if (previewImg) previewImg.addEventListener('click', handlePreviewClick);
 
     // SVG overlay click - deselect when clicking on empty area (not on a shape)
     const hitregionOverlay = document.getElementById('hitregion-overlay');
-    hitregionOverlay.addEventListener('click', function(event) {
-        // Only clear if clicking directly on the SVG (not on a shape inside it)
-        if (event.target === hitregionOverlay) {
-            clearSelection();
-        }
-    });
+    if (hitregionOverlay) {
+        hitregionOverlay.addEventListener('click', function(event) {
+            if (event.target === hitregionOverlay) clearSelection();
+        });
+    }
 
     // Selection overlay click - same behavior
     const selectionOverlay = document.getElementById('selection-overlay');
-    selectionOverlay.addEventListener('click', function(event) {
-        if (event.target === selectionOverlay) {
-            clearSelection();
-        }
-    });
+    if (selectionOverlay) {
+        selectionOverlay.addEventListener('click', function(event) {
+            if (event.target === selectionOverlay) clearSelection();
+        });
+    }
 
-    // Dark mode toggle
+    // Dark mode toggle button
     const darkModeToggle = document.getElementById('dark-mode-toggle');
-    darkModeToggle.addEventListener('change', function() {
-        document.documentElement.setAttribute('data-theme', this.checked ? 'dark' : 'light');
-        scheduleUpdate();
-    });
+    if (darkModeToggle) {
+        const updateThemeIcon = (theme) => { darkModeToggle.textContent = theme === 'dark' ? '🌙' : '☀️'; };
+        darkModeToggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            updateThemeIcon(newTheme);
+            scheduleUpdate();
+        });
+        updateThemeIcon(document.documentElement.getAttribute('data-theme'));
+    }
 
     // Form inputs - auto update on change
     // Exclude panel position inputs - they have their own Apply button
     const panelPositionInputIds = ['panel_left', 'panel_top', 'panel_width', 'panel_height'];
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(input => {
-        if (input.id === 'dark-mode-toggle') return;
         if (panelPositionInputIds.includes(input.id)) return;  // Skip panel position inputs
 
         // Update modified state and trigger preview update
@@ -220,31 +233,36 @@ function initializeEventListeners() {
         }
     });
 
-    // Buttons
-    document.getElementById('btn-refresh').addEventListener('click', updatePreview);
-    document.getElementById('btn-reset').addEventListener('click', resetValues);
-    document.getElementById('btn-save').addEventListener('click', saveOverrides);
-    document.getElementById('btn-restore').addEventListener('click', restoreOriginal);
-    // Hit regions toggle (optional - button may be hidden in production)
+    // Buttons - with null checks
+    const btnRefresh = document.getElementById('btn-refresh');
+    const btnReset = document.getElementById('btn-reset');
+    const btnSave = document.getElementById('btn-save');
+    const btnRestore = document.getElementById('btn-restore');
+    if (btnRefresh) btnRefresh.addEventListener('click', updatePreview);
+    if (btnReset) btnReset.addEventListener('click', resetValues);
+    if (btnSave) btnSave.addEventListener('click', saveOverrides);
+    if (btnRestore) btnRestore.addEventListener('click', restoreOriginal);
     const hitmapBtn = document.getElementById('btn-show-hitmap');
     if (hitmapBtn) hitmapBtn.addEventListener('click', toggleHitmapOverlay);
 
-    // Download dropdown buttons
+    // Download dropdown, label inputs, and captions
     initializeDownloadDropdown();
-
-    // Label input handlers
     initializeLabelInputs();
+    if (typeof initializeCaptionInputs === 'function') initializeCaptionInputs();
 
-    // View mode toggle buttons (legacy - replaced by tabs)
+    // View mode toggle buttons (legacy)
     const btnAll = document.getElementById('btn-show-all');
     const btnSelected = document.getElementById('btn-show-selected');
     if (btnAll) btnAll.addEventListener('click', () => setViewMode('all'));
     if (btnSelected) btnSelected.addEventListener('click', () => setViewMode('selected'));
 
     // Tab navigation
-    document.getElementById('tab-figure').addEventListener('click', () => switchTab('figure'));
-    document.getElementById('tab-axis').addEventListener('click', () => switchTab('axis'));
-    document.getElementById('tab-element').addEventListener('click', () => switchTab('element'));
+    const tabFigure = document.getElementById('tab-figure');
+    const tabAxis = document.getElementById('tab-axis');
+    const tabElement = document.getElementById('tab-element');
+    if (tabFigure) tabFigure.addEventListener('click', () => switchTab('figure'));
+    if (tabAxis) tabAxis.addEventListener('click', () => switchTab('axis'));
+    if (tabElement) tabElement.addEventListener('click', () => switchTab('element'));
 
     // Theme modal handlers
     initializeThemeModal();
@@ -278,6 +296,26 @@ function handleKeyboardShortcuts(event) {
         } else {
             console.error('[DEBUG] captureDebugSnapshot is not defined!');
             showToast('Debug snapshot not available', 'error');
+        }
+        return;
+    }
+
+    // Alt+I (without Ctrl): Element Inspector toggle (DEBUG MODE ONLY)
+    if (DEBUG_MODE && event.altKey && !event.ctrlKey && !event.shiftKey && (event.key === 'i' || event.key === 'I')) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof toggleElementInspector === 'function') {
+            toggleElementInspector();
+        }
+        return;
+    }
+
+    // Alt+B: Show All Bboxes toggle (DEBUG MODE ONLY)
+    if (DEBUG_MODE && event.altKey && !event.ctrlKey && !event.shiftKey && (event.key === 'b' || event.key === 'B')) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof toggleAllBboxes === 'function') {
+            toggleAllBboxes();
         }
         return;
     }
@@ -325,11 +363,11 @@ function handleKeyboardShortcuts(event) {
         return;
     }
 
-    // F5 or Ctrl+R: Refresh preview
+    // F5 or Ctrl+R: Render preview
     if (event.key === 'F5' || (event.ctrlKey && event.key === 'r')) {
         event.preventDefault();
         updatePreview();
-        showToast('Refreshed', 'info');
+        showToast('Rendered', 'info');
         return;
     }
 
@@ -361,10 +399,10 @@ function handleKeyboardShortcuts(event) {
         return;
     }
 
-    // R: Reset to theme defaults
+    // R: Render (re-render figure)
     if (event.key === 'r' || event.key === 'R') {
-        resetValues();
-        showToast('Reset to defaults', 'info');
+        updatePreview();
+        showToast('Rendered', 'info');
         return;
     }
 

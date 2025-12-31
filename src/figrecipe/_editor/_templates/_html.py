@@ -27,11 +27,7 @@ HTML_TEMPLATE = """
         <div class="preview-panel" id="preview-panel">
             <div class="preview-header">
                 <button id="btn-collapse-preview" class="btn-collapse" title="Collapse canvas">&#x276F;</button>
-                <a href="https://scitex.ai" target="_blank" class="scitex-branding" title="FigRecipe - Part of SciTeX">
-                    <img src="data:image/png;base64,SCITEX_ICON_PLACEHOLDER" alt="SciTeX" class="scitex-icon">
-                    <span class="figrecipe-title">FigRecipe Editor</span>
-                </a>
-                <span id="server-start-time" style="font-size: 10px; color: #888; margin-left: 8px;">Started: SERVER_START_TIME_PLACEHOLDER</span>
+                <span class="panel-label">CANVAS</span>
                 <div class="preview-controls">
                     <div class="download-dropdown">
                         <button id="btn-download-main" class="btn-primary download-main" title="Download as PNG">Download PNG</button>
@@ -44,20 +40,27 @@ HTML_TEMPLATE = """
                             <button id="btn-download-csv-menu" class="download-option" data-format="csv" title="Export plot data as CSV">CSV (Data)</button>
                         </div>
                     </div>
-                    <button id="btn-refresh" title="Refresh preview">Refresh</button>
+                    <button id="btn-refresh" title="Re-render figure (R)">Render</button>
                     <div class="zoom-controls">
-                        <button id="btn-zoom-out" title="Zoom out (-)">−</button>
-                        <span id="zoom-level">100%</span>
-                        <button id="btn-zoom-in" title="Zoom in (+)">+</button>
-                        <button id="btn-zoom-reset" title="Reset zoom (0)">⟲</button>
+                        <select id="zoom-select" title="Zoom level (+/- or scroll)">
+                            <option value="25">25%</option>
+                            <option value="50">50%</option>
+                            <option value="75">75%</option>
+                            <option value="100" selected>100%</option>
+                            <option value="125">125%</option>
+                            <option value="150">150%</option>
+                            <option value="200">200%</option>
+                        </select>
                         <button id="btn-zoom-fit" title="Fit to view (F)">Fit</button>
                     </div>
-                    <button id="btn-ruler-grid" class="btn-ruler" title="Toggle rulers and grid overlay (G)">Ruler & Grid</button>
-                    <button id="btn-shortcuts" class="btn-shortcuts" title="Show keyboard shortcuts (?)">⌨</button>
-                    <label class="theme-toggle">
-                        <input type="checkbox" id="dark-mode-toggle" DARK_MODE_CHECKED_PLACEHOLDER>
-                        <span>Dark Mode</span>
-                    </label>
+                    <button id="btn-ruler-grid" class="btn-ruler" title="Toggle rulers and grid (G)">Grid</button>
+                    <button id="dark-mode-toggle" class="btn-theme" title="Toggle theme (D)">🌙</button>
+                    <div class="toolbar-separator"></div>
+                    <button id="btn-undo" class="btn-icon" title="Undo (Ctrl+Z)" disabled>↶</button>
+                    <button id="btn-redo" class="btn-icon" title="Redo (Ctrl+Y)" disabled>↷</button>
+                    <button id="btn-restore" class="btn-secondary" title="Revert all changes">Revert</button>
+                    <button id="btn-save" class="btn-primary" title="Save (Ctrl+S)">Save</button>
+                    <button id="btn-shortcuts" class="btn-icon btn-shortcuts" title="Keyboard shortcuts (?)">⌨</button>
                 </div>
             </div>
             <div class="preview-wrapper" id="preview-wrapper">
@@ -70,6 +73,12 @@ HTML_TEMPLATE = """
                     <svg id="column-overlay" class="column-overlay"></svg>
                     <canvas id="hitmap-canvas" style="display: none;"></canvas>
                 </div>
+                <!-- Welcome overlay -->
+                <div id="welcome-overlay" class="welcome-overlay" style="display: WELCOME_DISPLAY_PLACEHOLDER;"><div class="welcome-content"><h2>Getting Started</h2><div class="welcome-steps"><div class="welcome-step"><span class="step-number">1</span><span class="step-text">Drop CSV/TSV in <strong>Data</strong></span></div><div class="welcome-step"><span class="step-number">2</span><span class="step-text">Click <strong>Plot</strong></span></div><div class="welcome-step"><span class="step-number">3</span><span class="step-text">Adjust in <strong>Properties</strong></span></div></div><p class="welcome-hint">Or load .yaml from Files</p></div></div>
+            </div>
+            <!-- Caption Pane (below canvas) -->
+            <div class="caption-pane" id="caption-pane">
+                <span id="canvas-caption-text"><b>Fig. 1.</b></span>
             </div>
         </div>
 
@@ -78,14 +87,7 @@ HTML_TEMPLATE = """
             <div class="controls-header">
                 <div class="header-title">
                     <button id="btn-collapse-properties" class="btn-collapse" title="Collapse panel">&#x276F;</button>
-                    <h2>Properties</h2>
-                </div>
-                <div class="controls-actions">
-                    <button id="btn-undo" class="btn-small" title="Undo (Ctrl+Z)" disabled>Undo</button>
-                    <button id="btn-redo" class="btn-small" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button>
-                    <button id="btn-restore" class="btn-warning" title="Restore to original programmatic style">Restore</button>
-                    <button id="btn-reset" class="btn-secondary" title="Reset to last saved">Reset</button>
-                    <button id="btn-save" class="btn-primary">Save</button>
+                    <span>PROPERTIES</span>
                 </div>
             </div>
             <div class="style-info">
@@ -94,11 +96,10 @@ HTML_TEMPLATE = """
                     <option value="SCITEX">SCITEX</option>
                     <option value="MATPLOTLIB">MATPLOTLIB</option>
                 </select>
-                <div class="theme-actions">
-                    <button id="btn-view-theme" class="btn-small" title="View theme contents">View</button>
-                    <button id="btn-download-theme" class="btn-small" title="Download theme as YAML">Download</button>
-                    <button id="btn-copy-theme" class="btn-small" title="Copy theme to clipboard">Copy</button>
-                </div>
+                <label class="checkbox-inline" title="Transparent background">
+                    <input type="checkbox" id="output_transparent" checked>
+                    <span>Transparent</span>
+                </label>
             </div>
             <!-- Theme Modal -->
             <div id="theme-modal" class="modal" style="display: none;">
@@ -132,13 +133,12 @@ HTML_TEMPLATE = """
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>G</kbd>/<kbd>+</kbd>/<kbd>-</kbd>/<kbd>0</kbd>/<kbd>F</kbd></span><span class="shortcut-desc">Grid/Zoom/Reset/Fit</span></div></div>
                         <div class="shortcut-section"><h4>Panel</h4>
                             <div class="shortcut-row"><span class="shortcut-keys">Drag/<kbd>Alt</kbd>+Drag</span><span class="shortcut-desc">Move (snap/free)</span></div></div>
-                        <div class="shortcut-section"><h4>Developer</h4>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Inspector</span></div></div>
+                        DEBUG_SHORTCUTS_PLACEHOLDER
                     </div>
                 </div>
             </div>
             <div id="override-status" class="override-status" style="display: none;">
-                <span class="override-indicator">Manual overrides active</span>
+                <span class="override-indicator">Modified</span>
                 <span id="override-timestamp" class="override-timestamp"></span>
             </div>
 
@@ -153,7 +153,7 @@ HTML_TEMPLATE = """
                 <!-- FIGURE TAB -->
                 <div id="tab-content-figure" class="tab-content active">
                     <!-- Dimensions Section -->
-                    <details class="section" open>
+                    <details class="section">
                         <summary>Dimensions</summary>
                         <div class="section-content">
                             <div class="subsection">
@@ -161,19 +161,19 @@ HTML_TEMPLATE = """
                                 <div class="form-grid">
                                     <div class="form-row">
                                         <label>Left</label>
-                                        <input type="number" id="margins_left_mm" step="1" min="0" max="50" placeholder="12">
+                                        <input type="number" id="margins_left_mm" step="1" min="0" max="50" placeholder="1">
                                     </div>
                                     <div class="form-row">
                                         <label>Right</label>
-                                        <input type="number" id="margins_right_mm" step="1" min="0" max="50" placeholder="3">
+                                        <input type="number" id="margins_right_mm" step="1" min="0" max="50" placeholder="1">
                                     </div>
                                     <div class="form-row">
                                         <label>Bottom</label>
-                                        <input type="number" id="margins_bottom_mm" step="1" min="0" max="50" placeholder="10">
+                                        <input type="number" id="margins_bottom_mm" step="1" min="0" max="50" placeholder="1">
                                     </div>
                                     <div class="form-row">
                                         <label>Top</label>
-                                        <input type="number" id="margins_top_mm" step="1" min="0" max="50" placeholder="6">
+                                        <input type="number" id="margins_top_mm" step="1" min="0" max="50" placeholder="1">
                                     </div>
                                 </div>
                             </div>
@@ -195,13 +195,19 @@ HTML_TEMPLATE = """
                     <details class="section">
                         <summary>Output</summary>
                         <div class="section-content">
-                            <div class="form-row">
-                                <label>DPI</label>
-                                <input type="number" id="output_dpi" step="50" min="72" max="600">
-                            </div>
-                            <div class="form-row">
-                                <label>Transparent</label>
-                                <input type="checkbox" id="output_transparent">
+                            <div class="form-row"><label>DPI</label><input type="number" id="output_dpi" step="50" min="72" max="600"></div>
+                            <div class="form-row"><label>Transparent</label><input type="checkbox" id="output_transparent"></div>
+                        </div>
+                    </details>
+                    <!-- Figure Caption (Scientific) -->
+                    <details class="section">
+                        <summary>Figure Caption</summary>
+                        <div class="section-content">
+                            <div class="form-row"><label>Fig. #</label><input type="number" id="caption_figure_number" min="1" max="99" step="1" value="1" style="width:60px"></div>
+                            <div class="form-row caption-row"><label>Caption</label><textarea id="caption_figure_text" class="caption-textarea" rows="2" placeholder="e.g., Comparison of sin and cos functions"></textarea></div>
+                            <div class="composed-caption-preview" id="composed-caption-container">
+                                <div class="composed-caption-label">Composed Caption:</div>
+                                <div class="composed-caption-text" id="composed-caption-text"><b>Fig. 1.</b></div>
                             </div>
                         </div>
                     </details>
@@ -212,7 +218,7 @@ HTML_TEMPLATE = """
                     <div class="tab-hint" id="axis-tab-hint">Select an axis element (title, label, ticks, legend) to edit</div>
 
                     <!-- Panel Position Section -->
-                    <details class="section" open>
+                    <details class="section">
                         <summary>Panel Position</summary>
                         <div class="section-content">
                             <div class="form-row panel-indicator-row">
@@ -259,24 +265,27 @@ HTML_TEMPLATE = """
                     </details>
 
                     <!-- Labels Section -->
-                    <details class="section" open>
+                    <details class="section">
                         <summary>Labels</summary>
                         <div class="section-content">
-                            <div class="form-row">
-                                <label>Title</label>
-                                <input type="text" id="label_title" class="label-input" placeholder="(no title)">
+                            <div class="form-row"><label>Title</label><input type="text" id="label_title" class="label-input" placeholder="(no title)"></div>
+                            <div class="form-row"><label>X Label</label><input type="text" id="label_xlabel" class="label-input" placeholder="(no xlabel)"></div>
+                            <div class="form-row"><label>Y Label</label><input type="text" id="label_ylabel" class="label-input" placeholder="(no ylabel)"></div>
+                            <div class="form-row"><label>Suptitle</label><input type="text" id="label_suptitle" class="label-input" placeholder="(no suptitle)"></div>
+                        </div>
+                    </details>
+
+                    <!-- Caption Section -->
+                    <details class="section">
+                        <summary>Caption</summary>
+                        <div class="section-content">
+                            <div class="form-row caption-row">
+                                <label>Panel</label>
+                                <textarea id="caption_panel_text" class="caption-textarea" rows="2" placeholder="e.g., Line plot showing sinusoidal functions"></textarea>
                             </div>
-                            <div class="form-row">
-                                <label>X Label</label>
-                                <input type="text" id="label_xlabel" class="label-input" placeholder="(no xlabel)">
-                            </div>
-                            <div class="form-row">
-                                <label>Y Label</label>
-                                <input type="text" id="label_ylabel" class="label-input" placeholder="(no ylabel)">
-                            </div>
-                            <div class="form-row">
-                                <label>Suptitle</label>
-                                <input type="text" id="label_suptitle" class="label-input" placeholder="(no suptitle)">
+                            <div class="form-row caption-row">
+                                <label>Figure</label>
+                                <textarea id="caption_figure_text" class="caption-textarea" rows="3" placeholder="e.g., Overview of visualization methods..."></textarea>
                             </div>
                         </div>
                     </details>

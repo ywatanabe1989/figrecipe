@@ -31,6 +31,17 @@ requires_playwright = pytest.mark.skipif(
 )
 
 
+def find_free_port() -> int:
+    """Find a free port to use for the editor server."""
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+    return port
+
+
 class EditorServer:
     """Context manager for running the editor server in background."""
 
@@ -106,5 +117,6 @@ def sample_recipe(tmp_path) -> Path:
 @pytest.fixture
 def editor_server(sample_recipe) -> Generator[EditorServer, None, None]:
     """Start editor server for testing."""
-    with EditorServer(sample_recipe, port=5051) as server:
+    port = find_free_port()
+    with EditorServer(sample_recipe, port=port) as server:
         yield server

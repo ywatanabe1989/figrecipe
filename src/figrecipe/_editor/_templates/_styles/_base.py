@@ -22,6 +22,15 @@ STYLES_BASE = """
     --success-color: #10b981;
     --error-color: #ef4444;
     --selection-color: rgba(37, 99, 235, 0.3);
+    /* Solid selection colors for tables (opaque, theme-aware) */
+    --cell-selected-bg: #dbeafe;
+    --cell-hover-bg: #f0f4f8;
+    --header-bg: #e8e8e8;
+    --header-input-bg: #f5f5f5;
+    --row-num-bg: #f0f0f0;
+    /* Variable-linked column colors (light mode) */
+    --var-linked-bg: #c7d9f0;
+    --var-linked-cell-bg: #e8f0fa;
     /* Consistent panel header styling */
     --panel-header-height: 42px;
     --panel-header-bg: var(--bg-tertiary);
@@ -37,6 +46,15 @@ STYLES_BASE = """
     --accent-color: #3b82f6;
     --accent-hover: #60a5fa;
     --selection-color: rgba(59, 130, 246, 0.3);
+    /* Solid selection colors for tables (opaque, theme-aware) */
+    --cell-selected-bg: #1e3a5f;
+    --cell-hover-bg: #2a2a35;
+    --header-bg: #2a2a2a;
+    --header-input-bg: #333333;
+    --row-num-bg: #1e1e1e;
+    /* Variable-linked column colors (dark mode) */
+    --var-linked-bg: #2a4a6a;
+    --var-linked-cell-bg: #1a3045;
 }
 
 /* Reset and base */

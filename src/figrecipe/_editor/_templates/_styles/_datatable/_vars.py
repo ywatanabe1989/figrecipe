@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""CSS styles for variable assignment with color-coded linking."""
+"""CSS styles for variable assignment - clean monochrome design."""
 
 CSS_DATATABLE_VARS = """
 /* Variable assignment section - clean minimal design */
@@ -20,13 +20,11 @@ CSS_DATATABLE_VARS = """
     gap: 4px;
 }
 
-/* Color palette for variable-column linking */
-.var-color-0 { --var-color: #4a9eff; }
-.var-color-1 { --var-color: #ff6b6b; }
-.var-color-2 { --var-color: #51cf66; }
-.var-color-3 { --var-color: #ffd43b; }
-.var-color-4 { --var-color: #cc5de8; }
-.var-color-5 { --var-color: #ff922b; }
+/* Color classes disabled - using monochrome design */
+.var-color-0, .var-color-1, .var-color-2,
+.var-color-3, .var-color-4, .var-color-5 {
+    /* No color overrides */
+}
 
 /* Modern compact variable slot */
 .var-assign-slot {
@@ -46,7 +44,7 @@ CSS_DATATABLE_VARS = """
 
 /* Required: subtle indicator */
 .var-assign-slot.required {
-    border-color: var(--var-color, var(--border-color));
+    border-color: var(--border-color);
 }
 
 /* Optional: very subtle */
@@ -59,10 +57,10 @@ CSS_DATATABLE_VARS = """
     opacity: 1;
 }
 
-/* Assigned state: colored dot indicator */
+/* Assigned state: subtle filled indicator */
 .var-assign-slot.assigned {
-    background: transparent;
-    border-color: var(--var-color);
+    background: var(--bg-tertiary);
+    border-color: var(--text-secondary);
 }
 
 .var-assign-slot.assigned::before {
@@ -70,7 +68,7 @@ CSS_DATATABLE_VARS = """
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--var-color);
+    background: var(--text-secondary);
     flex-shrink: 0;
 }
 
@@ -82,7 +80,7 @@ CSS_DATATABLE_VARS = """
 }
 
 .var-assign-slot.assigned .var-name {
-    color: var(--var-color);
+    color: var(--text-primary);
 }
 
 .var-assign-slot.optional .var-name {
@@ -94,14 +92,29 @@ CSS_DATATABLE_VARS = """
     font-size: 10px;
     padding: 1px 2px;
     border: none;
-    background: transparent;
+    background: var(--bg-secondary);
     color: var(--text-primary);
     cursor: pointer;
     max-width: 90px;
+    border-radius: 2px;
 }
 
 .var-assign-slot select:focus {
     outline: none;
+    background: var(--bg-tertiary);
+}
+
+/* Theme-aware dropdown options */
+.var-assign-slot select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 4px 8px;
+}
+
+.var-assign-slot select option:hover,
+.var-assign-slot select option:checked {
+    background: var(--accent-color);
+    color: white;
 }
 """
 

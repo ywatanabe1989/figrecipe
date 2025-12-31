@@ -201,10 +201,17 @@ def register_style_routes(app, editor):
             img_size = img.size
             mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
             original_dpi = mpl_fig.dpi
-            mpl_fig.set_dpi(150)
-            mpl_fig.canvas.draw()
+            try:
+                mpl_fig.set_dpi(150)
+                mpl_fig.canvas.draw()
+            except Exception:
+                # Ignore matplotlib/tkinter threading issues in background thread
+                pass
             bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
-            mpl_fig.set_dpi(original_dpi)
+            try:
+                mpl_fig.set_dpi(original_dpi)
+            except Exception:
+                pass
         else:
             base64_img, bboxes, img_size = render_with_overrides(
                 editor.fig,

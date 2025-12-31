@@ -387,6 +387,78 @@ STYLES_FILE_BROWSER = """
 .file-browser-resize.resizing {
     background: var(--accent-color);
 }
+
+/* File Browser Footer - Brand Info */
+.file-browser-footer {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+.brand-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    padding: 4px;
+    border-radius: 4px;
+    margin: -4px;
+}
+
+.brand-link:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.brand-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.brand-link:hover .brand-icon {
+    opacity: 1;
+}
+
+.brand-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+}
+
+.brand-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.brand-version {
+    font-size: 9px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.brand-meta {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color);
+}
+
+.server-time {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-family: monospace;
+}
+
+/* Hide footer when collapsed */
+.file-browser-panel.collapsed .file-browser-footer {
+    display: none;
+}
 """
 
 __all__ = ["STYLES_FILE_BROWSER"]

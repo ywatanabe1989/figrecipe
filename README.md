@@ -118,12 +118,53 @@ img_path, yaml_path, result = fr.save(fig, 'figure.png')
 # → creates: figure.png + figure.yaml
 ```
 
+<details>
+<summary><b>Supported I/O Formats</b> — Save and load are fully symmetric</summary>
+
+**Save** creates both image and recipe. **Load** finds recipe from any format:
+
+```python
+# Save examples
+fr.save(fig, 'figure.png')       # → figure.png + figure.yaml
+fr.save(fig, 'figure.yaml')      # → figure.yaml + figure.png
+fr.save(fig, 'figure_bundle/')   # → directory with recipe.yaml + figure.png
+fr.save(fig, 'figure.zip')       # → ZIP containing recipe.yaml + figure.png
+
+# Load examples (symmetric with save)
+fig, ax = fr.load('figure.png')            # ← finds figure.yaml
+fig, ax = fr.load('figure.yaml')           # ← direct
+fig, ax = fr.load('figure_bundle/')        # ← finds recipe.yaml inside
+fig, ax = fr.load('figure.zip')            # ← extracts recipe.yaml
+
+# Edit also supports all formats
+fr.edit('figure.png')  # Opens editor, finds figure.yaml
+
+# Note: fr.reproduce() is an alias for fr.load()
+```
+
+| Format | Save | Load | Notes |
+|--------|:----:|:----:|-------|
+| `.png` / `.jpg` / `.jpeg` | ✓ | ✓ | Creates/finds `.yaml` alongside |
+| `.pdf` / `.svg` | ✓ | ✓ | Creates/finds `.yaml` alongside |
+| `.tif` / `.tiff` | ✓ | ✓ | Creates/finds `.yaml` alongside |
+| `.yaml` / `.yml` | ✓ | ✓ | Creates/finds image alongside |
+| Directory (`path/`) | ✓ | ✓ | Bundle with `recipe.yaml` + image |
+| `.zip` | ✓ | ✓ | ZIP bundle with `recipe.yaml` + image |
+
+**Alternative save method:**
+```python
+fig.savefig('figure.png')                      # Same as fr.save()
+fig.savefig('figure.png', save_recipe=False)   # Image only, no recipe
+```
+
+</details>
+
 ### Reproducing a Figure
 
 ``` python
 import figrecipe as fr
 
-fig, ax = fr.reproduce('figure.yaml')
+fig, ax = fr.reproduce('figure.yaml')  # Or .png, .pdf, directory/, .zip
 ```
 
 ### Extracting Plotted Data
@@ -166,6 +207,35 @@ fig, ax = fr.subplots(
 )
 ```
 This guarantees consistent sizing across editors, exports, and journals.
+
+### Figure Legends (Scientific Captions)
+
+Store publication-ready figure legends as metadata (not rendered on the figure):
+
+``` python
+fig, axes = fr.subplots(1, 2)
+
+# Figure legend (main description)
+fig.set_caption(
+    "Comparison of treatment effects on neural activity. "
+    "Data represent mean ± SEM."
+)
+
+# Panel legends (A, B, C, ...)
+axes[0].set_caption("Representative traces from control condition")
+axes[1].set_caption("Quantification across subjects (n=12)")
+
+# Access captions
+print(fig.caption)       # Figure legend
+print(axes[0].caption)   # Panel A legend
+
+# Auto-generate with statistics
+fig.set_stats({"comparisons": [{"name": "A vs B", "p_value": 0.003}]})
+full_legend = fig.generate_caption(style="publication")
+# → "Comparison of... (A) Representative traces... (B) Quantification... A vs B (p=0.003)."
+```
+
+Captions are saved in the recipe YAML and displayed in the GUI editor's caption pane below the canvas—ready for copy-paste into manuscripts.
 
 ### Interactive GUI Editor
 
@@ -274,6 +344,8 @@ See [src/figrecipe/styles/presets/](src/figrecipe/styles/presets/) for complete 
 | `fr.load_style()`                | Load style preset (global)                        |
 | `fr.list_presets()`              | List available presets                            |
 | `fr.crop('fig.png')`             | Crop to content with mm margin                    |
+| `fig.set_caption(text)`          | Set figure legend (metadata)                      |
+| `ax.set_caption(text)`           | Set panel legend (metadata)                       |
 
 
 ## License

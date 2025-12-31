@@ -14,6 +14,7 @@ let tabCounter = 0;
 // Tab Management
 // ============================================================================
 function initDatatableTabs() {
+    console.log('[Datatable] initDatatableTabs called');
     const newTabBtn = document.getElementById('btn-new-tab');
     if (newTabBtn) {
         newTabBtn.addEventListener('click', createNewTab);
@@ -29,6 +30,7 @@ function loadTabsFromFigure() {
         fetch('/datatable/data').then(r => r.json()),
         fetch('/calls').then(r => r.json())
     ]).then(([data, calls]) => {
+        console.log('[Datatable] Loaded data:', data.columns?.length || 0, 'columns');
         if (data.columns && data.columns.length > 0) {
             // Build a map of call_id -> axis index from calls
             // calls is an object: {call_id: {function, ax_key, ...}, ...}
@@ -84,11 +86,13 @@ function loadTabsFromFigure() {
             });
 
             // Create a tab for each group with element colors
+            console.log('[Datatable] Creating tabs for', Object.keys(groups).length, 'groups:', Object.keys(groups));
             Object.entries(groups).forEach(([callId, groupData]) => {
                 // Get element color from colorMap (populated by hitmap)
                 const elemColor = typeof getGroupRepresentativeColor === 'function'
                     ? getGroupRepresentativeColor(callId, null)
                     : null;
+                console.log('[Datatable] Creating tab:', callId, 'with', groupData.columns?.length, 'columns,', groupData.rows?.length, 'rows');
                 createTab(callId, groupData, false, groupData.axIndex, groupData.plotType, elemColor);
             });
 
@@ -114,7 +118,9 @@ function createTab(name, data = null, select = true, axIndex = null, plotType = 
     const tab = document.createElement('button');
     tab.className = 'datatable-tab';
     tab.dataset.tabId = tabId;
-    const axBadge = axIndex !== null ? `<span class="tab-axis" title="Axis ${axIndex}">P${axIndex + 1}</span>` : '';
+    // Use letters A, B, C... to match subplot labels in figure
+    const axLabel = axIndex !== null ? String.fromCharCode(65 + axIndex) : null;  // 65 is 'A'
+    const axBadge = axLabel ? `<span class="tab-axis" title="Panel ${axLabel}">${axLabel}</span>` : '';
     tab.innerHTML = `
         ${axBadge}
         <span class="tab-name" title="${name}">${name}</span>
@@ -151,21 +157,22 @@ function createTab(name, data = null, select = true, axIndex = null, plotType = 
 
 function createNewTab() {
     const name = `Data ${tabCounter + 1}`;
-    // Auto-create empty editable table data
-    const defaultData = {
-        columns: [
-            { name: 'col1', type: 'numeric', index: 0 },
-            { name: 'col2', type: 'numeric', index: 1 },
-            { name: 'col3', type: 'string', index: 2 }
-        ],
-        rows: [
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', ''],
-            ['', '', '']
-        ]
-    };
+    // Auto-create large empty editable table (matches createNewCSV defaults)
+    const numRows = 100;
+    const numCols = 5;
+
+    const columns = [];
+    for (let i = 0; i < numCols; i++) {
+        // Default to 'string' type so users can type anything
+        columns.push({ name: `col${i + 1}`, type: 'string', index: i });
+    }
+
+    const rows = [];
+    for (let i = 0; i < numRows; i++) {
+        rows.push(new Array(numCols).fill(''));
+    }
+
+    const defaultData = { columns, rows };
     createTab(name, defaultData, true);
 }
 
@@ -232,11 +239,16 @@ function restoreTabState(tabId) {
 
     // Update UI
     if (datatableData) {
-        renderDatatable();
+        // Use renderEditableTable for direct editing capability
+        if (typeof renderEditableTable === 'function') {
+            renderEditableTable();
+        } else {
+            renderDatatable();
+        }
 
-        // Show toolbar
-        const dropzone = document.getElementById('datatable-dropzone');
-        if (dropzone) dropzone.style.display = 'none';
+        // Show toolbar, hide entire import section
+        const importSection = document.getElementById('datatable-import-section');
+        if (importSection) importSection.style.display = 'none';
         const toolbar = document.querySelector('.datatable-toolbar');
         if (toolbar) toolbar.style.display = 'flex';
 
@@ -261,8 +273,9 @@ function clearDatatableDisplay() {
     const content = document.getElementById('datatable-content');
     if (content) content.innerHTML = '';
 
-    const dropzone = document.getElementById('datatable-dropzone');
-    if (dropzone) dropzone.style.display = 'block';
+    // Show import section with dropzone
+    const importSection = document.getElementById('datatable-import-section');
+    if (importSection) importSection.style.display = 'block';
 
     const toolbar = document.querySelector('.datatable-toolbar');
     if (toolbar) toolbar.style.display = 'none';
@@ -295,9 +308,9 @@ function handleParsedDataWithTabs(parsedData) {
 
     renderDatatable();
 
-    // Show toolbar
-    const dropzone = document.getElementById('datatable-dropzone');
-    if (dropzone) dropzone.style.display = 'none';
+    // Show toolbar, hide entire import section
+    const importSection = document.getElementById('datatable-import-section');
+    if (importSection) importSection.style.display = 'none';
     const toolbar = document.querySelector('.datatable-toolbar');
     if (toolbar) toolbar.style.display = 'flex';
 
@@ -315,7 +328,8 @@ function updateTabColors() {
     if (typeof getGroupRepresentativeColor !== 'function') return;
 
     Object.entries(datatableTabs).forEach(([tabId, tabState]) => {
-        if (tabState.callId && !tabState.elementColor) {
+        if (tabState.callId) {
+            // Always get the latest color from colorMap (override any stale color)
             const elemColor = getGroupRepresentativeColor(tabState.callId, null);
             if (elemColor) {
                 tabState.elementColor = elemColor;

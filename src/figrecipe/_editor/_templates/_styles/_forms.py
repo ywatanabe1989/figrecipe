@@ -53,6 +53,8 @@ STYLES_FORMS = """
     background: var(--bg-primary);
     color: var(--text-primary);
     font-size: 13px;
+    min-width: 0;  /* Allow shrinking below content size */
+    max-width: calc(100% - 130px);  /* Leave space for label + margin */
 }
 
 .form-row input[type="number"]:focus,
@@ -138,6 +140,82 @@ STYLES_FORMS = """
 .spine-visibility-grid .form-row label {
     flex: 0 0 80px;
     font-size: 12px;
+}
+
+/* Caption textarea styling */
+.caption-textarea {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 40px;
+}
+
+.caption-textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.caption-row {
+    align-items: flex-start !important;
+}
+
+.caption-row label {
+    padding-top: 8px;
+}
+
+.caption-preview {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    padding: 4px 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.caption-preview span {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Composed caption preview */
+.composed-caption-preview {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.composed-caption-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.composed-caption-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.composed-caption-text b {
+    font-weight: 600;
+}
+
+.composed-caption-text .panel-caption {
+    color: var(--text-secondary);
+    margin-left: 4px;
 }
 """
 

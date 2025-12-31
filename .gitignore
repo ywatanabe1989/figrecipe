@@ -86,6 +86,7 @@ outputs/
 !docs/images/**/*.png
 !outputs/notebook/*.png
 *.yaml
+!.pre-commit-config.yaml
 !pyproject.toml
 !outputs/notebook/*.yaml
 !src/figrecipe/styles/presets/*.yaml
@@ -109,3 +110,12 @@ docs/bgm/*.mp3
 /.claude-worktree-symlinks
 # Claude worktree symlink
 /feature-cli
+# Claude worktree symlink
+/feature-datatable-direct-edit
+
+# Example outputs (generated files)
+examples/*/outputs_*/
+# Claude worktree symlink
+/feature-object-support
+# Claude worktree symlink
+/feature-editor-improvements

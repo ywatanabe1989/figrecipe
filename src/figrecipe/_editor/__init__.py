@@ -33,6 +33,7 @@ def edit(
     open_browser: bool = True,
     hot_reload: bool = False,
     working_dir: Optional[Union[str, Path]] = None,
+    desktop: bool = False,
 ) -> Dict[str, Any]:
     """
     Launch interactive GUI editor for figure styling.
@@ -63,6 +64,9 @@ def edit(
     working_dir : str or Path, optional
         Working directory for file switching feature (default: current directory).
         The file switcher will list recipe files from this directory.
+    desktop : bool, optional
+        Launch as native desktop window using pywebview (default: False).
+        Requires: pip install figrecipe[desktop]
 
     Returns
     -------
@@ -139,9 +143,20 @@ def edit(
         color_map=color_map,
         hot_reload=hot_reload,
         working_dir=resolved_working_dir,
+        desktop=desktop,
     )
 
     return editor.run(open_browser=open_browser)
+
+
+def _check_figure_has_content(fig: RecordingFigure) -> bool:
+    """Check if figure has any plot content."""
+    for ax_row in fig._axes:
+        for ax in ax_row:
+            # Check for lines, patches, images, collections
+            if ax.lines or ax.patches or ax.images or ax.collections or ax.texts:
+                return True
+    return False
 
 
 def _resolve_source(source: Optional[Union[RecordingFigure, str, Path]]):
@@ -170,16 +185,6 @@ def _resolve_source(source: Optional[Union[RecordingFigure, str, Path]]):
 
         fig, ax = subplots()
         ax.set_title("New Figure")
-        ax.text(
-            0.5,
-            0.5,
-            "Add plots using fr.edit(fig)",
-            ha="center",
-            va="center",
-            transform=ax.transAxes,
-            fontsize=12,
-            color="gray",
-        )
         return fig, None
 
     if isinstance(source, RecordingFigure):

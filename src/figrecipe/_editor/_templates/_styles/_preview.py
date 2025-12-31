@@ -100,6 +100,20 @@ STYLES_PREVIEW = """
     font-weight: 600;
 }
 
+/* Panel label for CANVAS */
+.preview-header .panel-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-right: auto;
+}
+
+.preview-panel.collapsed .panel-label {
+    display: none;
+}
+
 /* SciTeX branding */
 .scitex-branding {
     display: flex;
@@ -212,11 +226,35 @@ STYLES_PREVIEW = """
     justify-content: center;
 }
 
-.zoom-controls #zoom-level {
-    min-width: 45px;
-    text-align: center;
+/* Text buttons in zoom controls need smaller font */
+.zoom-controls #btn-zoom-fit {
+    width: auto;
+    padding: 0 8px;
     font-size: 12px;
-    font-weight: 500;
+}
+
+/* Zoom dropdown select */
+.zoom-controls select {
+    height: 28px;
+    padding: 0 8px;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.zoom-controls select:hover {
+    border-color: var(--accent-color);
+}
+
+/* Toolbar separator */
+.toolbar-separator {
+    width: 1px;
+    height: 24px;
+    background: var(--border-color);
+    margin: 0 4px;
 }
 
 .preview-wrapper {
@@ -283,6 +321,107 @@ STYLES_PREVIEW = """
 
 .preview-wrapper.panning * {
     cursor: grabbing !important;
+}
+
+/* Welcome Overlay - covers the entire preview area */
+.welcome-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    pointer-events: none;
+    background: var(--bg-tertiary);
+}
+
+.welcome-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 32px 40px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    max-width: 360px;
+}
+
+.welcome-content h2 {
+    margin: 0 0 24px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.welcome-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+
+.welcome-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.step-number {
+    width: 28px;
+    height: 28px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.step-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.step-text strong {
+    color: var(--text-primary);
+}
+
+.welcome-hint {
+    margin: 20px 0 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-tertiary);
+    font-size: 13px;
+}
+
+/* Caption Pane (below canvas) */
+.caption-pane {
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    min-height: 32px;
+}
+
+.caption-pane b {
+    font-weight: 600;
+}
+
+.caption-pane .panel-caption {
+    color: var(--text-secondary);
+}
+
+/* Hide caption pane when canvas collapsed */
+.preview-panel.collapsed .caption-pane {
+    display: none;
 }
 """
 

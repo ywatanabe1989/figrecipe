@@ -11,14 +11,14 @@ This module contains CSS for:
 STYLES_DYNAMIC_PROPS = """
 /* Dynamic Call Properties (in right panel) */
 .dynamic-call-properties {
-    padding: 12px 16px;
-    margin: 8px 0 16px 0;
+    padding: 12px 16px 12px 16px;
+    margin: 8px 0 16px 0;  /* Consistent with tab-navigation and selected-element-header */
     background: var(--bg-tertiary);
     border: 1px solid var(--accent-color);
     border-radius: 8px;
     font-size: 12px;
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: none;  /* Allow full expansion - parent handles scrolling */
+    overflow-y: visible;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -133,7 +133,7 @@ STYLES_DYNAMIC_PROPS = """
     color: var(--text-secondary);
     font-family: monospace;
     padding: 2px 0 0 0;
-    margin-left: 125px;
+    margin-left: 128px;  /* Align with input (label 120px + gap 8px) */
     word-break: break-word;
     line-height: 1.3;
 }
