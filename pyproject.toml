@@ -65,6 +65,9 @@ desktop = [
     "flask>=2.0.0",
     "Pillow>=9.0.0",
     "pywebview>=4.0.0",
+    "qtpy>=2.0.0",
+    "PyQt6>=6.0.0",
+    "PyQt6-WebEngine>=6.0.0",
 ]
 demo = [
     "playwright>=1.40.0",
