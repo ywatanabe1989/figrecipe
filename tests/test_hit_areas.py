@@ -535,14 +535,10 @@ class TestSpecificPlotTypes:
             hitmap, color_map = generate_hitmap(fig)
 
             # contourf may create fill or image elements
-            relevant_elements = [
-                k
-                for k, v in color_map.items()
-                if isinstance(v, dict)
-                and v.get("type") in ("fill", "image", "contourf")
-            ]
             # Note: contourf may not create easily selectable elements
-            # Just verify it doesn't error
+            # Just verify hitmap generation doesn't error
+            assert hitmap is not None
+            assert color_map is not None
 
         finally:
             plt.close(fig)
