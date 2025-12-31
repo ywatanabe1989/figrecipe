@@ -9,7 +9,6 @@ authors:
   - family-names: "Watanabe"
     given-names: "Yusuke"
     email: "ywatanabe@scitex.ai"
-    orcid: "https://orcid.org/0000-0002-4392-8413"
 repository-code: "https://github.com/ywatanabe1989/figrecipe"
 url: "https://scitex.ai"
 license: AGPL-3.0
