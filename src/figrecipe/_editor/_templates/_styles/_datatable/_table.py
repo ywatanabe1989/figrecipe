@@ -147,13 +147,27 @@ CSS_DATATABLE_TABLE = """
 /* Canvas-linked column highlight */
 .datatable-table th.canvas-linked {
     background: var(--accent-color) !important;
-    color: white;
+    color: white !important;
     animation: canvas-link-pulse 1s ease-in-out;
+}
+
+.datatable-table th.canvas-linked .col-name,
+.datatable-table th.canvas-linked .col-name-input,
+.datatable-table th.canvas-linked .col-type {
+    color: white !important;
 }
 
 .datatable-table th.canvas-linked .col-type {
     background: rgba(255,255,255,0.2);
-    color: white;
+}
+
+/* Highlighted data cells */
+.datatable-table td.canvas-linked {
+    background: rgba(59, 130, 246, 0.15) !important;
+}
+
+[data-theme="dark"] .datatable-table td.canvas-linked {
+    background: rgba(59, 130, 246, 0.2) !important;
 }
 
 @keyframes canvas-link-pulse {

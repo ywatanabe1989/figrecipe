@@ -218,7 +218,7 @@ function _createScatterShape(bbox, key, originalColor, offsetX, offsetY, scaleX,
         shape.style.setProperty('--element-color', originalColor);
     }
 
-    const hitRadius = 5;
+    const hitRadius = 8;  // Larger radius for easier click targeting
     const allCircles = [];
 
     bbox.points.forEach((pt, idx) => {

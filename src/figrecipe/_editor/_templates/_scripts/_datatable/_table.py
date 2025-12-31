@@ -116,38 +116,66 @@ let datatableLinkedCallId = null;
 function highlightDatatableForElement(callId) {
     datatableLinkedCallId = callId;
 
-    // Clear previous highlights
-    document.querySelectorAll('.datatable-table th.canvas-linked').forEach(th => {
-        th.classList.remove('canvas-linked');
+    // Clear previous highlights (headers and data cells)
+    document.querySelectorAll('.datatable-table .canvas-linked').forEach(el => {
+        el.classList.remove('canvas-linked');
     });
 
     if (!callId || !datatableData) return;
 
-    // Find columns that match this call_id (column names like "callId_x", "callId_y")
     const columns = datatableData.columns || [];
+    const matchedIndices = [];
+
+    // Strategy 1: Match columns by prefix pattern (e.g., scatter_x, scatter_y)
     columns.forEach((col, idx) => {
-        // Match if column name starts with callId or contains callId
         if (col.name.startsWith(callId + '_') || col.name === callId) {
-            // Highlight column header (idx + 2 because of row-num column)
+            matchedIndices.push(idx);
+            // Highlight header
             const th = document.querySelector(`.datatable-table th:nth-child(${idx + 2})`);
-            if (th) {
-                th.classList.add('canvas-linked');
-            }
+            if (th) th.classList.add('canvas-linked');
         }
     });
 
+    // Highlight data cells in matched columns
+    matchedIndices.forEach(idx => {
+        document.querySelectorAll(`.datatable-table tr td:nth-child(${idx + 2})`).forEach(td => {
+            td.classList.add('canvas-linked');
+        });
+    });
+
+    let hasMatch = matchedIndices.length > 0;
+
+    // Strategy 2: If in a matching tab, highlight ALL columns in that tab
+    // (handles shared x-data case for line plots where x column isn't prefixed)
+    if (typeof datatableTabs !== 'undefined' && typeof activeTabId !== 'undefined') {
+        const activeTab = datatableTabs[activeTabId];
+        if (activeTab && (activeTab.callId === callId || activeTab.name === callId)) {
+            columns.forEach((col, idx) => {
+                // Highlight header
+                const th = document.querySelector(`.datatable-table th:nth-child(${idx + 2})`);
+                if (th) {
+                    th.classList.add('canvas-linked');
+                    hasMatch = true;
+                }
+                // Highlight data cells
+                document.querySelectorAll(`.datatable-table tr td:nth-child(${idx + 2})`).forEach(td => {
+                    td.classList.add('canvas-linked');
+                });
+            });
+        }
+    }
+
     // Expand datatable panel if collapsed and has linked columns
     const panel = document.getElementById('datatable-panel');
-    const hasLinked = document.querySelector('.datatable-table th.canvas-linked');
-    if (hasLinked && panel && !panel.classList.contains('expanded')) {
+    if (hasMatch && panel && !panel.classList.contains('expanded')) {
         panel.classList.add('expanded');
     }
 }
 
 function clearDatatableHighlight() {
     datatableLinkedCallId = null;
-    document.querySelectorAll('.datatable-table th.canvas-linked').forEach(th => {
-        th.classList.remove('canvas-linked');
+    document.querySelectorAll('.datatable-table .canvas-linked').forEach(el => {
+        el.classList.remove('canvas-linked');
     });
 }
 
@@ -155,6 +183,13 @@ function clearDatatableHighlight() {
 function syncDatatableToElement(element) {
     if (!element) {
         clearDatatableHighlight();
+        return;
+    }
+
+    // Skip highlighting for panel/axes selections - they don't have data columns
+    const elemType = element.type || '';
+    if (elemType === 'axes' || elemType === 'panel' || (element.label && element.label.startsWith('Panel '))) {
+        console.log('[Highlight] Skipping panel/axes element');
         return;
     }
 
