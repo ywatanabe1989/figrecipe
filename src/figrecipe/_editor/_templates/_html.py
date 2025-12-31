@@ -60,6 +60,7 @@ HTML_TEMPLATE = """
                     <button id="btn-redo" class="btn-icon" title="Redo (Ctrl+Y)" disabled>↷</button>
                     <button id="btn-restore" class="btn-secondary" title="Revert all changes">Revert</button>
                     <button id="btn-save" class="btn-primary" title="Save (Ctrl+S)">Save</button>
+                    <button id="btn-shortcuts" class="btn-icon btn-shortcuts" title="Keyboard shortcuts (?)">⌨</button>
                 </div>
             </div>
             <div class="preview-wrapper" id="preview-wrapper">
@@ -132,8 +133,7 @@ HTML_TEMPLATE = """
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>G</kbd>/<kbd>+</kbd>/<kbd>-</kbd>/<kbd>0</kbd>/<kbd>F</kbd></span><span class="shortcut-desc">Grid/Zoom/Reset/Fit</span></div></div>
                         <div class="shortcut-section"><h4>Panel</h4>
                             <div class="shortcut-row"><span class="shortcut-keys">Drag/<kbd>Alt</kbd>+Drag</span><span class="shortcut-desc">Move (snap/free)</span></div></div>
-                        <div class="shortcut-section"><h4>Developer</h4>
-                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Inspector</span></div></div>
+                        DEBUG_SHORTCUTS_PLACEHOLDER
                     </div>
                 </div>
             </div>

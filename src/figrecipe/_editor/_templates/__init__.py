@@ -46,6 +46,7 @@ def build_html_template(
     hot_reload: bool = False,
     dark_mode: bool = False,
     figure_has_content: bool = True,
+    debug_mode: bool = False,
 ) -> str:
     """
     Build complete HTML template for figure editor.
@@ -165,6 +166,18 @@ def build_html_template(
     # Welcome overlay - show only for empty figures
     welcome_display = "none" if figure_has_content else "flex"
     html = html.replace("WELCOME_DISPLAY_PLACEHOLDER", welcome_display)
+
+    # Debug mode - enables Element Inspector and Show All Bboxes
+    html = html.replace("DEBUG_MODE_PLACEHOLDER", "true" if debug_mode else "false")
+
+    # Debug shortcuts section - only shown when debug mode is enabled
+    debug_shortcuts_html = ""
+    if debug_mode:
+        debug_shortcuts_html = """<div class="shortcut-section debug-shortcuts"><h4>Debug <span class="debug-badge">DEBUG MODE</span></h4>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Element Inspector</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Alt</kbd>+<kbd>B</kbd></span><span class="shortcut-desc">Show All Bboxes</span></div>
+                            <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Debug Snapshot</span></div></div>"""
+    html = html.replace("DEBUG_SHORTCUTS_PLACEHOLDER", debug_shortcuts_html)
 
     return html
 

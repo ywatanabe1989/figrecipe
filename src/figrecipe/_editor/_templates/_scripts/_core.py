@@ -5,6 +5,9 @@
 SCRIPTS_CORE = """
 // ==================== CORE STATE & INITIALIZATION ====================
 
+// Debug mode - enabled via FIGRECIPE_DEBUG_MODE=1 env var
+const DEBUG_MODE = DEBUG_MODE_PLACEHOLDER;
+
 // State
 let currentBboxes = initialBboxes;
 let colorMap = initialColorMap;
@@ -293,6 +296,26 @@ function handleKeyboardShortcuts(event) {
         } else {
             console.error('[DEBUG] captureDebugSnapshot is not defined!');
             showToast('Debug snapshot not available', 'error');
+        }
+        return;
+    }
+
+    // Alt+I (without Ctrl): Element Inspector toggle (DEBUG MODE ONLY)
+    if (DEBUG_MODE && event.altKey && !event.ctrlKey && !event.shiftKey && (event.key === 'i' || event.key === 'I')) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof toggleElementInspector === 'function') {
+            toggleElementInspector();
+        }
+        return;
+    }
+
+    // Alt+B: Show All Bboxes toggle (DEBUG MODE ONLY)
+    if (DEBUG_MODE && event.altKey && !event.ctrlKey && !event.shiftKey && (event.key === 'b' || event.key === 'B')) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof toggleAllBboxes === 'function') {
+            toggleAllBboxes();
         }
         return;
     }

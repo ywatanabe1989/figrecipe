@@ -91,7 +91,7 @@ function updatePanelPositionInputs(showHighlight = true) {
     }
 }
 
-// Draw visual highlight around selected panel
+// Draw visual highlight around selected panel (axis bbox only)
 function drawPanelSelectionHighlight(pos) {
     const overlay = document.getElementById('selection-overlay');
     if (!overlay) return;
@@ -134,6 +134,60 @@ function drawPanelSelectionHighlight(pos) {
     overlay.appendChild(rect);
 }
 
+// Draw full panel bbox (union of all elements belonging to the panel)
+function drawPanelBbox(axIndex) {
+    const overlay = document.getElementById('selection-overlay');
+    if (!overlay) return;
+
+    // Clear previous panel bbox
+    const existingBbox = document.getElementById('panel-bbox-highlight');
+    if (existingBbox) existingBbox.remove();
+
+    // Get panel_bboxes from currentBboxes metadata
+    const panelBboxes = currentBboxes?._meta?.panel_bboxes;
+    if (!panelBboxes || !panelBboxes[axIndex]) {
+        console.log('[PanelBbox] No panel bbox for ax', axIndex);
+        return;
+    }
+
+    const panelBbox = panelBboxes[axIndex];
+    const img = document.getElementById('preview-image');
+    if (!img || !img.naturalWidth || !img.naturalHeight) return;
+
+    // Ensure viewBox is set
+    overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+    overlay.style.width = `${img.naturalWidth}px`;
+    overlay.style.height = `${img.naturalHeight}px`;
+
+    // panel bbox is already in pixel coordinates
+    const x = panelBbox.x;
+    const y = panelBbox.y;
+    const width = panelBbox.width;
+    const height = panelBbox.height;
+
+    // Create panel bbox rectangle (different style from axis highlight)
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.id = 'panel-bbox-highlight';
+    rect.setAttribute('x', x - 2);  // Small padding
+    rect.setAttribute('y', y - 2);
+    rect.setAttribute('width', width + 4);
+    rect.setAttribute('height', height + 4);
+    rect.setAttribute('fill', 'rgba(59, 130, 246, 0.05)');  // Very light blue fill
+    rect.setAttribute('stroke', '#3b82f6');  // Blue stroke
+    rect.setAttribute('stroke-width', '2');
+    rect.setAttribute('stroke-dasharray', '6,3');
+    rect.style.pointerEvents = 'none';
+
+    overlay.appendChild(rect);
+    console.log('[PanelBbox] Drew bbox for panel', axIndex, panelBbox);
+}
+
+// Clear panel bbox highlight
+function clearPanelBbox() {
+    const existingBbox = document.getElementById('panel-bbox-highlight');
+    if (existingBbox) existingBbox.remove();
+}
+
 // Clear panel selection highlight
 function clearPanelSelectionHighlight() {
     const existingHighlight = document.getElementById('panel-selection-highlight');
@@ -147,6 +201,9 @@ function selectPanelByIndex(axIndex, switchToAxisTab = true) {
 
     // Update inputs and highlight
     updatePanelPositionInputs();
+
+    // Draw panel bbox (union of all elements)
+    drawPanelBbox(axIndex);
 
     // Update panel caption input
     if (typeof updatePanelCaptionInput === 'function') {
@@ -166,6 +223,7 @@ function clearPanelSelection() {
     currentSelectedPanelIndex = null;
     updatePanelPositionInputs(false);
     clearPanelSelectionHighlight();
+    clearPanelBbox();
 }
 
 // Find panel index from axes key (e.g., "ax_0" -> 0)
@@ -284,6 +342,116 @@ function initPanelPositionControls() {
 
     // Load initial positions
     loadPanelPositions();
+
+    // Initialize debug toolbar if in debug mode
+    if (typeof DEBUG_MODE !== 'undefined' && DEBUG_MODE) {
+        initDebugToolbar();
+    }
+}
+
+// ===== DEBUG MODE: SHOW ALL BBOXES =====
+
+let allBboxesVisible = false;
+
+// Toggle showing all panel bboxes at once
+function toggleAllBboxes() {
+    allBboxesVisible = !allBboxesVisible;
+
+    const overlay = document.getElementById('selection-overlay');
+    if (!overlay) return;
+
+    // Remove existing debug bboxes
+    document.querySelectorAll('.debug-panel-bbox').forEach(el => el.remove());
+
+    if (!allBboxesVisible) {
+        console.log('[Debug] All bboxes hidden');
+        updateDebugButton(false);
+        return;
+    }
+
+    const panelBboxes = currentBboxes?._meta?.panel_bboxes;
+    if (!panelBboxes) {
+        console.warn('[Debug] No panel bboxes available');
+        showToast('No panel bboxes available', 'warning');
+        return;
+    }
+
+    const img = document.getElementById('preview-image');
+    if (!img || !img.naturalWidth || !img.naturalHeight) return;
+
+    // Ensure viewBox is set
+    overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
+    overlay.style.width = `${img.naturalWidth}px`;
+    overlay.style.height = `${img.naturalHeight}px`;
+
+    // Colors for different panels
+    const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316'];
+
+    // Draw bbox for each panel
+    Object.entries(panelBboxes).forEach(([axIdx, bbox], idx) => {
+        const color = colors[idx % colors.length];
+        const label = String.fromCharCode(65 + parseInt(axIdx)); // A, B, C...
+
+        // Create bbox rectangle
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.classList.add('debug-panel-bbox');
+        rect.setAttribute('x', bbox.x);
+        rect.setAttribute('y', bbox.y);
+        rect.setAttribute('width', bbox.width);
+        rect.setAttribute('height', bbox.height);
+        rect.setAttribute('fill', 'none');
+        rect.setAttribute('stroke', color);
+        rect.setAttribute('stroke-width', '2');
+        rect.setAttribute('stroke-dasharray', '5,3');
+        rect.style.pointerEvents = 'none';
+        overlay.appendChild(rect);
+
+        // Create label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.classList.add('debug-panel-bbox');
+        text.setAttribute('x', bbox.x + 5);
+        text.setAttribute('y', bbox.y + 15);
+        text.setAttribute('fill', color);
+        text.setAttribute('font-size', '14');
+        text.setAttribute('font-weight', 'bold');
+        text.style.pointerEvents = 'none';
+        text.textContent = `Panel ${label}`;
+        overlay.appendChild(text);
+    });
+
+    console.log('[Debug] Showing all panel bboxes:', Object.keys(panelBboxes).length);
+    updateDebugButton(true);
+}
+
+// Update debug button state
+function updateDebugButton(active) {
+    const btn = document.getElementById('btn-debug-bboxes');
+    if (btn) {
+        btn.classList.toggle('active', active);
+        btn.title = active ? 'Hide All Bboxes (Alt+B)' : 'Show All Bboxes (Alt+B)';
+    }
+}
+
+// Initialize debug toolbar
+function initDebugToolbar() {
+    // Find the preview controls area
+    const previewControls = document.querySelector('.preview-controls');
+    if (!previewControls) return;
+
+    // Create debug button
+    const debugBtn = document.createElement('button');
+    debugBtn.id = 'btn-debug-bboxes';
+    debugBtn.className = 'btn-icon btn-debug';
+    debugBtn.title = 'Show All Bboxes (Alt+B)';
+    debugBtn.innerHTML = '🔲';
+    debugBtn.style.cssText = 'margin-left: 8px; background: #374151; border: 1px dashed #f59e0b; color: #f59e0b;';
+    debugBtn.onclick = toggleAllBboxes;
+
+    // Add to controls
+    previewControls.appendChild(debugBtn);
+
+    console.log('[Debug] Debug toolbar initialized (FIGRECIPE_DEBUG_MODE=1)');
+    console.log('[Debug] Shortcuts: Alt+I = Element Inspector, Alt+B = Show All Bboxes');
 }
 
 // Call initialization on DOMContentLoaded

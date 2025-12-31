@@ -6,10 +6,17 @@ Handles main page, preview, update, and hitmap routes.
 File operations moved to _routes_files.py.
 """
 
+import os
+
 from flask import jsonify, render_template_string, request
 
 from . import _check_figure_has_content
 from ._helpers import render_with_overrides
+
+
+def _is_debug_mode() -> bool:
+    """Check if debug mode is enabled via FIGRECIPE_DEBUG_MODE env var."""
+    return os.environ.get("FIGRECIPE_DEBUG_MODE", "").lower() in ("1", "true", "yes")
 
 
 def register_core_routes(app, editor):
@@ -42,6 +49,7 @@ def register_core_routes(app, editor):
             hot_reload=editor.hot_reload,
             dark_mode=editor.dark_mode,
             figure_has_content=figure_has_content,
+            debug_mode=_is_debug_mode(),
         )
 
         return render_template_string(html)

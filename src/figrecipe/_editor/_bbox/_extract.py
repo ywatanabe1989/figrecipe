@@ -122,6 +122,9 @@ def extract_bboxes(
         bboxes,
     )
 
+    # Compute panel bboxes (union of all elements per axis)
+    panel_bboxes = _compute_panel_bboxes(bboxes, len(fig.get_axes()))
+
     # Add metadata
     bboxes["_meta"] = {
         "img_width": img_width,
@@ -129,6 +132,7 @@ def extract_bboxes(
         "fig_width_inches": fig.get_figwidth(),
         "fig_height_inches": fig.get_figheight(),
         "dpi": fig.dpi,
+        "panel_bboxes": panel_bboxes,
     }
 
     return bboxes
@@ -281,6 +285,90 @@ def _extract_axes_bboxes(
         saved_height_inches,
         bboxes,
     )
+
+
+def _compute_panel_bboxes(
+    bboxes: Dict[str, Any], num_axes: int
+) -> Dict[int, Dict[str, float]]:
+    """
+    Compute union bounding box for each panel (axis).
+
+    Groups all elements by their ax_index and computes the union bbox
+    that encompasses all elements belonging to that panel, including:
+    - Panel label
+    - Title, xlabel, ylabel
+    - Tick labels
+    - Plot elements (lines, scatter, bars, etc.)
+    - Legend (if inside the panel)
+    - Spines
+
+    Parameters
+    ----------
+    bboxes : dict
+        All extracted element bboxes.
+    num_axes : int
+        Number of axes in the figure.
+
+    Returns
+    -------
+    dict
+        Mapping from ax_index to panel bbox: {ax_index: {x, y, width, height}}
+    """
+    panel_bboxes = {}
+
+    for ax_idx in range(num_axes):
+        min_x = float("inf")
+        min_y = float("inf")
+        max_x = float("-inf")
+        max_y = float("-inf")
+
+        # Find all elements belonging to this axis
+        for key, bbox in bboxes.items():
+            if key == "_meta":
+                continue
+            if not isinstance(bbox, dict):
+                continue
+
+            # Check if element belongs to this axis
+            elem_ax_index = bbox.get("ax_index")
+            if elem_ax_index is None:
+                # Try to extract ax_index from key (e.g., "ax0_title" -> 0)
+                if key.startswith("ax") and "_" in key:
+                    try:
+                        elem_ax_index = int(key.split("_")[0][2:])
+                    except (ValueError, IndexError):
+                        continue
+                else:
+                    continue
+
+            if elem_ax_index != ax_idx:
+                continue
+
+            # Get bbox coordinates
+            x = bbox.get("x")
+            y = bbox.get("y")
+            width = bbox.get("width")
+            height = bbox.get("height")
+
+            if x is None or y is None or width is None or height is None:
+                continue
+
+            # Update bounds
+            min_x = min(min_x, x)
+            min_y = min(min_y, y)
+            max_x = max(max_x, x + width)
+            max_y = max(max_y, y + height)
+
+        # Only add if we found elements
+        if min_x != float("inf"):
+            panel_bboxes[ax_idx] = {
+                "x": min_x,
+                "y": min_y,
+                "width": max_x - min_x,
+                "height": max_y - min_y,
+            }
+
+    return panel_bboxes
 
 
 __all__ = ["extract_bboxes"]

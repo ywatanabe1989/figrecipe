@@ -91,6 +91,35 @@ kbd {
     background: var(--bg-tertiary);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
+
+/* Debug shortcuts section */
+.debug-shortcuts {
+    border: 1px dashed #f59e0b;
+    border-radius: 6px;
+    padding: 12px;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.debug-shortcuts h4 {
+    color: #f59e0b;
+    border-bottom-color: #f59e0b;
+}
+
+.debug-badge {
+    font-size: 9px;
+    font-weight: 600;
+    background: #f59e0b;
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* Shortcuts button in toolbar */
+.btn-shortcuts {
+    font-size: 16px;
+}
 """
 
 __all__ = ["STYLES_MODALS"]
