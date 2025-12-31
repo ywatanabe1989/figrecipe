@@ -179,6 +179,11 @@ def build_html_template(
                             <div class="shortcut-row"><span class="shortcut-keys"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></span><span class="shortcut-desc">Debug Snapshot</span></div></div>"""
     html = html.replace("DEBUG_SHORTCUTS_PLACEHOLDER", debug_shortcuts_html)
 
+    # Debug meta (server start time) - only shown in debug mode
+    html = html.replace(
+        "DEBUG_META_DISPLAY_PLACEHOLDER", "" if debug_mode else 'style="display:none"'
+    )
+
     return html
 
 

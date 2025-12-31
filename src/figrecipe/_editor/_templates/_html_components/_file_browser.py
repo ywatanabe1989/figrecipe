@@ -28,7 +28,7 @@ HTML_FILE_BROWSER = """
                         <span class="brand-version">vVERSION_PLACEHOLDER by SciTeX™</span>
                     </div>
                 </a>
-                <div class="brand-meta">
+                <div class="brand-meta" DEBUG_META_DISPLAY_PLACEHOLDER>
                     <span class="server-time">Started: SERVER_START_TIME_PLACEHOLDER</span>
                 </div>
             </div>
