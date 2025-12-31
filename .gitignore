@@ -116,3 +116,5 @@ docs/bgm/*.mp3
 examples/*/outputs_*/
 # Claude worktree symlink
 /feature-object-support
+# Claude worktree symlink
+/feature-editor-improvements

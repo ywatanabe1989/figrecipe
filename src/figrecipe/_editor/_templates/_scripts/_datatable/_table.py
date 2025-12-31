@@ -190,11 +190,24 @@ function syncDatatableToElement(element) {
     }
 
     // 4. Switch to matching datatable tab
-    if (typeof datatableTabs !== 'undefined' && callId) {
+    if (typeof datatableTabs !== 'undefined') {
+        // Try multiple matching strategies
+        const elemKey = element.key || '';
+        const elemType = element.type || '';
+
         for (const [tabId, tabState] of Object.entries(datatableTabs)) {
-            if (tabState.callId === callId || tabState.name === callId) {
+            const tabName = (tabState.callId || tabState.name || '').toLowerCase();
+            // Match: exact callId, name match, or element key contains tab name
+            const matches = (callId && (tabState.callId === callId || tabState.name === callId)) ||
+                           (elemKey && elemKey.toLowerCase().includes(tabName)) ||
+                           (elemType && tabName.includes(elemType.toLowerCase()));
+            if (matches) {
                 if (activeTabId !== tabId && typeof selectTab === 'function') {
+                    // Use internal flag to prevent sync loop
+                    window._syncingFromCanvasToData = true;
                     selectTab(tabId);
+                    window._syncingFromCanvasToData = false;
+                    console.log('[Datatable] Canvas->Data: Switched to tab', tabName);
                 }
                 break;
             }

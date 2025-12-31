@@ -69,29 +69,57 @@ function hookDatatableTabSync() {
 function syncCanvasFromDatatableTab(tabId) {
     if (!tabId || typeof datatableTabs === 'undefined') return;
     const tabState = datatableTabs[tabId];
-    if (!tabState || !tabState.callId) return;
+    if (!tabState) return;
 
-    // Find the element on canvas matching this callId
-    const callId = tabState.callId;
+    const callId = tabState.callId || tabState.name;
+    if (!callId) return;
+
+    console.log('[PaneSync] Data->Canvas: Looking for element matching callId:', callId);
 
     // Search currentBboxes for matching element
     if (typeof currentBboxes !== 'undefined' && currentBboxes) {
+        // First pass: exact match on call_id or label
         for (const [key, bbox] of Object.entries(currentBboxes)) {
-            if (key === '_meta') continue;
-            // Match by call_id or key containing the callId
-            if (bbox.call_id === callId || key.includes(callId) || bbox.label === callId) {
-                // Select this element on canvas
+            if (key === '_meta' || !bbox) continue;
+            if (bbox.call_id === callId || bbox.label === callId) {
                 if (typeof selectElement === 'function') {
-                    const element = { key, ...bbox };
-                    selectElement(element);
-                    console.log('[PaneSync] Data->Canvas: Selected', key, 'for callId', callId);
+                    selectElement({ key, ...bbox });
+                    console.log('[PaneSync] Data->Canvas: Selected (exact)', key);
                 }
                 return;
             }
         }
+
+        // Second pass: key contains callId (e.g., "scatter" in "ax1_scatter0")
+        for (const [key, bbox] of Object.entries(currentBboxes)) {
+            if (key === '_meta' || !bbox) continue;
+            // Match pattern: ax{N}_{callId}{N} like ax1_scatter0
+            const pattern = new RegExp(`ax\\d+_${callId}\\d*$`, 'i');
+            if (pattern.test(key)) {
+                if (typeof selectElement === 'function') {
+                    selectElement({ key, ...bbox });
+                    console.log('[PaneSync] Data->Canvas: Selected (pattern)', key);
+                }
+                return;
+            }
+        }
+
+        // Third pass: looser match - key contains callId anywhere
+        for (const [key, bbox] of Object.entries(currentBboxes)) {
+            if (key === '_meta' || !bbox) continue;
+            if (key.toLowerCase().includes(callId.toLowerCase())) {
+                if (typeof selectElement === 'function') {
+                    selectElement({ key, ...bbox });
+                    console.log('[PaneSync] Data->Canvas: Selected (contains)', key);
+                }
+                return;
+            }
+        }
+
+        console.log('[PaneSync] Data->Canvas: No matching element found for', callId);
     }
 
-    // If no direct match, try selecting the panel associated with this tab
+    // Fallback: select the panel associated with this tab
     if (tabState.targetAxis !== null && tabState.targetAxis !== undefined) {
         const axKey = `ax${tabState.targetAxis}_axes`;
         if (typeof currentBboxes !== 'undefined' && currentBboxes[axKey]) {
