@@ -379,8 +379,8 @@ class FigureEditor:
 
         time.sleep(0.5)
 
-        # Create native window
-        window = webview.create_window(
+        # Create native window (variable needed for pywebview lifecycle)
+        _window = webview.create_window(
             title="FigRecipe Editor",
             url=url,
             width=1400,
