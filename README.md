@@ -34,6 +34,14 @@ fig, ax = fr.load('figure.png')  # Reproduce from recipe
 fr.edit(fig)  # Launch GUI editor
 ```
 
+```bash
+# CLI
+figrecipe edit figure.png      # Launch GUI editor
+figrecipe reproduce fig.yaml   # Reproduce figure
+figrecipe extract fig.yaml     # Extract data
+figrecipe info fig.yaml        # Show recipe info
+```
+
 <details>
 <summary><b>Key Features</b></summary>
 
