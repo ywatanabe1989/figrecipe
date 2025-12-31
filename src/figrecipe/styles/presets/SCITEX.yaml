@@ -11,10 +11,10 @@ axes:
   thickness_mm: 0.2
 
 margins:
-  left_mm: 6      # Room for supylabel
+  left_mm: 1      # Minimal - constrained_layout handles labels
   right_mm: 1
-  bottom_mm: 5    # Room for supxlabel
-  top_mm: 5       # Room for suptitle
+  bottom_mm: 1    # Minimal - constrained_layout handles labels
+  top_mm: 1       # Minimal - constrained_layout handles labels
 
 spacing:
   horizontal_mm: 10   # Between columns
@@ -129,7 +129,7 @@ behavior:
   hide_top_spine: true
   hide_right_spine: true
   grid: false
-  constrained_layout: true  # Auto-spacing for suptitle/supxlabel/supylabel
+  constrained_layout: true  # Auto-fits content; spacing controls disabled
   panel_labels: true        # Auto-add A, B, C labels to multi-panel figures
 
 theme:

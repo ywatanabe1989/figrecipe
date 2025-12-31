@@ -16,7 +16,7 @@ import figrecipe as fr
 fr.load_style("SCITEX")
 
 # Get SCITEX color palette from style cache
-from figrecipe.styles._style_loader import _STYLE_CACHE
+from figrecipe.styles._style_loader import _STYLE_CACHE  # noqa: E402
 
 
 def rgb_to_hex(rgb):

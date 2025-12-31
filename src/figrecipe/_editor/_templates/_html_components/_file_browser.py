@@ -7,7 +7,7 @@ HTML_FILE_BROWSER = """
         <div class="file-browser-panel" id="file-browser-panel">
             <div class="file-browser-header">
                 <div class="header-title">
-                    <span>Files</span>
+                    <span>FILES</span>
                 </div>
                 <div class="file-browser-actions">
                     <button id="btn-new-file" class="btn-new-file" title="Create new figure">+</button>
@@ -19,6 +19,18 @@ HTML_FILE_BROWSER = """
                 <ul class="file-tree" id="file-tree">
                     <!-- File tree items populated by JavaScript -->
                 </ul>
+            </div>
+            <div class="file-browser-footer">
+                <a href="https://scitex.ai" target="_blank" class="brand-link" title="FigRecipe - Part of SciTeX">
+                    <img src="data:image/png;base64,SCITEX_ICON_PLACEHOLDER" alt="SciTeX" class="brand-icon">
+                    <div class="brand-info">
+                        <span class="brand-name">FigRecipe</span>
+                        <span class="brand-version">vVERSION_PLACEHOLDER by SciTeX™</span>
+                    </div>
+                </a>
+                <div class="brand-meta">
+                    <span class="server-time">Started: SERVER_START_TIME_PLACEHOLDER</span>
+                </div>
             </div>
             <div class="file-browser-resize" id="file-browser-resize"></div>
         </div>

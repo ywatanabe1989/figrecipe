@@ -101,7 +101,12 @@ from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from .styles._style_applier import check_font, list_available_fonts
 
-__version__ = "0.7.6"
+try:
+    from importlib.metadata import version as _get_version
+
+    __version__ = _get_version("figrecipe")
+except Exception:
+    __version__ = "0.0.0"  # Fallback for development
 __all__ = [
     # Main API
     "subplots",
@@ -440,6 +445,7 @@ def edit(
     open_browser: bool = True,
     hot_reload: bool = False,
     working_dir=None,
+    desktop: bool = False,
 ):
     """Launch interactive GUI editor for figure styling.
 
@@ -460,6 +466,9 @@ def edit(
         Enable hot reload (default: False).
     working_dir : str or Path, optional
         Working directory for file browser (default: directory containing source).
+    desktop : bool, optional
+        Launch as native desktop window using pywebview (default: False).
+        Requires: pip install figrecipe[desktop]
 
     Returns
     -------
@@ -476,4 +485,5 @@ def edit(
         open_browser=open_browser,
         hot_reload=hot_reload,
         working_dir=working_dir,
+        desktop=desktop,
     )

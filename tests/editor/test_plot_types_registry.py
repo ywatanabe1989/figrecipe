@@ -106,7 +106,7 @@ class TestJSHintsWithDocstrings:
         # Check that plot has non-empty doc
         assert "plot:" in js
         # The doc field should contain something about plotting
-        lines = [l for l in js.split("\n") if "plot:" in l]
+        lines = [line for line in js.split("\n") if "plot:" in line]
         assert len(lines) > 0
         assert "doc: ''" not in lines[0]  # Should not be empty
 

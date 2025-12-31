@@ -19,7 +19,7 @@ def get_html_datatable_panel() -> str:
         <div id="datatable-panel" class="datatable-panel">
             <div class="datatable-header">
                 <div class="header-title">
-                    <h3>Data</h3>
+                    <span>DATA</span>
                 </div>
                 <div class="datatable-header-actions">
                     <button id="btn-shortcuts-info" class="btn-small btn-icon" title="Keyboard shortcuts">&#x2328;</button>

@@ -45,6 +45,11 @@ async function loadHitmap() {
             if (overlay) {
                 overlay.src = hitmapImg.src;
             }
+
+            // Sync datatable tab colors now that colorMap is loaded
+            if (typeof updateTabColors === 'function') {
+                updateTabColors();
+            }
         };
         hitmapImg.src = 'data:image/png;base64,' + data.image;
     } catch (error) {
@@ -80,16 +85,15 @@ function drawHitRegions() {
     const overlay = document.getElementById('hitregion-overlay');
     overlay.innerHTML = '';
 
-    const img = document.getElementById('preview-image');
-
-    // Wait for image to load before drawing hit regions
-    if (!img.naturalWidth || !img.naturalHeight) {
-        console.log('Image not loaded yet, deferring hit regions draw');
-        return;
+    // Context menu on overlay (pointer-events: auto captures right-clicks)
+    if (!overlay._ctxInit) {
+        overlay.addEventListener('contextmenu', (e) => { if (typeof showCanvasContextMenu === 'function') showCanvasContextMenu(e); });
+        overlay._ctxInit = true;
     }
 
-    // Set SVG viewBox to match natural image size
-    // CSS transform on zoom-container handles all scaling
+    const img = document.getElementById('preview-image');
+    if (!img.naturalWidth || !img.naturalHeight) { console.log('Image not loaded yet'); return; }
+
     overlay.setAttribute('viewBox', `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
     overlay.style.width = `${img.naturalWidth}px`;
     overlay.style.height = `${img.naturalHeight}px`;
@@ -367,12 +371,19 @@ function findOverlappingElements(screenPos) {
         }
     }
 
-    // Click priority: smaller/precise elements first, large background last (lower = higher priority)
+    // Click priority + distance-based sorting for overlapping elements
     const clickPriority = { 'scatter': 0, 'legend': 1, 'title': 2, 'xlabel': 2, 'ylabel': 2,
         'line': 3, 'bar': 4, 'pie': 4, 'contour': 5, 'quiver': 5, 'image': 5, 'fill': 6,
         'xticks': 7, 'yticks': 7, 'spine': 8, 'axes': 9 };
-    overlapping.sort((a, b) => (clickPriority[a.type] ?? 5) - (clickPriority[b.type] ?? 5));
-
+    // Calculate min distance to click for each element (for better line selection)
+    overlapping.forEach(e => {
+        e._d = Infinity;
+        const bb = currentBboxes[e.key];
+        if (bb?.points?.length) { for (const p of bb.points) { const d = Math.hypot(imgX - p[0], imgY - p[1]); if (d < e._d) e._d = d; } }
+        else { e._d = Math.hypot(imgX - (e.x + e.width/2), imgY - (e.y + e.height/2)); }
+    });
+    // Sort by priority first, then distance (closer wins when same priority)
+    overlapping.sort((a, b) => { const p = (clickPriority[a.type] ?? 5) - (clickPriority[b.type] ?? 5); return p !== 0 ? p : a._d - b._d; });
     return overlapping;
 }
 
@@ -478,7 +489,7 @@ function selectElement(element) {
     autoSwitchTab(element.type);
     updateTabHints();
     syncPropertiesToElement(element);
-    if (callId && typeof syncDatatableToElement === 'function') syncDatatableToElement(callId);
+    if (element && typeof syncDatatableToElement === 'function') syncDatatableToElement(element);
 
     // Always sync panel position for any element that belongs to a panel
     const axIndex = element.ax_index !== undefined ? element.ax_index : getPanelIndexFromKey(element.key);

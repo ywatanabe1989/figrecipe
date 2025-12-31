@@ -127,8 +127,7 @@ class TestUndoRedoUI:
         assert 'id="btn-undo"' in HTML_TEMPLATE
         # Check that disabled attribute is present on undo button
         assert (
-            'btn-undo" class="btn-small" title="Undo (Ctrl+Z)" disabled'
-            in HTML_TEMPLATE
+            'btn-undo" class="btn-icon" title="Undo (Ctrl+Z)" disabled' in HTML_TEMPLATE
         )
 
     def test_shortcuts_modal_has_undo_redo(self):

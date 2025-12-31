@@ -154,7 +154,7 @@ class TestFileBrowserAPI:
 
     def test_api_files_route_registered(self):
         """Test that /api/files route is registered."""
-        from figrecipe._editor._routes_core import register_core_routes
+        from figrecipe._editor._routes_files import register_file_routes
 
         routes = []
         mock_app = MagicMock()
@@ -173,15 +173,16 @@ class TestFileBrowserAPI:
         mock_editor._color_map = {}
         mock_editor.dark_mode = False
         mock_editor._hitmap_generated = False
+        mock_editor.working_dir = MagicMock()
 
-        register_core_routes(mock_app, mock_editor)
+        register_file_routes(mock_app, mock_editor)
 
         files_routes = [r for r in routes if r[0] == "/api/files"]
         assert len(files_routes) == 1, "Expected /api/files route"
 
     def test_api_switch_route_registered(self):
         """Test that /api/switch route is registered."""
-        from figrecipe._editor._routes_core import register_core_routes
+        from figrecipe._editor._routes_files import register_file_routes
 
         routes = []
         mock_app = MagicMock()
@@ -200,8 +201,9 @@ class TestFileBrowserAPI:
         mock_editor._color_map = {}
         mock_editor.dark_mode = False
         mock_editor._hitmap_generated = False
+        mock_editor.working_dir = MagicMock()
 
-        register_core_routes(mock_app, mock_editor)
+        register_file_routes(mock_app, mock_editor)
 
         switch_routes = [r for r in routes if r[0] == "/api/switch"]
         assert len(switch_routes) == 1, "Expected /api/switch route"
@@ -287,7 +289,7 @@ class TestFileBrowserTreeAPI:
 
         from flask import Flask
 
-        from figrecipe._editor._routes_core import register_core_routes
+        from figrecipe._editor._routes_files import register_file_routes
 
         with TemporaryDirectory() as tmpdir:
             # Create test directory structure
@@ -309,7 +311,7 @@ class TestFileBrowserTreeAPI:
             mock_editor._hitmap_generated = False
             mock_editor.fig = MagicMock()
 
-            register_core_routes(app, mock_editor)
+            register_file_routes(app, mock_editor)
 
             with app.test_client() as client:
                 response = client.get("/api/files")

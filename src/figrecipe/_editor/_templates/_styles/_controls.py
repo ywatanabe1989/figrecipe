@@ -49,7 +49,8 @@ STYLES_CONTROLS = """
     justify-content: center;
 }
 
-.controls-panel.collapsed .controls-header h2 {
+.controls-panel.collapsed .controls-header h2,
+.controls-panel.collapsed .controls-header span {
     display: none;
 }
 
@@ -130,6 +131,16 @@ STYLES_CONTROLS = """
     margin: 0;
 }
 
+/* Panel label matching FILES, DATA, CANVAS style */
+.controls-header span {
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
 .controls-actions {
     display: flex;
     gap: 8px;
@@ -139,7 +150,7 @@ STYLES_CONTROLS = """
 .controls-sections {
     flex: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: 8px 12px 8px 8px;  /* Extra right padding for scrollbar clearance */
 }
 
 /* Tab Navigation */
@@ -382,6 +393,35 @@ STYLES_CONTROLS = """
 
 [data-theme="dark"] .panel-indicator.panel-selected {
     background: rgba(59, 130, 246, 0.15);
+}
+
+/* Override Status - subtle indicator */
+.override-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.override-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.override-indicator::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent-color);
+    border-radius: 50%;
+}
+
+.override-timestamp {
+    opacity: 0.6;
 }
 """
 

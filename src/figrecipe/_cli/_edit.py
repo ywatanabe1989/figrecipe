@@ -27,11 +27,17 @@ import click
     is_flag=True,
     help="Don't auto-open browser.",
 )
+@click.option(
+    "--desktop",
+    is_flag=True,
+    help="Launch as native desktop window (requires pywebview).",
+)
 def edit(
     source: Optional[str],
     port: int,
     host: str,
     no_browser: bool,
+    desktop: bool,
 ) -> None:
     """Launch interactive GUI editor.
 
@@ -47,7 +53,10 @@ def edit(
 
     source_path = Path(source) if source else None
 
-    click.echo(f"Starting editor on http://{host}:{port}")
+    if desktop:
+        click.echo("Starting editor in desktop mode...")
+    else:
+        click.echo(f"Starting editor on http://{host}:{port}")
 
     try:
         fr_edit(
@@ -55,6 +64,7 @@ def edit(
             port=port,
             host=host,
             open_browser=not no_browser,
+            desktop=desktop,
         )
     except Exception as e:
         raise click.ClickException(f"Editor failed: {e}") from e
