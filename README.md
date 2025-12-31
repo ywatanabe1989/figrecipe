@@ -134,12 +134,10 @@ ax.set_caption("Panel A description")
 
 ---
 
-**License:** AGPL-3.0 | **Contact:** ywatanabe@scitex.ai
-
 <p align="center">
-  <a href="https://scitex.ai" target="_blank">
-    <img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="60"/>
-  </a>
+  <a href="https://scitex.ai" target="_blank"><img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
+  <br>
+  AGPL-3.0 | ywatanabe@scitex.ai
 </p>
 
 <!-- EOF -->
