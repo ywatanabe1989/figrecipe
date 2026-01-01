@@ -128,6 +128,7 @@ def _save_as_bundle(
     path: Path,
     include_data: bool,
     data_format: str,
+    csv_format: str,
     dpi: int,
     transparent: bool,
     image_format: str,
@@ -153,7 +154,12 @@ def _save_as_bundle(
 
         # Save recipe
         yaml_path = tmpdir / BUNDLE_RECIPE_NAME
-        fig.save_recipe(yaml_path, include_data=include_data, data_format=data_format)
+        fig.save_recipe(
+            yaml_path,
+            include_data=include_data,
+            data_format=data_format,
+            csv_format=csv_format,
+        )
 
         if is_zip:
             # Create ZIP bundle
@@ -180,6 +186,7 @@ def save_figure(
     path,
     include_data: bool = True,
     data_format: str = "csv",
+    csv_format: str = "separate",
     validate: bool = True,
     validate_mse_threshold: float = 100.0,
     validate_error_level: str = "error",
@@ -194,6 +201,13 @@ def save_figure(
     - YAML file (.yaml): Saves recipe + image
     - Directory (path/ or no extension): Saves as bundle directory
     - ZIP file (.zip): Saves as ZIP bundle
+
+    Parameters
+    ----------
+    csv_format : str
+        CSV file structure: 'separate' (default) or 'single'.
+        - 'separate': One CSV file per variable
+        - 'single': Single CSV with all columns (scitex/SigmaPlot-compatible)
     """
     from .._wrappers import RecordingFigure
 
@@ -230,6 +244,7 @@ def save_figure(
             path,
             include_data,
             data_format,
+            csv_format,
             dpi,
             transparent,
             image_format or _get_default_image_format(),
@@ -246,7 +261,10 @@ def save_figure(
 
     # Save the recipe
     saved_yaml = fig.save_recipe(
-        yaml_path, include_data=include_data, data_format=data_format
+        yaml_path,
+        include_data=include_data,
+        data_format=data_format,
+        csv_format=csv_format,
     )
 
     # Validate if requested

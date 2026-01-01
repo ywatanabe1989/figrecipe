@@ -402,6 +402,7 @@ class RecordingFigure:
         path: Union[str, Path],
         include_data: bool = True,
         data_format: Literal["csv", "npz", "inline"] = "csv",
+        csv_format: Literal["single", "separate"] = "separate",
     ) -> Path:
         """Save the recording recipe to YAML.
 
@@ -413,16 +414,13 @@ class RecordingFigure:
             If True, save array data alongside recipe.
         data_format : str
             Format for data files: 'csv' (default), 'npz', or 'inline'.
-
-        Returns
-        -------
-        Path
-            Path to saved recipe file.
+        csv_format : str
+            CSV structure: 'separate' (default) or 'single' (scitex-compatible).
         """
         from .._serializer import save_recipe
 
         return save_recipe(
-            self._recorder.figure_record, path, include_data, data_format
+            self._recorder.figure_record, path, include_data, data_format, csv_format
         )
 
 

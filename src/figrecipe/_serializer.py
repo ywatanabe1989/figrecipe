@@ -9,7 +9,13 @@ import numpy as np
 from ruamel.yaml import YAML
 
 from ._recorder import FigureRecord
-from ._utils._numpy_io import DataFormat, load_array, save_array
+from ._utils._numpy_io import (
+    CsvFormat,
+    DataFormat,
+    load_array,
+    save_array,
+    save_arrays_single_csv,
+)
 
 
 def _convert_numpy_types(obj: Any) -> Any:
@@ -47,6 +53,7 @@ def save_recipe(
     path: Union[str, Path],
     include_data: bool = True,
     data_format: DataFormat = "csv",
+    csv_format: CsvFormat = "separate",
 ) -> Path:
     """Save a figure record to YAML file.
 
@@ -63,6 +70,11 @@ def save_recipe(
         - 'csv': Human-readable CSV files with dtype header
         - 'npz': Compressed numpy binary format
         - 'inline': Store all data directly in YAML (may be large)
+    csv_format : str
+        CSV file structure: 'separate' (default) or 'single'.
+        - 'separate': One CSV file per variable (current behavior)
+        - 'single': Single CSV with all columns (scitex/SigmaPlot-compatible)
+        Only applies when data_format='csv'.
 
     Returns
     -------
@@ -72,7 +84,7 @@ def save_recipe(
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Create data directory for large arrays
+    # Create data directory for large arrays (only for separate format)
     data_dir = path.parent / f"{path.stem}_data"
 
     # Convert record to dict
@@ -80,7 +92,13 @@ def save_recipe(
 
     # Process arrays: save large ones to files, update references
     if include_data and data_format != "inline":
-        data = _process_arrays_for_save(data, data_dir, record.id, data_format)
+        if data_format == "csv" and csv_format == "single":
+            # Save all arrays to single CSV file
+            csv_path = path.with_suffix(".csv")
+            data = _process_arrays_for_single_csv(data, csv_path)
+        else:
+            # Save to separate files (original behavior)
+            data = _process_arrays_for_save(data, data_dir, record.id, data_format)
 
     # Convert numpy types to native Python types
     data = _convert_numpy_types(data)
@@ -139,6 +157,60 @@ def _process_arrays_for_save(
                         filename = f"{call_id}_{arg.get('name', f'arg{i}')}"
                         file_path = save_array(arr, data_dir / filename, data_format)
                         arg["data"] = str(file_path.relative_to(data_dir.parent))
+
+    return data
+
+
+def _process_arrays_for_single_csv(
+    data: Dict[str, Any],
+    csv_path: Path,
+) -> Dict[str, Any]:
+    """Process arrays in data dict, saving all to single CSV file.
+
+    Parameters
+    ----------
+    data : dict
+        Data dictionary to process.
+    csv_path : Path
+        Path for the single CSV file.
+
+    Returns
+    -------
+    dict
+        Processed data with CSV file reference.
+    """
+    # Collect all arrays by trace
+    arrays_by_trace = {}
+
+    for ax_key, ax_data in data.get("axes", {}).items():
+        arrays_by_trace[ax_key] = {}
+
+        for call_list in [ax_data.get("calls", []), ax_data.get("decorations", [])]:
+            for call in call_list:
+                call_id = call.get("id", "unknown")
+
+                # Collect arrays from args
+                trace_arrays = {}
+                for arg in call.get("args", []):
+                    if "_array" in arg:
+                        arr = arg.pop("_array")
+                        var_name = arg.get("name", "data")
+                        trace_arrays[var_name] = arr
+                        # Update reference to point to CSV file
+                        arg["data"] = str(csv_path.name)
+
+                if trace_arrays:
+                    arrays_by_trace[ax_key][call_id] = trace_arrays
+
+    # Save all arrays to single CSV
+    if any(traces for traces in arrays_by_trace.values()):
+        save_arrays_single_csv(arrays_by_trace, csv_path)
+
+        # Add data reference to the recipe
+        data["data"] = {
+            "csv_path": str(csv_path.name),
+            "csv_format": "single",
+        }
 
     return data
 

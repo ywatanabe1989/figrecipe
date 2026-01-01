@@ -88,7 +88,7 @@ from ._recorder import CallRecord, FigureRecord
 from ._reproducer import get_recipe_info
 from ._reproducer import reproduce as _reproduce
 from ._serializer import load_recipe
-from ._utils._numpy_io import DataFormat
+from ._utils._numpy_io import CsvFormat, DataFormat
 from ._utils._units import (
     inch_to_mm,
     mm_to_inch,
@@ -258,6 +258,7 @@ def save(
     path: Union[str, Path],
     include_data: bool = True,
     data_format: DataFormat = "csv",
+    csv_format: CsvFormat = "separate",
     validate: bool = True,
     validate_mse_threshold: float = 100.0,
     validate_error_level: str = "error",
@@ -281,6 +282,11 @@ def save(
         If True, save large arrays to separate files.
     data_format : str
         Format for data files: 'csv', 'npz', or 'inline'.
+    csv_format : str
+        CSV file structure: 'separate' (default) or 'single'.
+        - 'separate': One CSV file per variable
+        - 'single': Single CSV with all columns (scitex/SigmaPlot-compatible)
+        Only applies when data_format='csv'.
     validate : bool
         If True (default), validate reproducibility after saving.
     validate_mse_threshold : float
@@ -306,6 +312,7 @@ def save(
         path=path,
         include_data=include_data,
         data_format=data_format,
+        csv_format=csv_format,
         validate=validate,
         validate_mse_threshold=validate_mse_threshold,
         validate_error_level=validate_error_level,
