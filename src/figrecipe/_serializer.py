@@ -13,6 +13,7 @@ from ._utils._numpy_io import (
     CsvFormat,
     DataFormat,
     load_array,
+    load_single_csv,
     save_array,
     save_arrays_single_csv,
 )
@@ -167,6 +168,10 @@ def _process_arrays_for_single_csv(
 ) -> Dict[str, Any]:
     """Process arrays in data dict, saving all to single CSV file.
 
+    Handles both:
+    - Large arrays with "_array" key (marked for file storage)
+    - Small arrays with inline "data" as list (stored inline)
+
     Parameters
     ----------
     data : dict
@@ -192,11 +197,17 @@ def _process_arrays_for_single_csv(
                 # Collect arrays from args
                 trace_arrays = {}
                 for arg in call.get("args", []):
+                    var_name = arg.get("name", "data")
+
                     if "_array" in arg:
+                        # Large array marked for file storage
                         arr = arg.pop("_array")
-                        var_name = arg.get("name", "data")
                         trace_arrays[var_name] = arr
-                        # Update reference to point to CSV file
+                        arg["data"] = str(csv_path.name)
+                    elif isinstance(arg.get("data"), list):
+                        # Small array stored inline - convert to numpy array
+                        arr = np.array(arg["data"])
+                        trace_arrays[var_name] = arr
                         arg["data"] = str(csv_path.name)
 
                 if trace_arrays:
@@ -258,6 +269,12 @@ def _resolve_data_references(
     dict
         Data with arrays loaded.
     """
+    # Check if this recipe uses single CSV format
+    data_info = data.get("data", {})
+    if isinstance(data_info, dict) and data_info.get("csv_format") == "single":
+        return _resolve_single_csv_references(data, base_dir, data_info)
+
+    # Original behavior: resolve individual file references
     for ax_key, ax_data in data.get("axes", {}).items():
         for call_list in [ax_data.get("calls", []), ax_data.get("decorations", [])]:
             for call in call_list:
@@ -277,6 +294,91 @@ def _resolve_data_references(
                             arg["_loaded_array"] = arr
 
     return data
+
+
+def _resolve_single_csv_references(
+    data: Dict[str, Any],
+    base_dir: Path,
+    data_info: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Resolve references from single CSV format.
+
+    Parameters
+    ----------
+    data : dict
+        Data dictionary with file references.
+    base_dir : Path
+        Base directory for resolving relative paths.
+    data_info : dict
+        Data section from recipe with csv_path and csv_format.
+
+    Returns
+    -------
+    dict
+        Data with arrays loaded from single CSV.
+    """
+    csv_path = base_dir / data_info.get("csv_path", "")
+    if not csv_path.exists():
+        return data
+
+    # Load all arrays from single CSV
+    arrays_by_trace = load_single_csv(csv_path)
+
+    # Map loaded arrays back to args
+    for ax_key, ax_data in data.get("axes", {}).items():
+        trace_data = arrays_by_trace.get(ax_key, {})
+
+        for call_list in [ax_data.get("calls", []), ax_data.get("decorations", [])]:
+            for call in call_list:
+                call_id = call.get("id", "unknown")
+
+                # Sanitize call_id to match CSV column naming
+                sanitized_id = _sanitize_trace_id_for_lookup(call_id)
+
+                # Find matching trace data
+                trace_arrays = trace_data.get(sanitized_id, {})
+
+                for arg in call.get("args", []):
+                    var_name = arg.get("name", "").lower()
+
+                    if var_name in trace_arrays:
+                        arr = trace_arrays[var_name]
+                        arg["data"] = arr.tolist()
+                        arg["_loaded_array"] = arr
+
+    return data
+
+
+def _sanitize_trace_id_for_lookup(trace_id: str) -> str:
+    """Sanitize trace ID to match the format used in CSV column names.
+
+    This mirrors the sanitization in _numpy_io._sanitize_trace_id().
+
+    Parameters
+    ----------
+    trace_id : str
+        Raw trace identifier.
+
+    Returns
+    -------
+    str
+        Sanitized trace ID for lookup.
+    """
+    if not trace_id:
+        return "unnamed"
+
+    sanitized = str(trace_id).lower()
+    result = []
+    for char in sanitized:
+        if char.isalnum():
+            result.append(char)
+        elif char in (" ", "_", "(", ")", "[", "]", "{", "}", "/", "\\", ".", "-"):
+            result.append("-")
+
+    sanitized = "".join(result)
+    while "--" in sanitized:
+        sanitized = sanitized.replace("--", "-")
+    return sanitized.strip("-") or "unnamed"
 
 
 def recipe_to_dict(path: Union[str, Path]) -> Dict[str, Any]:

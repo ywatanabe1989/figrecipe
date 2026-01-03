@@ -242,9 +242,14 @@ def _get_csv_column_name(
     ax_col: int = 0,
     trace_id: str = None,
 ) -> str:
-    """Get CSV column name in scitex-compatible format.
+    """Get CSV column name in scitex-compatible short format.
 
-    Format: ax-row-{row}-col-{col}_trace-id-{id}_variable-{var}
+    Format: r{row}c{col}_{trace_id}_{variable}
+
+    This shorter format is optimized for:
+    - Excel/SigmaPlot column header display
+    - Programmatic parsing with regex: r(\\d+)c(\\d+)_(.+)_([a-z]+)
+    - Maintaining all necessary information
 
     Parameters
     ----------
@@ -260,12 +265,10 @@ def _get_csv_column_name(
     Returns
     -------
     str
-        Full column name.
+        Full column name (e.g., "r0c0_sine_wave_x").
     """
     safe_id = _sanitize_trace_id(trace_id) if trace_id else "0"
-    return (
-        f"ax-row-{ax_row}-col-{ax_col}_trace-id-{safe_id}_variable-{variable.lower()}"
-    )
+    return f"r{ax_row}c{ax_col}_{safe_id}_{variable.lower()}"
 
 
 def save_arrays_single_csv(
@@ -286,8 +289,19 @@ def save_arrays_single_csv(
     -------
     Path
         Path to saved file.
+
+    Raises
+    ------
+    ImportError
+        If pandas is not installed (required for single CSV format).
     """
-    import pandas as pd
+    try:
+        import pandas as pd
+    except ImportError as e:
+        raise ImportError(
+            "pandas is required for csv_format='single'. "
+            "Install with: pip install pandas"
+        ) from e
 
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -332,6 +346,10 @@ def save_arrays_single_csv(
 def load_single_csv(path: Union[str, Path]) -> dict:
     """Load arrays from single wide CSV file.
 
+    Supports both formats:
+    - Short format: r{row}c{col}_{trace_id}_{variable}
+    - Legacy format: ax-row-{row}-col-{col}_trace-id-{id}_variable-{var}
+
     Parameters
     ----------
     path : str or Path
@@ -341,45 +359,61 @@ def load_single_csv(path: Union[str, Path]) -> dict:
     -------
     dict
         Nested dict: {ax_key: {trace_id: {"x": arr, "y": arr, ...}, ...}, ...}
+
+    Raises
+    ------
+    ImportError
+        If pandas is not installed (required for single CSV format).
     """
-    import pandas as pd
+    import re
+
+    try:
+        import pandas as pd
+    except ImportError as e:
+        raise ImportError(
+            "pandas is required for loading single CSV format. "
+            "Install with: pip install pandas"
+        ) from e
 
     path = Path(path)
     df = pd.read_csv(path)
 
     result = {}
+
+    # Regex patterns for both formats
+    short_pattern = re.compile(r"^r(\d+)c(\d+)_(.+)_([a-z]+)$")
+    legacy_pattern = re.compile(r"^ax-row-(\d+)-col-(\d+)_trace-id-(.+)_variable-(.+)$")
+
     for col_name in df.columns:
-        # Parse column name: ax-row-{row}-col-{col}_trace-id-{id}_variable-{var}
-        if not col_name.startswith("ax-row-"):
+        ax_row = ax_col = None
+        trace_id = variable = None
+
+        # Try short format first
+        match = short_pattern.match(col_name)
+        if match:
+            ax_row, ax_col = int(match.group(1)), int(match.group(2))
+            trace_id = match.group(3)
+            variable = match.group(4)
+        else:
+            # Try legacy format
+            match = legacy_pattern.match(col_name)
+            if match:
+                ax_row, ax_col = int(match.group(1)), int(match.group(2))
+                trace_id = match.group(3)
+                variable = match.group(4)
+
+        if ax_row is None:
             continue
 
-        try:
-            parts = col_name.split("_")
-            # parts[0] = "ax-row-0-col-0", parts[1] = "trace-id-xxx", parts[2] = "variable-yyy"
-            ax_part = parts[0]  # "ax-row-0-col-0"
-            trace_part = parts[1]  # "trace-id-xxx"
-            var_part = parts[2]  # "variable-yyy"
+        ax_key = f"ax_{ax_row}_{ax_col}"
 
-            # Extract values
-            ax_rest = ax_part[7:]  # Remove "ax-row-"
-            row_str, col_str = ax_rest.split("-col-")
-            ax_row, ax_col = int(row_str), int(col_str)
+        if ax_key not in result:
+            result[ax_key] = {}
+        if trace_id not in result[ax_key]:
+            result[ax_key][trace_id] = {}
 
-            trace_id = trace_part[9:]  # Remove "trace-id-"
-            variable = var_part[9:]  # Remove "variable-"
-
-            ax_key = f"ax_{ax_row}_{ax_col}"
-
-            if ax_key not in result:
-                result[ax_key] = {}
-            if trace_id not in result[ax_key]:
-                result[ax_key][trace_id] = {}
-
-            # Get array, dropping NaN values
-            arr = df[col_name].dropna().values
-            result[ax_key][trace_id][variable] = arr
-
-        except (ValueError, IndexError):
-            continue
+        # Get array, dropping NaN values
+        arr = df[col_name].dropna().values
+        result[ax_key][trace_id][variable] = arr
 
     return result
