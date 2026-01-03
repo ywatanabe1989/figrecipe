@@ -12,6 +12,7 @@ from ._recorder import FigureRecord
 from ._utils._numpy_io import (
     CsvFormat,
     DataFormat,
+    _sanitize_trace_id,
     load_array,
     load_single_csv,
     save_array,
@@ -333,7 +334,7 @@ def _resolve_single_csv_references(
                 call_id = call.get("id", "unknown")
 
                 # Sanitize call_id to match CSV column naming
-                sanitized_id = _sanitize_trace_id_for_lookup(call_id)
+                sanitized_id = _sanitize_trace_id(call_id)
 
                 # Find matching trace data
                 trace_arrays = trace_data.get(sanitized_id, {})
@@ -347,38 +348,6 @@ def _resolve_single_csv_references(
                         arg["_loaded_array"] = arr
 
     return data
-
-
-def _sanitize_trace_id_for_lookup(trace_id: str) -> str:
-    """Sanitize trace ID to match the format used in CSV column names.
-
-    This mirrors the sanitization in _numpy_io._sanitize_trace_id().
-
-    Parameters
-    ----------
-    trace_id : str
-        Raw trace identifier.
-
-    Returns
-    -------
-    str
-        Sanitized trace ID for lookup.
-    """
-    if not trace_id:
-        return "unnamed"
-
-    sanitized = str(trace_id).lower()
-    result = []
-    for char in sanitized:
-        if char.isalnum():
-            result.append(char)
-        elif char in (" ", "_", "(", ")", "[", "]", "{", "}", "/", "\\", ".", "-"):
-            result.append("-")
-
-    sanitized = "".join(result)
-    while "--" in sanitized:
-        sanitized = sanitized.replace("--", "-")
-    return sanitized.strip("-") or "unnamed"
 
 
 def recipe_to_dict(path: Union[str, Path]) -> Dict[str, Any]:
