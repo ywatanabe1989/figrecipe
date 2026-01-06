@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-24 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/demo_plot_all.py
+# Timestamp: "2026-01-04 00:10:00 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/examples/plot_all.py
+
 
 """Demo script that generates all supported plot types.
 
@@ -38,7 +39,7 @@ def close_fig(fig):
         plt.close(fig)
 
 
-OUTPUT_DIR = Path(__file__).parent.parent / "outputs" / "examples"
+OUTPUT_DIR = Path(__file__.replace(".py", "_out"))
 
 
 def create_category_figure(category_name, plot_names, plt, rng):

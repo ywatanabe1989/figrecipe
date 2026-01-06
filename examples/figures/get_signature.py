@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-23 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/get_signature.py
+# Timestamp: "2026-01-04 00:10:46 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/examples/_get_signature.py
+
 
 """Example: Extract matplotlib function signatures with deep inspection.
 
@@ -23,7 +24,7 @@ from figrecipe._signatures import (
 
 def main():
     """Generate SIGNATURES.yaml with all matplotlib plotting function signatures."""
-    output_dir = Path(__file__).parent.parent / "outputs" / "examples"
+    output_dir = Path(__file__.replace(".py", "_out"))
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / "SIGNATURES.yaml"
 

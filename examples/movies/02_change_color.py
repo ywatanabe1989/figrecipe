@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-27 20:53:04 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/demo_movie/02_change_color.py
+# File: /home/ywatanabe/proj/figrecipe/examples/movie/02_change_color.py
 
 
 """Demo: Change Element Color
@@ -100,13 +100,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Run in headless mode",
     )
-    parser.add_argument(
-        "--no-headless",
-        dest="headless",
-        action="store_false",
-        help="Run with visible browser",
-    )
-    parser.set_defaults(headless=True)
+    parser.set_defaults(headless=False)
     args = parser.parse_args()
 
     demo = ChangeColorDemo(url=args.url, headless=args.headless)

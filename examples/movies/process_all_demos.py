@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-27 01:50:03 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/demo_movie/process_all_demos.py
+# File: /home/ywatanabe/proj/figrecipe/examples/movie/process_all_demos.py
 
 """Process all demo videos with TTS, BGM, and timing from recorded metadata.
 
@@ -30,9 +30,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from figrecipe._dev.browser._audio import generate_tts_segments, mix_narration_with_bgm
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-OUTPUT_DIR = PROJECT_ROOT / "examples/demo_movie/outputs"
+OUTPUT_DIR = PROJECT_ROOT / "examples/movie/outputs"
 BGM_PATH = PROJECT_ROOT / "docs/bgm/smile.mp3"
-TTS_CACHE = PROJECT_ROOT / "examples/demo_movie/tts_cache"
+TTS_CACHE = PROJECT_ROOT / "examples/movie/tts_cache"
 
 
 def find_demo_files(demo_id: str) -> tuple:

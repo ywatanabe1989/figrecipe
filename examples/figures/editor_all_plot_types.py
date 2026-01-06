@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-12-23 15:10:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/demo_editor.py
+# File: /home/ywatanabe/proj/figrecipe/examples/editor.py
 
 
 """Demo script for GUI editor with ALL supported plot types."""

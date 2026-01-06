@@ -69,8 +69,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Record datatable demo")
     parser.add_argument("--url", default="http://127.0.0.1:5050", help="Editor URL")
     parser.add_argument("--headless", action="store_true", help="Run headless")
-    parser.add_argument("--no-headless", dest="headless", action="store_false")
-    parser.set_defaults(headless=True)
+    parser.set_defaults(headless=False)
     args = parser.parse_args()
 
     demo = DatatableDemo(url=args.url, headless=args.headless)
