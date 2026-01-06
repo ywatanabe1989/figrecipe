@@ -11,6 +11,9 @@ Provides a framework for recording browser demos with:
 """
 
 import asyncio
+import socket
+import subprocess
+import time
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
@@ -84,6 +87,7 @@ class DemoRecorder(ABC):
             self.output_dir = Path(output_dir)
         self.headless = headless
         self._page = None
+        self._server_process = None
 
     @abstractmethod
     async def run(self, page) -> None:
@@ -97,6 +101,45 @@ class DemoRecorder(ABC):
             Playwright page object.
         """
         pass
+
+    def _is_port_open(self, host: str, port: int) -> bool:
+        """Check if port is open."""
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex((host, port))
+        sock.close()
+        return result == 0
+
+    def _start_server(self) -> None:
+        """Start figrecipe edit server if not running."""
+        from urllib.parse import urlparse
+
+        parsed = urlparse(self.url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 5050
+
+        if self._is_port_open(host, port):
+            return
+
+        self._server_process = subprocess.Popen(
+            ["figrecipe", "edit", "--no-browser", "--port", str(port), "--host", host],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+        for _ in range(30):
+            time.sleep(0.5)
+            if self._is_port_open(host, port):
+                return
+
+        raise RuntimeError(f"Server failed to start on {host}:{port}")
+
+    def _stop_server(self) -> None:
+        """Stop server if started by this instance."""
+        if self._server_process:
+            self._server_process.terminate()
+            self._server_process.wait(timeout=5)
+            self._server_process = None
 
     async def caption(self, text: str, duration: float = 2.0) -> None:
         """Show caption overlay.
@@ -288,6 +331,8 @@ class DemoRecorder(ABC):
         Path
             Path to output MP4 file.
         """
+        self._start_server()
+
         try:
             from playwright.async_api import async_playwright
         except ImportError:
@@ -438,7 +483,10 @@ class DemoRecorder(ABC):
         tuple
             (mp4_path, gif_path)
         """
-        return asyncio.run(self.record_and_convert())
+        try:
+            return asyncio.run(self.record_and_convert())
+        finally:
+            self._stop_server()
 
 
 __all__ = ["DemoRecorder"]

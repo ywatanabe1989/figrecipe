@@ -26,8 +26,6 @@ def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
     elif hasattr(fig, "fig") and hasattr(fig.fig, "_record"):
         record = fig.fig._record
     else:
-        if debug:
-            print("[detect_plot_types] No record found")
         return {}
 
     # Get the actual matplotlib figure and its axes
@@ -59,16 +57,6 @@ def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
         # Map ax_keys to current axes positions using position matching
         # This handles the case where panels have been dragged to new positions
         ax_keys_sorted = sorted(record.axes.keys())
-
-        # Debug: Check which ax_keys have position_override
-        overrides = {
-            k: getattr(record.axes[k], "position_override", None)
-            for k in ax_keys_sorted
-            if hasattr(record.axes[k], "position_override")
-            and record.axes[k].position_override
-        }
-        if overrides:
-            print(f"[detect_plot_types] Position overrides: {overrides}")
 
         for ax_idx, ax in enumerate(axes_list):
             # Try to find the matching ax_record by comparing positions
