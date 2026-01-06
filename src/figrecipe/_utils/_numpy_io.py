@@ -9,10 +9,14 @@ from typing import Literal, Union
 import numpy as np
 
 # Threshold for inline vs file storage (in elements)
-INLINE_THRESHOLD = 100
+# Set to 0 for consistent CSV storage (all data in CSV, YAML contains only structure)
+INLINE_THRESHOLD = 0
 
 # Data format type
 DataFormat = Literal["csv", "npz", "inline"]
+
+# CSV format type: single file with all columns vs separate files per variable
+CsvFormat = Literal["single", "separate"]
 
 
 def should_store_inline(data: np.ndarray) -> bool:
@@ -201,3 +205,216 @@ def from_serializable(data, dtype=None) -> np.ndarray:
         Numpy array.
     """
     return np.array(data, dtype=dtype)
+
+
+def _sanitize_trace_id(trace_id: str) -> str:
+    """Sanitize trace ID for use in CSV column names.
+
+    Parameters
+    ----------
+    trace_id : str
+        Raw trace identifier.
+
+    Returns
+    -------
+    str
+        Sanitized trace ID safe for CSV column names.
+    """
+    if not trace_id:
+        return "unnamed"
+
+    sanitized = str(trace_id).lower()
+    result = []
+    for char in sanitized:
+        if char.isalnum():
+            result.append(char)
+        elif char in (" ", "_", "(", ")", "[", "]", "{", "}", "/", "\\", ".", "-"):
+            result.append("-")
+
+    sanitized = "".join(result)
+    while "--" in sanitized:
+        sanitized = sanitized.replace("--", "-")
+    return sanitized.strip("-") or "unnamed"
+
+
+def _get_csv_column_name(
+    variable: str,
+    ax_row: int = 0,
+    ax_col: int = 0,
+    trace_id: str = None,
+) -> str:
+    """Get CSV column name in scitex-compatible short format.
+
+    Format: r{row}c{col}_{trace_id}_{variable}
+
+    This shorter format is optimized for:
+    - Excel/SigmaPlot column header display
+    - Programmatic parsing with regex: r(\\d+)c(\\d+)_(.+)_([a-z]+)
+    - Maintaining all necessary information
+
+    Parameters
+    ----------
+    variable : str
+        Variable name (e.g., "x", "y").
+    ax_row : int
+        Row position of axes in grid.
+    ax_col : int
+        Column position of axes in grid.
+    trace_id : str, optional
+        Trace identifier.
+
+    Returns
+    -------
+    str
+        Full column name (e.g., "r0c0_sine_wave_x").
+    """
+    safe_id = _sanitize_trace_id(trace_id) if trace_id else "0"
+    return f"r{ax_row}c{ax_col}_{safe_id}_{variable.lower()}"
+
+
+def save_arrays_single_csv(
+    arrays_by_trace: dict,
+    path: Union[str, Path],
+) -> Path:
+    """Save all arrays to single wide CSV file (scitex/SigmaPlot-compatible).
+
+    Parameters
+    ----------
+    arrays_by_trace : dict
+        Nested dict: {ax_key: {trace_id: {"x": arr, "y": arr, ...}, ...}, ...}
+        Where ax_key is like "ax_0_0" (row_col format).
+    path : str or Path
+        Output CSV file path.
+
+    Returns
+    -------
+    Path
+        Path to saved file.
+
+    Raises
+    ------
+    ImportError
+        If pandas is not installed (required for single CSV format).
+    """
+    try:
+        import pandas as pd
+    except ImportError as e:
+        raise ImportError(
+            "pandas is required for csv_format='single'. "
+            "Install with: pip install pandas"
+        ) from e
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Collect all columns
+    columns = {}
+    max_len = 0
+
+    for ax_key, traces in arrays_by_trace.items():
+        # Parse ax_key like "ax_0_0" to get row, col
+        parts = ax_key.split("_")
+        ax_row = int(parts[1]) if len(parts) > 1 else 0
+        ax_col = int(parts[2]) if len(parts) > 2 else 0
+
+        for trace_id, variables in traces.items():
+            for var_name, arr in variables.items():
+                if arr is None:
+                    continue
+                arr = np.asarray(arr).flatten()
+                col_name = _get_csv_column_name(var_name, ax_row, ax_col, trace_id)
+                columns[col_name] = arr
+                max_len = max(max_len, len(arr))
+
+    if not columns:
+        # No data to save
+        return path
+
+    # Pad shorter arrays with NaN
+    for col_name, arr in columns.items():
+        if len(arr) < max_len:
+            padded = np.full(max_len, np.nan)
+            padded[: len(arr)] = arr
+            columns[col_name] = padded
+
+    # Create DataFrame and save
+    df = pd.DataFrame(columns)
+    df.to_csv(path, index=False)
+
+    return path
+
+
+def load_single_csv(path: Union[str, Path]) -> dict:
+    """Load arrays from single wide CSV file.
+
+    Supports both formats:
+    - Short format: r{row}c{col}_{trace_id}_{variable}
+    - Legacy format: ax-row-{row}-col-{col}_trace-id-{id}_variable-{var}
+
+    Parameters
+    ----------
+    path : str or Path
+        Path to CSV file.
+
+    Returns
+    -------
+    dict
+        Nested dict: {ax_key: {trace_id: {"x": arr, "y": arr, ...}, ...}, ...}
+
+    Raises
+    ------
+    ImportError
+        If pandas is not installed (required for single CSV format).
+    """
+    import re
+
+    try:
+        import pandas as pd
+    except ImportError as e:
+        raise ImportError(
+            "pandas is required for loading single CSV format. "
+            "Install with: pip install pandas"
+        ) from e
+
+    path = Path(path)
+    df = pd.read_csv(path)
+
+    result = {}
+
+    # Regex patterns for both formats
+    short_pattern = re.compile(r"^r(\d+)c(\d+)_(.+)_([a-z]+)$")
+    legacy_pattern = re.compile(r"^ax-row-(\d+)-col-(\d+)_trace-id-(.+)_variable-(.+)$")
+
+    for col_name in df.columns:
+        ax_row = ax_col = None
+        trace_id = variable = None
+
+        # Try short format first
+        match = short_pattern.match(col_name)
+        if match:
+            ax_row, ax_col = int(match.group(1)), int(match.group(2))
+            trace_id = match.group(3)
+            variable = match.group(4)
+        else:
+            # Try legacy format
+            match = legacy_pattern.match(col_name)
+            if match:
+                ax_row, ax_col = int(match.group(1)), int(match.group(2))
+                trace_id = match.group(3)
+                variable = match.group(4)
+
+        if ax_row is None:
+            continue
+
+        ax_key = f"ax_{ax_row}_{ax_col}"
+
+        if ax_key not in result:
+            result[ax_key] = {}
+        if trace_id not in result[ax_key]:
+            result[ax_key][trace_id] = {}
+
+        # Get array, dropping NaN values
+        arr = df[col_name].dropna().values
+        result[ax_key][trace_id][variable] = arr
+
+    return result
