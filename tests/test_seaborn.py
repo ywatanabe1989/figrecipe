@@ -169,12 +169,12 @@ class TestSeabornDataSerialization:
             csv_files = list(data_dir.glob("*.csv"))
             assert len(csv_files) > 0
 
-    def test_small_data_inline(self):
-        """Test that small data is stored inline in YAML."""
+    def test_small_data_creates_csv(self):
+        """Test that small data is stored in CSV files (consistent CSV storage)."""
         import figrecipe as ps
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Small data (< 100 elements)
+            # Small data - now always goes to CSV regardless of size
             df = pd.DataFrame(
                 {
                     "x": [1, 2, 3, 4, 5],
@@ -189,6 +189,8 @@ class TestSeabornDataSerialization:
             ps.save(fig, recipe_path, validate=False)
             plt.close(fig.fig)
 
-            # No data directory should be created for small data
+            # Data directory should be created (INLINE_THRESHOLD=0)
             data_dir = Path(tmpdir) / "small_data"
-            assert not data_dir.exists()
+            assert data_dir.exists()
+            csv_files = list(data_dir.glob("*.csv"))
+            assert len(csv_files) > 0

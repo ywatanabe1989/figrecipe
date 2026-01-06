@@ -9,7 +9,8 @@ from typing import Literal, Union
 import numpy as np
 
 # Threshold for inline vs file storage (in elements)
-INLINE_THRESHOLD = 100
+# Set to 0 for consistent CSV storage (all data in CSV, YAML contains only structure)
+INLINE_THRESHOLD = 0
 
 # Data format type
 DataFormat = Literal["csv", "npz", "inline"]

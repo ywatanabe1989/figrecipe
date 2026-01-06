@@ -127,8 +127,12 @@ def get_signature(method_name: str, expand_kwargs: bool = True) -> Dict[str, Any
     if has_var_positional:
         docstring_args = extract_args_from_docstring(method.__doc__, method_name)
         if docstring_args:
+            # Get existing arg names to avoid duplicates
+            existing_names = {arg["name"] for arg in args}
             for i, arg in enumerate(docstring_args):
-                args.insert(i, arg)
+                if arg["name"] not in existing_names:
+                    args.insert(i, arg)
+                    existing_names.add(arg["name"])
         else:
             args.insert(0, {"name": "*args", "type": "*args"})
 
