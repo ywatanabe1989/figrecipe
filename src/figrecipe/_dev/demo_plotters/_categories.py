@@ -43,7 +43,7 @@ _CATEGORIES_RAW: Dict[str, List[str]] = {
         "xcorr",
     ],
     "vector_flow": ["quiver", "barbs", "streamplot"],
-    "special": ["pie", "stem", "eventplot", "loglog", "semilogx", "semilogy"],
+    "special": ["pie", "stem", "eventplot", "loglog", "semilogx", "semilogy", "graph"],
 }
 
 # Display names for categories (for UI/documentation)
