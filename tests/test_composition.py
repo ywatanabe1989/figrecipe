@@ -11,6 +11,8 @@ import pytest
 matplotlib.use("Agg")
 
 import figrecipe as fr
+from figrecipe import utils
+from figrecipe._wrappers import RecordingFigure
 
 
 class TestCompose:
@@ -60,7 +62,7 @@ class TestCompose:
             sources={(0, 0): recipe1, (0, 1): recipe2},
         )
 
-        assert isinstance(fig, fr.RecordingFigure)
+        assert isinstance(fig, RecordingFigure)
 
     def test_compose_with_specific_axes(self, tmp_path):
         """Compose selecting specific axes from multi-panel source."""
@@ -95,7 +97,7 @@ class TestCompose:
         fr.save(fig_src, recipe, validate=False, verbose=False)
 
         # Load as FigureRecord
-        record = fr.load_record(recipe)
+        record = utils.load_recipe(recipe)
 
         # Compose using record directly
         fig, axes = fr.compose(
@@ -153,7 +155,7 @@ class TestImportAxes:
         axes[0].plot([1, 2], [1, 2], id="existing")
 
         # Import into second panel
-        result = fr.import_axes(fig, (0, 1), recipe)
+        result = utils.import_axes(fig, (0, 1), recipe)
 
         assert result is not None
         assert "ax_0_1" in fig.record.axes
@@ -171,7 +173,7 @@ class TestImportAxes:
         ax.plot([1, 2], [1, 2], id="old_line")
 
         # Import replaces content
-        fr.import_axes(fig, (0, 0), recipe)
+        utils.import_axes(fig, (0, 0), recipe)
 
         # Check that the imported calls are present
         calls = fig.record.axes["ax_0_0"].calls
@@ -191,7 +193,7 @@ class TestImportAxes:
         fig, ax = fr.subplots()
 
         # Import the second panel (ax_0_1) from source
-        fr.import_axes(fig, (0, 0), recipe, source_axes="ax_0_1")
+        utils.import_axes(fig, (0, 0), recipe, source_axes="ax_0_1")
 
         calls = fig.record.axes["ax_0_0"].calls
         call_ids = [c.id for c in calls]
@@ -206,11 +208,11 @@ class TestImportAxes:
         fr.save(fig_src, recipe, validate=False, verbose=False)
 
         # Load as record
-        record = fr.load_record(recipe)
+        record = utils.load_recipe(recipe)
 
         # Create target and import
         fig, ax = fr.subplots()
-        fr.import_axes(fig, (0, 0), record)
+        utils.import_axes(fig, (0, 0), record)
 
         calls = fig.record.axes["ax_0_0"].calls
         call_ids = [c.id for c in calls]
@@ -221,7 +223,7 @@ class TestImportAxes:
         fig, ax = fr.subplots()
 
         with pytest.raises(TypeError):
-            fr.import_axes(fig, (0, 0), 12345)  # Invalid source
+            utils.import_axes(fig, (0, 0), 12345)  # Invalid source
 
     def test_import_missing_axes_raises(self, tmp_path):
         """Import with missing source axes raises ValueError."""
@@ -233,7 +235,7 @@ class TestImportAxes:
         fig, ax = fr.subplots()
 
         with pytest.raises(ValueError, match="not found"):
-            fr.import_axes(fig, (0, 0), recipe, source_axes="ax_99_99")
+            utils.import_axes(fig, (0, 0), recipe, source_axes="ax_99_99")
 
 
 class TestComposeAndSave:
@@ -279,7 +281,7 @@ class TestPanelVisibility:
         axes[0].plot([1, 2], [1, 2], id="left")
         axes[1].bar([1, 2], [2, 1], id="right")
 
-        fr.hide_panel(fig, (0, 1))
+        utils.hide_panel(fig, (0, 1))
 
         # Check visibility flag in record
         assert not fig.record.axes["ax_0_1"].visible
@@ -296,10 +298,10 @@ class TestPanelVisibility:
         axes[0].plot([1, 2], [1, 2])
         axes[1].plot([1, 2], [2, 1])  # Add content to create axes record
 
-        fr.hide_panel(fig, (0, 1))
+        utils.hide_panel(fig, (0, 1))
         assert not fig.record.axes["ax_0_1"].visible
 
-        fr.show_panel(fig, (0, 1))
+        utils.show_panel(fig, (0, 1))
         assert fig.record.axes["ax_0_1"].visible
         assert axes[1]._ax.get_visible()
 
@@ -309,19 +311,19 @@ class TestPanelVisibility:
         ax.plot([1, 2], [1, 2])
 
         # First toggle: visible -> hidden
-        result1 = fr.toggle_panel(fig, (0, 0))
+        result1 = utils.toggle_panel(fig, (0, 0))
         assert result1 is False  # Now hidden
         assert not fig.record.axes["ax_0_0"].visible
 
         # Second toggle: hidden -> visible
-        result2 = fr.toggle_panel(fig, (0, 0))
+        result2 = utils.toggle_panel(fig, (0, 0))
         assert result2 is True  # Now visible
         assert fig.record.axes["ax_0_0"].visible
 
     def test_toggle_nonexistent_panel(self):
         """Toggle on nonexistent panel returns False."""
         fig, ax = fr.subplots()
-        result = fr.toggle_panel(fig, (99, 99))
+        result = utils.toggle_panel(fig, (99, 99))
         assert result is False
 
     def test_visibility_serialization(self, tmp_path):
@@ -330,7 +332,7 @@ class TestPanelVisibility:
         axes[0].plot([1, 2], [1, 2], id="visible_plot")
         axes[1].bar([1, 2], [2, 1], id="hidden_bar")
 
-        fr.hide_panel(fig, (0, 1))
+        utils.hide_panel(fig, (0, 1))
 
         recipe = tmp_path / "hidden.yaml"
         fr.save(fig, recipe, validate=False, verbose=False)
@@ -346,7 +348,7 @@ class TestPanelVisibility:
         axes[0].plot([1, 2], [1, 2])
         axes[1].plot([1, 2], [3, 4])
 
-        fr.hide_panel(fig, (0, 1))
+        utils.hide_panel(fig, (0, 1))
 
         recipe = tmp_path / "hidden.yaml"
         fr.save(fig, recipe, validate=False, verbose=False)
@@ -365,8 +367,8 @@ class TestPanelVisibility:
             for j in range(2):
                 axes[i, j].plot([1, 2], [i + j, i + j + 1])
 
-        fr.hide_panel(fig, (0, 1))
-        fr.hide_panel(fig, (1, 0))
+        utils.hide_panel(fig, (0, 1))
+        utils.hide_panel(fig, (1, 0))
 
         assert fig.record.axes["ax_0_0"].visible is True
         assert fig.record.axes["ax_0_1"].visible is False
@@ -397,7 +399,7 @@ class TestVisibilityWithComposition:
         )
 
         # Hide one panel
-        fr.hide_panel(fig, (0, 1))
+        utils.hide_panel(fig, (0, 1))
 
         assert fig.record.axes["ax_0_0"].visible is True
         assert fig.record.axes["ax_0_1"].visible is False
@@ -417,9 +419,9 @@ class TestVisibilityWithComposition:
         )
 
         # Hide empty panels
-        fr.hide_panel(fig, (0, 1))
-        fr.hide_panel(fig, (1, 0))
-        fr.hide_panel(fig, (1, 1))
+        utils.hide_panel(fig, (0, 1))
+        utils.hide_panel(fig, (1, 0))
+        utils.hide_panel(fig, (1, 1))
 
         # Save
         output = tmp_path / "composed.yaml"

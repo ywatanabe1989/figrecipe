@@ -8,74 +8,63 @@ reproducing figures from saved recipes.
 
 Usage
 -----
-Option 1: Import as module (recommended for explicit usage)
-
->>> import figrecipe as ps
->>> fig, ax = ps.subplots()
+>>> import figrecipe as fr
+>>> fig, ax = fr.subplots()
 >>> ax.plot(x, y, id='my_data')
->>> ps.save(fig, 'recipe.yaml')
-
-Option 2: Drop-in replacement for matplotlib.pyplot
-
->>> import figrecipe.pyplot as plt  # Instead of: import matplotlib.pyplot as plt
->>> fig, ax = plt.subplots()  # Automatically recording-enabled
->>> ax.plot(x, y, id='my_data')
->>> fig.save_recipe('recipe.yaml')
+>>> fr.save(fig, 'recipe.yaml')
 
 Examples
 --------
 Recording a figure:
 
->>> import figrecipe as ps
+>>> import figrecipe as fr
 >>> import numpy as np
 >>>
 >>> x = np.linspace(0, 10, 100)
 >>> y = np.sin(x)
 >>>
->>> fig, ax = ps.subplots()
+>>> fig, ax = fr.subplots()
 >>> ax.plot(x, y, color='red', linewidth=2, id='sine_wave')
 >>> ax.set_xlabel('Time')
 >>> ax.set_ylabel('Amplitude')
->>> ps.save(fig, 'my_figure.yaml')
+>>> fr.save(fig, 'my_figure.yaml')
 
 Reproducing a figure:
 
->>> fig, ax = ps.reproduce('my_figure.yaml')
+>>> fig, ax = fr.reproduce('my_figure.yaml')
 >>> plt.show()
 
-Inspecting a recipe:
+Utility Functions
+-----------------
+For advanced use cases, utility functions are available via the utils submodule:
 
->>> info = ps.info('my_figure.yaml')
->>> print(info['calls'])
+>>> from figrecipe import utils
+>>> utils.mm_to_inch(25.4)  # Unit conversions
+>>> utils.check_font('Arial')  # Font utilities
+>>> utils.load_recipe('recipe.yaml')  # Low-level recipe access
 """
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+# Internal imports (hidden from tab completion with underscore prefix)
+from pathlib import Path as _Path
+from typing import Any as _Any
+from typing import Dict as _Dict
+from typing import List as _List
+from typing import Optional as _Optional
+from typing import Tuple as _Tuple
+from typing import Union as _Union
 
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-from numpy.typing import NDArray
+from matplotlib.axes import Axes as _Axes
+from matplotlib.figure import Figure as _Figure
+from numpy.typing import NDArray as _NDArray
 
-# Notebook utilities
+# Internal module imports (underscore prefixed for hiding)
 from ._api._notebook import enable_svg
-
-# Panel label
-from ._api._panel import panel_label
-
-# Seaborn proxy
 from ._api._seaborn_proxy import sns
-
-# Composition API
 from ._composition import (
-    AlignmentMode,
     align_panels,
     compose,
     distribute_panels,
-    hide_panel,
-    import_axes,
-    show_panel,
     smart_align,
-    toggle_panel,
 )
 
 # Graph visualization
@@ -88,29 +77,15 @@ from ._graph_presets import (
 from ._graph_presets import (
     register_preset as register_graph_preset,
 )
-
-# scitex.stats integration
-from ._integrations import (
-    SCITEX_STATS_AVAILABLE,
-    annotate_from_stats,
-    from_scitex_stats,
-)
-from ._recorder import CallRecord, FigureRecord
-from ._reproducer import get_recipe_info
+from ._recorder import FigureRecord as _FigureRecord
+from ._reproducer import get_recipe_info as _get_recipe_info
 from ._reproducer import reproduce as _reproduce
-from ._serializer import load_recipe
-from ._utils._numpy_io import CsvFormat, DataFormat
-from ._utils._units import (
-    inch_to_mm,
-    mm_to_inch,
-    mm_to_pt,
-    mm_to_scatter_size,
-    normalize_color,
-    pt_to_mm,
-)
-from ._validator import ValidationResult
-from ._wrappers import RecordingAxes, RecordingFigure
-from .styles._style_applier import check_font, list_available_fonts
+from ._serializer import load_recipe as _load_recipe
+from ._utils._numpy_io import CsvFormat as _CsvFormat
+from ._utils._numpy_io import DataFormat as _DataFormat
+from ._validator import ValidationResult as _ValidationResult
+from ._wrappers import RecordingAxes as _RecordingAxes
+from ._wrappers import RecordingFigure as _RecordingFigure
 
 try:
     from importlib.metadata import version as _get_version
@@ -119,66 +94,34 @@ try:
 except Exception:
     __version__ = "0.0.0"  # Fallback for development
 __all__ = [
-    # Main API
+    # Core (essential)
     "subplots",
     "save",
     "reproduce",
     "load",  # Alias for reproduce
     "info",
-    "load_record",
-    "extract_data",
-    "validate",
-    # GUI Editor
     "edit",
-    # Style system
+    "validate",
+    "crop",
+    "extract_data",
+    # Style
     "load_style",
     "unload_style",
     "list_presets",
-    "STYLE",
     "apply_style",
-    # Unit conversions
-    "mm_to_inch",
-    "mm_to_pt",
-    "inch_to_mm",
-    "pt_to_mm",
-    "mm_to_scatter_size",
-    "normalize_color",
-    # Font utilities
-    "list_available_fonts",
-    "check_font",
-    # Notebook utilities
-    "enable_svg",
-    # Seaborn support
-    "sns",
-    # Classes (for type hints)
-    "RecordingFigure",
-    "RecordingAxes",
-    "FigureRecord",
-    "CallRecord",
-    "ValidationResult",
-    # Image utilities
-    "crop",
-    # Panel labels
-    "panel_label",
-    # Composition
+    "STYLE",
+    # Composition (simplified)
     "compose",
-    "import_axes",
-    "hide_panel",
-    "show_panel",
-    "toggle_panel",
-    # Alignment
-    "AlignmentMode",
     "align_panels",
     "distribute_panels",
     "smart_align",
-    # scitex.stats integration
-    "from_scitex_stats",
-    "annotate_from_stats",
-    "SCITEX_STATS_AVAILABLE",
     # Graph visualization
     "get_graph_preset",
     "list_graph_presets",
     "register_graph_preset",
+    # Extensions
+    "sns",
+    "enable_svg",
     # Version
     "__version__",
 ]
@@ -198,21 +141,21 @@ def subplots(
     nrows: int = 1,
     ncols: int = 1,
     # MM-control parameters
-    axes_width_mm: Optional[float] = None,
-    axes_height_mm: Optional[float] = None,
-    margin_left_mm: Optional[float] = None,
-    margin_right_mm: Optional[float] = None,
-    margin_bottom_mm: Optional[float] = None,
-    margin_top_mm: Optional[float] = None,
-    space_w_mm: Optional[float] = None,
-    space_h_mm: Optional[float] = None,
+    axes_width_mm: _Optional[float] = None,
+    axes_height_mm: _Optional[float] = None,
+    margin_left_mm: _Optional[float] = None,
+    margin_right_mm: _Optional[float] = None,
+    margin_bottom_mm: _Optional[float] = None,
+    margin_top_mm: _Optional[float] = None,
+    space_w_mm: _Optional[float] = None,
+    space_h_mm: _Optional[float] = None,
     # Style parameters
-    style: Optional[Dict[str, Any]] = None,
+    style: _Optional[_Dict[str, _Any]] = None,
     apply_style_mm: bool = True,
     # Panel labels (None = use style default, True/False = explicit)
-    panel_labels: Optional[bool] = None,
+    panel_labels: _Optional[bool] = None,
     **kwargs,
-) -> Tuple[RecordingFigure, Union[RecordingAxes, NDArray]]:
+) -> _Tuple[_RecordingFigure, _Union[_RecordingAxes, _NDArray]]:
     """Create a figure with recording-enabled axes.
 
     This is a drop-in replacement for plt.subplots() that wraps the
@@ -269,17 +212,17 @@ def subplots(
 
 
 def save(
-    fig: Union[RecordingFigure, Figure],
-    path: Union[str, Path],
+    fig: _Union[_RecordingFigure, _Figure],
+    path: _Union[str, _Path],
     include_data: bool = True,
-    data_format: DataFormat = "csv",
-    csv_format: CsvFormat = "separate",
+    data_format: _DataFormat = "csv",
+    csv_format: _CsvFormat = "separate",
     validate: bool = True,
     validate_mse_threshold: float = 100.0,
     validate_error_level: str = "error",
     verbose: bool = True,
-    dpi: Optional[int] = None,
-    image_format: Optional[str] = None,
+    dpi: _Optional[int] = None,
+    image_format: _Optional[str] = None,
 ):
     """Save a figure as image and recipe.
 
@@ -338,10 +281,10 @@ def save(
 
 
 def reproduce(
-    path: Union[str, Path],
-    calls: Optional[List[str]] = None,
+    path: _Union[str, _Path],
+    calls: _Optional[_List[str]] = None,
     skip_decorations: bool = False,
-) -> Tuple[Figure, Union[Axes, List[Axes]]]:
+) -> _Tuple[_Figure, _Union[_Axes, _List[_Axes]]]:
     """Reproduce a figure from a recipe file.
 
     Parameters
@@ -363,21 +306,21 @@ def reproduce(
     return _reproduce(path, calls=calls, skip_decorations=skip_decorations)
 
 
-def info(path: Union[str, Path]) -> Dict[str, Any]:
+def info(path: _Union[str, _Path]) -> _Dict[str, _Any]:
     """Get information about a recipe without reproducing."""
-    return get_recipe_info(path)
+    return _get_recipe_info(path)
 
 
-def load_record(path: Union[str, Path]) -> FigureRecord:
+def _load_record(path: _Union[str, _Path]) -> _FigureRecord:
     """Load a recipe as a FigureRecord object (advanced use)."""
-    return load_recipe(path)
+    return _load_recipe(path)
 
 
 # Alias for intuitive save/load symmetry
 load = reproduce
 
 
-def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
+def extract_data(path: _Union[str, _Path]) -> _Dict[str, _Dict[str, _Any]]:
     """Extract data arrays from a saved recipe.
 
     Returns
@@ -387,7 +330,7 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
     """
     from ._api._extract import DECORATION_FUNCS, extract_call_data
 
-    record = load_recipe(path)
+    record = _load_recipe(path)
     result = {}
 
     for ax_key, ax_record in record.axes.items():
@@ -402,9 +345,9 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
 
 
 def validate(
-    path: Union[str, Path],
+    path: _Union[str, _Path],
     mse_threshold: float = 100.0,
-) -> ValidationResult:
+) -> _ValidationResult:
     """Validate that a saved recipe can reproduce its original figure.
 
     Parameters
