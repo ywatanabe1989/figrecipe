@@ -317,6 +317,217 @@ class RecordingAxes:
     def get_title(self):
         return self._ax.get_title()
 
+    def graph(
+        self,
+        G,
+        *,
+        preset: Optional[str] = None,
+        layout: Optional[str] = None,
+        pos=None,
+        seed: int = 42,
+        # Node styling
+        node_size=None,
+        node_color=None,
+        node_alpha: Optional[float] = None,
+        node_shape: Optional[str] = None,
+        node_edgecolors: Optional[str] = None,
+        node_linewidths: Optional[float] = None,
+        # Edge styling
+        edge_width=None,
+        edge_color=None,
+        edge_alpha: Optional[float] = None,
+        edge_style: Optional[str] = None,
+        arrows=None,
+        arrowsize: Optional[float] = None,
+        arrowstyle: Optional[str] = None,
+        connectionstyle: Optional[str] = None,
+        # Labels
+        labels=None,
+        font_size: Optional[float] = None,
+        font_color: Optional[str] = None,
+        font_weight: Optional[str] = None,
+        font_family: Optional[str] = None,
+        # Colormap
+        colormap: Optional[str] = None,
+        vmin=None,
+        vmax=None,
+        # Recording
+        id: Optional[str] = None,
+        track: bool = True,
+        **layout_kwargs,
+    ):
+        """Draw a NetworkX graph with publication-quality styling.
+
+        Parameters
+        ----------
+        G : networkx.Graph or networkx.DiGraph
+            The graph to draw.
+        layout : str
+            Layout algorithm: 'spring', 'circular', 'kamada_kawai', 'shell',
+            'spectral', 'random', 'planar', 'spiral', 'hierarchical'.
+        pos : dict, optional
+            Pre-computed node positions {node: (x, y)}.
+        seed : int
+            Random seed for layout reproducibility.
+        node_size : str, callable, or float
+            Node sizes. Can be attribute name ('degree'), callable, or scalar.
+        node_color : str, callable, or any
+            Node colors. Can be attribute name, callable, color name, or array.
+        node_alpha : float
+            Node transparency (default 0.8).
+        edge_width : str, callable, or float
+            Edge widths. Can be attribute name ('weight'), callable, or scalar.
+        edge_color : str, callable, or any
+            Edge colors.
+        edge_alpha : float
+            Edge transparency (default 0.4).
+        arrows : bool, optional
+            Draw arrows for directed graphs. Auto-detected if None.
+        arrowsize : float
+            Arrow head size for directed edges.
+        labels : bool, dict, or str
+            Node labels. True for node IDs, dict for custom, str for attribute.
+        font_size : float
+            Label font size (default 6pt for scitex).
+        colormap : str
+            Matplotlib colormap for numeric node colors.
+        preset : str, optional
+            Built-in preset: 'default', 'minimal', 'citation', 'dependency'.
+        id : str, optional
+            Unique identifier for this plot call.
+        track : bool
+            Whether to record this call for reproducibility.
+        **layout_kwargs
+            Additional kwargs passed to layout algorithm.
+
+        Returns
+        -------
+        dict
+            Dictionary with 'pos', 'node_collection', 'edge_collection'.
+
+        Examples
+        --------
+        >>> import networkx as nx
+        >>> import figrecipe as fr
+        >>> G = nx.karate_club_graph()
+        >>> fig, ax = fr.subplots()
+        >>> ax.graph(G, node_color='club', node_size='degree')
+        >>> fr.save(fig, 'network.png')
+        """
+        try:
+            from .._graph import draw_graph, graph_to_record
+            from .._graph_presets import get_preset
+        except ImportError as e:
+            if "networkx" in str(e):
+                raise ImportError(
+                    "Graph visualization requires networkx. Install with:\n"
+                    "  pip install figrecipe[graph]\n"
+                    "or:\n"
+                    "  pip install networkx"
+                ) from None
+            raise
+
+        # Default values
+        defaults = {
+            "layout": "spring",
+            "node_size": 100,
+            "node_color": "#3498db",
+            "node_alpha": 0.8,
+            "node_shape": "o",
+            "node_edgecolors": "white",
+            "node_linewidths": 0.5,
+            "edge_width": 1.0,
+            "edge_color": "gray",
+            "edge_alpha": 0.4,
+            "edge_style": "solid",
+            "arrowsize": 10,
+            "arrowstyle": "-|>",
+            "connectionstyle": "arc3,rad=0.0",
+            "labels": False,
+            "font_size": 6,
+            "font_color": "black",
+            "font_weight": "normal",
+            "font_family": "sans-serif",
+            "colormap": "viridis",
+        }
+
+        # Start with defaults
+        kwargs = defaults.copy()
+
+        # Overlay preset values
+        if preset:
+            preset_kwargs = get_preset(preset)
+            kwargs.update(preset_kwargs)
+
+        # Overlay explicit args (only if not None)
+        explicit = {
+            "layout": layout,
+            "node_size": node_size,
+            "node_color": node_color,
+            "node_alpha": node_alpha,
+            "node_shape": node_shape,
+            "node_edgecolors": node_edgecolors,
+            "node_linewidths": node_linewidths,
+            "edge_width": edge_width,
+            "edge_color": edge_color,
+            "edge_alpha": edge_alpha,
+            "edge_style": edge_style,
+            "arrows": arrows,
+            "arrowsize": arrowsize,
+            "arrowstyle": arrowstyle,
+            "connectionstyle": connectionstyle,
+            "labels": labels,
+            "font_size": font_size,
+            "font_color": font_color,
+            "font_weight": font_weight,
+            "font_family": font_family,
+            "colormap": colormap,
+            "vmin": vmin,
+            "vmax": vmax,
+        }
+        for key, value in explicit.items():
+            if value is not None:
+                kwargs[key] = value
+
+        # Draw the graph
+        result = draw_graph(
+            self._ax,
+            G,
+            pos=pos,
+            seed=seed,
+            **kwargs,
+            **layout_kwargs,
+        )
+
+        # Record for reproducibility
+        if self._track and track:
+            call_id = id if id else self._recorder._generate_call_id("graph")
+
+            # Build style kwargs for recording (replace callables with marker)
+            record_style = kwargs.copy()
+            record_style["seed"] = seed
+            record_style["preset"] = preset
+            for key in ["node_size", "node_color", "edge_width", "edge_color"]:
+                if callable(record_style.get(key)):
+                    record_style[key] = "custom"
+
+            # Serialize graph data for recipe
+            graph_record = graph_to_record(G, pos=result["pos"], **record_style)
+
+            from .._recorder import CallRecord
+
+            record = CallRecord(
+                id=call_id,
+                function="graph",
+                args=[],
+                kwargs={"graph_data": graph_record},
+                ax_position=self._position,
+            )
+            ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
+            ax_record.add_call(record)
+
+        return result
+
     def joyplot(
         self,
         arrays,
