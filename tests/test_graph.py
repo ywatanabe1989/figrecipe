@@ -357,14 +357,15 @@ class TestFigrecipeIntegration:
         G = networkx.karate_club_graph()
 
         with tempfile.TemporaryDirectory() as tmpdir:
-            recipe_path = Path(tmpdir) / "graph.yaml"
+            # Use explicit .png path to avoid style-dependent format selection
+            image_path = Path(tmpdir) / "graph.png"
 
             fig, ax = fr.subplots()
             ax.graph(G, layout="spring", seed=42, id="karate")
-            fr.save(fig, recipe_path, validate=False, verbose=False)
+            fr.save(fig, image_path, validate=False, verbose=False)
 
-            assert recipe_path.exists()
-            assert (Path(tmpdir) / "graph.png").exists()
+            assert image_path.exists()
+            assert (Path(tmpdir) / "graph.yaml").exists()
 
             plt.close("all")
 
