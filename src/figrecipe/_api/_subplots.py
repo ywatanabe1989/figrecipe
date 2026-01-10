@@ -81,19 +81,32 @@ def _calculate_mm_layout(
     global_style,
     kwargs: Dict[str, Any],
 ) -> Tuple[Optional[Dict[str, float]], Dict[str, Any]]:
-    """Calculate mm-based layout and update kwargs with figsize."""
+    """Calculate mm-based layout and update kwargs with figsize.
+
+    The margin_*_mm values are stored as CROP margins (final output margins
+    after cropping). Internal padding uses large fixed values to accommodate
+    labels, which will be cropped away.
+    """
     aw = _get_mm_value(axes_width_mm, global_style, ["axes", "width_mm"], 40)
     ah = _get_mm_value(axes_height_mm, global_style, ["axes", "height_mm"], 28)
-    ml = _get_mm_value(margin_left_mm, global_style, ["margins", "left_mm"], 15)
-    mr = _get_mm_value(margin_right_mm, global_style, ["margins", "right_mm"], 5)
-    mb = _get_mm_value(margin_bottom_mm, global_style, ["margins", "bottom_mm"], 12)
-    mt = _get_mm_value(margin_top_mm, global_style, ["margins", "top_mm"], 8)
     sw = _get_mm_value(space_w_mm, global_style, ["spacing", "horizontal_mm"], 8)
     sh = _get_mm_value(space_h_mm, global_style, ["spacing", "vertical_mm"], 10)
 
-    # Calculate total figure size
-    total_width_mm = ml + (ncols * aw) + ((ncols - 1) * sw) + mr
-    total_height_mm = mb + (nrows * ah) + ((nrows - 1) * sh) + mt
+    # User-specified margins are for CROPPING (final output margins)
+    crop_ml = _get_mm_value(margin_left_mm, global_style, ["margins", "left_mm"], 1)
+    crop_mr = _get_mm_value(margin_right_mm, global_style, ["margins", "right_mm"], 1)
+    crop_mb = _get_mm_value(margin_bottom_mm, global_style, ["margins", "bottom_mm"], 1)
+    crop_mt = _get_mm_value(margin_top_mm, global_style, ["margins", "top_mm"], 1)
+
+    # Internal padding: large fixed values for label space (will be cropped)
+    internal_ml = 20  # Space for y-axis label
+    internal_mr = 10  # Space for right side
+    internal_mb = 15  # Space for x-axis label
+    internal_mt = 12  # Space for title
+
+    # Calculate total figure size using INTERNAL padding
+    total_width_mm = internal_ml + (ncols * aw) + ((ncols - 1) * sw) + internal_mr
+    total_height_mm = internal_mb + (nrows * ah) + ((nrows - 1) * sh) + internal_mt
 
     # Convert to inches and set figsize
     kwargs["figsize"] = (mm_to_inch(total_width_mm), mm_to_inch(total_height_mm))
@@ -101,12 +114,18 @@ def _calculate_mm_layout(
     mm_layout = {
         "axes_width_mm": aw,
         "axes_height_mm": ah,
-        "margin_left_mm": ml,
-        "margin_right_mm": mr,
-        "margin_bottom_mm": mb,
-        "margin_top_mm": mt,
+        # Internal margins for figure layout
+        "margin_left_mm": internal_ml,
+        "margin_right_mm": internal_mr,
+        "margin_bottom_mm": internal_mb,
+        "margin_top_mm": internal_mt,
         "space_w_mm": sw,
         "space_h_mm": sh,
+        # Crop margins for final output (stored separately)
+        "crop_margin_left_mm": crop_ml,
+        "crop_margin_right_mm": crop_mr,
+        "crop_margin_bottom_mm": crop_mb,
+        "crop_margin_top_mm": crop_mt,
     }
 
     return mm_layout, kwargs
@@ -226,20 +245,9 @@ def create_subplots(
 
     global_style = _STYLE_CACHE
 
-    # Check if mm-based layout is requested
-    use_mm_layout = _check_mm_layout(
-        axes_width_mm,
-        axes_height_mm,
-        margin_left_mm,
-        margin_right_mm,
-        margin_bottom_mm,
-        margin_top_mm,
-        space_w_mm,
-        space_h_mm,
-        global_style,
-    )
-
-    if use_mm_layout and "figsize" not in kwargs:
+    # Always use mm-based layout by default (never fall back to matplotlib defaults)
+    # Only skip if figsize is explicitly provided by the user
+    if "figsize" not in kwargs:
         mm_layout, kwargs = _calculate_mm_layout(
             nrows,
             ncols,
@@ -286,12 +294,10 @@ def create_subplots(
         style_dict_check = to_subplots_kwargs(global_style)
         style_constrained = style_dict_check.get("constrained_layout", False)
 
-    # Use constrained_layout if: style specifies it, or non-mm layout
+    # Only use constrained_layout if explicitly requested (by user or style)
+    # Default is False to ensure mm-based layout is always applied
     if "constrained_layout" not in kwargs:
-        if style_constrained:
-            kwargs["constrained_layout"] = True
-        elif not use_mm_layout:
-            kwargs["constrained_layout"] = True
+        kwargs["constrained_layout"] = style_constrained
 
     # Create the recording subplots
     fig, axes = create_recording_subplots(nrows, ncols, **kwargs)
