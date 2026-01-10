@@ -66,7 +66,6 @@ from ._composition import (
     distribute_panels,
     smart_align,
 )
-from ._recorder import CallRecord as _CallRecord
 from ._recorder import FigureRecord as _FigureRecord
 from ._reproducer import get_recipe_info as _get_recipe_info
 from ._reproducer import reproduce as _reproduce

@@ -14,7 +14,23 @@ Usage
 >>> from figrecipe.utils import mm_to_inch, check_font
 """
 
-# Unit conversions
+from ._api._panel import panel_label
+from ._composition import (
+    AlignmentMode,
+    hide_panel,
+    import_axes,
+    show_panel,
+    toggle_panel,
+)
+from ._integrations import (
+    SCITEX_STATS_AVAILABLE,
+    annotate_from_stats,
+    from_scitex_stats,
+)
+from ._recorder import CallRecord, FigureRecord
+from ._reproducer import get_recipe_info
+from ._serializer import load_recipe
+from ._utils._numpy_io import CsvFormat, DataFormat, load_array, save_array
 from ._utils._units import (
     inch_to_mm,
     mm_to_inch,
@@ -23,39 +39,9 @@ from ._utils._units import (
     normalize_color,
     pt_to_mm,
 )
-
-# Font utilities
-from .styles._style_applier import check_font, list_available_fonts
-
-# Data I/O
-from ._utils._numpy_io import CsvFormat, DataFormat, load_array, save_array
-
-# Internal record types (for advanced use)
-from ._recorder import CallRecord, FigureRecord
 from ._validator import ValidationResult
-from ._serializer import load_recipe
-from ._reproducer import get_recipe_info
 from ._wrappers import RecordingAxes, RecordingFigure
-
-
-# Composition utilities (advanced)
-from ._composition import (
-    AlignmentMode,
-    hide_panel,
-    import_axes,
-    show_panel,
-    toggle_panel,
-)
-
-# Panel label
-from ._api._panel import panel_label
-
-# scitex.stats integration (if available)
-from ._integrations import (
-    SCITEX_STATS_AVAILABLE,
-    annotate_from_stats,
-    from_scitex_stats,
-)
+from .styles._style_applier import check_font, list_available_fonts
 
 __all__ = [
     # Unit conversions
