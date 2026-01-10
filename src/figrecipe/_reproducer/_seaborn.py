@@ -33,8 +33,6 @@ def replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
         warnings.warn("seaborn/pandas required to replay seaborn calls")
         return None
 
-    from ._core import _reconstruct_value
-
     # Get the seaborn function name (remove "sns." prefix)
     func_name = call.function[4:]  # Remove "sns."
     func = getattr(sns, func_name, None)
@@ -50,10 +48,12 @@ def replay_seaborn_call(ax: Axes, call: CallRecord) -> Any:
     data_dict = {}
     param_mapping = {}  # Maps param name to column name
 
+    from ._reconstruct import reconstruct_value
+
     for arg_data in call.args:
         param = arg_data.get("param")
         name = arg_data.get("name")
-        value = _reconstruct_value(arg_data)
+        value = reconstruct_value(arg_data)
 
         if param is not None:
             # This is a DataFrame column

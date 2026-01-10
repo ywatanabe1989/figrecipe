@@ -23,23 +23,23 @@ class TestReproducerPieColors:
 
     def test_reconstruct_kwargs_colors_string(self):
         """Test that colors string is wrapped in list."""
-        from figrecipe._reproducer._core import _reconstruct_kwargs
+        from figrecipe._reproducer._reconstruct import reconstruct_kwargs
 
-        result = _reconstruct_kwargs({"colors": "red"})
+        result = reconstruct_kwargs({"colors": "red"})
         assert result["colors"] == ["red"]
 
     def test_reconstruct_kwargs_colors_list(self):
         """Test that colors list remains unchanged."""
-        from figrecipe._reproducer._core import _reconstruct_kwargs
+        from figrecipe._reproducer._reconstruct import reconstruct_kwargs
 
-        result = _reconstruct_kwargs({"colors": ["red", "blue", "green"]})
+        result = reconstruct_kwargs({"colors": ["red", "blue", "green"]})
         assert result["colors"] == ["red", "blue", "green"]
 
     def test_reconstruct_kwargs_other_params(self):
         """Test that other params are unchanged."""
-        from figrecipe._reproducer._core import _reconstruct_kwargs
+        from figrecipe._reproducer._reconstruct import reconstruct_kwargs
 
-        result = _reconstruct_kwargs({"color": "red", "linewidth": 2})
+        result = reconstruct_kwargs({"color": "red", "linewidth": 2})
         assert result["color"] == "red"
         assert result["linewidth"] == 2
 
