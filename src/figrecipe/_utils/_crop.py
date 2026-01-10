@@ -37,12 +37,24 @@ def find_content_area(image_path: Union[str, Path]) -> Tuple[int, int, int, int]
     img = Image.open(image_path)
     img_array = np.array(img)
 
-    # Check if image has alpha channel (RGBA)
+    # Check if image has alpha channel (RGBA) with actual transparency
     if len(img_array.shape) == 3 and img_array.shape[2] == 4:
-        # Use alpha channel to find content (non-transparent pixels)
         alpha = img_array[:, :, 3]
-        rows = np.any(alpha > 0, axis=1)
-        cols = np.any(alpha > 0, axis=0)
+        # Only use alpha-based detection if there's actual transparency
+        if alpha.min() < 255:
+            # Use alpha channel to find content (non-transparent pixels)
+            rows = np.any(alpha > 0, axis=1)
+            cols = np.any(alpha > 0, axis=0)
+        else:
+            # Fully opaque RGBA - use RGB color-based detection
+            rgb = img_array[:, :, :3]
+            h, w = rgb.shape[:2]
+            corners = [rgb[0, 0], rgb[0, w - 1], rgb[h - 1, 0], rgb[h - 1, w - 1]]
+            bg_color = np.median(corners, axis=0).astype(np.uint8)
+            diff = np.abs(rgb.astype(np.int16) - bg_color.astype(np.int16))
+            is_content = np.any(diff > 10, axis=2)
+            rows = np.any(is_content, axis=1)
+            cols = np.any(is_content, axis=0)
     else:
         # For RGB images, detect background color from corners
         if len(img_array.shape) == 3:
@@ -102,6 +114,10 @@ def crop(
     output_path: Optional[Union[str, Path]] = None,
     margin_mm: float = 1.0,
     margin_px: Optional[int] = None,
+    margin_left_mm: Optional[float] = None,
+    margin_right_mm: Optional[float] = None,
+    margin_top_mm: Optional[float] = None,
+    margin_bottom_mm: Optional[float] = None,
     overwrite: bool = False,
     verbose: bool = False,
     return_offset: bool = False,
@@ -120,10 +136,18 @@ def crop(
         Path to save the cropped image. If None and overwrite=True,
         overwrites the input. If None and overwrite=False, adds '_cropped' suffix.
     margin_mm : float, optional
-        Margin in millimeters to keep around content (default: 1.0mm).
-        Converted to pixels using image DPI (or 300 DPI if not available).
+        Uniform margin in mm for all sides (default: 1.0mm). Overridden by
+        per-side margins if specified.
     margin_px : int, optional
-        Margin in pixels (overrides margin_mm if provided).
+        Uniform margin in pixels (overrides margin_mm if provided).
+    margin_left_mm : float, optional
+        Left margin in mm (overrides margin_mm for left side).
+    margin_right_mm : float, optional
+        Right margin in mm (overrides margin_mm for right side).
+    margin_top_mm : float, optional
+        Top margin in mm (overrides margin_mm for top side).
+    margin_bottom_mm : float, optional
+        Bottom margin in mm (overrides margin_mm for bottom side).
     overwrite : bool, optional
         Whether to overwrite the input file (default: False)
     verbose : bool, optional
@@ -175,16 +199,29 @@ def crop(
         else:
             dpi = int(dpi_info)
 
-    # Calculate margin in pixels
+    # Calculate per-side margins in pixels
     if margin_px is not None:
-        margin = margin_px
+        # Uniform pixel margin
+        margin_left_px = margin_right_px = margin_top_px = margin_bottom_px = margin_px
     else:
-        margin = mm_to_pixels(margin_mm, dpi)
+        # Per-side mm margins (default to uniform margin_mm)
+        ml = margin_left_mm if margin_left_mm is not None else margin_mm
+        mr = margin_right_mm if margin_right_mm is not None else margin_mm
+        mt = margin_top_mm if margin_top_mm is not None else margin_mm
+        mb = margin_bottom_mm if margin_bottom_mm is not None else margin_mm
+
+        margin_left_px = mm_to_pixels(ml, dpi)
+        margin_right_px = mm_to_pixels(mr, dpi)
+        margin_top_px = mm_to_pixels(mt, dpi)
+        margin_bottom_px = mm_to_pixels(mb, dpi)
 
     if verbose:
         print(f"Original: {original_width}x{original_height}")
         print(f"DPI: {dpi}")
-        print(f"Margin: {margin_mm}mm = {margin}px")
+        print(
+            f"Margins (px): left={margin_left_px}, right={margin_right_px}, "
+            f"top={margin_top_px}, bottom={margin_bottom_px}"
+        )
 
     # Use explicit crop_box or auto-detect
     if crop_box is not None:
@@ -198,11 +235,11 @@ def crop(
                 f"Content area: left={left}, upper={upper}, right={right}, lower={lower}"
             )
 
-        # Add margin, clamping to image boundaries
-        left = max(left - margin, 0)
-        upper = max(upper - margin, 0)
-        right = min(right + margin, img.width)
-        lower = min(lower + margin, img.height)
+        # Add per-side margins, clamping to image boundaries
+        left = max(left - margin_left_px, 0)
+        upper = max(upper - margin_top_px, 0)
+        right = min(right + margin_right_px, img.width)
+        lower = min(lower + margin_bottom_px, img.height)
 
     if verbose:
         print(f"Cropping to: {left},{upper} -> {right},{lower}")

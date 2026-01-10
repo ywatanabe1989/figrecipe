@@ -93,6 +93,67 @@ def get_save_dpi(explicit_dpi: Optional[int] = None) -> int:
     return 300
 
 
+def _capture_axes_bboxes(fig, crop_offset: Optional[dict] = None) -> None:
+    """Capture bounding boxes of all axes for alignment/snap functionality.
+
+    Stores bbox as [left, bottom, width, height] in figure coordinates (0-1).
+    If crop_offset is provided, adjusts bbox to post-crop coordinate system.
+
+    Parameters
+    ----------
+    fig : RecordingFigure
+        The figure with record to update.
+    crop_offset : dict, optional
+        Crop information from crop() with return_offset=True.
+        Contains: left, upper, right, lower, original_width, original_height,
+        new_width, new_height (all in pixels).
+    """
+    for ax in fig.fig.get_axes():
+        # Get axes position in figure coordinates (0-1 range)
+        bbox = ax.get_position()
+        bbox_list = [bbox.x0, bbox.y0, bbox.width, bbox.height]
+
+        # Adjust for crop offset if provided
+        if crop_offset is not None:
+            # Convert from figure coords to pixel coords, then to cropped coords
+            orig_w = crop_offset["original_width"]
+            orig_h = crop_offset["original_height"]
+            new_w = crop_offset["new_width"]
+            new_h = crop_offset["new_height"]
+            crop_left = crop_offset["left"]
+            crop_upper = crop_offset["upper"]
+
+            # Original pixel positions (matplotlib y=0 is bottom, image y=0 is top)
+            x0_px = bbox.x0 * orig_w
+            y0_px = (1 - bbox.y0 - bbox.height) * orig_h  # Convert to image coords
+            w_px = bbox.width * orig_w
+            h_px = bbox.height * orig_h
+
+            # Adjust for crop (translate origin)
+            x0_cropped = x0_px - crop_left
+            y0_cropped = y0_px - crop_upper
+
+            # Convert back to figure coordinates (0-1 range in cropped image)
+            new_x0 = x0_cropped / new_w
+            new_y0 = 1 - (y0_cropped + h_px) / new_h  # Back to matplotlib coords
+            new_w_frac = w_px / new_w
+            new_h_frac = h_px / new_h
+
+            bbox_list = [new_x0, new_y0, new_w_frac, new_h_frac]
+
+        # Find corresponding AxesRecord
+        # Try to match by checking if this ax corresponds to a known position
+        for key, ax_record in fig.record.axes.items():
+            # Parse key like "ax_0_0" to get row, col
+            parts = key.split("_")
+            if len(parts) >= 3:
+                row, col = int(parts[1]), int(parts[2])
+                # Check if positions match (comparing grid indices)
+                if ax_record.position == (row, col):
+                    ax_record.bbox = bbox_list
+                    break
+
+
 def get_save_transparency() -> bool:
     """Get transparency setting from style."""
     from ..styles._style_loader import _STYLE_CACHE
@@ -146,11 +207,9 @@ def _save_as_bundle(
         img_format = image_format or _get_default_image_format()
         image_name = f"figure.{img_format}"
 
-        # Save image
+        # Save image (no bbox_inches to preserve mm layout)
         image_path = tmpdir / image_name
-        fig.fig.savefig(
-            image_path, dpi=dpi, bbox_inches="tight", transparent=transparent
-        )
+        fig.fig.savefig(image_path, dpi=dpi, transparent=transparent)
 
         # Save recipe
         yaml_path = tmpdir / BUNDLE_RECIPE_NAME
@@ -193,6 +252,7 @@ def save_figure(
     verbose: bool = True,
     dpi: Optional[int] = None,
     image_format: Optional[str] = None,
+    crop_margin_mm: Optional[float] = None,
 ):
     """Core save implementation.
 
@@ -208,6 +268,9 @@ def save_figure(
         CSV file structure: 'separate' (default) or 'single'.
         - 'separate': One CSV file per variable
         - 'single': Single CSV with all columns (scitex/SigmaPlot-compatible)
+    crop_margin_mm : float, optional
+        If specified, auto-crop saved image to all ink/content plus this margin.
+        Crops to visible content (axes, labels, titles) + margin on all sides.
     """
     from .._wrappers import RecordingFigure
 
@@ -224,14 +287,11 @@ def save_figure(
     transparent = get_save_transparency()
 
     # Finalize tick configuration and special plot types for all axes
+    # Get style for special plot finalization (use globally loaded style, flattened)
+    from ..styles._kwargs_converter import to_subplots_kwargs
     from ..styles._style_applier import finalize_special_plots, finalize_ticks
 
-    # Get style for special plot finalization
-    style_dict = {}
-    if hasattr(fig, "style") and fig.style:
-        from ..styles import get_style
-
-        style_dict = get_style(fig.style)
+    style_dict = to_subplots_kwargs()
 
     for ax in fig.fig.get_axes():
         finalize_ticks(ax)
@@ -256,8 +316,48 @@ def save_figure(
     # Resolve paths for standard save
     image_path, yaml_path, _ = resolve_save_paths(path, image_format)
 
-    # Save the image
-    fig.fig.savefig(image_path, dpi=dpi, bbox_inches="tight", transparent=transparent)
+    # Save the image (no bbox_inches to preserve mm layout)
+    fig.fig.savefig(image_path, dpi=dpi, transparent=transparent)
+
+    # Auto-crop using stored crop margins from mm_layout (or explicit parameter)
+    # Only crop raster image formats (not PDF, SVG, EPS)
+    croppable_formats = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}
+    is_croppable = image_path.suffix.lower() in croppable_formats
+
+    crop_offset = None
+    if is_croppable:
+        if crop_margin_mm is not None:
+            # Explicit uniform crop margin
+            from .._utils._crop import crop
+
+            _, crop_offset = crop(
+                image_path,
+                margin_mm=crop_margin_mm,
+                output_path=image_path,
+                return_offset=True,
+            )
+        elif hasattr(fig, "_mm_layout") and fig._mm_layout is not None:
+            # Use per-side crop margins from mm_layout
+            mm_layout = fig._mm_layout
+            if "crop_margin_left_mm" in mm_layout:
+                from .._utils._crop import crop
+
+                _, crop_offset = crop(
+                    image_path,
+                    margin_left_mm=mm_layout.get("crop_margin_left_mm", 1),
+                    margin_right_mm=mm_layout.get("crop_margin_right_mm", 1),
+                    margin_top_mm=mm_layout.get("crop_margin_top_mm", 1),
+                    margin_bottom_mm=mm_layout.get("crop_margin_bottom_mm", 1),
+                    output_path=image_path,
+                    return_offset=True,
+                )
+
+    # Capture axes bounding boxes (adjusted for crop if cropping occurred)
+    _capture_axes_bboxes(fig, crop_offset)
+
+    # Store crop info in record for future reference
+    if crop_offset is not None:
+        fig.record.crop_info = crop_offset
 
     # Save the recipe
     saved_yaml = fig.save_recipe(

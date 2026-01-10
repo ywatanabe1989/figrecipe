@@ -53,6 +53,7 @@ PLOTTING_METHODS = {
     "angle_spectrum",
     "magnitude_spectrum",
     "phase_spectrum",
+    "graph",
 }
 
 # EOF

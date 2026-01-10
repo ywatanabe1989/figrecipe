@@ -11,10 +11,10 @@ axes:
   thickness_mm: 0.2
 
 margins:
-  left_mm: 1      # Minimal - constrained_layout handles labels
-  right_mm: 1
-  bottom_mm: 1    # Minimal - constrained_layout handles labels
-  top_mm: 1       # Minimal - constrained_layout handles labels
+  left_mm: 1      # Final output margin after auto-crop
+  right_mm: 1     # Final output margin after auto-crop
+  bottom_mm: 1    # Final output margin after auto-crop
+  top_mm: 1       # Final output margin after auto-crop
 
 spacing:
   horizontal_mm: 10   # Between columns

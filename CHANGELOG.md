@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-01-11
+
+### Added
+- **Auto-crop with bbox adjustment** - Save images with automatic cropping while preserving correct axes bounding box coordinates for GUI alignment/snap functionality
+- **crop_info and bbox support** - Recipe records now store crop information and axes bounding boxes for post-crop coordinate mapping
+- **Graph plotter** - New network visualization demo using networkx (`plot_graph.py`)
+- **Demo scripts** - Added `demo_editor.py` and `demo_all_plots.py` for demonstrations
+- **crop_margin_mm parameter** - Explicit cropping margin control in `fr.save()`
+
+### Changed
+- **mm-based layout** - Margins now represent final output margins (after auto-crop) rather than internal padding
+- **run_all_demos()** - Updated to use `fr.save()` for proper mm layout and auto-cropping
+
+### Fixed
+- **Barplot edge styling** - Bar edges now properly styled with black borders at save time (was previously applied before bars existed)
+- **Style dict loading** - Fixed `finalize_special_plots()` to use correctly flattened style dict
+- **CSV format** - Removed dtype header from CSV files for cleaner import into external tools (Excel, SigmaPlot, etc.)
+
 ## [0.10.0] - 2026-01-11
 
 ### Added

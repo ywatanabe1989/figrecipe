@@ -70,6 +70,9 @@ class AxesRecord:
     stats: Optional[Dict[str, Any]] = None
     # Panel visibility (for composition)
     visible: bool = True
+    # Axes bounding box in figure coordinates [left, bottom, width, height]
+    # Enables alignment/snap functionality
+    bbox: Optional[List[float]] = None
 
     def add_call(self, record: CallRecord) -> None:
         """Add a plotting call record."""
@@ -85,6 +88,8 @@ class AxesRecord:
             "calls": [c.to_dict() for c in self.calls],
             "decorations": [d.to_dict() for d in self.decorations],
         }
+        if self.bbox is not None:
+            result["bbox"] = self.bbox
         if self.caption is not None:
             result["caption"] = self.caption
         if self.stats is not None:
@@ -121,6 +126,8 @@ class FigureRecord:
     caption: Optional[str] = None  # Figure caption (e.g., "Fig. 1. Description...")
     # Figure-level statistics (e.g., comparisons across panels, summary)
     stats: Optional[Dict[str, Any]] = None
+    # Crop information for post-save cropping (enables correct bbox recalculation)
+    crop_info: Optional[Dict[str, Any]] = None
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -177,6 +184,9 @@ class FigureRecord:
             metadata["stats"] = self.stats
         if metadata:
             result["metadata"] = metadata
+        # Add crop_info if set (for bbox recalculation after cropping)
+        if self.crop_info is not None:
+            result["figure"]["crop_info"] = self.crop_info
         return result
 
     @classmethod
@@ -200,6 +210,7 @@ class FigureRecord:
             title_metadata=metadata.get("title"),
             caption=metadata.get("caption"),
             stats=metadata.get("stats"),
+            crop_info=fig_data.get("crop_info"),
         )
 
         # Reconstruct axes
@@ -216,6 +227,7 @@ class FigureRecord:
                 caption=ax_data.get("caption"),
                 stats=ax_data.get("stats"),
                 visible=ax_data.get("visible", True),
+                bbox=ax_data.get("bbox"),
             )
             for call_data in ax_data.get("calls", []):
                 ax_record.calls.append(CallRecord.from_dict(call_data, (row, col)))

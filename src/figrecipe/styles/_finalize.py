@@ -70,7 +70,8 @@ def finalize_special_plots(ax: Axes, style: Dict[str, Any] = None) -> None:
     Finalize axes visibility for special plot types (pie, imshow, etc.).
 
     This should be called after all plotting is done, before saving.
-    It handles plot types that need axes/ticks hidden.
+    It handles plot types that need axes/ticks hidden, and applies
+    edge styling to bar/histogram plots.
 
     Parameters
     ----------
@@ -80,13 +81,23 @@ def finalize_special_plots(ax: Axes, style: Dict[str, Any] = None) -> None:
         Style dictionary. If None, uses defaults.
     """
     from matplotlib.image import AxesImage
-    from matplotlib.patches import Wedge
+    from matplotlib.patches import Rectangle, Wedge
+
+    from .._utils._units import mm_to_pt
 
     if style is None:
         style = {}
 
-    # Check for pie chart
+    # Check for pie chart first (before bar styling)
     has_pie = any(isinstance(p, Wedge) for p in ax.patches)
+
+    # Apply bar/histogram edge styling (only if not a pie chart)
+    if not has_pie:
+        edge_lw = mm_to_pt(style.get("barplot_edge_mm", 0.2))
+        for patch in ax.patches:
+            if isinstance(patch, Rectangle):
+                patch.set_linewidth(edge_lw)
+                patch.set_edgecolor("black")
     if has_pie:
         show_axes = style.get("pie_show_axes", False)
         text_pt = style.get("pie_text_pt", 6)
