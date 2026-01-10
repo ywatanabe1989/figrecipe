@@ -11,6 +11,7 @@ matplotlib.use("Agg")
 
 
 import figrecipe as fr
+from figrecipe import utils
 
 
 class TestAlignPanels:
@@ -113,14 +114,14 @@ class TestAlignPanels:
 
     def test_alignment_mode_enum(self):
         """AlignmentMode enum values are accessible."""
-        assert fr.AlignmentMode.LEFT.value == "left"
-        assert fr.AlignmentMode.RIGHT.value == "right"
-        assert fr.AlignmentMode.TOP.value == "top"
-        assert fr.AlignmentMode.BOTTOM.value == "bottom"
-        assert fr.AlignmentMode.CENTER_H.value == "center_h"
-        assert fr.AlignmentMode.CENTER_V.value == "center_v"
-        assert fr.AlignmentMode.AXIS_X.value == "axis_x"
-        assert fr.AlignmentMode.AXIS_Y.value == "axis_y"
+        assert utils.AlignmentMode.LEFT.value == "left"
+        assert utils.AlignmentMode.RIGHT.value == "right"
+        assert utils.AlignmentMode.TOP.value == "top"
+        assert utils.AlignmentMode.BOTTOM.value == "bottom"
+        assert utils.AlignmentMode.CENTER_H.value == "center_h"
+        assert utils.AlignmentMode.CENTER_V.value == "center_v"
+        assert utils.AlignmentMode.AXIS_X.value == "axis_x"
+        assert utils.AlignmentMode.AXIS_Y.value == "axis_y"
 
     def test_align_with_enum_mode(self):
         """Align using AlignmentMode enum."""
@@ -128,7 +129,7 @@ class TestAlignPanels:
         axes[0].plot([1, 2], [1, 2])
         axes[1].plot([1, 2], [2, 1])
 
-        fr.align_panels(fig, [(0, 0), (0, 1)], mode=fr.AlignmentMode.AXIS_Y)
+        fr.align_panels(fig, [(0, 0), (0, 1)], mode=utils.AlignmentMode.AXIS_Y)
         assert fig is not None
 
 

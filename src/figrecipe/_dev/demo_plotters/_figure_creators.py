@@ -8,6 +8,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 
+from ..._api._panel import panel_label
 from ._registry import REGISTRY
 
 
@@ -63,7 +64,7 @@ def create_all_plots_figure(plt, seed: int = 42) -> Tuple:
     panel_labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" * 2
     for i, ax in enumerate(axes_flat[:n_plots]):
         if i < len(panel_labels):
-            plt.panel_label(ax, panel_labels[i])
+            panel_label(ax, panel_labels[i])
 
     fig.suptitle(f"All {n_plots} Supported Plot Types")
 

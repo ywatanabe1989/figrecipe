@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-01-11
+
+### Added
+- **Graph visualization** - NetworkX graph support with `ax.graph(G)` method
+- **Graph presets** - Built-in styles: `social`, `hierarchy`, `flow`, `minimal`
+- **Node styling** - Size/color mapping from node attributes (e.g., `node_size="degree"`)
+- **Interactive graphs** - Export to interactive HTML via pyvis integration
+- **Label options** - `labels=True`, `labels="attribute"`, or `labels={dict}` for node labels
+
+### Changed
+- **Simplified API** - Reduced public exports from ~50 to 21 items for cleaner interface
+- **Code organization** - Split large modules into focused files for maintainability
+  - `_axes.py` → extracted `_axes_graph.py` (graph visualization)
+  - `_core.py` → extracted `_reconstruct.py`, `_replay_graph.py`
+- **CSV storage** - Always use CSV format for data storage (INLINE_THRESHOLD=0)
+
+### Fixed
+- **Editor reliability** - Improved demo recorder stability
+
 ## [0.9.1] - 2026-01-01
 
 ### Changed

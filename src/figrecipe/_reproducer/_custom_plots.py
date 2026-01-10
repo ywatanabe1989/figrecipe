@@ -28,12 +28,12 @@ def replay_joyplot_call(ax: Axes, call: CallRecord) -> Any:
     """
     from scipy import stats
 
-    from ._core import _reconstruct_kwargs, _reconstruct_value
+    from ._reconstruct import reconstruct_kwargs, reconstruct_value
 
     # Reconstruct args
     arrays = []
     for arg_data in call.args:
-        value = _reconstruct_value(arg_data)
+        value = reconstruct_value(arg_data)
         if isinstance(value, list):
             # Could be a list of arrays
             arrays = [np.asarray(arr) for arr in value]
@@ -44,7 +44,7 @@ def replay_joyplot_call(ax: Axes, call: CallRecord) -> Any:
         return None
 
     # Get kwargs
-    kwargs = _reconstruct_kwargs(call.kwargs)
+    kwargs = reconstruct_kwargs(call.kwargs)
     overlap = kwargs.get("overlap", 0.5)
     fill_alpha = kwargs.get("fill_alpha", 0.7)
     line_alpha = kwargs.get("line_alpha", 1.0)
@@ -153,12 +153,12 @@ def replay_swarmplot_call(ax: Axes, call: CallRecord) -> List[Any]:
     list
         List of PathCollection objects.
     """
-    from ._core import _reconstruct_kwargs, _reconstruct_value
+    from ._reconstruct import reconstruct_kwargs, reconstruct_value
 
     # Reconstruct args
     data = []
     for arg_data in call.args:
-        value = _reconstruct_value(arg_data)
+        value = reconstruct_value(arg_data)
         if isinstance(value, list):
             # Could be a list of arrays
             data = [np.asarray(arr) for arr in value]
@@ -169,7 +169,7 @@ def replay_swarmplot_call(ax: Axes, call: CallRecord) -> List[Any]:
         return []
 
     # Get kwargs
-    kwargs = _reconstruct_kwargs(call.kwargs)
+    kwargs = reconstruct_kwargs(call.kwargs)
     positions = kwargs.get("positions")
     size = kwargs.get("size", 0.8)
     alpha = kwargs.get("alpha", 0.7)

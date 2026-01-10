@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Timestamp: "2026-01-04 00:51:59 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/examples/movies/01_enable_dark_mode.py
+
 """Demo: Toggle Dark Mode
 
 Shows how to enable dark mode in the figrecipe editor.
@@ -29,8 +32,10 @@ class DarkModeDemo(DemoRecorder):
         """Execute demo actions."""
         # Ensure we start from light mode
         dark_toggle = page.locator("#dark-mode-toggle")
-        is_checked = await dark_toggle.is_checked()
-        if is_checked:
+        current_theme = await page.evaluate(
+            "document.documentElement.getAttribute('data-theme')"
+        )
+        if current_theme == "dark":
             await dark_toggle.click()
             await self.wait(0.5)
 
@@ -65,13 +70,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Run in headless mode",
     )
-    parser.add_argument(
-        "--no-headless",
-        dest="headless",
-        action="store_false",
-        help="Run with visible browser",
-    )
-    parser.set_defaults(headless=True)
+    parser.set_defaults(headless=False)
     args = parser.parse_args()
 
     demo = DarkModeDemo(url=args.url, headless=args.headless)

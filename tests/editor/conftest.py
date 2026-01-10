@@ -69,19 +69,34 @@ fr.edit('{self.recipe_path}', port={self.port}, open_browser=False)
             cwd=Path(__file__).parent.parent.parent,
         )
 
-        max_wait = 10
+        # Allow time for Flask + matplotlib initialization
+        max_wait = 30
+        poll_interval = 0.5
         start_time = time.time()
+
         while time.time() - start_time < max_wait:
+            # Check if process died
+            if self.process.poll() is not None:
+                stdout, stderr = self.process.communicate()
+                raise RuntimeError(
+                    f"Editor server process exited prematurely.\n"
+                    f"stderr: {stderr.decode()[:500]}"
+                )
+
             try:
                 import urllib.request
 
-                urllib.request.urlopen(self.url, timeout=1)
+                urllib.request.urlopen(self.url, timeout=2)
                 break
             except Exception:
-                time.sleep(0.2)
+                time.sleep(poll_interval)
         else:
             self.process.terminate()
-            raise RuntimeError(f"Editor server failed to start on port {self.port}")
+            stdout, stderr = self.process.communicate(timeout=2)
+            raise RuntimeError(
+                f"Editor server failed to start on port {self.port} "
+                f"after {max_wait}s.\nstderr: {stderr.decode()[:500]}"
+            )
 
         return self
 

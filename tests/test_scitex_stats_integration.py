@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import figrecipe as fr
+from figrecipe import utils
 from figrecipe._integrations._scitex_stats import (
     _convert_flat_format,
     _convert_nested_format,
@@ -218,10 +219,10 @@ class TestScitexStatsAvailable:
     """Test availability flag."""
 
     def test_flag_exists(self):
-        assert hasattr(fr, "SCITEX_STATS_AVAILABLE")
+        assert hasattr(utils, "SCITEX_STATS_AVAILABLE")
         # Will be True or False depending on installation
-        assert isinstance(fr.SCITEX_STATS_AVAILABLE, bool)
+        assert isinstance(utils.SCITEX_STATS_AVAILABLE, bool)
 
     def test_functions_available(self):
-        assert hasattr(fr, "from_scitex_stats")
-        assert hasattr(fr, "annotate_from_stats")
+        assert hasattr(utils, "from_scitex_stats")
+        assert hasattr(utils, "annotate_from_stats")

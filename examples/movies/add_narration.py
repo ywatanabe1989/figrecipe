@@ -16,10 +16,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from figrecipe._dev.browser import add_narration_to_video, extract_captions_from_script
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-OUTPUT_DIR = PROJECT_ROOT / "examples/demo_movie/outputs"
-DEMO_DIR = PROJECT_ROOT / "examples/demo_movie"
+OUTPUT_DIR = PROJECT_ROOT / "examples/movie/outputs"
+DEMO_DIR = PROJECT_ROOT / "examples/movie"
 BGM_PATH = PROJECT_ROOT / "docs/bgm/smile.mp3"
-TTS_CACHE = PROJECT_ROOT / "examples/demo_movie/tts_cache"
+TTS_CACHE = PROJECT_ROOT / "examples/movie/tts_cache"
 
 # Demo script registry
 DEMO_SCRIPTS = {

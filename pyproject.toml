@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "figrecipe"
-version = "0.9.1"
+version = "0.10.0"
 description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
@@ -73,6 +73,13 @@ demo = [
     "playwright>=1.40.0",
     "pytesseract>=0.3.0",
 ]
+graph = [
+    "networkx>=3.0",
+]
+graph-interactive = [
+    "networkx>=3.0",
+    "pyvis>=0.3",
+]
 all = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
@@ -83,6 +90,8 @@ all = [
     "pywebview>=4.0.0",
     "playwright>=1.40.0",
     "pytesseract>=0.3.0",
+    "networkx>=3.0",
+    "pyvis>=0.3",
 ]
 
 [project.scripts]

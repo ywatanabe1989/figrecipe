@@ -317,6 +317,97 @@ class RecordingAxes:
     def get_title(self):
         return self._ax.get_title()
 
+    def graph(
+        self,
+        G,
+        *,
+        preset: Optional[str] = None,
+        layout: Optional[str] = None,
+        pos=None,
+        seed: int = 42,
+        # Node styling
+        node_size=None,
+        node_color=None,
+        node_alpha: Optional[float] = None,
+        node_shape: Optional[str] = None,
+        node_edgecolors: Optional[str] = None,
+        node_linewidths: Optional[float] = None,
+        # Edge styling
+        edge_width=None,
+        edge_color=None,
+        edge_alpha: Optional[float] = None,
+        edge_style: Optional[str] = None,
+        arrows=None,
+        arrowsize: Optional[float] = None,
+        arrowstyle: Optional[str] = None,
+        connectionstyle: Optional[str] = None,
+        # Labels
+        labels=None,
+        font_size: Optional[float] = None,
+        font_color: Optional[str] = None,
+        font_weight: Optional[str] = None,
+        font_family: Optional[str] = None,
+        # Colormap
+        colormap: Optional[str] = None,
+        vmin=None,
+        vmax=None,
+        # Recording
+        id: Optional[str] = None,
+        track: bool = True,
+        **layout_kwargs,
+    ):
+        """Draw a NetworkX graph with publication-quality styling.
+
+        See _axes_graph.graph_plot for full parameter documentation.
+        """
+        try:
+            from ._axes_graph import graph_plot
+        except ImportError as e:
+            if "networkx" in str(e):
+                raise ImportError(
+                    "Graph visualization requires networkx. Install with:\n"
+                    "  pip install figrecipe[graph]\n"
+                    "or:\n"
+                    "  pip install networkx"
+                ) from None
+            raise
+
+        return graph_plot(
+            self._ax,
+            G,
+            self._recorder,
+            self._position,
+            self._track and track,
+            id,
+            preset=preset,
+            pos=pos,
+            seed=seed,
+            layout=layout,
+            node_size=node_size,
+            node_color=node_color,
+            node_alpha=node_alpha,
+            node_shape=node_shape,
+            node_edgecolors=node_edgecolors,
+            node_linewidths=node_linewidths,
+            edge_width=edge_width,
+            edge_color=edge_color,
+            edge_alpha=edge_alpha,
+            edge_style=edge_style,
+            arrows=arrows,
+            arrowsize=arrowsize,
+            arrowstyle=arrowstyle,
+            connectionstyle=connectionstyle,
+            labels=labels,
+            font_size=font_size,
+            font_color=font_color,
+            font_weight=font_weight,
+            font_family=font_family,
+            colormap=colormap,
+            vmin=vmin,
+            vmax=vmax,
+            **layout_kwargs,
+        )
+
     def joyplot(
         self,
         arrays,

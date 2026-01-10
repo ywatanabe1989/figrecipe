@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-24 07:32:26 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/demo_editor.py
+# Timestamp: "2026-01-04 00:15:05 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/examples/editor.py
 
 
 """Demo script for GUI editor with diverse plot types (subset).
 
-For ALL plot types, see demo_editor_full.py
+For ALL plot types, see editor_full.py
 
 Usage:
-    python demo_editor.py [PORT]
-    python demo_editor.py 5051
+    python editor.py [PORT]
+    python editor.py 5051
 """
 
 import matplotlib
 
 matplotlib.use("Agg")
 
-import os
 import subprocess
 import sys
 import time
@@ -30,7 +29,9 @@ sys.path.insert(0, "src")
 import figrecipe as fr
 from figrecipe._dev.demo_plotters import get_representative_plots
 
-output_path = Path(os.path.dirname(__file__))
+# output_path = Path(os.path.dirname(__file__))
+output_dir = Path(__file__.replace(".py", "_out"))
+output_dir.mkdir()
 
 # Use representative plots from each category (one per category)
 SELECTED_PLOTTERS = get_representative_plots()
@@ -126,10 +127,12 @@ def main(port=5050):
 
     fig = plot_figure()
 
-    # validate_error_level="warning" needed as some plots have non-deterministic elements
-    fr.save(fig, output_path / "demo_editor.png", validate_error_level="warning")
+    output_path = output_dir / "editor.png"
 
-    fig, axes = fr.reproduce(output_path / "demo_editor.yaml")
+    # validate_error_level="warning" needed as some plots have non-deterministic elements
+    fr.save(fig, output_path, validate_error_level="warning")
+
+    fig, axes = fr.reproduce(output_path)
 
     print(f"Launching editor on port {port}...")
     fr.edit(fig, host="0.0.0.0", port=port)  # 0.0.0.0 for WSL2-to-Windows access
