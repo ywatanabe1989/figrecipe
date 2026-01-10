@@ -20,7 +20,7 @@ import click
 )
 def fonts(check: Optional[str], search: Optional[str]) -> None:
     """List or check available fonts."""
-    from .. import check_font, list_available_fonts
+    from ..styles._style_applier import check_font, list_available_fonts
 
     if check:
         available = check_font(check)
