@@ -66,6 +66,17 @@ from ._composition import (
     distribute_panels,
     smart_align,
 )
+
+# Graph visualization
+from ._graph_presets import (
+    get_preset as get_graph_preset,
+)
+from ._graph_presets import (
+    list_presets as list_graph_presets,
+)
+from ._graph_presets import (
+    register_preset as register_graph_preset,
+)
 from ._recorder import FigureRecord as _FigureRecord
 from ._reproducer import get_recipe_info as _get_recipe_info
 from ._reproducer import reproduce as _reproduce
@@ -104,6 +115,10 @@ __all__ = [
     "align_panels",
     "distribute_panels",
     "smart_align",
+    # Graph visualization
+    "get_graph_preset",
+    "list_graph_presets",
+    "register_graph_preset",
     # Extensions
     "sns",
     "enable_svg",

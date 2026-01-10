@@ -325,6 +325,10 @@ def _replay_call(
         x2 = kwargs.pop("x2", 1)
         return draw_stat_annotation(ax, x1, x2, **kwargs)
 
+    # Handle graph specially (requires networkx)
+    if method_name == "graph":
+        return _replay_graph_call(ax, call)
+
     method = getattr(ax, method_name, None)
 
     if method is None:
@@ -448,6 +452,56 @@ def _reconstruct_value(
             return np.array(data)
 
     return data
+
+
+def _replay_graph_call(ax: Axes, call: CallRecord) -> Any:
+    """Replay a graph call.
+
+    Parameters
+    ----------
+    ax : Axes
+        The matplotlib axes.
+    call : CallRecord
+        The graph call record.
+
+    Returns
+    -------
+    dict
+        Result from draw_graph containing positions and collections.
+    """
+    try:
+        from .._graph import draw_graph, record_to_graph
+    except ImportError:
+        import warnings
+
+        warnings.warn(
+            "networkx is required to reproduce graph plots. "
+            "Install with: pip install figrecipe[graph]"
+        )
+        return None
+
+    kwargs = call.kwargs.copy()
+    graph_data = kwargs.pop("graph_data", None)
+
+    if graph_data is None:
+        import warnings
+
+        warnings.warn("Graph call missing graph_data")
+        return None
+
+    # Reconstruct graph from serialized data
+    G, pos, style = record_to_graph(graph_data)
+
+    # Merge stored style with any explicit kwargs
+    draw_kwargs = style.copy()
+    draw_kwargs.update(kwargs)
+
+    # Use stored positions if available
+    if pos:
+        draw_kwargs["pos"] = pos
+
+    # Draw the graph
+    return draw_graph(ax, G, **draw_kwargs)
 
 
 def get_recipe_info(path: Union[str, Path]) -> Dict[str, Any]:
