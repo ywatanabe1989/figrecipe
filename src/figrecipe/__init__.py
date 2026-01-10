@@ -78,6 +78,17 @@ from ._composition import (
     toggle_panel,
 )
 
+# Graph visualization
+from ._graph_presets import (
+    get_preset as get_graph_preset,
+)
+from ._graph_presets import (
+    list_presets as list_graph_presets,
+)
+from ._graph_presets import (
+    register_preset as register_graph_preset,
+)
+
 # scitex.stats integration
 from ._integrations import (
     SCITEX_STATS_AVAILABLE,
@@ -100,13 +111,6 @@ from ._utils._units import (
 from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from .styles._style_applier import check_font, list_available_fonts
-
-# Graph visualization
-from ._graph_presets import (
-    get_preset as get_graph_preset,
-    list_presets as list_graph_presets,
-    register_preset as register_graph_preset,
-)
 
 try:
     from importlib.metadata import version as _get_version

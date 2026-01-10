@@ -11,7 +11,7 @@ scitex styling (40mm width, 6pt fonts) and interactive HTML export.
 Supports NetworkX graphs with attribute-based styling for nodes and edges.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 from matplotlib.axes import Axes
@@ -426,7 +426,6 @@ def graph_to_record(
     dict
         Serializable record containing graph data and styling.
     """
-    import networkx as nx
 
     # Validate graph type
     _validate_graph(G)
