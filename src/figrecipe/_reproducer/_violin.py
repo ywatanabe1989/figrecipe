@@ -25,17 +25,16 @@ def replay_violinplot_call(ax: Axes, call: CallRecord) -> Any:
     Any
         Result of the violinplot call.
     """
-    # Import from _core module (will be available after full package setup)
-    from ._core import _reconstruct_kwargs, _reconstruct_value
+    from ._reconstruct import reconstruct_kwargs, reconstruct_value
 
     # Reconstruct args
     args = []
     for arg_data in call.args:
-        value = _reconstruct_value(arg_data)
+        value = reconstruct_value(arg_data)
         args.append(value)
 
     # Get kwargs and reconstruct arrays
-    kwargs = _reconstruct_kwargs(call.kwargs)
+    kwargs = reconstruct_kwargs(call.kwargs)
 
     # Extract inner option (not a matplotlib kwarg)
     inner = kwargs.pop("inner", "box")

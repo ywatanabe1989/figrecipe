@@ -327,7 +327,9 @@ def _replay_call(
 
     # Handle graph specially (requires networkx)
     if method_name == "graph":
-        return _replay_graph_call(ax, call)
+        from ._replay_graph import replay_graph_call
+
+        return replay_graph_call(ax, call)
 
     method = getattr(ax, method_name, None)
 
@@ -336,13 +338,15 @@ def _replay_call(
         return None
 
     # Reconstruct args
+    from ._reconstruct import reconstruct_kwargs, reconstruct_value
+
     args = []
     for arg_data in call.args:
-        value = _reconstruct_value(arg_data, result_cache)
+        value = reconstruct_value(arg_data, result_cache)
         args.append(value)
 
     # Get kwargs and reconstruct arrays
-    kwargs = _reconstruct_kwargs(call.kwargs)
+    kwargs = reconstruct_kwargs(call.kwargs)
 
     # Handle special transform markers
     if "transform" in kwargs:
@@ -364,144 +368,6 @@ def _replay_call(
 
         warnings.warn(f"Failed to replay {method_name}: {e}")
         return None
-
-
-def _reconstruct_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
-    """Reconstruct kwargs, converting 2D lists back to numpy arrays.
-
-    Parameters
-    ----------
-    kwargs : dict
-        Raw kwargs from call record.
-
-    Returns
-    -------
-    dict
-        Kwargs with arrays properly reconstructed.
-    """
-    result = {}
-    for key, value in kwargs.items():
-        # Handle 'colors' parameter specially - must be a list for pie/bar/etc.
-        # A single color string like 'red' would be interpreted as ['r','e','d']
-        if key == "colors" and isinstance(value, str):
-            result[key] = [value]
-        elif isinstance(value, list) and len(value) > 0:
-            # Check if it's a 2D list (list of lists) - should be numpy array
-            if isinstance(value[0], list):
-                result[key] = np.array(value)
-            else:
-                # 1D list - could be array or just list, try to preserve
-                result[key] = value
-        else:
-            result[key] = value
-    return result
-
-
-def _reconstruct_value(
-    arg_data: Dict[str, Any], result_cache: Optional[Dict[str, Any]] = None
-) -> Any:
-    """Reconstruct a value from serialized arg data.
-
-    Parameters
-    ----------
-    arg_data : dict
-        Serialized argument data.
-    result_cache : dict, optional
-        Cache mapping call_id -> result for resolving references.
-
-    Returns
-    -------
-    Any
-        Reconstructed value.
-    """
-    if result_cache is None:
-        result_cache = {}
-
-    # Check if we have a pre-loaded array
-    if "_loaded_array" in arg_data:
-        return arg_data["_loaded_array"]
-
-    data = arg_data.get("data")
-
-    # Check if it's a reference to another call's result (e.g., ContourSet for clabel)
-    if isinstance(data, dict) and "__ref__" in data:
-        ref_id = data["__ref__"]
-        if ref_id in result_cache:
-            return result_cache[ref_id]
-        else:
-            import warnings
-
-            warnings.warn(f"Could not resolve reference to {ref_id}")
-            return None
-
-    # Check if it's a list of arrays (e.g., boxplot, violinplot)
-    if arg_data.get("_is_array_list") and isinstance(data, list):
-        dtype = arg_data.get("dtype")
-        # Convert each inner list to numpy array
-        return [
-            np.array(arr_data, dtype=dtype if isinstance(dtype, str) else None)
-            for arr_data in data
-        ]
-
-    # If data is a list, convert to numpy array
-    if isinstance(data, list):
-        dtype = arg_data.get("dtype")
-        try:
-            return np.array(data, dtype=dtype if dtype else None)
-        except (TypeError, ValueError):
-            return np.array(data)
-
-    return data
-
-
-def _replay_graph_call(ax: Axes, call: CallRecord) -> Any:
-    """Replay a graph call.
-
-    Parameters
-    ----------
-    ax : Axes
-        The matplotlib axes.
-    call : CallRecord
-        The graph call record.
-
-    Returns
-    -------
-    dict
-        Result from draw_graph containing positions and collections.
-    """
-    try:
-        from .._graph import draw_graph, record_to_graph
-    except ImportError:
-        import warnings
-
-        warnings.warn(
-            "networkx is required to reproduce graph plots. "
-            "Install with: pip install figrecipe[graph]"
-        )
-        return None
-
-    kwargs = call.kwargs.copy()
-    graph_data = kwargs.pop("graph_data", None)
-
-    if graph_data is None:
-        import warnings
-
-        warnings.warn("Graph call missing graph_data")
-        return None
-
-    # Reconstruct graph from serialized data
-    G, pos, style = record_to_graph(graph_data)
-
-    # Merge stored style with any explicit kwargs
-    draw_kwargs = style.copy()
-    draw_kwargs.update(kwargs)
-
-    # Use stored positions if available
-    if pos:
-        draw_kwargs["pos"] = pos
-
-    # Draw the graph
-    return draw_graph(ax, G, **draw_kwargs)
 
 
 def get_recipe_info(path: Union[str, Path]) -> Dict[str, Any]:

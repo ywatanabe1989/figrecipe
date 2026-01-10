@@ -107,12 +107,12 @@ class TestColorNormalization:
 
     def test_mixed_format_colors_handled(self):
         """Test that mixed format colors are handled correctly in reproduce."""
-        from figrecipe._reproducer._core import _reconstruct_kwargs
+        from figrecipe._reproducer._reconstruct import reconstruct_kwargs
 
         # Simulate mixed format that could come from frontend
         # (string name + hex values)
         kwargs = {"colors": ["blue", "#ff4632", "#14b414", "#e6a014"]}
-        result = _reconstruct_kwargs(kwargs)
+        result = reconstruct_kwargs(kwargs)
 
         # All should remain as strings (no flattening)
         assert isinstance(result["colors"], list)
