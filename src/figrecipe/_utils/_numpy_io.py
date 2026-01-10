@@ -73,7 +73,7 @@ def save_array(
 
 
 def save_array_csv(data: np.ndarray, path: Union[str, Path]) -> Path:
-    """Save numpy array to CSV file with dtype header.
+    """Save numpy array to CSV file.
 
     Parameters
     ----------
@@ -86,15 +86,18 @@ def save_array_csv(data: np.ndarray, path: Union[str, Path]) -> Path:
     -------
     Path
         Path to saved file.
+
+    Notes
+    -----
+    Dtype is stored in the YAML recipe file, not in CSV.
+    CSV contains only the raw data values for clean import into other tools.
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
-        # Write header with dtype info
-        writer.writerow([f"# dtype: {data.dtype}"])
-        # Write data
+        # Write data only (dtype stored in YAML)
         if data.ndim == 1:
             for val in data:
                 writer.writerow([val])
@@ -105,30 +108,38 @@ def save_array_csv(data: np.ndarray, path: Union[str, Path]) -> Path:
     return path
 
 
-def load_array_csv(path: Union[str, Path]) -> np.ndarray:
+def load_array_csv(path: Union[str, Path], dtype=None) -> np.ndarray:
     """Load numpy array from CSV file.
 
     Parameters
     ----------
     path : str or Path
         Path to CSV file.
+    dtype : dtype, optional
+        Expected dtype (from YAML recipe). If None, infers from data.
 
     Returns
     -------
     np.ndarray
         Loaded array.
+
+    Notes
+    -----
+    Supports both new format (pure data) and legacy format (with dtype header).
     """
     path = Path(path)
-    dtype = None
     data_rows = []
 
     with open(path, "r", newline="") as f:
         reader = csv.reader(f)
         for row in reader:
+            # Skip legacy dtype header for backwards compatibility
             if row and row[0].startswith("# dtype:"):
-                dtype_str = row[0].replace("# dtype:", "").strip()
-                dtype = np.dtype(dtype_str)
-            else:
+                if dtype is None:
+                    dtype_str = row[0].replace("# dtype:", "").strip()
+                    dtype = np.dtype(dtype_str)
+                continue
+            if row:  # Skip empty rows
                 data_rows.append(row)
 
     # Parse data
@@ -140,6 +151,10 @@ def load_array_csv(path: Union[str, Path]) -> np.ndarray:
         data = [row[0] for row in data_rows]
     else:
         data = data_rows
+
+    # Infer dtype if not provided
+    if dtype is None:
+        dtype = np.float64  # Default for numeric data
 
     return np.array(data, dtype=dtype)
 
