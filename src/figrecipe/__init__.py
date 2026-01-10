@@ -101,6 +101,13 @@ from ._validator import ValidationResult
 from ._wrappers import RecordingAxes, RecordingFigure
 from .styles._style_applier import check_font, list_available_fonts
 
+# Graph visualization
+from ._graph_presets import (
+    get_preset as get_graph_preset,
+    list_presets as list_graph_presets,
+    register_preset as register_graph_preset,
+)
+
 try:
     from importlib.metadata import version as _get_version
 
@@ -164,6 +171,10 @@ __all__ = [
     "from_scitex_stats",
     "annotate_from_stats",
     "SCITEX_STATS_AVAILABLE",
+    # Graph visualization
+    "get_graph_preset",
+    "list_graph_presets",
+    "register_graph_preset",
     # Version
     "__version__",
 ]
