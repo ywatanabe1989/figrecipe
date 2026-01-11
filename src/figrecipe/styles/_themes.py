@@ -18,9 +18,9 @@ THEME_COLORS = {
         "grid": "#3a3a3a",  # Subtle grid
     },
     "light": {
-        "figure_bg": "none",  # Transparent
-        "axes_bg": "none",  # Transparent
-        "legend_bg": "none",  # Transparent
+        "figure_bg": "white",  # Solid white background
+        "axes_bg": "white",  # Solid white background
+        "legend_bg": "white",  # Solid white background
         "text": "black",
         "spine": "black",
         "tick": "black",
@@ -76,10 +76,11 @@ def apply_theme_colors(
         return str(color).lower() in ("none", "transparent")
 
     # Apply axes background (handle "none"/"transparent" for transparency)
+    # Note: Don't set alpha=0 here - let facecolor handle transparency.
+    # Alpha is controlled at save time via transparent parameter.
     axes_bg = colors.get("axes_bg", "none")
     if is_transparent(axes_bg):
         ax.set_facecolor("none")
-        ax.patch.set_alpha(0)
     else:
         ax.set_facecolor(axes_bg)
 
@@ -89,7 +90,6 @@ def apply_theme_colors(
         fig_bg = colors.get("figure_bg", "none")
         if is_transparent(fig_bg):
             fig.patch.set_facecolor("none")
-            fig.patch.set_alpha(0)
         else:
             fig.patch.set_facecolor(fig_bg)
 

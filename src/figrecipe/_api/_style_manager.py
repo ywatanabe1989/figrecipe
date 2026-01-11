@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 
-def load_style(style="SCITEX", dark=False):
+def load_style(style="SCITEX", dark=False, background=None, **overrides):
     """Load style configuration and apply it globally.
 
     After calling this function, subsequent `subplots()` calls will
@@ -31,6 +31,12 @@ def load_style(style="SCITEX", dark=False):
     dark : bool, optional
         If True, apply dark theme transformation (default: False).
         Equivalent to appending "_DARK" to preset name.
+    background : str, optional
+        Override default background color. E.g., 'white' for opaque figures.
+        Sets theme.light.figure_bg and theme.light.axes_bg.
+    **overrides
+        Additional style overrides as keyword arguments.
+        Use double underscore for nested keys: theme__light__figure_bg='white'
 
     Returns
     -------
@@ -46,14 +52,18 @@ def load_style(style="SCITEX", dark=False):
     >>> fr.load_style()
     >>> fr.load_style("SCITEX")  # explicit
 
+    >>> # Load with white background (override transparent default)
+    >>> fr.load_style("SCITEX", background='white')
+
     >>> # Load dark theme
     >>> fr.load_style("SCITEX_DARK")
     >>> fr.load_style("SCITEX", dark=True)  # equivalent
 
+    >>> # Custom overrides
+    >>> fr.load_style("SCITEX", output__transparent=False)
+
     >>> # Reset to vanilla matplotlib
     >>> fr.load_style(None)    # unload
-    >>> fr.load_style(False)   # unload
-    >>> fr.load_style("MATPLOTLIB")  # explicit vanilla
 
     >>> # Access style values
     >>> style = fr.load_style("SCITEX")
@@ -62,7 +72,40 @@ def load_style(style="SCITEX", dark=False):
     """
     from ..styles import load_style as _load_style
 
-    return _load_style(style, dark=dark)
+    loaded = _load_style(style, dark=dark)
+
+    if loaded is None:
+        return None
+
+    # Apply background override (figure and axes only, not legend)
+    if background is not None:
+        if hasattr(loaded, 'theme') and hasattr(loaded.theme, 'light'):
+            loaded.theme.light.figure_bg = background
+            loaded.theme.light.axes_bg = background
+            # Keep legend transparent for clean look
+        if hasattr(loaded, 'theme') and hasattr(loaded.theme, 'dark'):
+            loaded.theme.dark.figure_bg = background
+            loaded.theme.dark.axes_bg = background
+            # Keep legend transparent for clean look
+        # Also set output.transparent based on background
+        if hasattr(loaded, 'output'):
+            is_transparent = str(background).lower() in ('transparent', 'none')
+            loaded.output.transparent = is_transparent
+
+    # Apply additional overrides (use __ for nested keys)
+    for key, value in overrides.items():
+        parts = key.split('__')
+        obj = loaded
+        for part in parts[:-1]:
+            if hasattr(obj, part):
+                obj = getattr(obj, part)
+            else:
+                break
+        else:
+            if hasattr(obj, parts[-1]):
+                setattr(obj, parts[-1], value)
+
+    return loaded
 
 
 def unload_style():

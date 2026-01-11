@@ -303,6 +303,203 @@ class RecordingFigure:
         """Get the figure caption metadata."""
         return self._recorder.figure_record.caption
 
+    def get_panels_bbox(self) -> Dict[str, Any]:
+        """Get bounding boxes: each panel (axes + title + labels) and unified bbox.
+
+        Panel bbox includes axes frame, title, xlabel, ylabel - but NOT data content
+        that extends beyond the panel (like graph node labels).
+
+        Returns
+        -------
+        dict
+            - 'panels': list of (left, bottom, right, top) for each panel
+            - 'unified': (left, bottom, right, top) combined bbox of all panels
+        """
+        self._fig.canvas.draw()
+        renderer = self._fig.canvas.get_renderer()
+
+        fig_width_px = self._fig.get_figwidth() * self._fig.dpi
+        fig_height_px = self._fig.get_figheight() * self._fig.dpi
+
+        panels = []
+        left_min, bottom_min = None, None
+        right_max, top_max = None, None
+
+        for ax in self._fig.get_axes():
+            try:
+                # Start with axes frame
+                pos = ax.get_position()
+                left, bottom = pos.x0, pos.y0
+                right, top = pos.x1, pos.y1
+
+                # Extend for title
+                title = ax.title
+                if title.get_text():
+                    tb = title.get_window_extent(renderer)
+                    top = max(top, tb.y1 / fig_height_px)
+
+                # Extend for xlabel
+                xlabel = ax.xaxis.label
+                if xlabel.get_text():
+                    xb = xlabel.get_window_extent(renderer)
+                    bottom = min(bottom, xb.y0 / fig_height_px)
+
+                # Extend for ylabel
+                ylabel = ax.yaxis.label
+                if ylabel.get_text():
+                    yb = ylabel.get_window_extent(renderer)
+                    left = min(left, yb.x0 / fig_width_px)
+
+                # Extend for tick labels
+                for tick in ax.xaxis.get_ticklabels():
+                    tb = tick.get_window_extent(renderer)
+                    if tb.width > 0:
+                        bottom = min(bottom, tb.y0 / fig_height_px)
+
+                for tick in ax.yaxis.get_ticklabels():
+                    tb = tick.get_window_extent(renderer)
+                    if tb.width > 0:
+                        left = min(left, tb.x0 / fig_width_px)
+
+                panels.append((left, bottom, right, top))
+
+                if left_min is None or left < left_min:
+                    left_min = left
+                if bottom_min is None or bottom < bottom_min:
+                    bottom_min = bottom
+                if right_max is None or right > right_max:
+                    right_max = right
+                if top_max is None or top > top_max:
+                    top_max = top
+            except Exception:
+                pass
+
+        unified = (left_min, bottom_min, right_max, top_max) if left_min is not None else None
+        return {'panels': panels, 'unified': unified}
+
+    def render_caption(
+        self,
+        caption: Optional[str] = None,
+        fontsize: float = 6,
+        gap_mm: float = 2.0,
+        linespacing: float = 1.2,
+    ) -> "RecordingFigure":
+        """Render caption below the figure, wrapped to panels bbox width.
+
+        Caption is positioned just below the panels with a small gap,
+        and wrapped precisely to match the panels bbox width.
+
+        Parameters
+        ----------
+        caption : str, optional
+            Caption text. If None, uses stored caption from set_caption().
+        fontsize : float
+            Font size in points (default: 6).
+        gap_mm : float
+            Gap between panels and caption in mm (default: 2.0).
+        linespacing : float
+            Line spacing multiplier (default: 1.2).
+
+        Returns
+        -------
+        RecordingFigure
+            Self for method chaining.
+        """
+        text = caption if caption is not None else self.caption
+        if not text:
+            return self
+
+        # Get panels bbox (axes + title + labels, excludes data content like graph nodes)
+        bbox_info = self.get_panels_bbox()
+        unified = bbox_info.get('unified')
+
+        if unified is None:
+            left_frac, bottom_frac, right_frac, top_frac = 0.1, 0.15, 0.9, 0.9
+        else:
+            left_frac, bottom_frac, right_frac, top_frac = unified
+
+        fig_height_inches = self._fig.get_figheight()
+        fig_width_inches = self._fig.get_figwidth()
+        dpi = self._fig.dpi
+
+        # Gap in figure fraction
+        gap_frac = (gap_mm / 25.4) / fig_height_inches
+
+        # Target width in pixels
+        target_width_px = (right_frac - left_frac) * fig_width_inches * dpi
+
+        # Wrap text by measuring actual rendered width
+        from matplotlib.textpath import TextPath
+        from matplotlib.font_manager import FontProperties
+
+        font_props = FontProperties(size=fontsize)
+        words = text.split()
+        lines = []
+        current_line = []
+
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            # Use TextPath for accurate width measurement
+            tp = TextPath((0, 0), test_line, prop=font_props)
+            text_width_pts = tp.get_extents().width
+            # Convert points to pixels (1 point = dpi/72 pixels)
+            text_width_px = text_width_pts * (dpi / 72)
+
+            if text_width_px <= target_width_px or not current_line:
+                current_line.append(word)
+            else:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+
+        if current_line:
+            lines.append(' '.join(current_line))
+
+        wrapped_text = '\n'.join(lines)
+
+        # Position caption
+        y_pos = bottom_frac - gap_frac
+        x_pos = left_frac
+
+        self._fig.text(
+            x_pos, y_pos, wrapped_text,
+            ha='left', va='top', fontsize=fontsize,
+            transform=self._fig.transFigure,
+            linespacing=linespacing,
+        )
+
+        return self
+
+    def set_background(self, color: str = "white") -> "RecordingFigure":
+        """Set figure and axes background color.
+
+        Use this to override theme's transparent background with a solid color.
+        Affects both show() and save() output.
+
+        Parameters
+        ----------
+        color : str
+            Background color (default: "white").
+
+        Returns
+        -------
+        RecordingFigure
+            Self for method chaining.
+
+        Examples
+        --------
+        >>> fig, ax = fr.subplots()
+        >>> fig.set_background('white')  # Solid white background
+        >>> fig.savefig('output.png')    # Will have white background
+        """
+        self._fig.set_facecolor(color)
+        self._fig.patch.set_alpha(1.0)
+        for ax in self._fig.get_axes():
+            ax.set_facecolor(color)
+            ax.patch.set_alpha(1.0)
+        # Mark that user wants opaque output (overrides style's transparent setting)
+        self._explicit_background = color
+        return self
+
     def set_stats(self, stats: Dict[str, Any]) -> "RecordingFigure":
         """Set figure-level statistics metadata (not rendered, stored in recipe).
 
@@ -338,9 +535,12 @@ class RecordingFigure:
         save_recipe: bool = True,
         recipe_format: Literal["csv", "npz", "inline"] = "csv",
         verbose: bool = True,
+        background: Optional[str] = None,
         **kwargs,
     ):
         """Save the figure image and optionally the recipe.
+
+        Delegates to fr.save() for consistent behavior.
 
         Parameters
         ----------
@@ -348,54 +548,44 @@ class RecordingFigure:
             Output path for the image file.
         save_recipe : bool
             If True (default), also save a YAML recipe alongside the image.
-            Recipe will be saved with same name but .yaml extension.
         recipe_format : str
             Format for data in recipe: 'csv' (default), 'npz', or 'inline'.
         verbose : bool
             If True (default), print save status.
+        background : str, optional
+            Background color (e.g., 'white'). If None, uses set_background()
+            value or style default. Use 'transparent' for transparent.
         **kwargs
-            Passed to matplotlib's savefig().
+            Passed to underlying save function (dpi, etc.).
 
         Returns
         -------
         Path or tuple
             If save_recipe=False: image path.
             If save_recipe=True: (image_path, recipe_path) tuple.
-
-        Examples
-        --------
-        >>> fig, ax = ps.subplots()
-        >>> ax.plot(x, y, id='data')
-        >>> fig.savefig('figure.png')  # Saves both figure.png and figure.yaml
-        >>> fig.savefig('figure.png', save_recipe=False)  # Image only
         """
-        # Finalize ticks and special plots before saving
-        from ..styles._style_applier import finalize_special_plots, finalize_ticks
-        from ..styles._style_loader import get_current_style_dict
-
-        style_dict = get_current_style_dict()
-        for ax in self._fig.get_axes():
-            finalize_ticks(ax)
-            finalize_special_plots(ax, style_dict)
-
-        # Handle file-like objects (BytesIO, etc.) - just pass through
+        # Handle file-like objects (BytesIO, etc.) - just pass through to matplotlib
         if hasattr(fname, "write"):
             self._fig.savefig(fname, **kwargs)
             return fname
 
-        fname = Path(fname)
-        self._fig.savefig(fname, **kwargs)
+        # Delegate to the unified save function
+        from .._api._save import save_figure
+
+        image_path, yaml_path, _ = save_figure(
+            fig=self,
+            path=fname,
+            include_data=save_recipe,
+            data_format=recipe_format,
+            validate=False,  # savefig doesn't validate by default
+            verbose=verbose,
+            background=background,
+            **kwargs,
+        )
 
         if save_recipe:
-            recipe_path = fname.with_suffix(".yaml")
-            self.save_recipe(recipe_path, include_data=True, data_format=recipe_format)
-            if verbose:
-                print(f"Saved: {fname} + {recipe_path}")
-            return fname, recipe_path
-
-        if verbose:
-            print(f"Saved: {fname}")
-        return fname
+            return image_path, yaml_path
+        return image_path
 
     def save_recipe(
         self,

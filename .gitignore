@@ -121,3 +121,9 @@ examples/*/outputs_*/
 /feature-editor-improvements
 # Claude worktree symlink
 /feature/csv-format-option
+# Claude worktree symlink
+/feature-graph-support
+# Claude worktree symlink
+/refactor-minimize-exposed-apis
+# Claude worktree symlink
+/refactor-make-delegation

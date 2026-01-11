@@ -223,6 +223,7 @@ def save(
     verbose: bool = True,
     dpi: _Optional[int] = None,
     image_format: _Optional[str] = None,
+    background: _Optional[str] = None,
 ):
     """Save a figure as image and recipe.
 
@@ -257,6 +258,10 @@ def save(
         DPI for image output.
     image_format : str, optional
         Image format when path is YAML.
+    background : str, optional
+        Background color (e.g., 'white', '#ffffff').
+        If None, uses fig.set_background() value or style default.
+        Use 'transparent' for transparent background.
 
     Returns
     -------
@@ -277,6 +282,7 @@ def save(
         verbose=verbose,
         dpi=dpi,
         image_format=image_format,
+        background=background,
     )
 
 

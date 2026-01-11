@@ -87,6 +87,9 @@ def to_subplots_kwargs(style: Optional["DotDict"] = None) -> Dict[str, Any]:
         # Imshow (imshow.* in YAML)
         "imshow_show_axes": style.get("imshow", {}).get("show_axes", False),
         "imshow_show_labels": style.get("imshow", {}).get("show_labels", False),
+        # Legend (legend.* in YAML)
+        "legend_frameon": style.get("legend", {}).get("frameon", True),
+        "legend_loc": style.get("legend", {}).get("loc", "best"),
         # Fonts (fonts.* in YAML)
         "fonts_family": style.fonts.family,
         "fonts_axis_label_pt": style.fonts.axis_label_pt,

@@ -305,11 +305,14 @@ def create_subplots(
     # Record constrained_layout setting for reproduction
     fig.record.constrained_layout = kwargs.get("constrained_layout", False)
 
-    # Store mm_layout metadata on figure for serialization
+    # Store mm_layout metadata on figure for serialization and auto-crop
+    # Always store _mm_layout (needed for crop margins), but only apply
+    # layout adjustments when not using constrained_layout
     use_constrained = kwargs.get("constrained_layout", False)
-    if mm_layout is not None and not use_constrained:
+    if mm_layout is not None:
         fig._mm_layout = mm_layout
-        _apply_mm_layout_to_figure(fig, mm_layout, nrows, ncols)
+        if not use_constrained:
+            _apply_mm_layout_to_figure(fig, mm_layout, nrows, ncols)
 
     # Apply styling using helper
     _apply_style_to_axes(fig, axes, nrows, ncols, style, apply_style_mm, global_style)

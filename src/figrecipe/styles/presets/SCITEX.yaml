@@ -129,7 +129,7 @@ behavior:
   hide_top_spine: true
   hide_right_spine: true
   grid: false
-  constrained_layout: true  # Auto-fits content; spacing controls disabled
+  constrained_layout: false  # Use mm_layout for precise axes sizing + auto-crop
   panel_labels: true        # Auto-add A, B, C labels to multi-panel figures
 
 theme:

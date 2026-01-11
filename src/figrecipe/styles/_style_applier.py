@@ -170,9 +170,14 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     ax.set_title(ax.get_title(), fontsize=title_fs, pad=title_pad_pt)
     ax.title.set_fontfamily(font_family)
 
-    # Set legend font size and background via rcParams
+    # Set legend font size and frame settings via rcParams
     mpl.rcParams["legend.fontsize"] = legend_fs
     mpl.rcParams["legend.title_fontsize"] = legend_fs
+
+    # Check if legend frame should be disabled (from style)
+    legend_frameon = style.get("legend_frameon", None)
+    if legend_frameon is not None:
+        mpl.rcParams["legend.frameon"] = legend_frameon
 
     # Set legend colors from theme
     theme_section = style.get("theme", {})

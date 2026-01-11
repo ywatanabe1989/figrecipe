@@ -166,6 +166,79 @@ def get_save_transparency() -> bool:
     return False
 
 
+def _resolve_background_color(background):
+    """Resolve background color to matplotlib-compatible format.
+
+    Parameters
+    ----------
+    background : str, tuple, or None
+        Background specification:
+        - "transparent" or "none": returns None (transparent)
+        - RGB tuple like (255, 255, 255) or (1.0, 1.0, 1.0)
+        - RGBA tuple like (255, 255, 255, 255)
+        - Color name like "white" (resolved from style if available)
+        - Hex color like "#ffffff"
+
+    Returns
+    -------
+    tuple or None
+        Matplotlib-compatible color tuple (0-1 range), or None for transparent.
+    """
+    if background is None:
+        return None
+
+    # Check for transparent
+    if isinstance(background, str):
+        if background.lower() in ("transparent", "none"):
+            return None
+
+    # If tuple, normalize to 0-1 range
+    if isinstance(background, (tuple, list)):
+        bg = list(background)
+        # Check if values are in 0-255 range (RGB/RGBA integers)
+        if any(v > 1 for v in bg[:3]):
+            bg = [v / 255.0 for v in bg]
+        # Ensure alpha=1.0 if not specified
+        if len(bg) == 3:
+            bg.append(1.0)
+        return tuple(bg)
+
+    # If string color name, try to resolve from style first
+    if isinstance(background, str):
+        from ..styles._style_loader import _STYLE_CACHE
+
+        if _STYLE_CACHE is not None:
+            try:
+                # Look up in style's colors.rgb
+                colors_rgb = getattr(_STYLE_CACHE, "colors", None)
+                if colors_rgb:
+                    rgb_list = getattr(colors_rgb, "rgb", None)
+                    if rgb_list:
+                        for item in rgb_list:
+                            if isinstance(item, dict) and background.lower() in item:
+                                rgb = item[background.lower()]
+                                if isinstance(rgb, (list, tuple)):
+                                    # Normalize to 0-1 range
+                                    if any(v > 1 for v in rgb[:3]):
+                                        rgb = [v / 255.0 for v in rgb]
+                                    if len(rgb) == 3:
+                                        rgb = list(rgb) + [1.0]
+                                    return tuple(rgb)
+            except (AttributeError, TypeError):
+                pass
+
+        # Fall back to matplotlib color parsing
+        import matplotlib.colors as mcolors
+        try:
+            rgba = mcolors.to_rgba(background)
+            return rgba
+        except ValueError:
+            pass
+
+    # Default: return as-is (let matplotlib handle it)
+    return background
+
+
 def _is_bundle_path(path: Path) -> bool:
     """Check if path represents a bundle (directory or ZIP)."""
     suffix = path.suffix.lower()
@@ -253,6 +326,7 @@ def save_figure(
     dpi: Optional[int] = None,
     image_format: Optional[str] = None,
     crop_margin_mm: Optional[float] = None,
+    background: Optional[str] = None,
 ):
     """Core save implementation.
 
@@ -282,9 +356,17 @@ def save_figure(
             "a recording-enabled figure."
         )
 
-    # Get DPI and transparency from style if not specified
+    # Get DPI from style if not specified
     dpi = get_save_dpi(dpi)
-    transparent = get_save_transparency()
+
+    # Resolve background: explicit param > fig.set_background() > style default
+    if background is None:
+        if hasattr(fig, '_explicit_background') and fig._explicit_background:
+            background = fig._explicit_background
+        elif get_save_transparency():
+            background = "transparent"
+        else:
+            background = "white"
 
     # Apply style and finalize tick configuration for all axes
     # Get style for finalization (use globally loaded style, flattened)
@@ -321,8 +403,20 @@ def save_figure(
     # Resolve paths for standard save
     image_path, yaml_path, _ = resolve_save_paths(path, image_format)
 
+    # Resolve background color (supports name, RGB tuple, RGBA tuple, hex)
+    resolved_bg = _resolve_background_color(background)
+
     # Save the image (no bbox_inches to preserve mm layout)
-    fig.fig.savefig(image_path, dpi=dpi, transparent=transparent)
+    if resolved_bg is None:  # transparent
+        fig.fig.savefig(image_path, dpi=dpi, transparent=True)
+    else:
+        # Set background color with alpha=1.0 for opaque output
+        fig.fig.set_facecolor(resolved_bg)
+        fig.fig.patch.set_alpha(1.0)
+        for ax in fig.fig.get_axes():
+            ax.set_facecolor(resolved_bg)
+            ax.patch.set_alpha(1.0)
+        fig.fig.savefig(image_path, dpi=dpi, facecolor=resolved_bg)
 
     # Auto-crop using stored crop margins from mm_layout (or explicit parameter)
     # Only crop raster image formats (not PDF, SVG, EPS)

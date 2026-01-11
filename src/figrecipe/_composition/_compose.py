@@ -69,6 +69,15 @@ def compose(
         target_ax = _get_axes_at(axes, row, col, nrows, ncols)
         _replay_axes_record(target_ax, ax_record, fig.record, row, col)
 
+    # Apply style after replaying (ensures title/label fontsizes are correct)
+    from ..styles._style_applier import apply_style_mm, finalize_ticks
+    from ..styles._style_loader import get_current_style_dict
+
+    style_dict = get_current_style_dict()
+    for ax in fig.fig.get_axes():
+        apply_style_mm(ax, style_dict)
+        finalize_ticks(ax)
+
     return fig, axes
 
 
