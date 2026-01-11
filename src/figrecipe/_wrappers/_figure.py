@@ -423,16 +423,26 @@ class RecordingFigure:
             ):
                 mm_layout = self._mm_layout
                 if "crop_margin_left_mm" in mm_layout:
-                    from .._utils._crop import crop
+                    # Check if constrained_layout is used
+                    use_constrained = self._fig.get_constrained_layout()
 
-                    crop(
-                        fname,
-                        margin_left_mm=mm_layout.get("crop_margin_left_mm", 1),
-                        margin_right_mm=mm_layout.get("crop_margin_right_mm", 1),
-                        margin_top_mm=mm_layout.get("crop_margin_top_mm", 1),
-                        margin_bottom_mm=mm_layout.get("crop_margin_bottom_mm", 1),
-                        output_path=fname,
-                    )
+                    if use_constrained:
+                        # For constrained_layout, use axes-based cropping
+                        from .._api._save import _crop_to_axes_size
+
+                        _crop_to_axes_size(self, fname, mm_layout, dpi)
+                    else:
+                        # Standard content-based cropping
+                        from .._utils._crop import crop
+
+                        crop(
+                            fname,
+                            margin_left_mm=mm_layout.get("crop_margin_left_mm", 1),
+                            margin_right_mm=mm_layout.get("crop_margin_right_mm", 1),
+                            margin_top_mm=mm_layout.get("crop_margin_top_mm", 1),
+                            margin_bottom_mm=mm_layout.get("crop_margin_bottom_mm", 1),
+                            output_path=fname,
+                        )
 
             if verbose:
                 print(f"Saved: {fname}")

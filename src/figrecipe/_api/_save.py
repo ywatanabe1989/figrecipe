@@ -93,6 +93,111 @@ def get_save_dpi(explicit_dpi: Optional[int] = None) -> int:
     return 300
 
 
+def _crop_to_axes_size(
+    fig,
+    image_path: Path,
+    mm_layout: dict,
+    dpi: int,
+) -> Optional[dict]:
+    """Crop image to target size based on axes dimensions and crop margins.
+
+    Used for constrained_layout figures where content-based cropping doesn't work
+    because matplotlib fills the canvas. Instead, crops to center the axes in a
+    target size calculated from axes dimensions + crop margins.
+
+    Parameters
+    ----------
+    fig : RecordingFigure
+        The figure (needed to get axes position)
+    image_path : Path
+        Path to the saved image
+    mm_layout : dict
+        Layout configuration with axes dimensions and crop margins
+    dpi : int
+        Image DPI
+
+    Returns
+    -------
+    dict or None
+        Crop offset dictionary if cropping was performed, None otherwise
+    """
+    from PIL import Image
+
+    from .._utils._crop import mm_to_pixels
+
+    # Get axes dimensions and crop margins from mm_layout
+    axes_w_mm = mm_layout.get("axes_width_mm", 40)
+    axes_h_mm = mm_layout.get("axes_height_mm", 28)
+    margin_left_mm = mm_layout.get("crop_margin_left_mm", 1)
+    margin_right_mm = mm_layout.get("crop_margin_right_mm", 1)
+    margin_top_mm = mm_layout.get("crop_margin_top_mm", 1)
+    margin_bottom_mm = mm_layout.get("crop_margin_bottom_mm", 1)
+
+    # Calculate target final size in pixels
+    target_w_px = mm_to_pixels(axes_w_mm + margin_left_mm + margin_right_mm, dpi)
+    target_h_px = mm_to_pixels(axes_h_mm + margin_top_mm + margin_bottom_mm, dpi)
+
+    # Get first axes position (assumes single axes for simplicity)
+    axes_list = fig.fig.get_axes()
+    if not axes_list:
+        return None
+
+    ax = axes_list[0]
+    bbox = ax.get_position()
+
+    # Open image to get dimensions
+    img = Image.open(image_path)
+    orig_w, orig_h = img.size
+
+    # Calculate axes position in pixels
+    # Note: matplotlib y=0 is bottom, image y=0 is top
+    axes_left_px = int(bbox.x0 * orig_w)
+    axes_top_px = int((1 - bbox.y0 - bbox.height) * orig_h)
+
+    # Calculate margins in pixels (only left/top needed for positioning)
+    margin_left_px = mm_to_pixels(margin_left_mm, dpi)
+    margin_top_px = mm_to_pixels(margin_top_mm, dpi)
+
+    # Calculate crop bounds to center axes in target size
+    # Position crop so axes are at margin offset from edges
+    crop_left = axes_left_px - margin_left_px
+    crop_top = axes_top_px - margin_top_px
+    crop_right = crop_left + target_w_px
+    crop_bottom = crop_top + target_h_px
+
+    # Clamp to image boundaries
+    crop_left = max(0, crop_left)
+    crop_top = max(0, crop_top)
+    crop_right = min(orig_w, crop_right)
+    crop_bottom = min(orig_h, crop_bottom)
+
+    # Crop the image
+    cropped_img = img.crop((crop_left, crop_top, crop_right, crop_bottom))
+
+    # Preserve DPI metadata
+    save_kwargs = {}
+    if "dpi" in img.info:
+        save_kwargs["dpi"] = img.info["dpi"]
+
+    ext = image_path.suffix.lower()
+    if ext == ".png":
+        save_kwargs["compress_level"] = 0
+        save_kwargs["optimize"] = False
+
+    cropped_img.save(image_path, **save_kwargs)
+
+    return {
+        "left": crop_left,
+        "upper": crop_top,
+        "right": crop_right,
+        "lower": crop_bottom,
+        "original_width": orig_w,
+        "original_height": orig_h,
+        "new_width": cropped_img.width,
+        "new_height": cropped_img.height,
+    }
+
+
 def _capture_axes_bboxes(fig, crop_offset: Optional[dict] = None) -> None:
     """Capture bounding boxes of all axes for alignment/snap functionality.
 
@@ -340,17 +445,27 @@ def save_figure(
             # Use per-side crop margins from mm_layout
             mm_layout = fig._mm_layout
             if "crop_margin_left_mm" in mm_layout:
-                from .._utils._crop import crop
+                # Check if constrained_layout is used - need axes-based cropping
+                use_constrained = fig.fig.get_constrained_layout()
 
-                _, crop_offset = crop(
-                    image_path,
-                    margin_left_mm=mm_layout.get("crop_margin_left_mm", 1),
-                    margin_right_mm=mm_layout.get("crop_margin_right_mm", 1),
-                    margin_top_mm=mm_layout.get("crop_margin_top_mm", 1),
-                    margin_bottom_mm=mm_layout.get("crop_margin_bottom_mm", 1),
-                    output_path=image_path,
-                    return_offset=True,
-                )
+                if use_constrained:
+                    # For constrained_layout, crop to target size based on axes
+                    # Content-based cropping doesn't work because matplotlib
+                    # fills the canvas with constrained_layout
+                    crop_offset = _crop_to_axes_size(fig, image_path, mm_layout, dpi)
+                else:
+                    # Standard content-based cropping for mm_layout figures
+                    from .._utils._crop import crop
+
+                    _, crop_offset = crop(
+                        image_path,
+                        margin_left_mm=mm_layout.get("crop_margin_left_mm", 1),
+                        margin_right_mm=mm_layout.get("crop_margin_right_mm", 1),
+                        margin_top_mm=mm_layout.get("crop_margin_top_mm", 1),
+                        margin_bottom_mm=mm_layout.get("crop_margin_bottom_mm", 1),
+                        output_path=image_path,
+                        return_offset=True,
+                    )
 
     # Capture axes bounding boxes (adjusted for crop if cropping occurred)
     _capture_axes_bboxes(fig, crop_offset)
