@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs lint lint-fix format pre-commit demo-gui demo-gui-browser demo-gui-periodic demo-plot-all demo-composition
+.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs lint lint-fix format pre-commit demo-gui demo-plot-all demo-composition
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
@@ -17,8 +17,6 @@ help:
 	@echo "  make format             Format code"
 	@echo "  make pre-commit         Install pre-commit hooks"
 	@echo "  make demo-gui PORT=5050 Launch GUI editor demo"
-	@echo "  make demo-gui-browser   Launch GUI editor and open in browser"
-	@echo "  make demo-gui-periodic  Launch GUI editor with 60s auto-restart"
 	@echo "  make demo-plot-all      Generate all demo plots to examples/demo_all_plots_out/"
 	@echo "  make demo-composition   Compose all plots into single figure"
 
@@ -62,12 +60,6 @@ pre-commit:
 
 demo-gui:
 	@./scripts/maintenance/demo-gui.sh $(PORT)
-
-demo-gui-browser:
-	@./scripts/maintenance/demo-gui-browser.sh $(PORT)
-
-demo-gui-periodic:
-	@./scripts/maintenance/demo-gui-periodic.sh 60 $(PORT)
 
 demo-plot-all:
 	@echo "Generating all demo plots..."
