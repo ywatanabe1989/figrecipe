@@ -189,7 +189,8 @@ class TestCsvFormat:
         axes[1].plot(x, np.cos(x), id="right_plot")
 
         output_path = tmpdir / "multiax.yaml"
-        fr.save(fig, output_path, csv_format="single")
+        # Disable validation - this test only checks CSV format, not reproducibility
+        fr.save(fig, output_path, csv_format="single", validate=False)
 
         import pandas as pd
 

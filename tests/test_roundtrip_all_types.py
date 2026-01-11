@@ -121,9 +121,17 @@ class TestRoundtripAllPlotters:
         # Create original figure
         fig, ax = plotter(fr, rng)
 
-        # Save original image
+        # Apply finalization and save original image
+        # Must use fig.savefig() to apply bar edge styling consistently with reproduce
         original_path = tmpdir / f"{plot_type}_original.png"
-        fig.fig.savefig(original_path, dpi=100, bbox_inches="tight", facecolor="white")
+        fig.savefig(
+            original_path,
+            save_recipe=False,
+            verbose=False,
+            dpi=100,
+            bbox_inches="tight",
+            facecolor="white",
+        )
 
         # Save recipe
         recipe_path = tmpdir / f"{plot_type}.yaml"
@@ -159,9 +167,9 @@ class TestRoundtripAllPlotters:
             )
 
         # Assert low MSE (allowing for minor rendering differences)
-        assert (
-            comparison["mse"] < threshold
-        ), f"{plot_type}: MSE {comparison['mse']:.4f} exceeds threshold {threshold}"
+        assert comparison["mse"] < threshold, (
+            f"{plot_type}: MSE {comparison['mse']:.4f} exceeds threshold {threshold}"
+        )
 
 
 def run_manual_test():
