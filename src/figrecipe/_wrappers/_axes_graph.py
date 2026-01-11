@@ -174,13 +174,31 @@ def _record_graph_call(
 
     final_id = call_id if call_id else recorder._generate_call_id("graph")
 
-    # Build style kwargs for recording (replace callables with marker)
+    # Build style kwargs for recording
+    # Replace callables with computed values from draw_graph result
     record_style = kwargs.copy()
     record_style["seed"] = seed
     record_style["preset"] = preset
-    for key in ["node_size", "node_color", "edge_width", "edge_color"]:
-        if callable(record_style.get(key)):
-            record_style[key] = "custom"
+
+    # Map of kwargs to computed values from result
+    computed_map = {
+        "node_size": "_computed_sizes",
+        "node_color": "_computed_colors",
+        "edge_width": "_computed_edge_widths",
+        "edge_color": "_computed_edge_colors",
+    }
+
+    for kwarg_key, computed_key in computed_map.items():
+        if callable(record_style.get(kwarg_key)):
+            computed = result.get(computed_key)
+            if computed is not None:
+                # Convert to list for YAML serialization
+                if hasattr(computed, "tolist"):
+                    record_style[kwarg_key] = computed.tolist()
+                elif isinstance(computed, (list, tuple)):
+                    record_style[kwarg_key] = list(computed)
+                else:
+                    record_style[kwarg_key] = computed
 
     # Serialize graph data for recipe
     graph_record = graph_to_record(G, pos=result["pos"], **record_style)

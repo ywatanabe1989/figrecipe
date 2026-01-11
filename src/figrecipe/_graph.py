@@ -112,6 +112,10 @@ def _resolve_node_attr(
     if isinstance(attr, str):
         return [G.nodes[n].get(attr, default) for n in G.nodes()]
 
+    # List/array - pass through directly (used for replay with pre-computed values)
+    if isinstance(attr, (list, tuple)):
+        return list(attr)
+
     # Scalar value
     return [attr] * len(G.nodes())
 
@@ -145,6 +149,10 @@ def _resolve_edge_attr(
 
     if isinstance(attr, str):
         return [G.edges[u, v].get(attr, default) for u, v in G.edges()]
+
+    # List/array - pass through directly (used for replay with pre-computed values)
+    if isinstance(attr, (list, tuple)):
+        return list(attr)
 
     # Scalar value
     return [attr] * len(G.edges())
@@ -394,14 +402,22 @@ def draw_graph(
             ax=ax,
         )
 
-    # Remove axes frame for cleaner look
-    ax.axis("off")
+    # Hide axes elements but keep axes space for consistent figure sizing
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
 
     return {
         "pos": positions,
         "node_collection": node_collection,
         "edge_collection": edge_collection,
         "label_collection": label_collection,
+        # Computed values for serialization
+        "_computed_sizes": sizes,
+        "_computed_colors": colors,
+        "_computed_edge_widths": widths,
+        "_computed_edge_colors": edge_colors,
     }
 
 

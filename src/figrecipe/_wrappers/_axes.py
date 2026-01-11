@@ -96,6 +96,11 @@ class RecordingAxes:
                 record_kwargs = kwargs.copy()
                 if stats is not None:
                     record_kwargs["stats"] = stats
+                # Convert transform to serializable marker before recording
+                if "transform" in record_kwargs:
+                    record_kwargs["transform"] = self._serialize_transform(
+                        record_kwargs["transform"]
+                    )
                 record_call_with_color_capture(
                     self._recorder,
                     self._position,
@@ -111,6 +116,40 @@ class RecordingAxes:
             return result
 
         return wrapper
+
+    def _serialize_transform(self, transform) -> str:
+        """Convert matplotlib transform to serializable marker.
+
+        Parameters
+        ----------
+        transform : matplotlib.transforms.Transform
+            A matplotlib transform object.
+
+        Returns
+        -------
+        str
+            Serializable marker: "axes", "data", or "figure".
+        """
+        if transform is None:
+            return "data"  # Default
+
+        # Compare by identity - most reliable method
+        if transform is self._ax.transAxes:
+            return "axes"
+        if transform is self._ax.transData:
+            return "data"
+        if hasattr(self._ax, "figure") and transform is self._ax.figure.transFigure:
+            return "figure"
+
+        # Fallback to string pattern matching
+        transform_str = str(transform)
+        if "transAxes" in transform_str:
+            return "axes"
+        if "transFigure" in transform_str:
+            return "figure"
+
+        # Default to data coordinates
+        return "data"
 
     def set_caption(self, caption: str) -> "RecordingAxes":
         """Set panel caption metadata (not rendered, stored in recipe).
