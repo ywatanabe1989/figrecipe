@@ -572,6 +572,154 @@ class RecordingAxes:
 
         return artists
 
+    def text(
+        self,
+        x,
+        y,
+        s,
+        *,
+        id: Optional[str] = None,
+        track: bool = True,
+        fontsize=None,
+        **kwargs,
+    ):
+        """Add text to axes with style-aware default fontsize.
+
+        When using a figrecipe style (e.g., SCITEX), the `annotation_pt` font size
+        from the style is used as the default if `fontsize` is not specified.
+
+        Parameters
+        ----------
+        x, y : float
+            Position for text.
+        s : str
+            Text string.
+        fontsize : float, optional
+            Font size in points. If None, uses style's `fonts.annotation_pt`.
+        **kwargs
+            Additional kwargs passed to matplotlib's ax.text().
+
+        Returns
+        -------
+        Text
+            Matplotlib Text artist.
+
+        Examples
+        --------
+        >>> import figrecipe as fr
+        >>> fr.load_style('SCITEX')  # annotation_pt: 6
+        >>> fig, ax = fr.subplots()
+        >>> ax.text(0.05, 0.95, 'r = 0.47')  # Uses 6pt from style
+        >>> ax.text(0.05, 0.85, 'p < 0.01', fontsize=8)  # Overrides to 8pt
+        """
+        from ..styles import get_style
+
+        # Apply annotation_pt from style if fontsize not specified
+        if fontsize is None:
+            style = get_style()
+            if style:
+                fontsize = style.get("fonts", {}).get("annotation_pt", None)
+
+        # Build kwargs with fontsize
+        text_kwargs = kwargs.copy()
+        if fontsize is not None:
+            text_kwargs["fontsize"] = fontsize
+
+        # Call matplotlib's text method
+        result = self._ax.text(x, y, s, **text_kwargs)
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            record_kwargs = text_kwargs.copy()
+            from ._axes_helpers import record_call_with_color_capture
+
+            record_call_with_color_capture(
+                self._recorder,
+                self._position,
+                "text",
+                (x, y, s),
+                record_kwargs,
+                result,
+                id,
+                self._result_refs,
+                self.RESULT_REFERENCING_METHODS,
+                self.RESULT_REFERENCEABLE_METHODS,
+            )
+
+        return result
+
+    def annotate(
+        self,
+        text,
+        xy,
+        *,
+        xytext=None,
+        id: Optional[str] = None,
+        track: bool = True,
+        fontsize=None,
+        **kwargs,
+    ):
+        """Add annotation to axes with style-aware default fontsize.
+
+        When using a figrecipe style (e.g., SCITEX), the `annotation_pt` font size
+        from the style is used as the default if `fontsize` is not specified.
+
+        Parameters
+        ----------
+        text : str
+            Annotation text.
+        xy : tuple
+            Point to annotate.
+        xytext : tuple, optional
+            Position of the text.
+        fontsize : float, optional
+            Font size in points. If None, uses style's `fonts.annotation_pt`.
+        **kwargs
+            Additional kwargs passed to matplotlib's ax.annotate().
+
+        Returns
+        -------
+        Annotation
+            Matplotlib Annotation artist.
+        """
+        from ..styles import get_style
+
+        # Apply annotation_pt from style if fontsize not specified
+        if fontsize is None:
+            style = get_style()
+            if style:
+                fontsize = style.get("fonts", {}).get("annotation_pt", None)
+
+        # Build kwargs with fontsize
+        annotate_kwargs = kwargs.copy()
+        if fontsize is not None:
+            annotate_kwargs["fontsize"] = fontsize
+        if xytext is not None:
+            annotate_kwargs["xytext"] = xytext
+
+        # Call matplotlib's annotate method
+        result = self._ax.annotate(text, xy, **annotate_kwargs)
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            record_kwargs = annotate_kwargs.copy()
+            from ._axes_helpers import record_call_with_color_capture
+
+            record_call_with_color_capture(
+                self._recorder,
+                self._position,
+                "annotate",
+                (text, xy),
+                record_kwargs,
+                result,
+                id,
+                self._result_refs,
+                self.RESULT_REFERENCING_METHODS,
+                self.RESULT_REFERENCEABLE_METHODS,
+            )
+
+        return result
+
 
 class _NoRecordContext:
     """Context manager to temporarily disable recording."""
