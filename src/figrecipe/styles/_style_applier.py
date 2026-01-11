@@ -165,10 +165,10 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         label.set_fontfamily(font_family)
 
     # Set title font, size, and padding
-    ax.title.set_fontfamily(font_family)
-    ax.title.set_fontsize(title_fs)
+    # Note: set_title must include fontsize, as it resets font properties
     title_pad_pt = style.get("title_pad_pt", 4.0)
-    ax.set_title(ax.get_title(), pad=title_pad_pt)
+    ax.set_title(ax.get_title(), fontsize=title_fs, pad=title_pad_pt)
+    ax.title.set_fontfamily(font_family)
 
     # Set legend font size and background via rcParams
     mpl.rcParams["legend.fontsize"] = legend_fs
