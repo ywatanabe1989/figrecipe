@@ -407,12 +407,92 @@ def swarmplot_plot(
     return results
 
 
+def bar_plot(
+    ax: "Axes",
+    args: tuple,
+    kwargs: dict,
+    recorder: "Recorder",
+    position: tuple,
+    track: bool,
+    call_id: Optional[str],
+):
+    """Bar chart with SCITEX error bar styling."""
+    from .._utils._units import mm_to_pt
+    from ..styles import get_style
+
+    # Extract stats before passing to matplotlib (it's metadata only)
+    stats = kwargs.pop("stats", None)
+
+    # Get style settings
+    style = get_style()
+
+    # Apply error bar styling if yerr or xerr is present
+    if style and ("yerr" in kwargs or "xerr" in kwargs):
+        lines_style = style.get("lines", {})
+        errorbar_mm = lines_style.get("errorbar_mm", 0.2)
+        errorbar_cap_mm = lines_style.get("errorbar_cap_mm", 0.8)
+
+        # Convert mm to points
+        elinewidth = mm_to_pt(errorbar_mm)
+        capthick = mm_to_pt(errorbar_mm)
+        capsize = mm_to_pt(errorbar_cap_mm)
+
+        # Merge with existing error_kw if provided
+        error_kw = kwargs.get("error_kw", {})
+        if "elinewidth" not in error_kw:
+            error_kw["elinewidth"] = elinewidth
+        if "capthick" not in error_kw:
+            error_kw["capthick"] = capthick
+        kwargs["error_kw"] = error_kw
+
+        # Set capsize if not already specified
+        if "capsize" not in kwargs:
+            kwargs["capsize"] = capsize
+
+    # Call matplotlib's bar
+    result = ax.bar(*args, **kwargs)
+
+    # Record the call if tracking is enabled
+    if track:
+        from ._axes_helpers import (
+            args_have_fmt_color,
+            extract_color_from_result,
+        )
+
+        recorded_kwargs = kwargs.copy()
+
+        # Add stats back for recording (it's metadata)
+        if stats is not None:
+            recorded_kwargs["stats"] = stats
+
+        # Capture color if not specified
+        if (
+            "color" not in recorded_kwargs
+            and "c" not in recorded_kwargs
+            and not args_have_fmt_color(args)
+        ):
+            actual_color = extract_color_from_result("bar", result)
+            if actual_color is not None:
+                recorded_kwargs["color"] = actual_color
+
+        recorder.record_call(
+            ax_position=position,
+            method_name="bar",
+            args=args,
+            kwargs=recorded_kwargs,
+            call_id=call_id,
+        )
+
+    return result
+
+
 __all__ = [
     "pie_plot",
     "imshow_plot",
     "violinplot_plot",
     "joyplot_plot",
     "swarmplot_plot",
+    "bar_plot",
 ]
 
 # EOF

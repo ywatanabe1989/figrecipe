@@ -69,6 +69,10 @@ class RecordingAxes:
         """
         attr = getattr(self._ax, name)
 
+        # Use custom plotting functions for methods with special styling
+        if callable(attr) and name == "bar":
+            return self._create_bar_wrapper()
+
         # If it's a plotting or decoration method, wrap it
         if callable(attr) and name in (
             self._recorder.PLOTTING_METHODS | self._recorder.DECORATION_METHODS
@@ -109,6 +113,33 @@ class RecordingAxes:
                     self.RESULT_REFERENCEABLE_METHODS,
                 )
             return result
+
+        return wrapper
+
+    def _create_bar_wrapper(self):
+        """Create wrapper for bar() with SCITEX error bar styling."""
+        from ._axes_plots import bar_plot
+
+        def wrapper(
+            *args,
+            id: Optional[str] = None,
+            track: bool = True,
+            stats: Optional[Dict[str, Any]] = None,
+            **kwargs,
+        ):
+            # Pass stats in kwargs - bar_plot will extract it before calling matplotlib
+            if stats is not None:
+                kwargs["stats"] = stats
+
+            return bar_plot(
+                self._ax,
+                args,
+                kwargs,
+                self._recorder,
+                self._position,
+                track=self._track and track,
+                call_id=id,
+            )
 
         return wrapper
 
