@@ -29,7 +29,9 @@ LAYOUTS = {
 }
 
 
-def _get_layout(G, layout: str, pos: Optional[Dict] = None, seed: int = 42, **layout_kwargs):
+def _get_layout(
+    G, layout: str, pos: Optional[Dict] = None, seed: int = 42, **layout_kwargs
+):
     """Compute node positions using specified layout algorithm.
 
     Parameters
@@ -82,9 +84,7 @@ def _get_layout(G, layout: str, pos: Optional[Dict] = None, seed: int = 42, **la
         return nx.spring_layout(G, seed=seed)
 
 
-def _resolve_node_attr(
-    G, attr: Union[str, Callable, Any], default: Any = None
-) -> List:
+def _resolve_node_attr(G, attr: Union[str, Callable, Any], default: Any = None) -> List:
     """Resolve node attribute values from name, callable, or scalar.
 
     Parameters
@@ -112,13 +112,15 @@ def _resolve_node_attr(
     if isinstance(attr, str):
         return [G.nodes[n].get(attr, default) for n in G.nodes()]
 
+    # List/array pass-through (used for replay with pre-computed values)
+    if isinstance(attr, (list, tuple, np.ndarray)):
+        return list(attr)
+
     # Scalar value
     return [attr] * len(G.nodes())
 
 
-def _resolve_edge_attr(
-    G, attr: Union[str, Callable, Any], default: Any = None
-) -> List:
+def _resolve_edge_attr(G, attr: Union[str, Callable, Any], default: Any = None) -> List:
     """Resolve edge attribute values from name, callable, or scalar.
 
     Parameters
@@ -145,6 +147,10 @@ def _resolve_edge_attr(
 
     if isinstance(attr, str):
         return [G.edges[u, v].get(attr, default) for u, v in G.edges()]
+
+    # List/array pass-through (used for replay with pre-computed values)
+    if isinstance(attr, (list, tuple, np.ndarray)):
+        return list(attr)
 
     # Scalar value
     return [attr] * len(G.edges())
@@ -192,7 +198,9 @@ def _normalize_sizes(sizes: List, min_size: float = 20, max_size: float = 300) -
         return [min_size + (max_size - min_size) / 2] * len(sizes)
 
     # Normalize to [min_size, max_size]
-    normalized = min_size + (sizes - sizes_valid.min()) / (sizes_valid.max() - sizes_valid.min()) * (max_size - min_size)
+    normalized = min_size + (sizes - sizes_valid.min()) / (
+        sizes_valid.max() - sizes_valid.min()
+    ) * (max_size - min_size)
     normalized = np.nan_to_num(normalized, nan=min_size)
     return normalized.tolist()
 

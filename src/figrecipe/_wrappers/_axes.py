@@ -603,6 +603,40 @@ class RecordingAxes:
 
         return artists
 
+    def _serialize_transform(self, transform) -> str:
+        """Convert matplotlib transform to serializable marker.
+
+        Parameters
+        ----------
+        transform : matplotlib.transforms.Transform
+            A matplotlib transform object.
+
+        Returns
+        -------
+        str
+            Serializable marker: "axes", "data", or "figure".
+        """
+        if transform is None:
+            return "data"  # Default
+
+        # Compare by identity - most reliable method
+        if transform is self._ax.transAxes:
+            return "axes"
+        if transform is self._ax.transData:
+            return "data"
+        if hasattr(self._ax, "figure") and transform is self._ax.figure.transFigure:
+            return "figure"
+
+        # Fallback to string pattern matching
+        transform_str = str(transform)
+        if "transAxes" in transform_str:
+            return "axes"
+        if "transFigure" in transform_str:
+            return "figure"
+
+        # Default to data coordinates
+        return "data"
+
     def text(
         self,
         x,
@@ -662,6 +696,11 @@ class RecordingAxes:
         # Record the call if tracking is enabled
         if self._track and track:
             record_kwargs = text_kwargs.copy()
+            # Serialize transform for recipe replay
+            if "transform" in record_kwargs:
+                record_kwargs["transform"] = self._serialize_transform(
+                    record_kwargs["transform"]
+                )
             from ._axes_helpers import record_call_with_color_capture
 
             record_call_with_color_capture(
@@ -734,6 +773,19 @@ class RecordingAxes:
         # Record the call if tracking is enabled
         if self._track and track:
             record_kwargs = annotate_kwargs.copy()
+            # Serialize transforms for recipe replay
+            if "textcoords" in record_kwargs:
+                record_kwargs["textcoords"] = (
+                    self._serialize_transform(record_kwargs.get("textcoords"))
+                    if not isinstance(record_kwargs["textcoords"], str)
+                    else record_kwargs["textcoords"]
+                )
+            if "xycoords" in record_kwargs:
+                record_kwargs["xycoords"] = (
+                    self._serialize_transform(record_kwargs.get("xycoords"))
+                    if not isinstance(record_kwargs["xycoords"], str)
+                    else record_kwargs["xycoords"]
+                )
             from ._axes_helpers import record_call_with_color_capture
 
             record_call_with_color_capture(
