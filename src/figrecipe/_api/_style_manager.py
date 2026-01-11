@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 
-def load_style(style="SCITEX", dark=False):
+def load_style(style="SCITEX", dark=False, background=None):
     """Load style configuration and apply it globally.
 
     After calling this function, subsequent `subplots()` calls will
@@ -31,6 +31,10 @@ def load_style(style="SCITEX", dark=False):
     dark : bool, optional
         If True, apply dark theme transformation (default: False).
         Equivalent to appending "_DARK" to preset name.
+    background : str, optional
+        Override default background color. E.g., 'white' for opaque figures.
+        Sets theme.light.figure_bg and theme.light.axes_bg.
+        Use 'transparent' for transparent background.
 
     Returns
     -------
@@ -45,6 +49,9 @@ def load_style(style="SCITEX", dark=False):
     >>> # Load scientific style (default)
     >>> fr.load_style()
     >>> fr.load_style("SCITEX")  # explicit
+
+    >>> # Load with white background (override transparent default)
+    >>> fr.load_style("SCITEX", background='white')
 
     >>> # Load dark theme
     >>> fr.load_style("SCITEX_DARK")
@@ -62,7 +69,24 @@ def load_style(style="SCITEX", dark=False):
     """
     from ..styles import load_style as _load_style
 
-    return _load_style(style, dark=dark)
+    loaded = _load_style(style, dark=dark)
+
+    if loaded is None:
+        return None
+
+    # Apply background override (figure and axes, not legend)
+    if background is not None:
+        theme_key = "dark" if dark else "light"
+        if hasattr(loaded, "theme") and hasattr(loaded.theme, theme_key):
+            theme = getattr(loaded.theme, theme_key)
+            if background == "transparent":
+                theme.figure_bg = "none"
+                theme.axes_bg = "none"
+            else:
+                theme.figure_bg = background
+                theme.axes_bg = background
+
+    return loaded
 
 
 def unload_style():

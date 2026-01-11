@@ -69,6 +69,10 @@ class RecordingAxes:
         """
         attr = getattr(self._ax, name)
 
+        # Use custom plotting functions for methods with special styling
+        if callable(attr) and name == "bar":
+            return self._create_bar_wrapper()
+
         # If it's a plotting or decoration method, wrap it
         if callable(attr) and name in (
             self._recorder.PLOTTING_METHODS | self._recorder.DECORATION_METHODS
@@ -109,6 +113,33 @@ class RecordingAxes:
                     self.RESULT_REFERENCEABLE_METHODS,
                 )
             return result
+
+        return wrapper
+
+    def _create_bar_wrapper(self):
+        """Create wrapper for bar() with SCITEX error bar styling."""
+        from ._axes_plots import bar_plot
+
+        def wrapper(
+            *args,
+            id: Optional[str] = None,
+            track: bool = True,
+            stats: Optional[Dict[str, Any]] = None,
+            **kwargs,
+        ):
+            # Pass stats in kwargs - bar_plot will extract it before calling matplotlib
+            if stats is not None:
+                kwargs["stats"] = stats
+
+            return bar_plot(
+                self._ax,
+                args,
+                kwargs,
+                self._recorder,
+                self._position,
+                track=self._track and track,
+                call_id=id,
+            )
 
         return wrapper
 
@@ -571,6 +602,206 @@ class RecordingAxes:
             ax_record.add_decoration(record)
 
         return artists
+
+    def _serialize_transform(self, transform) -> str:
+        """Convert matplotlib transform to serializable marker.
+
+        Parameters
+        ----------
+        transform : matplotlib.transforms.Transform
+            A matplotlib transform object.
+
+        Returns
+        -------
+        str
+            Serializable marker: "axes", "data", or "figure".
+        """
+        if transform is None:
+            return "data"  # Default
+
+        # Compare by identity - most reliable method
+        if transform is self._ax.transAxes:
+            return "axes"
+        if transform is self._ax.transData:
+            return "data"
+        if hasattr(self._ax, "figure") and transform is self._ax.figure.transFigure:
+            return "figure"
+
+        # Fallback to string pattern matching
+        transform_str = str(transform)
+        if "transAxes" in transform_str:
+            return "axes"
+        if "transFigure" in transform_str:
+            return "figure"
+
+        # Default to data coordinates
+        return "data"
+
+    def text(
+        self,
+        x,
+        y,
+        s,
+        *,
+        id: Optional[str] = None,
+        track: bool = True,
+        fontsize=None,
+        **kwargs,
+    ):
+        """Add text to axes with style-aware default fontsize.
+
+        When using a figrecipe style (e.g., SCITEX), the `annotation_pt` font size
+        from the style is used as the default if `fontsize` is not specified.
+
+        Parameters
+        ----------
+        x, y : float
+            Position for text.
+        s : str
+            Text string.
+        fontsize : float, optional
+            Font size in points. If None, uses style's `fonts.annotation_pt`.
+        **kwargs
+            Additional kwargs passed to matplotlib's ax.text().
+
+        Returns
+        -------
+        Text
+            Matplotlib Text artist.
+
+        Examples
+        --------
+        >>> import figrecipe as fr
+        >>> fr.load_style('SCITEX')  # annotation_pt: 6
+        >>> fig, ax = fr.subplots()
+        >>> ax.text(0.05, 0.95, 'r = 0.47')  # Uses 6pt from style
+        >>> ax.text(0.05, 0.85, 'p < 0.01', fontsize=8)  # Overrides to 8pt
+        """
+        from ..styles import get_style
+
+        # Apply annotation_pt from style if fontsize not specified
+        if fontsize is None:
+            style = get_style()
+            if style:
+                fontsize = style.get("fonts", {}).get("annotation_pt", None)
+
+        # Build kwargs with fontsize
+        text_kwargs = kwargs.copy()
+        if fontsize is not None:
+            text_kwargs["fontsize"] = fontsize
+
+        # Call matplotlib's text method
+        result = self._ax.text(x, y, s, **text_kwargs)
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            record_kwargs = text_kwargs.copy()
+            # Serialize transform for recipe replay
+            if "transform" in record_kwargs:
+                record_kwargs["transform"] = self._serialize_transform(
+                    record_kwargs["transform"]
+                )
+            from ._axes_helpers import record_call_with_color_capture
+
+            record_call_with_color_capture(
+                self._recorder,
+                self._position,
+                "text",
+                (x, y, s),
+                record_kwargs,
+                result,
+                id,
+                self._result_refs,
+                self.RESULT_REFERENCING_METHODS,
+                self.RESULT_REFERENCEABLE_METHODS,
+            )
+
+        return result
+
+    def annotate(
+        self,
+        text,
+        xy,
+        *,
+        xytext=None,
+        id: Optional[str] = None,
+        track: bool = True,
+        fontsize=None,
+        **kwargs,
+    ):
+        """Add annotation to axes with style-aware default fontsize.
+
+        When using a figrecipe style (e.g., SCITEX), the `annotation_pt` font size
+        from the style is used as the default if `fontsize` is not specified.
+
+        Parameters
+        ----------
+        text : str
+            Annotation text.
+        xy : tuple
+            Point to annotate.
+        xytext : tuple, optional
+            Position of the text.
+        fontsize : float, optional
+            Font size in points. If None, uses style's `fonts.annotation_pt`.
+        **kwargs
+            Additional kwargs passed to matplotlib's ax.annotate().
+
+        Returns
+        -------
+        Annotation
+            Matplotlib Annotation artist.
+        """
+        from ..styles import get_style
+
+        # Apply annotation_pt from style if fontsize not specified
+        if fontsize is None:
+            style = get_style()
+            if style:
+                fontsize = style.get("fonts", {}).get("annotation_pt", None)
+
+        # Build kwargs with fontsize
+        annotate_kwargs = kwargs.copy()
+        if fontsize is not None:
+            annotate_kwargs["fontsize"] = fontsize
+        if xytext is not None:
+            annotate_kwargs["xytext"] = xytext
+
+        # Call matplotlib's annotate method
+        result = self._ax.annotate(text, xy, **annotate_kwargs)
+
+        # Record the call if tracking is enabled
+        if self._track and track:
+            record_kwargs = annotate_kwargs.copy()
+            # Serialize transforms for recipe replay
+            if "textcoords" in record_kwargs:
+                record_kwargs["textcoords"] = (
+                    self._serialize_transform(record_kwargs.get("textcoords"))
+                    if not isinstance(record_kwargs["textcoords"], str)
+                    else record_kwargs["textcoords"]
+                )
+            if "xycoords" in record_kwargs:
+                record_kwargs["xycoords"] = (
+                    self._serialize_transform(record_kwargs.get("xycoords"))
+                    if not isinstance(record_kwargs["xycoords"], str)
+                    else record_kwargs["xycoords"]
+                )
+            from ._axes_helpers import record_call_with_color_capture
+
+            record_call_with_color_capture(
+                self._recorder,
+                self._position,
+                "annotate",
+                (text, xy),
+                record_kwargs,
+                result,
+                id,
+                self._result_refs,
+                self.RESULT_REFERENCING_METHODS,
+                self.RESULT_REFERENCEABLE_METHODS,
+            )
+
+        return result
 
 
 class _NoRecordContext:

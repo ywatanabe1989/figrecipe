@@ -87,7 +87,22 @@ PLOT_TEST_DATA = {
     "angle_spectrum": lambda ax: ax.angle_spectrum(np.random.randn(256)),
     "magnitude_spectrum": lambda ax: ax.magnitude_spectrum(np.random.randn(256)),
     "phase_spectrum": lambda ax: ax.phase_spectrum(np.random.randn(256)),
+    "graph": lambda ax: _create_graph(ax),
 }
+
+
+def _create_graph(ax):
+    """Helper to create a simple graph for testing."""
+    try:
+        import networkx as nx
+
+        G = nx.Graph()
+        G.add_edges_from([(0, 1), (1, 2), (2, 0)])
+        return ax.graph(G, layout="spring", seed=42)
+    except ImportError:
+        # If networkx not available, just create a simple scatter as placeholder
+        return ax.scatter([0, 1, 2], [0, 1, 0])
+
 
 # Plot types that don't yet have hitmap element detection
 HITMAP_NOT_IMPLEMENTED = {

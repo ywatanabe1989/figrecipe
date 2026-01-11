@@ -266,6 +266,7 @@ function handlePanelHover(event) {
 }
 
 // Show hover feedback for a panel
+// Uses natural image dimensions since overlay is inside zoom-container (CSS-transformed)
 function showPanelHover(panelIndex, imgRect) {
     if (!panelHoverOverlay) return;
 
@@ -276,9 +277,11 @@ function showPanelHover(panelIndex, imgRect) {
     const pos = panelPositions[axKey];
     if (!pos) return;
 
-    // Convert mm to screen pixels
-    const scaleX = imgRect.width / figSize.width_mm;
-    const scaleY = imgRect.height / figSize.height_mm;
+    // Use natural (unscaled) dimensions - overlays are in container's local coordinate space
+    const img = document.getElementById('preview-image');
+    if (!img || !img.naturalWidth) return;
+    const scaleX = img.naturalWidth / figSize.width_mm;
+    const scaleY = img.naturalHeight / figSize.height_mm;
 
     const left = pos.left * scaleX;
     const top = pos.top * scaleY;
@@ -357,10 +360,15 @@ function handlePanelDragMove(event) {
     }
 }
 
-// Update axis drag overlay (mm to screen pixels)
+// Update axis drag overlay (mm to local container pixels)
+// Uses natural image dimensions since overlay is inside zoom-container (CSS-transformed)
 function updateDragOverlayMm(pos, imgRect) {
     if (!panelDragOverlay || !figSize.width_mm) return;
-    const scaleX = imgRect.width / figSize.width_mm, scaleY = imgRect.height / figSize.height_mm;
+    const img = document.getElementById('preview-image');
+    if (!img || !img.naturalWidth) return;
+    // Use natural (unscaled) dimensions - overlays are in container's local coordinate space
+    const scaleX = img.naturalWidth / figSize.width_mm;
+    const scaleY = img.naturalHeight / figSize.height_mm;
     panelDragOverlay.style.left = `${pos.left * scaleX}px`;
     panelDragOverlay.style.top = `${pos.top * scaleY}px`;
     panelDragOverlay.style.width = `${pos.width * scaleX}px`;
@@ -368,10 +376,15 @@ function updateDragOverlayMm(pos, imgRect) {
 }
 
 // Update panel bbox overlay based on snapped axis position (in mm)
+// Uses natural image dimensions since overlay is inside zoom-container (CSS-transformed)
 function updatePanelBboxDragOverlayMm(axisPos, imgRect) {
     if (!panelBboxDragOverlay || !panelBboxOffset || !figSize.width_mm) return;
-    const scaleX = imgRect.width / figSize.width_mm, scaleY = imgRect.height / figSize.height_mm;
-    // Panel bbox position = axis position + offset (both in mm, converted to screen pixels)
+    const img = document.getElementById('preview-image');
+    if (!img || !img.naturalWidth) return;
+    // Use natural (unscaled) dimensions - overlays are in container's local coordinate space
+    const scaleX = img.naturalWidth / figSize.width_mm;
+    const scaleY = img.naturalHeight / figSize.height_mm;
+    // Panel bbox position = axis position + offset (both in mm, converted to local container pixels)
     panelBboxDragOverlay.style.left = `${(axisPos.left + panelBboxOffset.left) * scaleX}px`;
     panelBboxDragOverlay.style.top = `${(axisPos.top + panelBboxOffset.top) * scaleY}px`;
     panelBboxDragOverlay.style.width = `${panelBboxOffset.width * scaleX}px`;

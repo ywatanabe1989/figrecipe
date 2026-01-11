@@ -338,9 +338,13 @@ class RecordingFigure:
         save_recipe: bool = True,
         recipe_format: Literal["csv", "npz", "inline"] = "csv",
         verbose: bool = True,
+        validate: bool = False,
         **kwargs,
     ):
         """Save the figure image and optionally the recipe.
+
+        This method delegates to figrecipe's save() function to ensure consistent
+        behavior with auto-cropping, tick finalization, and recipe generation.
 
         Parameters
         ----------
@@ -353,14 +357,26 @@ class RecordingFigure:
             Format for data in recipe: 'csv' (default), 'npz', or 'inline'.
         verbose : bool
             If True (default), print save status.
+        validate : bool
+            If True, validate reproducibility. Default False for backwards
+            compatibility (fr.save() defaults to True).
         **kwargs
-            Passed to matplotlib's savefig().
+            Passed to matplotlib's savefig(). Common options:
+            - dpi: Output resolution (default: from style or 300)
+            - transparent: Whether background is transparent
+            - bbox_inches: Bounding box ('tight' disables mm_layout precision)
 
         Returns
         -------
         Path or tuple
             If save_recipe=False: image path.
             If save_recipe=True: (image_path, recipe_path) tuple.
+
+        Notes
+        -----
+        This method behaves the same as fr.save(fig, path) for consistency.
+        The auto-cropping, tick finalization, and mm_layout precision are
+        applied automatically when using a figrecipe style.
 
         Examples
         --------
@@ -369,33 +385,110 @@ class RecordingFigure:
         >>> fig.savefig('figure.png')  # Saves both figure.png and figure.yaml
         >>> fig.savefig('figure.png', save_recipe=False)  # Image only
         """
-        # Finalize ticks and special plots before saving
         from ..styles._style_applier import finalize_special_plots, finalize_ticks
         from ..styles._style_loader import get_current_style_dict
 
+        # Finalize ticks and special plots before any save
         style_dict = get_current_style_dict()
         for ax in self._fig.get_axes():
             finalize_ticks(ax)
             finalize_special_plots(ax, style_dict)
 
-        # Handle file-like objects (BytesIO, etc.) - just pass through
+        # Handle file-like objects (BytesIO, etc.) - direct matplotlib save
         if hasattr(fname, "write"):
             self._fig.savefig(fname, **kwargs)
             return fname
 
         fname = Path(fname)
-        self._fig.savefig(fname, **kwargs)
 
-        if save_recipe:
-            recipe_path = fname.with_suffix(".yaml")
-            self.save_recipe(recipe_path, include_data=True, data_format=recipe_format)
+        # If save_recipe=False, do a simpler save without recipe generation
+        # but still with auto-crop for consistency
+        if not save_recipe:
+            from .._api._save import get_save_dpi, get_save_transparency
+
+            dpi = kwargs.pop("dpi", None) or get_save_dpi()
+            transparent = get_save_transparency()
+
+            # Check if constrained_layout is used
+            use_constrained = self._fig.get_constrained_layout()
+
+            # Get crop margins from mm_layout
+            mm_layout = getattr(self, "_mm_layout", None)
+            crop_margin_left_mm = 1
+            crop_margin_right_mm = 1
+            crop_margin_top_mm = 1
+            crop_margin_bottom_mm = 1
+            if mm_layout is not None and "crop_margin_left_mm" in mm_layout:
+                crop_margin_left_mm = mm_layout.get("crop_margin_left_mm", 1)
+                crop_margin_right_mm = mm_layout.get("crop_margin_right_mm", 1)
+                crop_margin_top_mm = mm_layout.get("crop_margin_top_mm", 1)
+                crop_margin_bottom_mm = mm_layout.get("crop_margin_bottom_mm", 1)
+
+            if use_constrained and mm_layout is not None:
+                # For constrained_layout, use bbox_inches='tight' at save time
+                avg_margin_mm = (
+                    crop_margin_left_mm
+                    + crop_margin_right_mm
+                    + crop_margin_top_mm
+                    + crop_margin_bottom_mm
+                ) / 4
+                pad_inches = avg_margin_mm / 25.4  # mm to inches
+
+                self._fig.savefig(
+                    fname,
+                    dpi=dpi,
+                    transparent=transparent,
+                    bbox_inches="tight",
+                    pad_inches=pad_inches,
+                    **kwargs,
+                )
+            else:
+                # Standard save
+                self._fig.savefig(fname, dpi=dpi, transparent=transparent, **kwargs)
+
+                # Apply auto-crop if mm_layout is set (only for non-constrained)
+                croppable_formats = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}
+                is_croppable = fname.suffix.lower() in croppable_formats
+
+                if is_croppable and mm_layout is not None:
+                    if "crop_margin_left_mm" in mm_layout:
+                        from .._utils._crop import crop
+
+                        crop(
+                            fname,
+                            margin_left_mm=crop_margin_left_mm,
+                            margin_right_mm=crop_margin_right_mm,
+                            margin_top_mm=crop_margin_top_mm,
+                            margin_bottom_mm=crop_margin_bottom_mm,
+                            output_path=fname,
+                        )
+
             if verbose:
-                print(f"Saved: {fname} + {recipe_path}")
-            return fname, recipe_path
+                print(f"Saved: {fname}")
+            return fname
 
-        if verbose:
-            print(f"Saved: {fname}")
-        return fname
+        # Use the core save function for full save with recipe
+        from .._api._save import save_figure
+
+        # Extract matplotlib-specific kwargs that save_figure handles
+        dpi = kwargs.pop("dpi", None)
+
+        # Call save_figure which handles:
+        # - Auto-cropping via mm_layout
+        # - Tick finalization
+        # - Axes bbox capture
+        # - Recipe saving with proper validation
+        image_path, yaml_path, result = save_figure(
+            self,
+            fname,
+            include_data=True,
+            data_format=recipe_format,
+            validate=validate,
+            verbose=verbose,
+            dpi=dpi,
+        )
+
+        return image_path, yaml_path
 
     def save_recipe(
         self,

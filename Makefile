@@ -1,86 +1,78 @@
-.PHONY: help install install-dev test notebook pdf clean clean-outputs lint lint-fix format pre-commit gui gui-periodic
-
-PYTHON := python3
-PIP := pip3
-PORT ?= 5050
+.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs lint lint-fix format pre-commit demo-gui demo-gui-browser demo-gui-periodic demo-plot-all demo-composition
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make install       Install package"
-	@echo "  make install-dev   Install package with dev dependencies"
-	@echo "  make test          Run tests"
-	@echo "  make notebook      Execute demo notebook"
-	@echo "  make pdf           Generate PDF from notebook"
-	@echo "  make clean         Clean build artifacts and outputs"
-	@echo "  make clean-outputs Clean only outputs directory"
-	@echo "  make lint          Run linter"
-	@echo "  make lint-fix      Run linter with auto-fix"
-	@echo "  make format        Format code"
-	@echo "  make pre-commit    Install pre-commit hooks"
-	@echo "  make gui           Launch GUI editor demo (PORT=5050 by default)"
-	@echo "  make gui PORT=5051 Launch GUI editor on custom port"
-	@echo "  make gui-periodic  Launch GUI editor with 60s auto-restart (supports PORT=)"
+	@echo "  make install            Install package"
+	@echo "  make install-dev        Install package with dev dependencies"
+	@echo "  make install-arial      Install Arial font for matplotlib"
+	@echo "  make test               Run tests"
+	@echo "  make demo-notebook      Execute demo notebook"
+	@echo "  make pdf                Generate PDF from notebook"
+	@echo "  make clean              Clean build artifacts and outputs"
+	@echo "  make clean-outputs      Clean only outputs directory"
+	@echo "  make lint               Run linter"
+	@echo "  make lint-fix           Run linter with auto-fix"
+	@echo "  make format             Format code"
+	@echo "  make pre-commit         Install pre-commit hooks"
+	@echo "  make demo-gui PORT=5050 Launch GUI editor demo"
+	@echo "  make demo-gui-browser   Launch GUI editor and open in browser"
+	@echo "  make demo-gui-periodic  Launch GUI editor with 60s auto-restart"
+	@echo "  make demo-plot-all      Generate all demo plots to examples/demo_all_plots_out/"
+	@echo "  make demo-composition   Compose all plots into single figure"
+
+PORT ?= 5050
 
 install:
-	$(PIP) install -e .
+	@./scripts/maintenance/install.sh
 
 install-dev:
-	$(PIP) install -e ".[dev]"
+	@./scripts/maintenance/install-dev.sh
+
+install-arial:
+	@./scripts/maintenance/install_arial.sh
 
 test:
-	$(PYTHON) -m pytest tests/ -v
+	@./scripts/maintenance/test.sh
 
-notebook:
-	@echo "Executing demo notebook..."
-	$(PYTHON) -m jupyter nbconvert --to notebook --execute --inplace examples/figrecipe_demo.ipynb --ExecutePreprocessor.timeout=120
+demo-notebook:
+	@./scripts/maintenance/notebook.sh
 
-pdf: notebook
-	@echo "Generating PDF from notebook..."
-	jupyter nbconvert --to pdf examples/figrecipe_demo.ipynb --output-dir=examples
-	@rm -rf plotspec_demo_files notebook.* 2>/dev/null || true
-	@echo "PDF generated: examples/figrecipe_demo.pdf"
+pdf:
+	@./scripts/maintenance/pdf.sh
 
-clean: clean-outputs
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info/
-	rm -rf src/*.egg-info/
-	rm -rf .pytest_cache/
-	rm -rf .coverage
-	rm -rf htmlcov/
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete 2>/dev/null || true
+clean:
+	@./scripts/maintenance/clean.sh
 
 clean-outputs:
-	rm -rf outputs/
+	@./scripts/maintenance/clean-outputs.sh
 
 lint:
-	$(PYTHON) -m ruff check src/ tests/
+	@./scripts/maintenance/lint.sh
 
 lint-fix:
-	$(PYTHON) -m ruff check --fix src/ tests/
+	@./scripts/maintenance/lint-fix.sh
 
 format:
-	$(PYTHON) -m ruff format src/ tests/
+	@./scripts/maintenance/format.sh
 
 pre-commit:
-	pip install pre-commit
-	pre-commit install
+	@./scripts/maintenance/pre-commit.sh
 
-gui:
-	$(PYTHON) examples/demo_editor.py $(PORT)
+demo-gui:
+	@./scripts/maintenance/demo-gui.sh $(PORT)
 
-gui-browser:
-	@echo "Starting editor and opening in Windows Chrome on port $(PORT)..."
-	@$(PYTHON) examples/demo_editor.py $(PORT) & \
-	sleep 3 && \
-	(cmd.exe /c start chrome http://127.0.0.1:$(PORT) 2>/dev/null || \
-	 "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" http://127.0.0.1:$(PORT) 2>/dev/null || \
-	 wslview http://127.0.0.1:$(PORT) 2>/dev/null || \
-	 echo "Could not open browser. Please open http://127.0.0.1:$(PORT) manually") && \
-	wait
+demo-gui-browser:
+	@./scripts/maintenance/demo-gui-browser.sh $(PORT)
 
-gui-periodic:
-	./scripts/gui_periodic.sh 60 $(PORT)
+demo-gui-periodic:
+	@./scripts/maintenance/demo-gui-periodic.sh 60 $(PORT)
+
+demo-plot-all:
+	@echo "Generating all demo plots..."
+	@python3 ./examples/demo_all_plots.py
+
+demo-composition:
+	@echo "Composing all plots into single figure..."
+	@python3 ./examples/demo_composition.py

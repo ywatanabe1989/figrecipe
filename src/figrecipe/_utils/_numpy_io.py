@@ -154,7 +154,12 @@ def load_array_csv(path: Union[str, Path], dtype=None) -> np.ndarray:
 
     # Infer dtype if not provided
     if dtype is None:
-        dtype = np.float64  # Default for numeric data
+        # Try to convert to float, fall back to object for non-numeric data
+        try:
+            return np.array(data, dtype=np.float64)
+        except ValueError:
+            # Non-numeric data (e.g., categorical strings)
+            return np.array(data, dtype=object)
 
     return np.array(data, dtype=dtype)
 
