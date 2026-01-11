@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Time-stamp: "2026-01-11 20:58:00 (ywatanabe)"
 """Tests for constrained_layout with mm_layout and auto-crop (Issue #41).
 
 Tests that constrained_layout=True still allows auto-crop to work
