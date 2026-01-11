@@ -99,20 +99,20 @@ def _crop_to_axes_size(
     mm_layout: dict,
     dpi: int,
 ) -> Optional[dict]:
-    """Crop image to target size based on axes dimensions and crop margins.
+    """Crop image based on tight bounding box of figure content.
 
     Used for constrained_layout figures where content-based cropping doesn't work
-    because matplotlib fills the canvas. Instead, crops to center the axes in a
-    target size calculated from axes dimensions + crop margins.
+    because matplotlib fills the canvas. Uses matplotlib's get_tightbbox() to find
+    the actual content bounds including labels, titles, and legends.
 
     Parameters
     ----------
     fig : RecordingFigure
-        The figure (needed to get axes position)
+        The figure (needed to get tight bounding box)
     image_path : Path
         Path to the saved image
     mm_layout : dict
-        Layout configuration with axes dimensions and crop margins
+        Layout configuration with crop margins
     dpi : int
         Image DPI
 
@@ -125,45 +125,44 @@ def _crop_to_axes_size(
 
     from .._utils._crop import mm_to_pixels
 
-    # Get axes dimensions and crop margins from mm_layout
-    axes_w_mm = mm_layout.get("axes_width_mm", 40)
-    axes_h_mm = mm_layout.get("axes_height_mm", 28)
+    # Get crop margins from mm_layout
     margin_left_mm = mm_layout.get("crop_margin_left_mm", 1)
     margin_right_mm = mm_layout.get("crop_margin_right_mm", 1)
     margin_top_mm = mm_layout.get("crop_margin_top_mm", 1)
     margin_bottom_mm = mm_layout.get("crop_margin_bottom_mm", 1)
 
-    # Calculate target final size in pixels
-    target_w_px = mm_to_pixels(axes_w_mm + margin_left_mm + margin_right_mm, dpi)
-    target_h_px = mm_to_pixels(axes_h_mm + margin_top_mm + margin_bottom_mm, dpi)
+    # Get tight bounding box of figure content (includes labels, titles, legends)
+    # Need to draw the figure first to get accurate bbox
+    fig.fig.canvas.draw()
+    renderer = fig.fig.canvas.get_renderer()
+    tight_bbox = fig.fig.get_tightbbox(renderer)
 
-    # Get first axes position (assumes single axes for simplicity)
-    axes_list = fig.fig.get_axes()
-    if not axes_list:
+    if tight_bbox is None:
         return None
-
-    ax = axes_list[0]
-    bbox = ax.get_position()
 
     # Open image to get dimensions
     img = Image.open(image_path)
     orig_w, orig_h = img.size
 
-    # Calculate axes position in pixels
-    # Note: matplotlib y=0 is bottom, image y=0 is top
-    axes_left_px = int(bbox.x0 * orig_w)
-    axes_top_px = int((1 - bbox.y0 - bbox.height) * orig_h)
+    # tight_bbox is in inches, convert to pixels
+    fig_dpi = fig.fig.dpi
+    content_left_px = int(tight_bbox.x0 * fig_dpi)
+    content_right_px = int(tight_bbox.x1 * fig_dpi)
+    # Flip y coordinate: tight_bbox y=0 is bottom, image y=0 is top
+    content_top_px = int(orig_h - tight_bbox.y1 * fig_dpi)
+    content_bottom_px = int(orig_h - tight_bbox.y0 * fig_dpi)
 
-    # Calculate margins in pixels (only left/top needed for positioning)
+    # Calculate margins in pixels
     margin_left_px = mm_to_pixels(margin_left_mm, dpi)
+    margin_right_px = mm_to_pixels(margin_right_mm, dpi)
     margin_top_px = mm_to_pixels(margin_top_mm, dpi)
+    margin_bottom_px = mm_to_pixels(margin_bottom_mm, dpi)
 
-    # Calculate crop bounds to center axes in target size
-    # Position crop so axes are at margin offset from edges
-    crop_left = axes_left_px - margin_left_px
-    crop_top = axes_top_px - margin_top_px
-    crop_right = crop_left + target_w_px
-    crop_bottom = crop_top + target_h_px
+    # Calculate crop bounds with margins around content
+    crop_left = content_left_px - margin_left_px
+    crop_top = content_top_px - margin_top_px
+    crop_right = content_right_px + margin_right_px
+    crop_bottom = content_bottom_px + margin_bottom_px
 
     # Clamp to image boundaries
     crop_left = max(0, crop_left)
@@ -421,16 +420,52 @@ def save_figure(
     # Resolve paths for standard save
     image_path, yaml_path, _ = resolve_save_paths(path, image_format)
 
-    # Save the image (no bbox_inches to preserve mm layout)
-    fig.fig.savefig(image_path, dpi=dpi, transparent=transparent)
+    # Check if using constrained_layout - need different save strategy
+    use_constrained = fig.fig.get_constrained_layout()
+
+    # Get crop margins from mm_layout
+    mm_layout = getattr(fig, "_mm_layout", None)
+    crop_margin_left_mm = 1
+    crop_margin_right_mm = 1
+    crop_margin_top_mm = 1
+    crop_margin_bottom_mm = 1
+    if mm_layout is not None and "crop_margin_left_mm" in mm_layout:
+        crop_margin_left_mm = mm_layout.get("crop_margin_left_mm", 1)
+        crop_margin_right_mm = mm_layout.get("crop_margin_right_mm", 1)
+        crop_margin_top_mm = mm_layout.get("crop_margin_top_mm", 1)
+        crop_margin_bottom_mm = mm_layout.get("crop_margin_bottom_mm", 1)
+
+    if use_constrained:
+        # For constrained_layout, use bbox_inches='tight' to crop at save time
+        # This properly handles content bounds including labels and legends
+        # Use average of crop margins as pad_inches (converted to inches)
+        avg_margin_mm = (
+            crop_margin_left_mm
+            + crop_margin_right_mm
+            + crop_margin_top_mm
+            + crop_margin_bottom_mm
+        ) / 4
+        pad_inches = avg_margin_mm / 25.4  # mm to inches
+
+        fig.fig.savefig(
+            image_path,
+            dpi=dpi,
+            transparent=transparent,
+            bbox_inches="tight",
+            pad_inches=pad_inches,
+        )
+    else:
+        # Standard save without bbox_inches to preserve mm layout
+        fig.fig.savefig(image_path, dpi=dpi, transparent=transparent)
 
     # Auto-crop using stored crop margins from mm_layout (or explicit parameter)
     # Only crop raster image formats (not PDF, SVG, EPS)
+    # Skip for constrained_layout (already cropped at save time)
     croppable_formats = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}
     is_croppable = image_path.suffix.lower() in croppable_formats
 
     crop_offset = None
-    if is_croppable:
+    if is_croppable and not use_constrained:
         if crop_margin_mm is not None:
             # Explicit uniform crop margin
             from .._utils._crop import crop
@@ -441,31 +476,19 @@ def save_figure(
                 output_path=image_path,
                 return_offset=True,
             )
-        elif hasattr(fig, "_mm_layout") and fig._mm_layout is not None:
-            # Use per-side crop margins from mm_layout
-            mm_layout = fig._mm_layout
-            if "crop_margin_left_mm" in mm_layout:
-                # Check if constrained_layout is used - need axes-based cropping
-                use_constrained = fig.fig.get_constrained_layout()
+        elif mm_layout is not None and "crop_margin_left_mm" in mm_layout:
+            # Standard content-based cropping for mm_layout figures
+            from .._utils._crop import crop
 
-                if use_constrained:
-                    # For constrained_layout, crop to target size based on axes
-                    # Content-based cropping doesn't work because matplotlib
-                    # fills the canvas with constrained_layout
-                    crop_offset = _crop_to_axes_size(fig, image_path, mm_layout, dpi)
-                else:
-                    # Standard content-based cropping for mm_layout figures
-                    from .._utils._crop import crop
-
-                    _, crop_offset = crop(
-                        image_path,
-                        margin_left_mm=mm_layout.get("crop_margin_left_mm", 1),
-                        margin_right_mm=mm_layout.get("crop_margin_right_mm", 1),
-                        margin_top_mm=mm_layout.get("crop_margin_top_mm", 1),
-                        margin_bottom_mm=mm_layout.get("crop_margin_bottom_mm", 1),
-                        output_path=image_path,
-                        return_offset=True,
-                    )
+            _, crop_offset = crop(
+                image_path,
+                margin_left_mm=crop_margin_left_mm,
+                margin_right_mm=crop_margin_right_mm,
+                margin_top_mm=crop_margin_top_mm,
+                margin_bottom_mm=crop_margin_bottom_mm,
+                output_path=image_path,
+                return_offset=True,
+            )
 
     # Capture axes bounding boxes (adjusted for crop if cropping occurred)
     _capture_axes_bboxes(fig, crop_offset)
