@@ -229,6 +229,7 @@ def _resolve_background_color(background):
 
         # Fall back to matplotlib color parsing
         import matplotlib.colors as mcolors
+
         try:
             rgba = mcolors.to_rgba(background)
             return rgba
@@ -264,11 +265,17 @@ def _save_as_bundle(
     data_format: str,
     csv_format: str,
     dpi: int,
-    transparent: bool,
+    background,
     image_format: str,
     verbose: bool,
 ) -> Tuple[Path, Path]:
-    """Save figure as a bundle (directory or ZIP)."""
+    """Save figure as a bundle (directory or ZIP).
+
+    Parameters
+    ----------
+    background : tuple or None
+        Resolved background color as RGB/RGBA tuple, or None for transparent.
+    """
     suffix = path.suffix.lower()
     is_zip = suffix == ".zip"
 
@@ -282,7 +289,11 @@ def _save_as_bundle(
 
         # Save image (no bbox_inches to preserve mm layout)
         image_path = tmpdir / image_name
-        fig.fig.savefig(image_path, dpi=dpi, transparent=transparent)
+        if background is None:  # transparent
+            fig.fig.savefig(image_path, dpi=dpi, transparent=True)
+        else:
+            fig.fig.set_facecolor(background)
+            fig.fig.savefig(image_path, dpi=dpi, facecolor=background)
 
         # Save recipe
         yaml_path = tmpdir / BUNDLE_RECIPE_NAME
@@ -361,7 +372,7 @@ def save_figure(
 
     # Resolve background: explicit param > fig.set_background() > style default
     if background is None:
-        if hasattr(fig, '_explicit_background') and fig._explicit_background:
+        if hasattr(fig, "_explicit_background") and fig._explicit_background:
             background = fig._explicit_background
         elif get_save_transparency():
             background = "transparent"
@@ -384,6 +395,9 @@ def save_figure(
         finalize_ticks(ax)
         finalize_special_plots(ax, style_dict)
 
+    # Resolve background color (supports name, RGB tuple, RGBA tuple, hex)
+    resolved_bg = _resolve_background_color(background)
+
     # Check if saving as bundle
     if _is_bundle_path(path):
         bundle_path, yaml_path = _save_as_bundle(
@@ -393,7 +407,7 @@ def save_figure(
             data_format,
             csv_format,
             dpi,
-            transparent,
+            resolved_bg,
             image_format or _get_default_image_format(),
             verbose,
         )
@@ -402,9 +416,6 @@ def save_figure(
 
     # Resolve paths for standard save
     image_path, yaml_path, _ = resolve_save_paths(path, image_format)
-
-    # Resolve background color (supports name, RGB tuple, RGBA tuple, hex)
-    resolved_bg = _resolve_background_color(background)
 
     # Save the image (no bbox_inches to preserve mm layout)
     if resolved_bg is None:  # transparent

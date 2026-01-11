@@ -374,8 +374,10 @@ class RecordingFigure:
             except Exception:
                 pass
 
-        unified = (left_min, bottom_min, right_max, top_max) if left_min is not None else None
-        return {'panels': panels, 'unified': unified}
+        unified = (
+            (left_min, bottom_min, right_max, top_max) if left_min is not None else None
+        )
+        return {"panels": panels, "unified": unified}
 
     def render_caption(
         self,
@@ -411,7 +413,7 @@ class RecordingFigure:
 
         # Get panels bbox (axes + title + labels, excludes data content like graph nodes)
         bbox_info = self.get_panels_bbox()
-        unified = bbox_info.get('unified')
+        unified = bbox_info.get("unified")
 
         if unified is None:
             left_frac, bottom_frac, right_frac, top_frac = 0.1, 0.15, 0.9, 0.9
@@ -429,8 +431,8 @@ class RecordingFigure:
         target_width_px = (right_frac - left_frac) * fig_width_inches * dpi
 
         # Wrap text by measuring actual rendered width
-        from matplotlib.textpath import TextPath
         from matplotlib.font_manager import FontProperties
+        from matplotlib.textpath import TextPath
 
         font_props = FontProperties(size=fontsize)
         words = text.split()
@@ -438,7 +440,7 @@ class RecordingFigure:
         current_line = []
 
         for word in words:
-            test_line = ' '.join(current_line + [word])
+            test_line = " ".join(current_line + [word])
             # Use TextPath for accurate width measurement
             tp = TextPath((0, 0), test_line, prop=font_props)
             text_width_pts = tp.get_extents().width
@@ -448,21 +450,25 @@ class RecordingFigure:
             if text_width_px <= target_width_px or not current_line:
                 current_line.append(word)
             else:
-                lines.append(' '.join(current_line))
+                lines.append(" ".join(current_line))
                 current_line = [word]
 
         if current_line:
-            lines.append(' '.join(current_line))
+            lines.append(" ".join(current_line))
 
-        wrapped_text = '\n'.join(lines)
+        wrapped_text = "\n".join(lines)
 
         # Position caption
         y_pos = bottom_frac - gap_frac
         x_pos = left_frac
 
         self._fig.text(
-            x_pos, y_pos, wrapped_text,
-            ha='left', va='top', fontsize=fontsize,
+            x_pos,
+            y_pos,
+            wrapped_text,
+            ha="left",
+            va="top",
+            fontsize=fontsize,
             transform=self._fig.transFigure,
             linespacing=linespacing,
         )
