@@ -25,14 +25,17 @@ def process_lines(
     has_boxplot = "boxplot" in ax_plot_types
     has_violin = "violinplot" in ax_plot_types
     has_regular_plot = "plot" in ax_plot_types
+    has_step = "step" in ax_plot_types
 
     boxplot_ids = list(ax_call_ids.get("boxplot", []))
     violin_ids = list(ax_call_ids.get("violinplot", []))
     plot_ids = list(ax_call_ids.get("plot", []))
+    step_ids = list(ax_call_ids.get("step", []))
 
     boxplot_call_id = boxplot_ids[0] if boxplot_ids else None
     violin_call_id = violin_ids[0] if violin_ids else None
     regular_line_idx = 0
+    step_line_idx = 0
     has_record = len(ax_plot_types) > 0
 
     for i, line in enumerate(ax.get_lines()):
@@ -47,6 +50,7 @@ def process_lines(
                 and not has_boxplot
                 and not has_violin
                 and not has_regular_plot
+                and not has_step
             ):
                 continue
 
@@ -76,6 +80,15 @@ def process_lines(
             elem_type = "violin"
             label = violin_call_id or "violin"
             call_id = violin_call_id
+        elif has_step and orig_label.startswith("_"):
+            elem_type = "step"
+            if step_line_idx < len(step_ids):
+                call_id = step_ids[step_line_idx]
+                label = call_id
+            else:
+                call_id = f"step_{ax_idx}_{step_line_idx}"
+                label = call_id
+            step_line_idx += 1
         else:
             elem_type = "line"
             label = orig_label if orig_label else f"line_{i}"

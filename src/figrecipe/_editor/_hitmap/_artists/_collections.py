@@ -39,9 +39,15 @@ def process_collections(
     scatter_ids = list(ax_call_ids.get("scatter", []))
     quiver_ids = list(ax_call_ids.get("quiver", []))
     fill_between_ids = list(ax_call_ids.get("fill_between", []))
+    fill_betweenx_ids = list(ax_call_ids.get("fill_betweenx", []))
+    stackplot_ids = list(ax_call_ids.get("stackplot", []))
+    stairs_ids = list(ax_call_ids.get("stairs", []))
     pcolormesh_ids = list(ax_call_ids.get("pcolormesh", []))
     contour_ids = list(ax_call_ids.get("contour", []))
     contourf_ids = list(ax_call_ids.get("contourf", []))
+
+    # Combine all fill-type IDs for PolyCollection processing
+    all_fill_ids = fill_between_ids + fill_betweenx_ids + stackplot_ids + stairs_ids
 
     violin_call_id = violin_ids[0] if violin_ids else None
     pcolormesh_call_id = pcolormesh_ids[0] if pcolormesh_ids else None
@@ -78,7 +84,7 @@ def process_collections(
                 violin_call_id,
                 has_record,
                 ax,
-                fill_between_ids,
+                all_fill_ids,
                 fill_coll_idx,
             )
         elif isinstance(coll, LineCollection):
@@ -118,11 +124,15 @@ def _process_quiver(coll, i, ax_idx, element_id, original_props, color_map, quiv
     key = f"ax{ax_idx}_quiver{i}"
     rgb = id_to_rgb(element_id)
 
-    original_props[key] = {"color": coll.get_facecolor().copy()}
+    orig_color = coll.get_facecolor().copy()
+    original_props[key] = {"color": orig_color}
     coll.set_color(normalize_color(rgb))
 
     call_id = quiver_ids[0] if quiver_ids else None
     label = call_id or f"quiver_{i}"
+
+    # Get representative color for display
+    orig_color_val = orig_color[0] if len(orig_color) > 0 else [0.5, 0.5, 0.5, 1]
 
     color_map[key] = {
         "id": element_id,
@@ -130,6 +140,7 @@ def _process_quiver(coll, i, ax_idx, element_id, original_props, color_map, quiv
         "label": label,
         "ax_index": ax_idx,
         "rgb": list(rgb),
+        "original_color": mpl_color_to_hex(orig_color_val),
         "call_id": call_id,
     }
     return element_id + 1

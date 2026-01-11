@@ -130,11 +130,63 @@ function showDynamicCallProperties(element) {
         typeRow.innerHTML = `<label>Type</label><span class="arg-value">${elemType}</span>`;
         infoSection.appendChild(typeRow);
 
-        // Show color if available
+        // Show color if available with color swatch and picker
         if (element.original_color) {
             const colorRow = document.createElement('div');
             colorRow.className = 'form-row dynamic-field';
-            colorRow.innerHTML = `<label>Color</label><span class="arg-value" style="color:${element.original_color}">${element.original_color}</span>`;
+
+            const colorLabel = document.createElement('label');
+            colorLabel.textContent = 'Color';
+
+            const colorContainer = document.createElement('div');
+            colorContainer.className = 'color-input-wrapper';
+            colorContainer.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+
+            // Color swatch preview
+            const colorSwatch = document.createElement('span');
+            colorSwatch.className = 'color-swatch';
+            colorSwatch.style.cssText = `
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border-radius: 3px;
+                border: 1px solid var(--border-color, #444);
+                background-color: ${element.original_color};
+                cursor: pointer;
+            `;
+
+            // Color picker input (hidden, triggered by swatch click)
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.value = element.original_color;
+            colorPicker.style.cssText = 'width: 0; height: 0; padding: 0; border: 0; opacity: 0; position: absolute;';
+            colorPicker.dataset.elementKey = element.key;
+
+            // Click swatch to open picker
+            colorSwatch.addEventListener('click', () => colorPicker.click());
+
+            // Handle color change
+            colorPicker.addEventListener('change', async function() {
+                const newColor = this.value;
+                colorSwatch.style.backgroundColor = newColor;
+                colorHex.textContent = newColor;
+
+                // Update element color via direct artist update
+                await updateElementColor(element, newColor);
+            });
+
+            // Hex value display
+            const colorHex = document.createElement('span');
+            colorHex.className = 'arg-value';
+            colorHex.style.fontFamily = 'monospace';
+            colorHex.textContent = element.original_color;
+
+            colorContainer.appendChild(colorSwatch);
+            colorContainer.appendChild(colorPicker);
+            colorContainer.appendChild(colorHex);
+
+            colorRow.appendChild(colorLabel);
+            colorRow.appendChild(colorContainer);
             infoSection.appendChild(colorRow);
         }
 
@@ -249,6 +301,53 @@ function showDynamicCallProperties(element) {
         availSection.appendChild(availContent);
         container.appendChild(availSection);
     }
+}
+
+// Update element color directly (for elements without call data)
+async function updateElementColor(element, newColor) {
+    console.log(`Direct color update: ${element.key} -> ${newColor}`);
+
+    document.body.classList.add('loading');
+
+    try {
+        const response = await fetch('/update_element_color', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                element_key: element.key,
+                color: newColor,
+                ax_index: element.ax_index,
+                element_type: element.type
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const img = document.getElementById('preview-image');
+            img.src = 'data:image/png;base64,' + data.image;
+
+            if (data.img_size) {
+                currentImgWidth = data.img_size.width;
+                currentImgHeight = data.img_size.height;
+            }
+
+            currentBboxes = data.bboxes;
+            loadHitmap();
+            updateHitRegions();
+
+            // Update element's original_color
+            element.original_color = newColor;
+
+            showToast('Color updated', 'success');
+        } else {
+            showToast('Color update failed: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showToast('Color update failed: ' + error.message, 'error');
+    }
+
+    document.body.classList.remove('loading');
 }
 
 // Handle change to dynamic call parameter
