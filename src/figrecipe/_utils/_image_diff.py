@@ -69,6 +69,7 @@ def compare_images(
     path1: Union[str, Path],
     path2: Union[str, Path],
     diff_path: Union[str, Path] = None,
+    size_tolerance: int = 2,
 ) -> dict:
     """Compare two image files.
 
@@ -80,6 +81,10 @@ def compare_images(
         Path to second image.
     diff_path : str or Path, optional
         If provided, save difference image here.
+    size_tolerance : int
+        Allow this many pixels of size difference (default: 2).
+        If images differ by <= size_tolerance pixels in each dimension,
+        compare the overlapping region.
 
     Returns
     -------
@@ -110,9 +115,21 @@ def compare_images(
     if same_size:
         mse, diff_img = compute_diff(img1, img2)
     else:
-        # Can't compute pixel diff for different sizes
-        mse = float("nan")
-        diff_img = None
+        # Check if size difference is within tolerance
+        h_diff = abs(img1.shape[0] - img2.shape[0])
+        w_diff = abs(img1.shape[1] - img2.shape[1])
+
+        if h_diff <= size_tolerance and w_diff <= size_tolerance:
+            # Crop both images to overlapping region
+            min_h = min(img1.shape[0], img2.shape[0])
+            min_w = min(img1.shape[1], img2.shape[1])
+            img1_cropped = img1[:min_h, :min_w]
+            img2_cropped = img2[:min_h, :min_w]
+            mse, diff_img = compute_diff(img1_cropped, img2_cropped)
+        else:
+            # Size difference too large
+            mse = float("nan")
+            diff_img = None
 
     # Peak signal-to-noise ratio
     if mse == 0:
@@ -125,6 +142,15 @@ def compare_images(
     # Max difference
     if same_size:
         max_diff = np.max(np.abs(img1.astype(float) - img2.astype(float)))
+    elif not np.isnan(mse):
+        # Size within tolerance, compute max diff on overlapping region
+        min_h = min(img1.shape[0], img2.shape[0])
+        min_w = min(img1.shape[1], img2.shape[1])
+        max_diff = np.max(
+            np.abs(
+                img1[:min_h, :min_w].astype(float) - img2[:min_h, :min_w].astype(float)
+            )
+        )
     else:
         max_diff = float("nan")
 

@@ -409,30 +409,59 @@ class RecordingFigure:
             dpi = kwargs.pop("dpi", None) or get_save_dpi()
             transparent = get_save_transparency()
 
-            # Save the image
-            self._fig.savefig(fname, dpi=dpi, transparent=transparent, **kwargs)
+            # Check if constrained_layout is used
+            use_constrained = self._fig.get_constrained_layout()
 
-            # Apply auto-crop if mm_layout is set
-            croppable_formats = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}
-            is_croppable = fname.suffix.lower() in croppable_formats
+            # Get crop margins from mm_layout
+            mm_layout = getattr(self, "_mm_layout", None)
+            crop_margin_left_mm = 1
+            crop_margin_right_mm = 1
+            crop_margin_top_mm = 1
+            crop_margin_bottom_mm = 1
+            if mm_layout is not None and "crop_margin_left_mm" in mm_layout:
+                crop_margin_left_mm = mm_layout.get("crop_margin_left_mm", 1)
+                crop_margin_right_mm = mm_layout.get("crop_margin_right_mm", 1)
+                crop_margin_top_mm = mm_layout.get("crop_margin_top_mm", 1)
+                crop_margin_bottom_mm = mm_layout.get("crop_margin_bottom_mm", 1)
 
-            if (
-                is_croppable
-                and hasattr(self, "_mm_layout")
-                and self._mm_layout is not None
-            ):
-                mm_layout = self._mm_layout
-                if "crop_margin_left_mm" in mm_layout:
-                    from .._utils._crop import crop
+            if use_constrained and mm_layout is not None:
+                # For constrained_layout, use bbox_inches='tight' at save time
+                avg_margin_mm = (
+                    crop_margin_left_mm
+                    + crop_margin_right_mm
+                    + crop_margin_top_mm
+                    + crop_margin_bottom_mm
+                ) / 4
+                pad_inches = avg_margin_mm / 25.4  # mm to inches
 
-                    crop(
-                        fname,
-                        margin_left_mm=mm_layout.get("crop_margin_left_mm", 1),
-                        margin_right_mm=mm_layout.get("crop_margin_right_mm", 1),
-                        margin_top_mm=mm_layout.get("crop_margin_top_mm", 1),
-                        margin_bottom_mm=mm_layout.get("crop_margin_bottom_mm", 1),
-                        output_path=fname,
-                    )
+                self._fig.savefig(
+                    fname,
+                    dpi=dpi,
+                    transparent=transparent,
+                    bbox_inches="tight",
+                    pad_inches=pad_inches,
+                    **kwargs,
+                )
+            else:
+                # Standard save
+                self._fig.savefig(fname, dpi=dpi, transparent=transparent, **kwargs)
+
+                # Apply auto-crop if mm_layout is set (only for non-constrained)
+                croppable_formats = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}
+                is_croppable = fname.suffix.lower() in croppable_formats
+
+                if is_croppable and mm_layout is not None:
+                    if "crop_margin_left_mm" in mm_layout:
+                        from .._utils._crop import crop
+
+                        crop(
+                            fname,
+                            margin_left_mm=crop_margin_left_mm,
+                            margin_right_mm=crop_margin_right_mm,
+                            margin_top_mm=crop_margin_top_mm,
+                            margin_bottom_mm=crop_margin_bottom_mm,
+                            output_path=fname,
+                        )
 
             if verbose:
                 print(f"Saved: {fname}")

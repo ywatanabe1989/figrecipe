@@ -56,6 +56,7 @@ def save_recipe(
     include_data: bool = True,
     data_format: DataFormat = "csv",
     csv_format: CsvFormat = "separate",
+    use_symlinks: bool = True,
 ) -> Path:
     """Save a figure record to YAML file.
 
@@ -77,6 +78,9 @@ def save_recipe(
         - 'separate': One CSV file per variable (current behavior)
         - 'single': Single CSV with all columns (scitex/SigmaPlot-compatible)
         Only applies when data_format='csv'.
+    use_symlinks : bool
+        If True and record has source_data_dirs (from composition),
+        create symlinks to original data files instead of copying.
 
     Returns
     -------
@@ -92,12 +96,20 @@ def save_recipe(
     # Convert record to dict
     data = record.to_dict()
 
+    # Check if we can use symlinks for composed figures
+    source_data_dirs = getattr(record, "source_data_dirs", None)
+
     # Process arrays: save large ones to files, update references
     if include_data and data_format != "inline":
         if data_format == "csv" and csv_format == "single":
             # Save all arrays to single CSV file
             csv_path = path.with_suffix(".csv")
             data = _process_arrays_for_single_csv(data, csv_path)
+        elif use_symlinks and source_data_dirs:
+            # Use symlinks to source data directories
+            data = _process_arrays_with_symlinks(
+                data, data_dir, source_data_dirs, record.id, data_format
+            )
         else:
             # Save to separate files (original behavior)
             data = _process_arrays_for_save(data, data_dir, record.id, data_format)
@@ -157,6 +169,86 @@ def _process_arrays_for_save(
 
                         arr = arg.pop("_array")
                         filename = f"{call_id}_{arg.get('name', f'arg{i}')}"
+                        file_path = save_array(arr, data_dir / filename, data_format)
+                        arg["data"] = str(file_path.relative_to(data_dir.parent))
+
+    return data
+
+
+def _process_arrays_with_symlinks(
+    data: Dict[str, Any],
+    data_dir: Path,
+    source_data_dirs: Dict[str, Path],
+    fig_id: str,
+    data_format: DataFormat = "csv",
+) -> Dict[str, Any]:
+    """Process arrays using symlinks to source data directories.
+
+    For composed figures, creates symlinks to original data files instead
+    of copying them, saving disk space and preserving data provenance.
+
+    Parameters
+    ----------
+    data : dict
+        Data dictionary to process.
+    data_dir : Path
+        Target directory for symlinks.
+    source_data_dirs : dict
+        Mapping of ax_key -> source data directory Path.
+    fig_id : str
+        Figure ID for naming files.
+    data_format : str
+        Format for data files: 'csv', 'npz', or 'inline'.
+
+    Returns
+    -------
+    dict
+        Processed data with file references to symlinked files.
+    """
+    import os
+
+    data_dir_created = False
+
+    for ax_key, ax_data in data.get("axes", {}).items():
+        for call_list in [ax_data.get("calls", []), ax_data.get("decorations", [])]:
+            for call in call_list:
+                call_id = call.get("id", "unknown")
+
+                # Process args
+                for i, arg in enumerate(call.get("args", [])):
+                    # Check for _source_file (from loaded recipes)
+                    source_file_path = arg.pop("_source_file", None)
+                    # Also check for _array (from newly recorded data)
+                    arr = arg.pop("_array", None)
+                    # Clean up _loaded_array (not needed in output)
+                    arg.pop("_loaded_array", None)
+
+                    if source_file_path:
+                        # Create symlink to original source file
+                        if not data_dir_created:
+                            data_dir.mkdir(parents=True, exist_ok=True)
+                            data_dir_created = True
+
+                        source_file = Path(source_file_path)
+                        target_path = data_dir / source_file.name
+
+                        if not target_path.exists() and source_file.exists():
+                            # Use relative path for portability
+                            rel_source = os.path.relpath(
+                                source_file, target_path.parent
+                            )
+                            os.symlink(rel_source, target_path)
+
+                        arg["data"] = str(target_path.relative_to(data_dir.parent))
+
+                    elif arr is not None:
+                        # New array without source - save as new file
+                        if not data_dir_created:
+                            data_dir.mkdir(parents=True, exist_ok=True)
+                            data_dir_created = True
+
+                        var_name = arg.get("name", f"arg{i}")
+                        filename = f"{call_id}_{var_name}"
                         file_path = save_array(arr, data_dir / filename, data_format)
                         arg["data"] = str(file_path.relative_to(data_dir.parent))
 
@@ -293,6 +385,8 @@ def _resolve_data_references(
                             arr = load_array(file_path)
                             arg["data"] = arr.tolist()
                             arg["_loaded_array"] = arr
+                            # Store source file path for symlink support
+                            arg["_source_file"] = str(file_path.resolve())
 
     return data
 

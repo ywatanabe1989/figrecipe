@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-01-12
+
+### Added
+- **Symlink support for composed figures** - Composed figures now create symlinks to original data files instead of copying, reducing disk usage and preserving data provenance
+- **Demo workflow** - New `make demo-plot-all` and `make demo-composition` targets for generating and composing all 47 plot type demos
+
+### Fixed
+- **Auto-crop with constrained_layout** - Fixed Issue #41 where `constrained_layout=True` disabled mm_layout and auto-crop functionality
+- **fig.savefig() consistency** - `fig.savefig()` now behaves the same as `fr.save()` with auto-crop and mm_layout support (Issue #42)
+- **SCITEX error bar styling** - Bar plots with `yerr` now correctly use 0.2mm linewidth for error bars
+
 ## [0.11.0] - 2026-01-11
 
 ### Added

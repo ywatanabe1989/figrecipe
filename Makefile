@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-arial test notebook pdf clean clean-outputs lint lint-fix format pre-commit demo-gui demo-gui-browser demo-gui-periodic
+.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs lint lint-fix format pre-commit demo-gui demo-gui-browser demo-gui-periodic demo-plot-all demo-composition
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
@@ -8,7 +8,7 @@ help:
 	@echo "  make install-dev        Install package with dev dependencies"
 	@echo "  make install-arial      Install Arial font for matplotlib"
 	@echo "  make test               Run tests"
-	@echo "  make notebook           Execute demo notebook"
+	@echo "  make demo-notebook      Execute demo notebook"
 	@echo "  make pdf                Generate PDF from notebook"
 	@echo "  make clean              Clean build artifacts and outputs"
 	@echo "  make clean-outputs      Clean only outputs directory"
@@ -16,10 +16,11 @@ help:
 	@echo "  make lint-fix           Run linter with auto-fix"
 	@echo "  make format             Format code"
 	@echo "  make pre-commit         Install pre-commit hooks"
-	@echo "  make demo-gui           Launch GUI editor demo (PORT=5050 by default)"
-	@echo "  make demo-gui PORT=5051 Launch GUI editor on custom port"
+	@echo "  make demo-gui PORT=5050 Launch GUI editor demo"
 	@echo "  make demo-gui-browser   Launch GUI editor and open in browser"
-	@echo "  make demo-gui-periodic  Launch GUI editor with 60s auto-restart (supports PORT=)"
+	@echo "  make demo-gui-periodic  Launch GUI editor with 60s auto-restart"
+	@echo "  make demo-plot-all      Generate all demo plots to examples/demo_all_plots_out/"
+	@echo "  make demo-composition   Compose all plots into single figure"
 
 PORT ?= 5050
 
@@ -35,7 +36,7 @@ install-arial:
 test:
 	@./scripts/maintenance/test.sh
 
-notebook:
+demo-notebook:
 	@./scripts/maintenance/notebook.sh
 
 pdf:
@@ -67,3 +68,11 @@ demo-gui-browser:
 
 demo-gui-periodic:
 	@./scripts/maintenance/demo-gui-periodic.sh 60 $(PORT)
+
+demo-plot-all:
+	@echo "Generating all demo plots..."
+	@python3 ./examples/demo_all_plots.py
+
+demo-composition:
+	@echo "Composing all plots into single figure..."
+	@python3 ./examples/demo_composition.py
