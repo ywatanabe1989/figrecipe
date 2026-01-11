@@ -286,14 +286,19 @@ def save_figure(
     dpi = get_save_dpi(dpi)
     transparent = get_save_transparency()
 
-    # Finalize tick configuration and special plot types for all axes
-    # Get style for special plot finalization (use globally loaded style, flattened)
+    # Apply style and finalize tick configuration for all axes
+    # Get style for finalization (use globally loaded style, flattened)
     from ..styles._kwargs_converter import to_subplots_kwargs
-    from ..styles._style_applier import finalize_special_plots, finalize_ticks
+    from ..styles._style_applier import (
+        apply_style_mm,
+        finalize_special_plots,
+        finalize_ticks,
+    )
 
     style_dict = to_subplots_kwargs()
 
     for ax in fig.fig.get_axes():
+        apply_style_mm(ax, style_dict)
         finalize_ticks(ax)
         finalize_special_plots(ax, style_dict)
 
