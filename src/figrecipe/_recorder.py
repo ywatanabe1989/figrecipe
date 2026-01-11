@@ -9,6 +9,7 @@
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import matplotlib
@@ -128,6 +129,9 @@ class FigureRecord:
     stats: Optional[Dict[str, Any]] = None
     # Crop information for post-save cropping (enables correct bbox recalculation)
     crop_info: Optional[Dict[str, Any]] = None
+    # Source data directories for composition (enables symlinks instead of copying)
+    # Maps ax_key -> source data directory path
+    source_data_dirs: Optional[Dict[str, Path]] = None
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""

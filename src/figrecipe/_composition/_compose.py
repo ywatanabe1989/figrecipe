@@ -3,7 +3,7 @@
 """Main composition logic for combining multiple figures."""
 
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 from numpy.typing import NDArray
 
@@ -56,8 +56,11 @@ def compose(
     nrows, ncols = layout
     fig, axes = subplots(nrows=nrows, ncols=ncols, **kwargs)
 
+    # Track source data directories for symlink support
+    source_data_dirs = {}
+
     for (row, col), source_spec in sources.items():
-        source_record, ax_key = _parse_source_spec(source_spec)
+        source_record, ax_key, source_path = _parse_source_spec_with_path(source_spec)
         ax_record = source_record.axes.get(ax_key)
 
         if ax_record is None:
@@ -68,6 +71,17 @@ def compose(
 
         target_ax = _get_axes_at(axes, row, col, nrows, ncols)
         _replay_axes_record(target_ax, ax_record, fig.record, row, col)
+
+        # Track source data directory if source was a file path
+        if source_path is not None:
+            data_dir = source_path.parent / f"{source_path.stem}_data"
+            if data_dir.exists():
+                target_ax_key = f"ax_{row}_{col}"
+                source_data_dirs[target_ax_key] = data_dir
+
+    # Store source data directories on figure record for symlink support
+    if source_data_dirs:
+        fig.record.source_data_dirs = source_data_dirs
 
     return fig, axes
 
@@ -87,16 +101,37 @@ def _parse_source_spec(
     tuple
         (FigureRecord, ax_key)
     """
+    record, ax_key, _ = _parse_source_spec_with_path(spec)
+    return record, ax_key
+
+
+def _parse_source_spec_with_path(
+    spec: Union[str, Path, FigureRecord, Tuple],
+) -> Tuple[FigureRecord, str, Optional[Path]]:
+    """Parse source specification into (FigureRecord, ax_key, source_path).
+
+    Parameters
+    ----------
+    spec : various
+        Source specification.
+
+    Returns
+    -------
+    tuple
+        (FigureRecord, ax_key, source_path or None)
+    """
     if isinstance(spec, (str, Path)):
-        return load_recipe(spec), "ax_0_0"
+        path = Path(spec)
+        return load_recipe(path), "ax_0_0", path
     elif isinstance(spec, FigureRecord):
-        return spec, "ax_0_0"
+        return spec, "ax_0_0", None
     elif isinstance(spec, tuple) and len(spec) == 2:
         source, ax_key = spec
         if isinstance(source, (str, Path)):
-            return load_recipe(source), ax_key
+            path = Path(source)
+            return load_recipe(path), ax_key, path
         elif isinstance(source, FigureRecord):
-            return source, ax_key
+            return source, ax_key, None
         raise TypeError(f"Invalid source in tuple: {type(source)}")
     raise TypeError(f"Invalid source spec type: {type(spec)}")
 
