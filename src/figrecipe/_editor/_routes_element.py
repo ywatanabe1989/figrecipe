@@ -171,6 +171,100 @@ def register_element_routes(app, editor):
             }
         )
 
+    @app.route("/update_element_color", methods=["POST"])
+    def update_element_color():
+        """Update an element's color directly (for elements without call data).
+
+        This handles elements like scatter, line, fill that were created without
+        recorded call data but still need color editing support.
+        """
+        data = request.get_json() or {}
+        element_key = data.get("element_key")
+        color = data.get("color")
+        ax_index = data.get("ax_index")
+        element_type = data.get("element_type")
+
+        if not element_key or not color:
+            return jsonify({"error": "Missing element_key or color"}), 400
+
+        try:
+            # Find and update the element on the figure
+            fig = editor.fig
+            if ax_index is not None and ax_index < len(fig.axes):
+                ax = fig.axes[ax_index]
+
+                # Parse element key to find the artist
+                # Key format: ax{idx}_{type}{num} e.g., ax0_scatter1, ax2_line0
+                updated = False
+
+                if "scatter" in element_key or element_type == "scatter":
+                    for coll in ax.collections:
+                        from matplotlib.collections import PathCollection
+
+                        if isinstance(coll, PathCollection):
+                            coll.set_facecolors([color])
+                            coll.set_edgecolors([color])
+                            updated = True
+                            break
+
+                elif "line" in element_key or element_type in ("line", "step"):
+                    for line in ax.get_lines():
+                        if line.get_visible():
+                            line.set_color(color)
+                            line.set_markerfacecolor(color)
+                            line.set_markeredgecolor(color)
+                            updated = True
+                            break
+
+                elif "fill" in element_key or element_type == "fill":
+                    from matplotlib.collections import PolyCollection
+
+                    for coll in ax.collections:
+                        if isinstance(coll, PolyCollection):
+                            coll.set_facecolors([color])
+                            coll.set_edgecolors([color])
+                            updated = True
+                            break
+
+                elif "bar" in element_key or element_type == "bar":
+                    for patch in ax.patches:
+                        patch.set_facecolor(color)
+                        patch.set_edgecolor(color)
+                        updated = True
+
+                if not updated:
+                    return jsonify(
+                        {"error": f"Could not find element: {element_key}"}
+                    ), 404
+
+            # Re-render the figure
+            base64_img, bboxes, img_size = render_with_overrides(
+                editor.fig,
+                editor.get_effective_style(),
+                editor.dark_mode,
+            )
+
+            # Regenerate hitmap
+            hitmap_img, color_map = generate_hitmap(editor.fig, dpi=150)
+            editor._color_map = color_map
+            editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
+            editor._hitmap_generated = True
+
+            return jsonify(
+                {
+                    "success": True,
+                    "image": base64_img,
+                    "bboxes": bboxes,
+                    "img_size": {"width": img_size[0], "height": img_size[1]},
+                }
+            )
+
+        except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            return jsonify({"error": f"Update failed: {str(e)}"}), 500
+
     @app.route("/download/csv")
     def download_csv():
         """Download plotted data as CSV."""
