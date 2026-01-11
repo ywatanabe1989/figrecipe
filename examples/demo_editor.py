@@ -3,8 +3,9 @@
 """Demo script for GUI editor with diverse plot types.
 
 Usage:
-    python demo_editor.py [PORT]
+    python demo_editor.py [PORT] [--all]
     python demo_editor.py 5051
+    python demo_editor.py 5050 --all   # Launch with all plot types
 """
 
 import matplotlib
@@ -42,14 +43,25 @@ def kill_port(port=5050):
         time.sleep(1)
 
 
-def plot_figure():
-    """Create a figure with diverse plot types."""
+def plot_figure(all_plots=False):
+    """Create a figure with diverse plot types.
+
+    Parameters
+    ----------
+    all_plots : bool
+        If True, show all available plot types. If False (default),
+        show only representative plots (one per category).
+    """
     from figrecipe._dev import get_plotter
+    from figrecipe._dev.demo_plotters import list_plots
 
     rng = np.random.default_rng(42)
 
-    # Use representative plots from each category
-    SELECTED_PLOTTERS = get_representative_plots()
+    # Use all plots or representative plots based on flag
+    if all_plots:
+        SELECTED_PLOTTERS = list_plots()
+    else:
+        SELECTED_PLOTTERS = get_representative_plots()
 
     # Calculate grid size
     n_plots = len(SELECTED_PLOTTERS)
@@ -86,12 +98,12 @@ def plot_figure():
     return fig
 
 
-def main(port=5050):
+def main(port=5050, all_plots=False):
     kill_port(port)
 
     fr.load_style("SCITEX")
 
-    fig = plot_figure()
+    fig = plot_figure(all_plots=all_plots)
 
     # Save temporarily for reproduction
     output_dir = Path("/tmp/figrecipe_editor_demo")
@@ -109,7 +121,16 @@ def main(port=5050):
 
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 5050
-    main(port)
+    # Parse arguments
+    port = 5050
+    all_plots = False
+
+    for arg in sys.argv[1:]:
+        if arg == "--all":
+            all_plots = True
+        elif arg.isdigit():
+            port = int(arg)
+
+    main(port, all_plots=all_plots)
 
 # EOF
