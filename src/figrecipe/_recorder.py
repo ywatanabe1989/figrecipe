@@ -129,6 +129,8 @@ class FigureRecord:
     stats: Optional[Dict[str, Any]] = None
     # Crop information for post-save cropping (enables correct bbox recalculation)
     crop_info: Optional[Dict[str, Any]] = None
+    # mm_layout for auto-cropping during save (enables consistent cropping on reproduce)
+    mm_layout: Optional[Dict[str, Any]] = None
     # Source data directories for composition (enables symlinks instead of copying)
     # Maps ax_key -> source data directory path
     source_data_dirs: Optional[Dict[str, Path]] = None
@@ -191,6 +193,9 @@ class FigureRecord:
         # Add crop_info if set (for bbox recalculation after cropping)
         if self.crop_info is not None:
             result["figure"]["crop_info"] = self.crop_info
+        # Add mm_layout if set (for consistent cropping on reproduce)
+        if self.mm_layout is not None:
+            result["figure"]["mm_layout"] = self.mm_layout
         return result
 
     @classmethod
@@ -215,6 +220,7 @@ class FigureRecord:
             caption=metadata.get("caption"),
             stats=metadata.get("stats"),
             crop_info=fig_data.get("crop_info"),
+            mm_layout=fig_data.get("mm_layout"),
         )
 
         # Reconstruct axes

@@ -56,7 +56,13 @@ def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
 
         # Map ax_keys to current axes positions using position matching
         # This handles the case where panels have been dragged to new positions
-        ax_keys_sorted = sorted(record.axes.keys())
+        # Use natural sorting to handle ax_1_0 vs ax_10_0 correctly
+        def natural_sort_key(s):
+            import re
+
+            return [int(c) if c.isdigit() else c for c in re.split(r"(\d+)", s)]
+
+        ax_keys_sorted = sorted(record.axes.keys(), key=natural_sort_key)
 
         for ax_idx, ax in enumerate(axes_list):
             # Try to find the matching ax_record by comparing positions
@@ -81,10 +87,6 @@ def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
                             and abs(rec_pos[2] - ax_pos.width) < 0.01
                             and abs(rec_pos[3] - ax_pos.height) < 0.01
                         ):
-                            print(
-                                f"[detect_plot_types] ax_idx={ax_idx} matched {ax_key} "
-                                f"via position_override"
-                            )
                             result[ax_idx] = ax_key_to_info.get(
                                 ax_key, {"types": set(), "call_ids": {}}
                             )
@@ -106,10 +108,6 @@ def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
             if not matched and ax_idx < len(ax_keys_sorted):
                 ax_key = ax_keys_sorted[ax_idx]
                 info = ax_key_to_info.get(ax_key, {"types": set(), "call_ids": {}})
-                print(
-                    f"[detect_plot_types] ax_idx={ax_idx} fallback to {ax_key}, "
-                    f"types={info.get('types', set())}"
-                )
                 result[ax_idx] = info
 
     return result

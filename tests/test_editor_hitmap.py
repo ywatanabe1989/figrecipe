@@ -105,22 +105,18 @@ def _create_graph(ax):
 
 
 # Plot types that don't yet have hitmap element detection
+# Note: Many types removed after implementing proper call_id support
 HITMAP_NOT_IMPLEMENTED = {
-    "barbs",
-    "ecdf",
-    "fill_betweenx",
-    "hexbin",
-    "loglog",
-    "pcolor",
-    "semilogx",
-    "semilogy",
-    "stackplot",
-    "stairs",
-    "step",
-    "tricontour",
-    "tricontourf",
-    "tripcolor",
-    "triplot",
+    "ecdf",  # Uses step internally, detection complex
+    "hexbin",  # QuadMesh without specific call_id tracking
+    "loglog",  # Log-scale variant of plot
+    "pcolor",  # Similar to pcolormesh but different
+    "semilogx",  # Log-scale variant of plot
+    "semilogy",  # Log-scale variant of plot
+    "tricontour",  # Triangle-based contour
+    "tricontourf",  # Triangle-based filled contour
+    "tripcolor",  # Triangle-based color mesh
+    "triplot",  # Triangle mesh plot
 }
 
 

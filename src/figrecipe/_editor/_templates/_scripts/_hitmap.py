@@ -26,6 +26,7 @@ async function loadHitmap() {
 
         colorMap = data.color_map;
         console.log('Loaded colorMap:', Object.keys(colorMap));
+        console.log('Loaded callsData:', Object.keys(callsData), callsData);
 
         // Create canvas for hitmap
         const canvas = document.getElementById('hitmap-canvas');

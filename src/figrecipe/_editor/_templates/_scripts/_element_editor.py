@@ -94,6 +94,10 @@ function showDynamicCallProperties(element) {
 
     container.innerHTML = '';
 
+    // Debug logging
+    console.log('[showDynamicCallProperties] element:', element);
+    console.log('[showDynamicCallProperties] callsData keys:', Object.keys(callsData));
+
     // Get call_id - try element directly, then colorMap, then label
     let callId = element.call_id;
     if (!callId && element.key && typeof colorMap !== 'undefined') {
@@ -106,6 +110,8 @@ function showDynamicCallProperties(element) {
     if (!callId) {
         callId = element.label;
     }
+
+    console.log('[showDynamicCallProperties] callId:', callId, 'exists in callsData:', callId in callsData);
 
     // If no call data found, show basic element info instead
     if (!callId || !callsData[callId]) {
@@ -310,15 +316,22 @@ async function updateElementColor(element, newColor) {
     document.body.classList.add('loading');
 
     try {
+        const payload = {
+            element_key: element.key,
+            color: newColor,
+            ax_index: element.ax_index,
+            element_type: element.type
+        };
+
+        // Include layer_index for multi-layer elements (stackplot, etc.)
+        if (element.layer_index !== undefined && element.layer_index !== null) {
+            payload.layer_index = element.layer_index;
+        }
+
         const response = await fetch('/update_element_color', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                element_key: element.key,
-                color: newColor,
-                ax_index: element.ax_index,
-                element_type: element.type
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
