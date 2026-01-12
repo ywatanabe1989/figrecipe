@@ -6,8 +6,6 @@ Tests that fig.savefig() and fr.save() produce consistent outputs,
 both going through the same save pipeline with auto-crop and finalization.
 """
 
-from pathlib import Path
-
 import pytest
 
 
@@ -37,9 +35,9 @@ class TestSavefigConsistency:
 
         result = fig.savefig(output, verbose=False)
 
-        # Should return (image_path, yaml_path) tuple
+        # Should return (image_path, yaml_path, validation_result) tuple
         assert isinstance(result, tuple)
-        assert len(result) == 2
+        assert len(result) == 3
         assert result[0].exists()
         assert result[1].exists()
         assert result[1].suffix == ".yaml"
@@ -51,9 +49,12 @@ class TestSavefigConsistency:
 
         result = fig.savefig(output, save_recipe=False, verbose=False)
 
-        # Should return just the image path
-        assert isinstance(result, Path)
-        assert result.exists()
+        # Should return (image_path, None, None) tuple
+        assert isinstance(result, tuple)
+        assert len(result) == 3
+        assert result[0].exists()
+        assert result[1] is None
+        assert result[2] is None
         # YAML should NOT be created
         assert not (tmp_path / "test.yaml").exists()
 
