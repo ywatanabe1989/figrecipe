@@ -110,56 +110,18 @@ def validate_recipe(
         # Use the same saving approach for both to ensure consistent comparison
         original_path = tmpdir / "original.png"
 
-        # Check if constrained_layout is being used
-        use_constrained = fig.fig.get_constrained_layout()
-        mm_layout = getattr(fig, "_mm_layout", None)
-
-        if use_constrained and mm_layout is not None:
-            # Use bbox_inches='tight' like we do in fr.save()
-            crop_margin_left_mm = mm_layout.get("crop_margin_left_mm", 1)
-            crop_margin_right_mm = mm_layout.get("crop_margin_right_mm", 1)
-            crop_margin_top_mm = mm_layout.get("crop_margin_top_mm", 1)
-            crop_margin_bottom_mm = mm_layout.get("crop_margin_bottom_mm", 1)
-            avg_margin_mm = (
-                crop_margin_left_mm
-                + crop_margin_right_mm
-                + crop_margin_top_mm
-                + crop_margin_bottom_mm
-            ) / 4
-            pad_inches = avg_margin_mm / 25.4
-            fig.fig.savefig(
-                original_path, dpi=dpi, bbox_inches="tight", pad_inches=pad_inches
-            )
-        else:
-            fig.fig.savefig(original_path, dpi=dpi)
+        # Use RecordingFigure.savefig for original to ensure consistent
+        # tick finalization and cropping behavior with reproduced figure
+        fig.savefig(original_path, save_recipe=False, dpi=dpi, verbose=False)
 
         # Reproduce from recipe
         reproduced_fig, _ = reproduce(recipe_path)
 
-        # Save reproduced figure
+        # Save reproduced figure using same method as original
         reproduced_path = tmpdir / "reproduced.png"
-
-        # Use same saving approach for reproduced figure
-        use_constrained_repro = reproduced_fig.fig.get_constrained_layout()
-        mm_layout_repro = getattr(reproduced_fig, "_mm_layout", None)
-
-        if use_constrained_repro and mm_layout_repro is not None:
-            crop_margin_left_mm = mm_layout_repro.get("crop_margin_left_mm", 1)
-            crop_margin_right_mm = mm_layout_repro.get("crop_margin_right_mm", 1)
-            crop_margin_top_mm = mm_layout_repro.get("crop_margin_top_mm", 1)
-            crop_margin_bottom_mm = mm_layout_repro.get("crop_margin_bottom_mm", 1)
-            avg_margin_mm = (
-                crop_margin_left_mm
-                + crop_margin_right_mm
-                + crop_margin_top_mm
-                + crop_margin_bottom_mm
-            ) / 4
-            pad_inches = avg_margin_mm / 25.4
-            reproduced_fig.fig.savefig(
-                reproduced_path, dpi=dpi, bbox_inches="tight", pad_inches=pad_inches
-            )
-        else:
-            reproduced_fig.savefig(reproduced_path, dpi=dpi)
+        reproduced_fig.savefig(
+            reproduced_path, save_recipe=False, dpi=dpi, verbose=False
+        )
 
         # Close reproduced figure to prevent double display in notebooks
         # Use .fig to get underlying matplotlib Figure since reproduce() returns RecordingFigure

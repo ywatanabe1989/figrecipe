@@ -237,6 +237,10 @@ def reproduce_from_record(
     # Create RecordingFigure
     wrapped_fig = RecordingFigure(fig, recorder, wrapped_axes.tolist())
 
+    # Restore mm_layout for consistent cropping during save
+    if record.mm_layout is not None:
+        wrapped_fig._mm_layout = record.mm_layout
+
     # Reproduce panel labels if recorded
     if record.panel_labels is not None:
         labels = record.panel_labels.get("labels")

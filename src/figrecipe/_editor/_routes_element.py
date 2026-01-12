@@ -183,6 +183,7 @@ def register_element_routes(app, editor):
         color = data.get("color")
         ax_index = data.get("ax_index")
         element_type = data.get("element_type")
+        layer_index = data.get("layer_index")  # For multi-layer elements
 
         if not element_key or not color:
             return jsonify({"error": "Missing element_key or color"}), 400
@@ -215,6 +216,21 @@ def register_element_routes(app, editor):
                             line.set_markeredgecolor(color)
                             updated = True
                             break
+
+                elif "stackplot" in element_key or element_type == "stackplot":
+                    # Stackplot: update specific layer by index
+                    from matplotlib.collections import PolyCollection
+
+                    poly_idx = 0
+                    for coll in ax.collections:
+                        if isinstance(coll, PolyCollection):
+                            if layer_index is None or poly_idx == layer_index:
+                                coll.set_facecolors([color])
+                                coll.set_edgecolors([color])
+                                updated = True
+                                if layer_index is not None:
+                                    break  # Only update specific layer
+                            poly_idx += 1
 
                 elif "fill" in element_key or element_type == "fill":
                     from matplotlib.collections import PolyCollection

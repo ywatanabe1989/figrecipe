@@ -497,6 +497,10 @@ def save_figure(
     if crop_offset is not None:
         fig.record.crop_info = crop_offset
 
+    # Store mm_layout in record for consistent cropping on reproduce
+    if hasattr(fig, "_mm_layout") and fig._mm_layout is not None:
+        fig.record.mm_layout = fig._mm_layout
+
     # Save the recipe
     saved_yaml = fig.save_recipe(
         yaml_path,

@@ -4,7 +4,7 @@
 
 from typing import Any, Dict
 
-from matplotlib.patches import Polygon, Rectangle, Wedge
+from matplotlib.patches import Polygon, Rectangle, StepPatch, Wedge
 
 from .._colors import id_to_rgb, mpl_color_to_hex, normalize_color
 
@@ -17,7 +17,7 @@ def process_patches(
     color_map: Dict[str, Any],
     ax_info: Dict[str, Any],
 ) -> int:
-    """Process patches (bars, wedges, polygons) on an axes.
+    """Process patches (bars, wedges, polygons, steps) on an axes.
 
     Returns updated element_id.
     """
@@ -30,6 +30,8 @@ def process_patches(
     hist_ids = list(ax_call_ids.get("hist", []))
     bar_ids = list(ax_call_ids.get("bar", []))
     pie_ids = list(ax_call_ids.get("pie", []))
+    stairs_ids = list(ax_call_ids.get("stairs", []))
+    fill_ids = list(ax_call_ids.get("fill", []))
 
     if has_hist and hist_ids:
         rect_call_id = hist_ids[0]
@@ -41,8 +43,21 @@ def process_patches(
         rect_call_id = f"bar_{ax_idx}"
         rect_type = "bar"
 
+    stairs_idx = 0
+    fill_idx = 0
     for i, patch in enumerate(ax.patches):
-        if isinstance(patch, Rectangle):
+        if isinstance(patch, StepPatch):
+            element_id, stairs_idx = _process_steppatch(
+                patch,
+                i,
+                ax_idx,
+                element_id,
+                original_props,
+                color_map,
+                stairs_ids,
+                stairs_idx,
+            )
+        elif isinstance(patch, Rectangle):
             element_id = _process_rectangle(
                 patch,
                 i,
@@ -58,8 +73,15 @@ def process_patches(
                 patch, i, ax_idx, element_id, original_props, color_map, pie_ids
             )
         elif isinstance(patch, Polygon):
-            element_id = _process_polygon(
-                patch, i, ax_idx, element_id, original_props, color_map
+            element_id, fill_idx = _process_polygon(
+                patch,
+                i,
+                ax_idx,
+                element_id,
+                original_props,
+                color_map,
+                fill_ids,
+                fill_idx,
             )
 
     return element_id
@@ -130,10 +152,12 @@ def _process_wedge(patch, i, ax_idx, element_id, original_props, color_map, pie_
     return element_id + 1
 
 
-def _process_polygon(patch, i, ax_idx, element_id, original_props, color_map):
+def _process_polygon(
+    patch, i, ax_idx, element_id, original_props, color_map, fill_ids, fill_idx
+):
     """Process Polygon patch (fill areas)."""
     if not patch.get_visible():
-        return element_id
+        return element_id, fill_idx
 
     key = f"ax{ax_idx}_polygon{i}"
     rgb = id_to_rgb(element_id)
@@ -146,16 +170,60 @@ def _process_polygon(patch, i, ax_idx, element_id, original_props, color_map):
     patch.set_facecolor(normalize_color(rgb))
     patch.set_edgecolor(normalize_color(rgb))
 
+    if fill_idx < len(fill_ids):
+        call_id = fill_ids[fill_idx]
+        label = call_id
+    else:
+        call_id = f"fill_{ax_idx}_{fill_idx}"
+        label = call_id
+
     color_map[key] = {
         "id": element_id,
         "type": "fill",
-        "label": f"fill_{i}",
+        "label": label,
         "ax_index": ax_idx,
         "rgb": list(rgb),
         "original_color": mpl_color_to_hex(original_props[key]["facecolor"]),
-        "call_id": None,
+        "call_id": call_id,
     }
-    return element_id + 1
+    return element_id + 1, fill_idx + 1
+
+
+def _process_steppatch(
+    patch, i, ax_idx, element_id, original_props, color_map, stairs_ids, stairs_idx
+):
+    """Process StepPatch (stairs plot)."""
+    if not patch.get_visible():
+        return element_id, stairs_idx
+
+    key = f"ax{ax_idx}_stairs{i}"
+    rgb = id_to_rgb(element_id)
+
+    original_props[key] = {
+        "facecolor": patch.get_facecolor(),
+        "edgecolor": patch.get_edgecolor(),
+    }
+
+    patch.set_facecolor(normalize_color(rgb))
+    patch.set_edgecolor(normalize_color(rgb))
+
+    if stairs_idx < len(stairs_ids):
+        call_id = stairs_ids[stairs_idx]
+        label = call_id
+    else:
+        call_id = f"stairs_{ax_idx}_{stairs_idx}"
+        label = call_id
+
+    color_map[key] = {
+        "id": element_id,
+        "type": "stairs",
+        "label": label,
+        "ax_index": ax_idx,
+        "rgb": list(rgb),
+        "original_color": mpl_color_to_hex(original_props[key]["facecolor"]),
+        "call_id": call_id,
+    }
+    return element_id + 1, stairs_idx + 1
 
 
 __all__ = ["process_patches"]

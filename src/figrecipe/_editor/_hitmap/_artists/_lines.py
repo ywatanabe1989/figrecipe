@@ -26,16 +26,24 @@ def process_lines(
     has_violin = "violinplot" in ax_plot_types
     has_regular_plot = "plot" in ax_plot_types
     has_step = "step" in ax_plot_types
+    has_errorbar = "errorbar" in ax_plot_types
+    has_stem = "stem" in ax_plot_types
 
     boxplot_ids = list(ax_call_ids.get("boxplot", []))
     violin_ids = list(ax_call_ids.get("violinplot", []))
     plot_ids = list(ax_call_ids.get("plot", []))
     step_ids = list(ax_call_ids.get("step", []))
+    errorbar_ids = list(ax_call_ids.get("errorbar", []))
+    stem_ids = list(ax_call_ids.get("stem", []))
 
     boxplot_call_id = boxplot_ids[0] if boxplot_ids else None
     violin_call_id = violin_ids[0] if violin_ids else None
+    errorbar_call_id = errorbar_ids[0] if errorbar_ids else None
+    stem_call_id = stem_ids[0] if stem_ids else None
     regular_line_idx = 0
     step_line_idx = 0
+    errorbar_line_idx = 0
+    stem_line_idx = 0
     has_record = len(ax_plot_types) > 0
 
     for i, line in enumerate(ax.get_lines()):
@@ -51,6 +59,8 @@ def process_lines(
                 and not has_violin
                 and not has_regular_plot
                 and not has_step
+                and not has_errorbar
+                and not has_stem
             ):
                 continue
 
@@ -80,6 +90,16 @@ def process_lines(
             elem_type = "violin"
             label = violin_call_id or "violin"
             call_id = violin_call_id
+        elif has_errorbar:
+            elem_type = "errorbar"
+            call_id = errorbar_call_id
+            label = errorbar_call_id or f"errorbar_{errorbar_line_idx}"
+            errorbar_line_idx += 1
+        elif has_stem and orig_label.startswith("_"):
+            elem_type = "stem"
+            call_id = stem_call_id
+            label = stem_call_id or f"stem_{stem_line_idx}"
+            stem_line_idx += 1
         elif has_step and orig_label.startswith("_"):
             elem_type = "step"
             if step_line_idx < len(step_ids):
