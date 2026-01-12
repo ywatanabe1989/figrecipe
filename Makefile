@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition
+.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs clean-old-legacy lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
@@ -12,6 +12,7 @@ help:
 	@echo "  make pdf                Generate PDF from notebook"
 	@echo "  make clean              Clean build artifacts and outputs"
 	@echo "  make clean-outputs      Clean only outputs directory"
+	@echo "  make clean-old-legacy   Remove all .old and .legacy directories"
 	@echo "  make lint               Run linter"
 	@echo "  make lint-fix           Run linter with auto-fix"
 	@echo "  make format             Format code"
@@ -46,6 +47,11 @@ clean:
 
 clean-outputs:
 	@./scripts/maintenance/clean-outputs.sh
+
+clean-old-legacy:
+	@echo "Removing .old and .legacy directories..."
+	@find . -type d \( -name ".old" -o -name ".legacy" \) -print -exec rm -rf {} + 2>/dev/null || true
+	@echo "Cleanup complete"
 
 lint:
 	@./scripts/maintenance/lint.sh
