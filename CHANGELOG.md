@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-01-13
+
+### Added
+- **Unified save API** - `fr.save()` and `fig.savefig()` now have identical parameters and defaults
+- **facecolor parameter** - New `facecolor` parameter for saving figures with custom background colors (Issue #62)
+- **Editor layer_index support** - Multi-layer plots now track layer indices for accurate element selection
+- **Color picker for elements** - Editor now supports color picking from plot elements
+
+### Changed
+- **BREAKING: `fig.savefig()` defaults** - Now defaults to `validate=True` (was `False`) and `save_recipe=True`
+- **Improved hitmap detection** - Better element detection in the interactive editor
+
 ## [0.13.0] - 2026-01-12
 
 ### Fixed
@@ -338,6 +350,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.14.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.12.0...v0.13.0
+[0.12.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.8.0...v0.8.1
