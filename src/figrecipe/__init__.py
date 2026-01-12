@@ -214,6 +214,7 @@ def subplots(
 def save(
     fig: _Union[_RecordingFigure, _Figure],
     path: _Union[str, _Path],
+    save_recipe: bool = True,
     include_data: bool = True,
     data_format: _DataFormat = "csv",
     csv_format: _CsvFormat = "separate",
@@ -224,11 +225,7 @@ def save(
     dpi: _Optional[int] = None,
     image_format: _Optional[str] = None,
 ):
-    """Save a figure as image and recipe.
-
-    Automatically saves both the image file and the YAML recipe for
-    reproducibility. Specify either image or YAML path - the other
-    will be created with the same base name.
+    """Save a figure as image and recipe. Unified API with fig.savefig().
 
     Parameters
     ----------
@@ -236,21 +233,20 @@ def save(
         The figure to save.
     path : str or Path
         Output path (.png, .pdf, .svg, .yaml, etc.)
+    save_recipe : bool
+        If True (default), save YAML recipe alongside the image.
     include_data : bool
-        If True, save large arrays to separate files.
+        If True (default), save large arrays to separate files.
     data_format : str
         Format for data files: 'csv', 'npz', or 'inline'.
     csv_format : str
-        CSV file structure: 'separate' (default) or 'single'.
-        - 'separate': One CSV file per variable
-        - 'single': Single CSV with all columns (scitex/SigmaPlot-compatible)
-        Only applies when data_format='csv'.
+        CSV structure: 'separate' (default) or 'single' (scitex-compatible).
     validate : bool
         If True (default), validate reproducibility after saving.
     validate_mse_threshold : float
         Maximum acceptable MSE for validation (default: 100).
     validate_error_level : str
-        How to handle validation failures: 'error', 'warning', or 'debug'.
+        How to handle failures: 'error', 'warning', or 'debug'.
     verbose : bool
         If True (default), print save status.
     dpi : int, optional
@@ -261,13 +257,15 @@ def save(
     Returns
     -------
     tuple
-        (image_path, yaml_path, ValidationResult or None)
+        If save_recipe=True: (image_path, yaml_path, ValidationResult or None)
+        If save_recipe=False: (image_path, None, None)
     """
     from ._api._save import save_figure
 
     return save_figure(
         fig=fig,
         path=path,
+        save_recipe=save_recipe,
         include_data=include_data,
         data_format=data_format,
         csv_format=csv_format,

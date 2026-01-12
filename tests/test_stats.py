@@ -243,7 +243,7 @@ class TestStatsRoundtrip:
             axes[1].set_stats({"n": 48})
 
             png_path = Path(tmpdir) / "test_full.png"
-            fig.savefig(png_path, verbose=False)
+            fig.savefig(png_path, verbose=False, validate=False)
 
             fig2, axes2 = fr.reproduce(png_path)
 

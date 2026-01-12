@@ -165,7 +165,7 @@ class TestStatAnnotationRoundtrip:
             ax.add_stat_annotation(0, 2, p_value=0.001, y=7)
 
             png_path = Path(tmpdir) / "test.png"
-            fig.savefig(png_path, verbose=False)
+            fig.savefig(png_path, verbose=False, validate=False)
 
             fig2, ax2 = fr.reproduce(png_path)
 

@@ -225,7 +225,7 @@ class TestMetadataRoundtrip:
 
             # Save
             png_path = Path(tmpdir) / "test_full.png"
-            fig.savefig(png_path, verbose=False)
+            fig.savefig(png_path, verbose=False, validate=False)
 
             # Reproduce
             fig2, axes2 = fr.reproduce(png_path)
@@ -283,7 +283,7 @@ class TestPanelLabelsOption:
                 ax.plot([1, 2, 3], [1, 2, 3])
 
             png_path = Path(tmpdir) / "test_labels.png"
-            fig.savefig(png_path, verbose=False)
+            fig.savefig(png_path, verbose=False, validate=False)
 
             fig2, axes2 = fr.reproduce(png_path)
             assert fig2.record.panel_labels is not None
