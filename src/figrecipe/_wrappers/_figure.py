@@ -345,6 +345,7 @@ class RecordingFigure:
         verbose: bool = True,
         dpi: Optional[int] = None,
         image_format: Optional[str] = None,
+        facecolor: Optional[str] = None,
         **kwargs,
     ):
         """Save figure image and recipe. Unified API with fr.save().
@@ -355,7 +356,7 @@ class RecordingFigure:
         """
         # Handle file-like objects (BytesIO, etc.) - direct matplotlib save
         if hasattr(fname, "write"):
-            self._fig.savefig(fname, dpi=dpi, **kwargs)
+            self._fig.savefig(fname, dpi=dpi, facecolor=facecolor, **kwargs)
             return fname, None, None
 
         from .._api._save import save_figure
@@ -373,6 +374,7 @@ class RecordingFigure:
             verbose=verbose,
             dpi=dpi,
             image_format=image_format,
+            facecolor=facecolor,
         )
 
     def save_recipe(
