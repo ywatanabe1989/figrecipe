@@ -224,6 +224,7 @@ def save(
     verbose: bool = True,
     dpi: _Optional[int] = None,
     image_format: _Optional[str] = None,
+    facecolor: _Optional[str] = None,
 ):
     """Save a figure as image and recipe. Unified API with fig.savefig().
 
@@ -253,6 +254,8 @@ def save(
         DPI for image output.
     image_format : str, optional
         Image format when path is YAML.
+    facecolor : str, optional
+        Background color. When opaque, patches are made visible.
 
     Returns
     -------
@@ -275,6 +278,7 @@ def save(
         verbose=verbose,
         dpi=dpi,
         image_format=image_format,
+        facecolor=facecolor,
     )
 
 

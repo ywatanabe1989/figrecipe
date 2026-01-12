@@ -108,6 +108,41 @@ def get_save_transparency() -> bool:
     return False
 
 
+def _is_opaque_facecolor(facecolor) -> bool:
+    """Check if facecolor is an opaque color (not transparent/none)."""
+    if facecolor is None:
+        return False
+    if isinstance(facecolor, str):
+        if facecolor.lower() in ("none", "transparent"):
+            return False
+    return True
+
+
+def _make_patches_opaque(fig):
+    """Temporarily make figure and axes patches opaque. Returns restore function."""
+    original_alphas = []
+
+    # Store and set figure patch alpha
+    fig_patch = fig.fig.patch
+    original_alphas.append(("fig", fig_patch.get_alpha()))
+    fig_patch.set_alpha(1.0)
+
+    # Store and set axes patch alphas
+    for ax in fig.fig.get_axes():
+        ax_patch = ax.patch
+        original_alphas.append(("ax", ax, ax_patch.get_alpha()))
+        ax_patch.set_alpha(1.0)
+
+    def restore():
+        for item in original_alphas:
+            if item[0] == "fig":
+                fig_patch.set_alpha(item[1])
+            else:
+                item[1].patch.set_alpha(item[2])
+
+    return restore
+
+
 def save_figure(
     fig,
     path,
@@ -122,6 +157,7 @@ def save_figure(
     dpi: Optional[int] = None,
     image_format: Optional[str] = None,
     crop_margin_mm: Optional[float] = None,
+    facecolor: Optional[str] = None,
 ):
     """Core save implementation.
 
@@ -162,6 +198,9 @@ def save_figure(
         Image format when path is YAML.
     crop_margin_mm : float, optional
         If specified, auto-crop saved image to all ink/content plus this margin.
+    facecolor : str, optional
+        Background color for the saved image. When set to an opaque color,
+        figure and axes patches are temporarily made opaque before saving.
 
     Returns
     -------
@@ -226,26 +265,39 @@ def save_figure(
         crop_margin_top_mm = mm_layout.get("crop_margin_top_mm", 1)
         crop_margin_bottom_mm = mm_layout.get("crop_margin_bottom_mm", 1)
 
-    if use_constrained:
-        # For constrained_layout, use bbox_inches='tight' to crop at save time
-        avg_margin_mm = (
-            crop_margin_left_mm
-            + crop_margin_right_mm
-            + crop_margin_top_mm
-            + crop_margin_bottom_mm
-        ) / 4
-        pad_inches = avg_margin_mm / 25.4  # mm to inches
+    # Handle facecolor override - make patches opaque if needed
+    restore_patches = None
+    if _is_opaque_facecolor(facecolor):
+        restore_patches = _make_patches_opaque(fig)
 
-        fig.fig.savefig(
-            image_path,
-            dpi=dpi,
-            transparent=transparent,
-            bbox_inches="tight",
-            pad_inches=pad_inches,
-        )
-    else:
-        # Standard save without bbox_inches to preserve mm layout
-        fig.fig.savefig(image_path, dpi=dpi, transparent=transparent)
+    try:
+        if use_constrained:
+            # For constrained_layout, use bbox_inches='tight' to crop at save time
+            avg_margin_mm = (
+                crop_margin_left_mm
+                + crop_margin_right_mm
+                + crop_margin_top_mm
+                + crop_margin_bottom_mm
+            ) / 4
+            pad_inches = avg_margin_mm / 25.4  # mm to inches
+
+            fig.fig.savefig(
+                image_path,
+                dpi=dpi,
+                transparent=transparent,
+                bbox_inches="tight",
+                pad_inches=pad_inches,
+                facecolor=facecolor,
+            )
+        else:
+            # Standard save without bbox_inches to preserve mm layout
+            fig.fig.savefig(
+                image_path, dpi=dpi, transparent=transparent, facecolor=facecolor
+            )
+    finally:
+        # Restore original patch alphas
+        if restore_patches is not None:
+            restore_patches()
 
     # Auto-crop using stored crop margins from mm_layout (or explicit parameter)
     # Only crop raster image formats (not PDF, SVG, EPS)
