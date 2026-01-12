@@ -144,10 +144,12 @@ mgmt
 **/*old*
 .old
 **/.old
-.legacy
-**/.legacy
+
+# develop directories
 .dev
 **/.dev
+.legacy
+**/.legacy
 .playground
 **/.playground
 
