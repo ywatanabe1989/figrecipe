@@ -69,8 +69,6 @@ def _show_recursive_help(ctx: click.Context) -> None:
     console.print(ctx.get_help())
 
     for name, cmd in sorted(main.commands.items()):
-        if name == "help-recursive":
-            continue
         _print_command_help(cmd, f"figrecipe {name}", ctx)
 
 
@@ -87,13 +85,6 @@ main.add_command(reproduce)
 main.add_command(style)
 main.add_command(validate)
 main.add_command(version_cmd)
-
-
-@main.command("help-recursive", context_settings=CONTEXT_SETTINGS)
-@click.pass_context
-def help_recursive_cmd(ctx: click.Context) -> None:
-    """Show help for all commands recursively."""
-    _show_recursive_help(ctx.parent)
 
 
 if __name__ == "__main__":
