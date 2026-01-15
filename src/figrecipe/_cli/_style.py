@@ -2,14 +2,43 @@
 # -*- coding: utf-8 -*-
 """style command - Style management subcommands."""
 
-
 import click
+from rich.console import Console
+
+console = Console()
+
+CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 
-@click.group()
-def style() -> None:
+def _print_command_help(cmd, prefix: str, parent_ctx) -> None:
+    """Print help for a command."""
+    console.print(f"\n[bold cyan]━━━ {prefix} ━━━[/bold cyan]")
+    sub_ctx = click.Context(cmd, info_name=prefix.split()[-1], parent=parent_ctx)
+    console.print(cmd.get_help(sub_ctx))
+
+
+def _show_recursive_help(ctx: click.Context) -> None:
+    """Display recursive help for all style subcommands."""
+    console.print("[bold cyan]━━━ figrecipe style ━━━[/bold cyan]")
+    console.print(ctx.get_help())
+
+    for name, cmd in sorted(style.commands.items()):
+        if name == "help-recursive":
+            continue
+        _print_command_help(cmd, f"figrecipe style {name}", ctx)
+
+
+@click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
+@click.option("--help-recursive", is_flag=True, help="Show help for all subcommands.")
+@click.pass_context
+def style(ctx: click.Context, help_recursive: bool) -> None:
     """Manage figure styles and presets."""
-    pass
+    if help_recursive:
+        _show_recursive_help(ctx)
+        ctx.exit(0)
+
+    if ctx.invoked_subcommand is None and not help_recursive:
+        click.echo(ctx.get_help())
 
 
 @style.command("list")
@@ -75,3 +104,10 @@ def reset_style() -> None:
 
     unload_style()
     click.echo("Style reset to defaults.")
+
+
+@style.command("help-recursive", context_settings=CONTEXT_SETTINGS)
+@click.pass_context
+def help_recursive_cmd(ctx: click.Context) -> None:
+    """Show help for all style subcommands."""
+    _show_recursive_help(ctx.parent)
