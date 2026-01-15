@@ -6,6 +6,7 @@ import click
 from rich.console import Console
 
 from .. import __version__
+from ._completion import completion
 from ._compose import compose
 from ._convert import convert
 from ._crop import crop
@@ -74,16 +75,17 @@ def _show_recursive_help(ctx: click.Context) -> None:
 
 
 # Register commands
-main.add_command(reproduce)
-main.add_command(info)
-main.add_command(extract)
-main.add_command(validate)
-main.add_command(edit)
-main.add_command(crop)
+main.add_command(completion)
 main.add_command(compose)
-main.add_command(style)
 main.add_command(convert)
+main.add_command(crop)
+main.add_command(edit)
+main.add_command(extract)
 main.add_command(fonts)
+main.add_command(info)
+main.add_command(reproduce)
+main.add_command(style)
+main.add_command(validate)
 main.add_command(version_cmd)
 
 
