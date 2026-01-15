@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-01-01
+!-- Timestamp: 2026-01-16 07:15:25
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -21,6 +21,20 @@ Part of [**SciTeX™**](https://scitex.ai).
 <p align="center">
   <img src="docs/FigRecipe-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
 </p>
+
+### 🤖 MCP Server — AI Agents Can Create Figures
+
+FigRecipe includes an **MCP (Model Context Protocol) server**, enabling AI agents like Claude to create, compose, and reproduce publication-ready figures autonomously.
+
+📄 **[Full MCP Demo (PDF)](examples/demo_mcp_out/figrecipe-v0.14.0-demo.pdf)**
+
+[![Video Demo](examples/demo_mcp_out/figrecipe-v0.14.0-demo-thumbnail.png)](https://scitex.ai/media/videos/figrecipe-v0.14.0-demo.mp4)
+▶️ *Click to watch video demo*
+
+```bash
+# Add to your Claude Code MCP config
+figrecipe mcp install
+```
 
 ## Why FigRecipe?
 
@@ -73,6 +87,8 @@ figrecipe extract fig.yaml     # Extract plotted data
 **🔹 GUI + Code coexist** — The GUI is a frontend, not a black box. Everything is backed by a reproducible spec.
 
 **🔹 Millimeter-precise layout** — Designed for journal figures, not dashboards.
+
+**🔹 MCP Server for AI agents** — Let Claude and other AI agents create publication-ready figures autonomously.
 
 <details>
 <summary><b>Core Features</b></summary>
