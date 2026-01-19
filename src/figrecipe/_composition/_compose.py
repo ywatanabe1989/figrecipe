@@ -11,13 +11,125 @@ from .._recorder import FigureRecord
 from .._serializer import load_recipe
 from .._wrappers import RecordingAxes, RecordingFigure
 
+# Supported image file extensions for raw image composition
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif", ".webp"}
+# SVG requires special handling (vector format)
+VECTOR_EXTENSIONS = {".svg"}
+
+
+def _is_image_file(path: Path) -> bool:
+    """Check if path is a supported image file.
+
+    Parameters
+    ----------
+    path : Path
+        File path to check.
+
+    Returns
+    -------
+    bool
+        True if path is a supported image file.
+    """
+    suffix = path.suffix.lower()
+    return suffix in IMAGE_EXTENSIONS or suffix in VECTOR_EXTENSIONS
+
+
+def _create_image_record(image_path: Path) -> FigureRecord:
+    """Create a FigureRecord from a raw image file.
+
+    The record contains a single axes with an imshow() call displaying the image.
+    Axis ticks and labels are turned off for clean image display.
+
+    Parameters
+    ----------
+    image_path : Path
+        Path to the image file.
+
+    Returns
+    -------
+    FigureRecord
+        A figure record with the image displayed via imshow().
+    """
+    from datetime import datetime
+
+    import matplotlib
+    import numpy as np
+    from PIL import Image
+
+    from .._recorder import AxesRecord, CallRecord
+
+    # Load image
+    suffix = image_path.suffix.lower()
+    if suffix == ".svg":
+        # SVG requires special handling - convert to raster first
+        try:
+            import io
+
+            import cairosvg
+
+            png_data = cairosvg.svg2png(url=str(image_path))
+            img = Image.open(io.BytesIO(png_data))
+        except ImportError:
+            raise ImportError(
+                "cairosvg is required for SVG support. Install with: pip install cairosvg"
+            )
+    else:
+        img = Image.open(image_path)
+
+    # Convert to numpy array (RGB/RGBA)
+    if img.mode not in ("RGB", "RGBA"):
+        img = img.convert("RGBA")
+    img_array = np.array(img)
+
+    # Create CallRecord for imshow
+    imshow_call = CallRecord(
+        id=f"imshow_{image_path.stem}",
+        function="imshow",
+        args=[{"name": "X", "dtype": "ndarray", "data": img_array.tolist()}],
+        kwargs={"aspect": "equal"},
+        timestamp=datetime.now().isoformat(),
+        ax_position=(0, 0),
+    )
+
+    # Create decoration calls to turn off axis
+    axis_off_call = CallRecord(
+        id="axis_off",
+        function="axis",
+        args=[{"name": "arg0", "data": "off"}],
+        kwargs={},
+        timestamp=datetime.now().isoformat(),
+        ax_position=(0, 0),
+    )
+
+    # Create AxesRecord
+    ax_record = AxesRecord(
+        position=(0, 0),
+        calls=[imshow_call],
+        decorations=[axis_off_call],
+    )
+
+    # Determine figure size based on image dimensions (in inches at 100 dpi)
+    height, width = img_array.shape[:2]
+    dpi = 100
+    figsize = (width / dpi, height / dpi)
+
+    # Create FigureRecord
+    record = FigureRecord(
+        figsize=figsize,
+        dpi=dpi,
+        matplotlib_version=matplotlib.__version__,
+    )
+    record.axes["ax_0_0"] = ax_record
+
+    return record
+
 
 def compose(
     layout: Tuple[int, int],
     sources: Dict[Tuple[int, int], Union[str, Path, FigureRecord, Tuple]],
     **kwargs,
 ) -> Tuple[RecordingFigure, Union[RecordingAxes, NDArray]]:
-    """Compose a new figure from multiple recipe sources.
+    """Compose a new figure from multiple sources (recipes or raw images).
 
     Parameters
     ----------
@@ -26,7 +138,8 @@ def compose(
     sources : dict
         Mapping of (row, col) -> source specification.
         Source can be:
-        - str/Path: Recipe file path (uses first axes)
+        - str/Path to .yaml recipe file (uses first axes)
+        - str/Path to image file (.png, .jpg, .jpeg, .tiff, .bmp, .gif, .webp, .svg)
         - FigureRecord: Direct record (uses first axes)
         - Tuple[source, ax_key]: Specific axes from source
 
@@ -42,6 +155,8 @@ def compose(
 
     Examples
     --------
+    Compose from recipe files:
+
     >>> import figrecipe as fr
     >>> fig, axes = fr.compose(
     ...     layout=(1, 2),
@@ -50,6 +165,22 @@ def compose(
     ...         (0, 1): "experiment_b.yaml",
     ...     }
     ... )
+
+    Compose with mixed sources (recipes and raw images):
+
+    >>> fig, axes = fr.compose(
+    ...     layout=(1, 3),
+    ...     sources={
+    ...         (0, 0): "microscopy_image.png",  # Raw PNG image
+    ...         (0, 1): "diagram.svg",            # Raw SVG image
+    ...         (0, 2): "my_plot.yaml",           # Recipe file
+    ...     }
+    ... )
+
+    Notes
+    -----
+    Raw image files are displayed using ``ax.imshow()`` with axis turned off.
+    SVG files require the ``cairosvg`` package for rasterization.
     """
     from .. import subplots
 
@@ -113,7 +244,11 @@ def _parse_source_spec_with_path(
     Parameters
     ----------
     spec : various
-        Source specification.
+        Source specification. Can be:
+        - str/Path to .yaml recipe file
+        - str/Path to image file (.png, .jpg, .jpeg, .tiff, .bmp, .gif, .webp, .svg)
+        - FigureRecord object
+        - Tuple of (source, ax_key) for specific axes selection
 
     Returns
     -------
@@ -122,6 +257,10 @@ def _parse_source_spec_with_path(
     """
     if isinstance(spec, (str, Path)):
         path = Path(spec)
+        # Check if it's an image file
+        if _is_image_file(path):
+            return _create_image_record(path), "ax_0_0", path
+        # Otherwise load as recipe
         return load_recipe(path), "ax_0_0", path
     elif isinstance(spec, FigureRecord):
         return spec, "ax_0_0", None
@@ -129,6 +268,9 @@ def _parse_source_spec_with_path(
         source, ax_key = spec
         if isinstance(source, (str, Path)):
             path = Path(source)
+            # Check if it's an image file
+            if _is_image_file(path):
+                return _create_image_record(path), "ax_0_0", path
             return load_recipe(path), ax_key, path
         elif isinstance(source, FigureRecord):
             return source, ax_key, None
