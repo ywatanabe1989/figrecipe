@@ -111,6 +111,12 @@ def reload_style(style: Optional[Union[str, Path]] = None) -> DotDict:
     global _STYLE_CACHE, _CURRENT_STYLE_NAME
     _STYLE_CACHE = None
     _CURRENT_STYLE_NAME = None
+
+    # Invalidate color resolver cache
+    from ._color_resolver import invalidate_cache
+
+    invalidate_cache()
+
     return load_style(style)
 
 
@@ -212,6 +218,11 @@ def unload_style() -> None:
     global _STYLE_CACHE, _CURRENT_STYLE_NAME
     _STYLE_CACHE = None
     _CURRENT_STYLE_NAME = None
+
+    # Invalidate color resolver cache
+    from ._color_resolver import invalidate_cache
+
+    invalidate_cache()
 
     # Reset matplotlib rcParams to defaults
     import matplotlib as mpl

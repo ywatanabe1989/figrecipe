@@ -261,6 +261,139 @@ class TestExtractCommand:
         assert result.exit_code != 0
 
 
+class TestPlotCommand:
+    """Test plot command for declarative figure creation."""
+
+    @pytest.fixture
+    def sample_spec(self, tmp_path):
+        """Create a sample plot spec file."""
+        spec_path = tmp_path / "spec.yaml"
+        spec_path.write_text(
+            """
+figure:
+  width_mm: 80
+  height_mm: 60
+
+plots:
+  - type: line
+    x: [1, 2, 3, 4, 5]
+    y: [1, 4, 9, 16, 25]
+    color: blue
+    label: "quadratic"
+
+xlabel: "X"
+ylabel: "Y"
+title: "Test Plot"
+legend: true
+"""
+        )
+        return spec_path
+
+    def test_plot_help(self, runner):
+        """Test plot --help."""
+        result = runner.invoke(main, ["plot", "--help"])
+        assert result.exit_code == 0
+        assert "SPEC" in result.output
+        assert "--output" in result.output
+        assert "--format" in result.output
+
+    def test_plot_requires_spec(self, runner):
+        """Test plot requires spec argument."""
+        result = runner.invoke(main, ["plot"])
+        assert result.exit_code != 0
+        assert "Missing argument" in result.output
+
+    def test_plot_basic(self, runner, sample_spec, tmp_path):
+        """Test basic plot from spec."""
+        output_path = tmp_path / "output.png"
+        result = runner.invoke(main, ["plot", str(sample_spec), "-o", str(output_path)])
+        assert result.exit_code == 0
+        assert output_path.exists()
+        assert "Saved" in result.output
+
+    def test_plot_formats(self, runner, sample_spec, tmp_path):
+        """Test plot with different output formats."""
+        for fmt in ["png", "pdf", "svg"]:
+            output_path = tmp_path / f"output.{fmt}"
+            result = runner.invoke(
+                main,
+                ["plot", str(sample_spec), "-o", str(output_path), "-f", fmt],
+            )
+            assert result.exit_code == 0
+            assert output_path.exists()
+
+    def test_plot_with_recipe(self, runner, sample_spec, tmp_path):
+        """Test plot with --save-recipe flag."""
+        output_path = tmp_path / "output.png"
+        result = runner.invoke(
+            main, ["plot", str(sample_spec), "-o", str(output_path), "--save-recipe"]
+        )
+        assert result.exit_code == 0
+        assert output_path.exists()
+        # Recipe should also be saved
+        recipe_path = tmp_path / "output.yaml"
+        assert recipe_path.exists()
+
+    def test_plot_scatter(self, runner, tmp_path):
+        """Test scatter plot type."""
+        spec_path = tmp_path / "scatter_spec.yaml"
+        spec_path.write_text(
+            """
+plots:
+  - type: scatter
+    x: [1, 2, 3, 4]
+    y: [1, 4, 2, 3]
+    color: red
+"""
+        )
+        output_path = tmp_path / "scatter.png"
+        result = runner.invoke(main, ["plot", str(spec_path), "-o", str(output_path)])
+        assert result.exit_code == 0
+        assert output_path.exists()
+
+    def test_plot_bar(self, runner, tmp_path):
+        """Test bar plot type."""
+        spec_path = tmp_path / "bar_spec.yaml"
+        spec_path.write_text(
+            """
+plots:
+  - type: bar
+    x: [1, 2, 3]
+    y: [10, 20, 15]
+xlabel: "Category"
+ylabel: "Value"
+"""
+        )
+        output_path = tmp_path / "bar.png"
+        result = runner.invoke(main, ["plot", str(spec_path), "-o", str(output_path)])
+        assert result.exit_code == 0
+        assert output_path.exists()
+
+    def test_plot_multiple_types(self, runner, tmp_path):
+        """Test multiple plot types in one figure."""
+        spec_path = tmp_path / "multi_spec.yaml"
+        spec_path.write_text(
+            """
+plots:
+  - type: line
+    x: [1, 2, 3, 4]
+    y: [1, 2, 3, 4]
+    color: blue
+    label: "linear"
+  - type: scatter
+    x: [1, 2, 3, 4]
+    y: [1, 4, 9, 16]
+    color: red
+    label: "quadratic"
+legend: true
+"""
+        )
+        output_path = tmp_path / "multi.png"
+        result = runner.invoke(main, ["plot", str(spec_path), "-o", str(output_path)])
+        assert result.exit_code == 0
+        assert output_path.exists()
+
+
 class TestCLIIntegration:
     """Integration tests for CLI."""
 
