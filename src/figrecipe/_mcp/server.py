@@ -16,19 +16,11 @@ from typing import Any, Dict, List, Optional
 
 from fastmcp import FastMCP
 
-mcp = FastMCP(
-    name="figrecipe",
-    instructions="""
-    figrecipe MCP server for creating reproducible matplotlib figures.
+from .._branding import get_mcp_instructions, get_mcp_server_name
 
-    Key tools:
-    - plot: Create figures from declarative YAML/JSON specs
-    - reproduce: Recreate figures from saved recipes
-    - compose: Combine multiple figures into one
-    - info: Get information about recipe files
-    - validate: Check if recipes reproduce correctly
-    - crop: Auto-crop whitespace from figure images
-    """,
+mcp = FastMCP(
+    name=get_mcp_server_name(),
+    instructions=get_mcp_instructions(),
 )
 
 
