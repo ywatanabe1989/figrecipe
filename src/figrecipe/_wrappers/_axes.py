@@ -93,6 +93,11 @@ class RecordingAxes:
             stats: Optional[Dict[str, Any]] = None,
             **kwargs,
         ):
+            # Resolve named colors to style colors (e.g., "blue" -> SCITEX blue)
+            from ..styles import resolve_colors_in_kwargs
+
+            kwargs = resolve_colors_in_kwargs(kwargs)
+
             # Call matplotlib method (without stats - it's metadata only)
             result = method(*args, **kwargs)
             if self._track and track:

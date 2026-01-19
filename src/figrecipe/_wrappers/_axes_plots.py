@@ -22,7 +22,10 @@ def pie_plot(
     **kwargs,
 ) -> tuple:
     """Pie chart with automatic SCITEX styling."""
-    from ..styles import get_style
+    from ..styles import get_style, resolve_colors_in_kwargs
+
+    # Resolve named colors to style colors
+    kwargs = resolve_colors_in_kwargs(kwargs)
 
     # Get style settings before calling pie
     style = get_style()
@@ -418,7 +421,10 @@ def bar_plot(
 ):
     """Bar chart with SCITEX error bar styling."""
     from .._utils._units import mm_to_pt
-    from ..styles import get_style
+    from ..styles import get_style, resolve_colors_in_kwargs
+
+    # Resolve named colors to style colors
+    kwargs = resolve_colors_in_kwargs(kwargs)
 
     # Extract stats before passing to matplotlib (it's metadata only)
     stats = kwargs.pop("stats", None)

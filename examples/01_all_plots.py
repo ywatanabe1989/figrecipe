@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-01-11 02:22:55 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/demo_all_plots.py
+# File: /home/ywatanabe/proj/figrecipe/examples/01_all_plots.py
 
 
 """Simple demo script to generate all supported plot types.
@@ -9,9 +9,9 @@
 Uses fr.run_all_demos() to generate individual plot files with proper
 mm-based layout and auto-cropping.
 
-Outputs saved to ./demo_all_plots_out/plot_*.png
+Outputs saved to ./01_all_plots_out/plot_*.png
 
-See demo_composition.py for combining all plots into a single figure.
+See 02_composition.py for combining all plots into a single figure.
 """
 
 import matplotlib

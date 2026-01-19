@@ -777,3 +777,8 @@ flycheck_*.el
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/SLURM.gitignore ###
 slurm_logs
+
+# Demo output (keep PDF & thumbnail, exclude generated files and video)
+examples/demo_mcp_out/*
+!examples/demo_mcp_out/figrecipe-v0.14.0-demo.pdf
+!examples/demo_mcp_out/figrecipe-v0.14.0-demo-thumbnail.png

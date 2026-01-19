@@ -18,6 +18,11 @@ Usage:
     fig, ax = ps.subplots(**style.to_subplots_kwargs())
 """
 
+from ._color_resolver import (
+    get_color_map,
+    resolve_color,
+    resolve_colors_in_kwargs,
+)
 from ._dotdict import DotDict
 from ._finalize import finalize_special_plots, finalize_ticks
 from ._fonts import check_font, list_available_fonts
@@ -48,4 +53,7 @@ __all__ = [
     "list_available_fonts",
     "finalize_ticks",
     "finalize_special_plots",
+    "resolve_color",
+    "resolve_colors_in_kwargs",
+    "get_color_map",
 ]
