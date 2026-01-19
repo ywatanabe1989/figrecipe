@@ -45,21 +45,25 @@ def process_boxplot(
         Updated element ID
     """
     boxplot_ids = get_call_ids(ax_info, "boxplot")
-    if not boxplot_ids:
-        return element_id
-
+    # Don't return early - we need to check for PathPatch/Line2D boxes
+    # even without explicit call_ids (boxplot detection via patch shapes)
     call_id = boxplot_ids[0] if boxplot_ids else None
 
-    # Process Rectangle patches (boxes)
+    # Process patches (boxes) - supports both Rectangle and PathPatch
+    # PathPatch: created when patch_artist=True
+    # Rectangle: legacy support
+    from matplotlib.patches import PathPatch
+
     box_idx = 0
     for i, patch in enumerate(ax.patches):
-        if not isinstance(patch, Rectangle):
+        if not isinstance(patch, (Rectangle, PathPatch)):
             continue
         if not patch.get_visible():
             continue
-        # Skip default background
-        if patch.get_width() == 1.0 and patch.get_height() == 1.0:
-            continue
+        # Skip default background Rectangle
+        if isinstance(patch, Rectangle):
+            if patch.get_width() == 1.0 and patch.get_height() == 1.0:
+                continue
 
         key = f"ax{ax_idx}_boxplot_box{i}"
         rgb = id_to_rgb(element_id)
@@ -81,6 +85,47 @@ def process_boxplot(
             "ax_index": ax_idx,
             "rgb": list(rgb),
             "original_color": mpl_color_to_hex(original_props[key]["facecolor"]),
+            "call_id": call_id,
+        }
+        element_id += 1
+        box_idx += 1
+
+    # Process Line2D boxes (default boxplot without patch_artist=True)
+    # Boxes are drawn as Line2D with '_line0', '_line1' style labels
+    for i, line in enumerate(ax.get_lines()):
+        if not line.get_visible():
+            continue
+        orig_label = line.get_label() or ""
+        # Skip non-boxplot lines
+        if not orig_label.startswith("_"):
+            continue
+        # Detect box shapes by checking path pattern (4 points for rectangle outline)
+        xdata = line.get_xdata()
+        ydata = line.get_ydata()
+        if len(xdata) != 5 or len(ydata) != 5:  # 5 points = closed rectangle
+            continue
+        # Skip if already processed in the line section below
+        if f"ax{ax_idx}_boxplot_box_line{i}" in color_map:
+            continue
+
+        key = f"ax{ax_idx}_boxplot_box_line{i}"
+        rgb = id_to_rgb(element_id)
+
+        original_props[key] = {
+            "color": line.get_color(),
+        }
+
+        line.set_color(normalize_color(rgb))
+
+        label = f"{call_id}_box{box_idx}" if call_id else f"boxplot_box_{box_idx}"
+
+        color_map[key] = {
+            "id": element_id,
+            "type": "boxplot",
+            "label": label,
+            "ax_index": ax_idx,
+            "rgb": list(rgb),
+            "original_color": mpl_color_to_hex(original_props[key]["color"]),
             "call_id": call_id,
         }
         element_id += 1

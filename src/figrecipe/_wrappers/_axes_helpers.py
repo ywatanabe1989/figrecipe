@@ -37,6 +37,9 @@ def extract_color_from_result(method_name: str, result) -> Optional[str]:
         elif method_name == "step":
             if result and hasattr(result[0], "get_color"):
                 return result[0].get_color()
+        elif method_name == "ecdf":
+            if result and hasattr(result, "get_color"):
+                return result.get_color()
         elif method_name == "fill_between":
             if hasattr(result, "get_facecolor"):
                 fc = result.get_facecolor()
@@ -87,7 +90,15 @@ def record_call_with_color_capture(
     recorded_kwargs = kwargs.copy()
 
     # Capture colors for methods using color cycle
-    if method_name in ("plot", "scatter", "bar", "barh", "step", "fill_between"):
+    if method_name in (
+        "plot",
+        "scatter",
+        "bar",
+        "barh",
+        "step",
+        "ecdf",
+        "fill_between",
+    ):
         has_fmt_color = args_have_fmt_color(args)
         if (
             "color" not in recorded_kwargs

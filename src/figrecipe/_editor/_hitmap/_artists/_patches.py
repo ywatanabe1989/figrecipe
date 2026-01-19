@@ -43,8 +43,13 @@ def process_patches(
         rect_call_id = f"bar_{ax_idx}"
         rect_type = "bar"
 
+    # Get boxplot call_ids if present
+    has_boxplot = "boxplot" in ax_plot_types
+    boxplot_ids = list(ax_call_ids.get("boxplot", []))
+
     stairs_idx = 0
     fill_idx = 0
+    boxplot_box_idx = 0
     for i, patch in enumerate(ax.patches):
         if isinstance(patch, StepPatch):
             element_id, stairs_idx = _process_steppatch(
@@ -58,16 +63,29 @@ def process_patches(
                 stairs_idx,
             )
         elif isinstance(patch, Rectangle):
-            element_id = _process_rectangle(
-                patch,
-                i,
-                ax_idx,
-                element_id,
-                original_props,
-                color_map,
-                rect_call_id,
-                rect_type,
-            )
+            # Check if this rectangle might be a boxplot box
+            if has_boxplot:
+                element_id, boxplot_box_idx = _process_boxplot_box(
+                    patch,
+                    i,
+                    ax_idx,
+                    element_id,
+                    original_props,
+                    color_map,
+                    boxplot_ids,
+                    boxplot_box_idx,
+                )
+            else:
+                element_id = _process_rectangle(
+                    patch,
+                    i,
+                    ax_idx,
+                    element_id,
+                    original_props,
+                    color_map,
+                    rect_call_id,
+                    rect_type,
+                )
         elif isinstance(patch, Wedge):
             element_id = _process_wedge(
                 patch, i, ax_idx, element_id, original_props, color_map, pie_ids
@@ -83,6 +101,21 @@ def process_patches(
                 fill_ids,
                 fill_idx,
             )
+        else:
+            # Handle PathPatch (boxplot boxes when patch_artist=True)
+            from matplotlib.patches import PathPatch
+
+            if isinstance(patch, PathPatch):
+                element_id, boxplot_box_idx = _process_boxplot_box(
+                    patch,
+                    i,
+                    ax_idx,
+                    element_id,
+                    original_props,
+                    color_map,
+                    boxplot_ids,
+                    boxplot_box_idx,
+                )
 
     return element_id
 
@@ -187,6 +220,44 @@ def _process_polygon(
         "call_id": call_id,
     }
     return element_id + 1, fill_idx + 1
+
+
+def _process_boxplot_box(
+    patch, i, ax_idx, element_id, original_props, color_map, boxplot_ids, box_idx
+):
+    """Process boxplot box (Rectangle or PathPatch)."""
+    if not patch.get_visible():
+        return element_id, box_idx
+
+    # Skip background rectangles
+    if hasattr(patch, "get_width") and hasattr(patch, "get_height"):
+        if patch.get_width() == 1.0 and patch.get_height() == 1.0:
+            return element_id, box_idx
+
+    key = f"ax{ax_idx}_boxplot_box{box_idx}"
+    rgb = id_to_rgb(element_id)
+
+    original_props[key] = {
+        "facecolor": patch.get_facecolor(),
+        "edgecolor": patch.get_edgecolor(),
+    }
+
+    patch.set_facecolor(normalize_color(rgb))
+    patch.set_edgecolor(normalize_color(rgb))
+
+    call_id = boxplot_ids[0] if boxplot_ids else None
+    label = f"{call_id}_box{box_idx}" if call_id else f"boxplot_box_{box_idx}"
+
+    color_map[key] = {
+        "id": element_id,
+        "type": "boxplot",
+        "label": label,
+        "ax_index": ax_idx,
+        "rgb": list(rgb),
+        "original_color": mpl_color_to_hex(original_props[key]["facecolor"]),
+        "call_id": call_id,
+    }
+    return element_id + 1, box_idx + 1
 
 
 def _process_steppatch(
