@@ -9,10 +9,27 @@ from PIL import Image
 from ._utils import load_images, mm_to_px, resize_to_fit
 
 
+def _get_background_rgba(facecolor: str) -> tuple:
+    """Convert facecolor string to RGBA tuple."""
+    if facecolor.lower() == "white":
+        return (255, 255, 255, 255)
+    elif facecolor.lower() == "black":
+        return (0, 0, 0, 255)
+    else:
+        try:
+            from PIL import ImageColor
+
+            rgb = ImageColor.getrgb(facecolor)
+            return (*rgb, 255)
+        except ValueError:
+            return (255, 255, 255, 255)
+
+
 def compose_freeform(
     sources: Dict[str, Dict[str, Any]],
     canvas_size_mm: Optional[Tuple[float, float]],
     dpi: int,
+    facecolor: str = "white",
 ) -> Tuple[Image.Image, List[Tuple[int, int, int, int]], List[str]]:
     """Compose images with free-form mm-based positioning.
 
@@ -25,6 +42,8 @@ def compose_freeform(
         Canvas size as (width_mm, height_mm). If None, auto-calculated.
     dpi : int
         Output DPI.
+    facecolor : str
+        Background color for the canvas. Default is 'white'.
 
     Returns
     -------
@@ -90,16 +109,17 @@ def compose_freeform(
     canvas_w_px = mm_to_px(canvas_w_mm, dpi)
     canvas_h_px = mm_to_px(canvas_h_mm, dpi)
 
-    # Create canvas
-    result = Image.new("RGBA", (canvas_w_px, canvas_h_px), (255, 255, 255, 255))
+    # Create canvas with specified facecolor
+    bg_rgba = _get_background_rgba(facecolor)
+    result = Image.new("RGBA", (canvas_w_px, canvas_h_px), bg_rgba)
 
     # Load and place each panel
     positions = []
     source_paths = []
 
     for panel in panels:
-        # Load image
-        images = load_images([panel["path"]], dpi)
+        # Load image with consistent facecolor
+        images = load_images([panel["path"]], dpi, facecolor)
         if not images:
             raise ValueError(f"Could not load source: {panel['path']}")
         img = images[0]

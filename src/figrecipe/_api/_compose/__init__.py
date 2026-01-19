@@ -35,6 +35,7 @@ def compose_figures(
     caption_fontsize: int = 8,
     create_symlinks: bool = True,
     canvas_size_mm: Optional[Tuple[float, float]] = None,
+    facecolor: str = "white",
 ) -> Dict[str, Any]:
     """Compose multiple figures into a single figure.
 
@@ -76,6 +77,10 @@ def compose_figures(
     canvas_size_mm : tuple of (float, float), optional
         Canvas size as (width_mm, height_mm) for free-form positioning.
         Required when sources is a dict with mm positioning.
+    facecolor : str
+        Background color for the composed figure and all panels.
+        Default is 'white'. Use this to ensure consistent backgrounds
+        when source panels have different/transparent backgrounds.
 
     Returns
     -------
@@ -110,14 +115,16 @@ def compose_figures(
     # Determine if using free-form mm positioning or grid-based layout
     if isinstance(sources, dict):
         # Free-form mm-based positioning
-        result, positions, source_paths = compose_freeform(sources, canvas_size_mm, dpi)
+        result, positions, source_paths = compose_freeform(
+            sources, canvas_size_mm, dpi, facecolor
+        )
     else:
         # Grid-based layout (original behavior)
         gap_px = mm_to_px(gap_mm, dpi)
-        images = load_images(sources, dpi)
+        images = load_images(sources, dpi, facecolor)
         if not images:
             raise ValueError("No valid source images provided")
-        result, positions = compose_grid_layout(images, layout, gap_px)
+        result, positions = compose_grid_layout(images, layout, gap_px, facecolor)
         source_paths = sources
 
     # Add panel labels if requested
