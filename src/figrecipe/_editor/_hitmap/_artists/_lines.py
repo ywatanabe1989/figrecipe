@@ -28,6 +28,7 @@ def process_lines(
     has_step = "step" in ax_plot_types
     has_errorbar = "errorbar" in ax_plot_types
     has_stem = "stem" in ax_plot_types
+    has_triplot = "triplot" in ax_plot_types
 
     boxplot_ids = list(ax_call_ids.get("boxplot", []))
     violin_ids = list(ax_call_ids.get("violinplot", []))
@@ -35,6 +36,7 @@ def process_lines(
     step_ids = list(ax_call_ids.get("step", []))
     errorbar_ids = list(ax_call_ids.get("errorbar", []))
     stem_ids = list(ax_call_ids.get("stem", []))
+    triplot_ids = list(ax_call_ids.get("triplot", []))
 
     boxplot_call_id = boxplot_ids[0] if boxplot_ids else None
     violin_call_id = violin_ids[0] if violin_ids else None
@@ -61,6 +63,7 @@ def process_lines(
                 and not has_step
                 and not has_errorbar
                 and not has_stem
+                and not has_triplot
             ):
                 continue
 
@@ -109,6 +112,14 @@ def process_lines(
                 call_id = f"step_{ax_idx}_{step_line_idx}"
                 label = call_id
             step_line_idx += 1
+        elif has_triplot and orig_label.startswith("_"):
+            elem_type = "triplot"
+            if triplot_ids:
+                call_id = triplot_ids[0]
+                label = call_id
+            else:
+                call_id = f"triplot_{ax_idx}"
+                label = call_id
         else:
             elem_type = "line"
             label = orig_label if orig_label else f"line_{i}"

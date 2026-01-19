@@ -50,6 +50,7 @@ def process_collections(
     from matplotlib.collections import QuadMesh
     from matplotlib.contour import QuadContourSet
     from matplotlib.quiver import Barbs, Quiver
+    from matplotlib.tri import TriContourSet
 
     ax_plot_types = ax_info.get("types", set())
     ax_call_ids = ax_info.get("call_ids", {})
@@ -66,6 +67,7 @@ def process_collections(
     has_eventplot = "eventplot" in ax_plot_types
     has_hexbin = "hexbin" in ax_plot_types
     has_pcolor = "pcolor" in ax_plot_types
+    has_tripcolor = "tripcolor" in ax_plot_types
 
     # Any fill-type present means we should process PolyCollections
     has_any_fill = (
@@ -75,6 +77,7 @@ def process_collections(
         or has_stairs
         or has_hexbin
         or has_pcolor
+        or has_tripcolor
     )
 
     # Extract call IDs
@@ -88,17 +91,22 @@ def process_collections(
     stairs_ids = list(ax_call_ids.get("stairs", []))
     hexbin_ids = list(ax_call_ids.get("hexbin", []))
     pcolor_ids = list(ax_call_ids.get("pcolor", []))
+    tripcolor_ids = list(ax_call_ids.get("tripcolor", []))
     errorbar_ids = list(ax_call_ids.get("errorbar", []))
     stem_ids = list(ax_call_ids.get("stem", []))
     eventplot_ids = list(ax_call_ids.get("eventplot", []))
     pcolormesh_ids = list(ax_call_ids.get("pcolormesh", []))
     contour_ids = list(ax_call_ids.get("contour", []))
     contourf_ids = list(ax_call_ids.get("contourf", []))
+    tricontour_ids = list(ax_call_ids.get("tricontour", []))
+    tricontourf_ids = list(ax_call_ids.get("tricontourf", []))
 
     violin_call_id = violin_ids[0] if violin_ids else None
     pcolormesh_call_id = pcolormesh_ids[0] if pcolormesh_ids else None
     contour_call_id = contour_ids[0] if contour_ids else None
     contourf_call_id = contourf_ids[0] if contourf_ids else None
+    tricontour_call_id = tricontour_ids[0] if tricontour_ids else None
+    tricontourf_call_id = tricontourf_ids[0] if tricontourf_ids else None
     scatter_coll_idx = 0
 
     # Separate indices for each fill type
@@ -139,12 +147,14 @@ def process_collections(
                 has_violin,
                 has_hexbin,
                 has_pcolor,
+                has_tripcolor,
                 fill_between_ids,
                 fill_betweenx_ids,
                 stackplot_ids,
                 stairs_ids,
                 hexbin_ids,
                 pcolor_ids,
+                tripcolor_ids,
                 fill_between_idx,
                 fill_betweenx_idx,
                 stackplot_idx,
@@ -207,6 +217,16 @@ def process_collections(
                 color_map,
                 contour_call_id,
                 contourf_call_id,
+            )
+        elif isinstance(coll, TriContourSet):
+            element_id = process_contour(
+                coll,
+                i,
+                ax_idx,
+                element_id,
+                color_map,
+                tricontour_call_id,
+                tricontourf_call_id,
             )
 
     return element_id

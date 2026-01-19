@@ -16,12 +16,14 @@ def determine_fill_type(
     has_violin: bool,
     has_hexbin: bool,
     has_pcolor: bool,
+    has_tripcolor: bool,
     fill_between_ids: list,
     fill_betweenx_ids: list,
     stackplot_ids: list,
     stairs_ids: list,
     hexbin_ids: list,
     pcolor_ids: list,
+    tripcolor_ids: list,
     fill_between_idx: int,
     fill_betweenx_idx: int,
     stackplot_idx: int,
@@ -72,6 +74,12 @@ def determine_fill_type(
             "type": "pcolor",
             "call_id": pcolor_ids[0],
             "elem_type": "pcolor",
+        }
+    if has_tripcolor and tripcolor_ids:
+        return {
+            "type": "tripcolor",
+            "call_id": tripcolor_ids[0],
+            "elem_type": "tripcolor",
         }
     if has_violin:
         return {"type": "violin", "call_id": None, "elem_type": "violin"}
@@ -133,11 +141,14 @@ def process_polycoll(
         Current stackplot layer index.
     stairs_idx : int
         Current stairs index.
+    violin_idx : int
+        Current violin body index.
 
     Returns
     -------
     tuple
-        (element_id, fill_between_idx, fill_betweenx_idx, stackplot_idx, stairs_idx)
+        (element_id, fill_between_idx, fill_betweenx_idx, stackplot_idx,
+         stairs_idx, violin_idx)
     """
     if not coll.get_visible():
         return (
