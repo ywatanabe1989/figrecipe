@@ -393,6 +393,63 @@ legend: true
         assert result.exit_code == 0
         assert output_path.exists()
 
+    def test_plot_csv_columns(self, runner, tmp_path):
+        """Test plot with CSV column names as data source."""
+        # Create sample CSV file
+        csv_path = tmp_path / "data.csv"
+        csv_path.write_text(
+            """time,temperature,pressure
+0,20.5,101.3
+1,21.0,101.2
+2,22.5,101.1
+3,23.0,101.0
+4,24.5,100.9
+"""
+        )
+
+        # Create spec using CSV columns
+        spec_path = tmp_path / "csv_spec.yaml"
+        spec_path.write_text(
+            f"""
+plots:
+  - type: scatter
+    data_file: {csv_path}
+    x: time
+    y: temperature
+    color: blue
+    label: "Temperature"
+xlabel: "Time (s)"
+ylabel: "Temperature (°C)"
+title: "CSV Column Test"
+"""
+        )
+        output_path = tmp_path / "csv_plot.png"
+        result = runner.invoke(main, ["plot", str(spec_path), "-o", str(output_path)])
+        assert result.exit_code == 0
+        assert output_path.exists()
+
+    def test_plot_csv_invalid_column(self, runner, tmp_path):
+        """Test plot with invalid CSV column raises error."""
+        # Create sample CSV file
+        csv_path = tmp_path / "data.csv"
+        csv_path.write_text("x,y\n1,2\n3,4\n")
+
+        # Create spec using invalid column
+        spec_path = tmp_path / "invalid_csv_spec.yaml"
+        spec_path.write_text(
+            f"""
+plots:
+  - type: line
+    data_file: {csv_path}
+    x: x
+    y: nonexistent_column
+"""
+        )
+        output_path = tmp_path / "invalid_csv.png"
+        result = runner.invoke(main, ["plot", str(spec_path), "-o", str(output_path)])
+        assert result.exit_code != 0
+        assert "not found" in result.output.lower() or "error" in result.output.lower()
+
 
 class TestCLIIntegration:
     """Integration tests for CLI."""
