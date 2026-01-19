@@ -436,3 +436,206 @@ class TestVisibilityWithComposition:
             fig2.record.axes.get("ax_0_1", None) is None
             or not fig2.record.axes["ax_0_1"].visible
         )
+
+
+class TestComposeRawImages:
+    """Tests for compose() with raw image files (Issue #75)."""
+
+    @pytest.fixture
+    def temp_image(self, tmp_path):
+        """Create a temporary test image."""
+        import numpy as np
+        from PIL import Image
+
+        # Create a simple test image (100x100 RGB)
+        img_array = np.zeros((100, 100, 3), dtype=np.uint8)
+        img_array[:50, :, 0] = 255  # Red top half
+        img_array[50:, :, 2] = 255  # Blue bottom half
+
+        img_path = tmp_path / "test_image.png"
+        img = Image.fromarray(img_array)
+        img.save(img_path)
+
+        return img_path
+
+    @pytest.fixture
+    def temp_jpg_image(self, tmp_path):
+        """Create a temporary JPG test image."""
+        import numpy as np
+        from PIL import Image
+
+        # Create a simple test image (80x120 RGB)
+        img_array = np.zeros((80, 120, 3), dtype=np.uint8)
+        img_array[:, :60, 1] = 255  # Green left half
+
+        img_path = tmp_path / "test_image.jpg"
+        img = Image.fromarray(img_array)
+        img.save(img_path)
+
+        return img_path
+
+    def test_compose_single_raw_image(self, temp_image):
+        """Compose a single raw image."""
+        fig, ax = fr.compose(
+            layout=(1, 1),
+            sources={(0, 0): temp_image},
+        )
+
+        assert fig is not None
+        assert hasattr(fig, "record")
+        assert "ax_0_0" in fig.record.axes
+        # Check that imshow call was created
+        calls = fig.record.axes["ax_0_0"].calls
+        assert len(calls) == 1
+        assert calls[0].function == "imshow"
+
+    def test_compose_multiple_raw_images(self, temp_image, temp_jpg_image):
+        """Compose multiple raw images."""
+        fig, axes = fr.compose(
+            layout=(1, 2),
+            sources={
+                (0, 0): temp_image,
+                (0, 1): temp_jpg_image,
+            },
+        )
+
+        assert fig is not None
+        assert len(axes) == 2
+        assert "ax_0_0" in fig.record.axes
+        assert "ax_0_1" in fig.record.axes
+
+    def test_compose_mixed_recipe_and_image(self, tmp_path, temp_image):
+        """Compose mixing recipe files and raw images."""
+        # Create a recipe file
+        fig1, ax1 = fr.subplots()
+        ax1.plot([1, 2, 3], [1, 4, 9], id="line1")
+        recipe_path = tmp_path / "plot.yaml"
+        fr.save(fig1, recipe_path, validate=False, verbose=False)
+
+        # Compose with mixed sources
+        fig, axes = fr.compose(
+            layout=(1, 2),
+            sources={
+                (0, 0): temp_image,  # Raw image
+                (0, 1): recipe_path,  # Recipe file
+            },
+        )
+
+        assert fig is not None
+        assert len(axes) == 2
+
+        # Check image panel
+        img_calls = fig.record.axes["ax_0_0"].calls
+        assert img_calls[0].function == "imshow"
+
+        # Check recipe panel
+        plot_calls = fig.record.axes["ax_0_1"].calls
+        assert plot_calls[0].function == "plot"
+
+    def test_compose_raw_image_has_axis_off(self, temp_image):
+        """Raw images should have axis turned off."""
+        fig, ax = fr.compose(
+            layout=(1, 1),
+            sources={(0, 0): temp_image},
+        )
+
+        # Check that axis_off decoration was added
+        decorations = fig.record.axes["ax_0_0"].decorations
+        axis_funcs = [d.function for d in decorations]
+        assert "axis" in axis_funcs
+
+    def test_compose_raw_image_preserves_aspect(self, temp_image):
+        """Raw images should preserve aspect ratio."""
+        fig, ax = fr.compose(
+            layout=(1, 1),
+            sources={(0, 0): temp_image},
+        )
+
+        # Check imshow was called with aspect='equal'
+        imshow_call = fig.record.axes["ax_0_0"].calls[0]
+        assert imshow_call.kwargs.get("aspect") == "equal"
+
+    def test_compose_save_and_reproduce_with_image(self, tmp_path, temp_image):
+        """Composed figure with raw image can be saved and reproduced."""
+        # Create a recipe
+        fig1, ax1 = fr.subplots()
+        ax1.bar([1, 2, 3], [3, 1, 4], id="bar1")
+        recipe_path = tmp_path / "bar.yaml"
+        fr.save(fig1, recipe_path, validate=False, verbose=False)
+
+        # Compose with mixed sources
+        fig, axes = fr.compose(
+            layout=(1, 2),
+            sources={
+                (0, 0): temp_image,
+                (0, 1): recipe_path,
+            },
+        )
+
+        # Save composed figure
+        output_path = tmp_path / "composed.yaml"
+        fr.save(fig, output_path, validate=False, verbose=False)
+
+        # Reproduce
+        fig2, axes2 = fr.reproduce(output_path)
+
+        assert fig2 is not None
+        assert "ax_0_0" in fig2.record.axes
+        assert "ax_0_1" in fig2.record.axes
+
+    def test_compose_image_grid_layout(self, tmp_path):
+        """Compose images in a 2x2 grid layout."""
+        import numpy as np
+        from PIL import Image
+
+        # Create 4 different colored test images
+        images = []
+        colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+        for i, color in enumerate(colors):
+            img_array = np.full((50, 50, 3), color, dtype=np.uint8)
+            img_path = tmp_path / f"img_{i}.png"
+            Image.fromarray(img_array).save(img_path)
+            images.append(img_path)
+
+        # Compose in 2x2 grid
+        fig, axes = fr.compose(
+            layout=(2, 2),
+            sources={
+                (0, 0): images[0],
+                (0, 1): images[1],
+                (1, 0): images[2],
+                (1, 1): images[3],
+            },
+        )
+
+        assert fig is not None
+        assert axes.shape == (2, 2)
+        for i in range(2):
+            for j in range(2):
+                ax_key = f"ax_{i}_{j}"
+                assert ax_key in fig.record.axes
+                assert fig.record.axes[ax_key].calls[0].function == "imshow"
+
+    def test_is_image_file_detection(self):
+        """Test image file extension detection."""
+        from pathlib import Path
+
+        from figrecipe._composition._compose import _is_image_file
+
+        # Should be detected as images
+        assert _is_image_file(Path("test.png"))
+        assert _is_image_file(Path("test.PNG"))
+        assert _is_image_file(Path("test.jpg"))
+        assert _is_image_file(Path("test.jpeg"))
+        assert _is_image_file(Path("test.JPEG"))
+        assert _is_image_file(Path("test.tiff"))
+        assert _is_image_file(Path("test.bmp"))
+        assert _is_image_file(Path("test.gif"))
+        assert _is_image_file(Path("test.webp"))
+        assert _is_image_file(Path("test.svg"))
+
+        # Should NOT be detected as images
+        assert not _is_image_file(Path("test.yaml"))
+        assert not _is_image_file(Path("test.yml"))
+        assert not _is_image_file(Path("test.txt"))
+        assert not _is_image_file(Path("test.py"))

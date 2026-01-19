@@ -12,7 +12,7 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastmcp import FastMCP
 
@@ -150,19 +150,28 @@ def compose(
     label_style: str = "uppercase",
     caption: Optional[str] = None,
     create_symlinks: bool = True,
+    canvas_size_mm: Optional[Tuple[float, float]] = None,
 ) -> Dict[str, Any]:
     """Compose multiple figures into a single figure with panel labels.
 
+    Supports two modes:
+    1. Grid-based layout (list sources): automatic arrangement with layout parameter
+    2. Free-form positioning (dict sources): precise mm-based positioning
+
     Parameters
     ----------
-    sources : list of str
-        Paths to source images or recipe files.
+    sources : list of str or dict
+        Either:
+        - List of paths to source images or recipe files (grid-based layout)
+        - Dict mapping source paths to positioning specs with 'xy_mm' and 'size_mm':
+          {"panel_a.yaml": {"xy_mm": [0, 0], "size_mm": [80, 50]}, ...}
     output_path : str
         Path to save the composed figure.
     layout : str
-        Layout mode: 'horizontal', 'vertical', or 'grid'.
+        Layout mode for list sources: 'horizontal', 'vertical', or 'grid'.
+        Ignored when using dict sources with mm positioning.
     gap_mm : float
-        Gap between panels in millimeters.
+        Gap between panels in millimeters (for grid-based layout only).
     dpi : int
         DPI for output.
     panel_labels : bool
@@ -173,11 +182,35 @@ def compose(
         Figure caption to add below.
     create_symlinks : bool
         If True (default), create symlinks to source files for traceability.
+    canvas_size_mm : tuple of (float, float), optional
+        Canvas size as (width_mm, height_mm) for free-form positioning.
+        Required when sources is a dict with mm positioning.
 
     Returns
     -------
     dict
         Result with 'output_path', 'success', and 'sources_dir' (if symlinks created).
+
+    Examples
+    --------
+    Grid-based layout:
+
+    >>> compose(
+    ...     sources=["panel_a.png", "panel_b.png"],
+    ...     output_path="figure.png",
+    ...     layout="horizontal",
+    ... )
+
+    Free-form mm-based positioning:
+
+    >>> compose(
+    ...     canvas_size_mm=[180, 120],
+    ...     sources={
+    ...         "panel_a.yaml": {"xy_mm": [0, 0], "size_mm": [80, 50]},
+    ...         "panel_b.yaml": {"xy_mm": [90, 0], "size_mm": [80, 50]},
+    ...     },
+    ...     output_path="figure.png",
+    ... )
     """
     from .._api._compose import compose_figures
 
@@ -191,6 +224,7 @@ def compose(
         label_style=label_style,
         caption=caption,
         create_symlinks=create_symlinks,
+        canvas_size_mm=canvas_size_mm,
     )
 
 
