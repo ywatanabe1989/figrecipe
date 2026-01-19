@@ -14,10 +14,14 @@ def determine_fill_type(
     has_stackplot: bool,
     has_stairs: bool,
     has_violin: bool,
+    has_hexbin: bool,
+    has_pcolor: bool,
     fill_between_ids: list,
     fill_betweenx_ids: list,
     stackplot_ids: list,
     stairs_ids: list,
+    hexbin_ids: list,
+    pcolor_ids: list,
     fill_between_idx: int,
     fill_betweenx_idx: int,
     stackplot_idx: int,
@@ -30,7 +34,7 @@ def determine_fill_type(
     dict
         Fill type info with 'type', 'call_id', and 'elem_type'.
     """
-    # Priority: fill_between > fill_betweenx > stackplot > stairs
+    # Priority: fill_between > fill_betweenx > stackplot > stairs > hexbin > pcolor
     # Check which type still has remaining IDs to assign
     if has_fill_between and fill_between_idx < len(fill_between_ids):
         return {
@@ -56,6 +60,18 @@ def determine_fill_type(
             "type": "stairs",
             "call_id": stairs_ids[stairs_idx],
             "elem_type": "stairs",
+        }
+    if has_hexbin and hexbin_ids:
+        return {
+            "type": "hexbin",
+            "call_id": hexbin_ids[0],
+            "elem_type": "hexbin",
+        }
+    if has_pcolor and pcolor_ids:
+        return {
+            "type": "pcolor",
+            "call_id": pcolor_ids[0],
+            "elem_type": "pcolor",
         }
     if has_violin:
         return {"type": "violin", "call_id": None, "elem_type": "violin"}

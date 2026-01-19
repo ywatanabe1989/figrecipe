@@ -64,9 +64,18 @@ def process_collections(
     has_errorbar = "errorbar" in ax_plot_types
     has_stem = "stem" in ax_plot_types
     has_eventplot = "eventplot" in ax_plot_types
+    has_hexbin = "hexbin" in ax_plot_types
+    has_pcolor = "pcolor" in ax_plot_types
 
     # Any fill-type present means we should process PolyCollections
-    has_any_fill = has_fill_between or has_fill_betweenx or has_stackplot or has_stairs
+    has_any_fill = (
+        has_fill_between
+        or has_fill_betweenx
+        or has_stackplot
+        or has_stairs
+        or has_hexbin
+        or has_pcolor
+    )
 
     # Extract call IDs
     violin_ids = list(ax_call_ids.get("violinplot", []))
@@ -77,6 +86,8 @@ def process_collections(
     fill_betweenx_ids = list(ax_call_ids.get("fill_betweenx", []))
     stackplot_ids = list(ax_call_ids.get("stackplot", []))
     stairs_ids = list(ax_call_ids.get("stairs", []))
+    hexbin_ids = list(ax_call_ids.get("hexbin", []))
+    pcolor_ids = list(ax_call_ids.get("pcolor", []))
     errorbar_ids = list(ax_call_ids.get("errorbar", []))
     stem_ids = list(ax_call_ids.get("stem", []))
     eventplot_ids = list(ax_call_ids.get("eventplot", []))
@@ -126,10 +137,14 @@ def process_collections(
                 has_stackplot,
                 has_stairs,
                 has_violin,
+                has_hexbin,
+                has_pcolor,
                 fill_between_ids,
                 fill_betweenx_ids,
                 stackplot_ids,
                 stairs_ids,
+                hexbin_ids,
+                pcolor_ids,
                 fill_between_idx,
                 fill_betweenx_idx,
                 stackplot_idx,
