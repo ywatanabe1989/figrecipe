@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional
 
 import click
-import yaml
 
 
 @click.command()
@@ -116,15 +115,18 @@ def plot(
 
 def _load_spec(path: Path) -> dict:
     """Load YAML or JSON spec file."""
+    from ruamel.yaml import YAML
+
     content = path.read_text()
+    yaml_parser = YAML(typ="safe")
 
     if path.suffix.lower() in (".yaml", ".yml"):
-        return yaml.safe_load(content)
+        return yaml_parser.load(content)
     elif path.suffix.lower() == ".json":
         return json.loads(content)
     else:
         # Try YAML first, then JSON
         try:
-            return yaml.safe_load(content)
-        except yaml.YAMLError:
+            return yaml_parser.load(content)
+        except Exception:
             return json.loads(content)
