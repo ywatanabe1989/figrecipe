@@ -22,10 +22,14 @@ def get_colors_from_style(n_colors: int, explicit_colors=None) -> List:
     list
         List of colors.
     """
+    from ..styles import resolve_color
+
     if explicit_colors is not None:
         if isinstance(explicit_colors, list):
-            return explicit_colors
-        return [explicit_colors] * n_colors
+            # Resolve each color in the list
+            return [resolve_color(c) for c in explicit_colors]
+        # Resolve single color
+        return [resolve_color(explicit_colors)] * n_colors
 
     from ..styles import get_style
 

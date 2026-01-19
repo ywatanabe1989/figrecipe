@@ -14,6 +14,8 @@ from ._edit import edit
 from ._extract import extract
 from ._fonts import fonts
 from ._info import info
+from ._mcp import mcp
+from ._plot import plot
 from ._reproduce import reproduce
 from ._style import style
 from ._validate import validate
@@ -81,6 +83,8 @@ main.add_command(edit)
 main.add_command(extract)
 main.add_command(fonts)
 main.add_command(info)
+main.add_command(mcp)
+main.add_command(plot)
 main.add_command(reproduce)
 main.add_command(style)
 main.add_command(validate)
