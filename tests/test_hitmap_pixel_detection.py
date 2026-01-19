@@ -76,22 +76,25 @@ def data_to_pixel(fig, ax, x_data, y_data, img_shape):
     # Get the matplotlib figure
     mpl_fig = fig.fig if hasattr(fig, "fig") else fig
 
-    # Transform data coords to display coords
+    # Transform data coords to display coords (at figure's DPI)
     display_coords = ax.transData.transform((x_data, y_data))
 
-    # Get figure size in pixels (at the DPI used for hitmap)
-    dpi = 150  # Same as generate_hitmap default
-    fig_width_px = mpl_fig.get_figwidth() * dpi
-    fig_height_px = mpl_fig.get_figheight() * dpi
+    # IMPORTANT: display_coords are at the figure's DPI, not the hitmap DPI
+    # We need to scale from figure DPI to hitmap DPI
+    hitmap_dpi = 150  # Same as generate_hitmap default
+    fig_dpi = mpl_fig.dpi
+    dpi_scale = hitmap_dpi / fig_dpi
 
-    # Scale to actual image size (may differ due to tight bbox cropping)
+    # Scale display coords to hitmap DPI
+    scaled_x = display_coords[0] * dpi_scale
+    scaled_y = display_coords[1] * dpi_scale
+
+    # Get hitmap dimensions
     img_height, img_width = img_shape[:2]
-    scale_x = img_width / fig_width_px
-    scale_y = img_height / fig_height_px
 
-    pixel_x = int(display_coords[0] * scale_x)
-    # Flip y-axis (image origin is top-left, matplotlib is bottom-left)
-    pixel_y = int(img_height - display_coords[1] * scale_y)
+    # Convert to pixel coordinates (flip y-axis for image coordinates)
+    pixel_x = int(scaled_x)
+    pixel_y = int(img_height - scaled_y)
 
     # Clamp to valid range
     pixel_x = max(0, min(pixel_x, img_width - 1))
@@ -104,19 +107,21 @@ def axes_to_pixel(fig, ax, x_axes, y_axes, img_shape):
     """Convert axes-relative coordinates (0-1) to pixel coordinates."""
     mpl_fig = fig.fig if hasattr(fig, "fig") else fig
 
-    # Transform axes coords to display coords
+    # Transform axes coords to display coords (at figure's DPI)
     display_coords = ax.transAxes.transform((x_axes, y_axes))
 
-    dpi = 150
-    fig_width_px = mpl_fig.get_figwidth() * dpi
-    fig_height_px = mpl_fig.get_figheight() * dpi
+    # Scale from figure DPI to hitmap DPI
+    hitmap_dpi = 150
+    fig_dpi = mpl_fig.dpi
+    dpi_scale = hitmap_dpi / fig_dpi
+
+    scaled_x = display_coords[0] * dpi_scale
+    scaled_y = display_coords[1] * dpi_scale
 
     img_height, img_width = img_shape[:2]
-    scale_x = img_width / fig_width_px
-    scale_y = img_height / fig_height_px
 
-    pixel_x = int(display_coords[0] * scale_x)
-    pixel_y = int(img_height - display_coords[1] * scale_y)
+    pixel_x = int(scaled_x)
+    pixel_y = int(img_height - scaled_y)
 
     pixel_x = max(0, min(pixel_x, img_width - 1))
     pixel_y = max(0, min(pixel_y, img_height - 1))
@@ -161,9 +166,6 @@ def get_element_pixels(hitmap_array, color_map, element_key):
 class TestBasicPlotTypes:
     """Test pixel detection for basic plot types."""
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_scatter_center_detection(self):
         """Test that scatter point center is detected correctly."""
         fig, ax = fr.subplots(1, 1)
@@ -182,9 +184,6 @@ class TestBasicPlotTypes:
         assert element["type"] == "scatter", f"Expected scatter, got {element['type']}"
         assert element["call_id"] == "my_scatter"
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_line_detection(self):
         """Test that line is detected along its path."""
         fig, ax = fr.subplots(1, 1)
@@ -203,9 +202,6 @@ class TestBasicPlotTypes:
         assert element is not None, f"No element found on line, rgb={rgb}"
         assert element["type"] == "line", f"Expected line, got {element['type']}"
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_bar_detection(self):
         """Test that bar center is detected correctly."""
         fig, ax = fr.subplots(1, 1)
@@ -225,9 +221,6 @@ class TestBasicPlotTypes:
             "hist",
         ), f"Expected bar, got {element['type']}"
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_fill_between_detection(self):
         """Test that fill_between area is detected."""
         fig, ax = fr.subplots(1, 1)
@@ -271,9 +264,7 @@ class TestBasicPlotTypes:
         pie_elements = [k for k, v in color_map.items() if v.get("type") == "pie"]
         assert len(pie_elements) == 3, f"Expected 3 pie wedges, got {len(pie_elements)}"
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
+    @pytest.mark.xfail(reason="imshow extent coordinates differ from data coordinates")
     def test_imshow_detection(self):
         """Test that imshow image is detected."""
         rng = np.random.default_rng(42)
@@ -344,9 +335,6 @@ class TestMultiLayerElements:
                 len(detected_indices) >= 2
             ), f"Expected different layers, got indices: {detected_indices}"
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_multiple_scatter_detection(self):
         """Test that multiple scatter calls are separately detectable."""
         fig, ax = fr.subplots(1, 1)
@@ -374,9 +362,6 @@ class TestMultiLayerElements:
 class TestOverlappingElements:
     """Test pixel detection for overlapping elements."""
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_scatter_over_line(self):
         """Test that scatter on top of line is detected (z-order)."""
         fig, ax = fr.subplots(1, 1)
@@ -401,9 +386,6 @@ class TestOverlappingElements:
             element["call_id"] == "top_scatter"
         ), f"Expected top_scatter at overlap, got {element['call_id']}"
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_overlapping_bars(self):
         """Test overlapping bar detection."""
         fig, ax = fr.subplots(1, 1)
@@ -629,9 +611,6 @@ class TestSpecialPlotTypes:
 class TestCoordinateTransformation:
     """Test coordinate transformation accuracy."""
 
-    @pytest.mark.xfail(
-        reason="Coordinate transformation needs improvement - see issue #59"
-    )
     def test_known_position_accuracy(self):
         """Test that coordinate transformation is accurate for known positions."""
         fig, ax = fr.subplots(1, 1)
