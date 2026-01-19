@@ -117,6 +117,28 @@ __all__ = [
     "list_presets",
     "apply_style",
     "STYLE",
+    # Plot styling utilities
+    "style_boxplot",
+    "style_violinplot",
+    "style_barplot",
+    "style_scatter",
+    "style_errorbar",
+    # Axis helpers (spines, ticks, labels, geometry)
+    "rotate_labels",
+    "hide_spines",
+    "show_spines",
+    "show_all_spines",
+    "show_classic_spines",
+    "toggle_spines",
+    "set_n_ticks",
+    "set_ticks",
+    "set_x_ticks",
+    "set_y_ticks",
+    "map_ticks",
+    "OOMFormatter",
+    "sci_note",
+    "force_aspect",
+    "extend",
     # Composition (simplified)
     "compose",
     "align_panels",
@@ -133,7 +155,6 @@ __all__ = [
     "__version__",
 ]
 
-
 # Style management
 from ._api._style_manager import (
     STYLE,
@@ -141,6 +162,34 @@ from ._api._style_manager import (
     list_presets,
     load_style,
     unload_style,
+)
+
+# Plot styling utilities
+from .styles._plot_styling import (
+    style_barplot,
+    style_boxplot,
+    style_errorbar,
+    style_scatter,
+    style_violinplot,
+)
+
+# Axis helper utilities
+from .styles.axis_helpers import (
+    OOMFormatter,
+    extend,
+    force_aspect,
+    hide_spines,
+    map_ticks,
+    rotate_labels,
+    sci_note,
+    set_n_ticks,
+    set_ticks,
+    set_x_ticks,
+    set_y_ticks,
+    show_all_spines,
+    show_classic_spines,
+    show_spines,
+    toggle_spines,
 )
 
 
