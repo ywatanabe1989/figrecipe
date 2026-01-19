@@ -64,6 +64,8 @@ from matplotlib.axes import Axes as _Axes
 from matplotlib.figure import Figure as _Figure
 from numpy.typing import NDArray as _NDArray
 
+from ._api._compose import compose_figures
+
 # Internal module imports (underscore prefixed for hiding)
 from ._api._notebook import enable_svg
 from ._api._seaborn_proxy import sns
@@ -119,6 +121,7 @@ __all__ = [
     "STYLE",
     # Composition (simplified)
     "compose",
+    "compose_figures",
     "align_panels",
     "distribute_panels",
     "smart_align",
