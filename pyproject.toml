@@ -122,3 +122,6 @@ target-version = "py39"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/figrecipe/__init__.py" = ["E402"]

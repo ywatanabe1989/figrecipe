@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+# Module docstring is defined below after branding import
+
+# Branding support (must be imported first, before docstring is set)
+from ._branding import rebrand_text as _rebrand_text
+
+# Define module docstring with branding applied
+_RAW_DOC = """
 figrecipe - Record and reproduce matplotlib figures.
 
 A lightweight library for capturing matplotlib plotting calls and
@@ -43,6 +49,7 @@ For advanced use cases, utility functions are available via the utils submodule:
 >>> utils.check_font('Arial')  # Font utilities
 >>> utils.load_recipe('recipe.yaml')  # Low-level recipe access
 """
+__doc__ = _rebrand_text(_RAW_DOC)
 
 # Internal imports (hidden from tab completion with underscore prefix)
 from pathlib import Path as _Path
