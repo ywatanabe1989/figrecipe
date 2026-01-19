@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Time-stamp: "2026-01-11 22:35:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/demo_composition.py
+# File: /home/ywatanabe/proj/figrecipe/examples/02_composition.py
 
 """Demo script for figure composition using fr.compose().
 
-Combines all plot types from demo_all_plots into a single composed figure.
+Combines all plot types from 01_all_plots into a single composed figure.
 Demonstrates the composition feature with proper recipe output.
 
-Requires: Run demo_all_plots.py first to generate the individual plot recipes.
+Requires: Run 01_all_plots.py first to generate the individual plot recipes.
 
 Outputs:
-    ./demo_composition_out/composed.png
-    ./demo_composition_out/composed.yaml
-    ./demo_composition_out/composed_data/
+    ./02_composition_out/composed.png
+    ./02_composition_out/composed.yaml
+    ./02_composition_out/composed_data/
 """
 
 import matplotlib
@@ -25,8 +25,8 @@ from pathlib import Path
 
 import figrecipe as fr
 
-# Input: recipes from demo_all_plots
-INPUT_DIR = Path(__file__).parent / "demo_all_plots_out"
+# Input: recipes from 01_all_plots
+INPUT_DIR = Path(__file__).parent / "01_all_plots_out"
 OUTPUT_DIR = Path(__file__.replace(".py", "_out"))
 
 

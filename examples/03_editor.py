@@ -3,9 +3,9 @@
 """Demo script for GUI editor with diverse plot types.
 
 Usage:
-    python demo_editor.py [PORT] [--all]
-    python demo_editor.py 5051
-    python demo_editor.py 5050 --all   # Launch with all plot types
+    python 03_editor.py [PORT] [--all]
+    python 03_editor.py 5051
+    python 03_editor.py 5050 --all   # Launch with all plot types
 """
 
 import matplotlib

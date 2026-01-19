@@ -1,0 +1,357 @@
+# Timestamp: "2026-01-16 05:53:30 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/examples/04_mcp.org
+
+* FigRecipe MCP Server + Claude Code Demo
+
+* Request (DO NOT CHANGE THIS SECTION)
+- Verify that FigRecipe MCP Server is available
+- Demonstrate the MCP server live under your responsibility
+  - 1. Overview
+  - 2. Types of Plots
+  - 3. Representative Recipe Contents and File/Directory Structure
+  - 4. Panel Composition
+  - 5. Figure- and Panel-Level Captions
+  - 6. Statistical Annotations
+  - 7. Reproduction
+- Create and use demo CSV data and refer from recipes instead of inline data
+- Add contents/documentation to this org file interactively
+- Proceed step by step. One plot and one narration form a set.
+- Play narration between sections
+- Store all artifacts in ./04_mcp_out/ (remove it if it already exists)
+- Add documentation and place inline figures
+- Style: width 40mm, height 28mm, white background instead of transparent, SCITEX STYLE
+- Do not check source code, unless explicitly instructed, to purely check MCP server capabilities
+
+* Emacs Org Mode Setup (DO NOT CHANGE THIS SECTION)
+#+begin_src elisp
+(defun my/setup-demo-org ()
+  (auto-revert-mode t)
+  (run-with-timer 0 5
+    (lambda ()
+      (when (derived-mode-p 'org-mode)
+        (org-display-inline-images)))))
+
+(my/setup-demo-org)
+#+end_src
+
+* Section 1: Overview
+
+FigRecipe MCP Server enables declarative figure creation via Claude Code.
+
+** Available Plot Types (27 types in 7 categories)
+
+| Category        | Plot Types                                         |
+|-----------------+----------------------------------------------------|
+| Line/Curve      | line, plot, step, fill, fill_between, errorbar     |
+| Scatter         | scatter                                            |
+| Bar             | bar, barh                                          |
+| Distribution    | hist, hist2d, boxplot, violinplot                  |
+| Image/Matrix    | imshow, matshow, heatmap, pcolormesh               |
+| Contour         | contour, contourf                                  |
+| Special         | pie, stem, eventplot, hexbin                       |
+
+** Available Styles
+- MATPLOTLIB (default)
+- SCITEX (publication-ready)
+
+** Simple Example
+
+[[file:./04_mcp_out/figures/01_overview.png]]
+
+* Section 2: Types of Plots
+
+Demonstrating different plot types available in FigRecipe MCP Server.
+
+** Line Plot with Error Bars
+#+begin_src yaml
+plots:
+  - type: errorbar
+    x: [0, 1, 2, ...]
+    y: [values]
+    yerr: [errors]
+#+end_src
+
+[[file:./04_mcp_out/figures/02a_line_error.png]]
+
+** Scatter Plot
+#+begin_src yaml
+plots:
+  - type: scatter
+    x: [x_values]
+    y: [y_values]
+    color: "#E94F37"
+#+end_src
+
+[[file:./04_mcp_out/figures/02b_scatter.png]]
+
+** Bar Chart
+#+begin_src yaml
+plots:
+  - type: bar
+    x: ["Ctrl", "A", "B", "C"]
+    height: [23.5, 31.2, 28.7, 35.1]
+    yerr: [2.1, 2.8, 3.2, 2.5]
+#+end_src
+
+[[file:./04_mcp_out/figures/02c_bar.png]]
+
+** Box Plot
+#+begin_src yaml
+plots:
+  - type: boxplot
+    data: [[group1], [group2], [group3]]
+#+end_src
+
+[[file:./04_mcp_out/figures/02d_boxplot.png]]
+
+** Violin Plot
+#+begin_src yaml
+plots:
+  - type: violinplot
+    data: [[group1], [group2], [group3]]
+#+end_src
+
+[[file:./04_mcp_out/figures/02e_violin.png]]
+
+** Histogram
+#+begin_src yaml
+plots:
+  - type: hist
+    x: [values]
+    bins: 8
+#+end_src
+
+[[file:./04_mcp_out/figures/02f_histogram.png]]
+
+* Section 3: Recipe Contents and File Structure
+
+** Directory Structure
+When you create figures, FigRecipe automatically saves:
+- PNG/PDF image file
+- YAML recipe file (for reproduction)
+- Data directory with CSV files for each plot
+
+#+begin_example
+04_mcp_out/
+├── data/                    # Source data files
+│   ├── barplot.csv
+│   ├── groups.csv
+│   └── timeseries.csv
+├── figures/
+│   ├── 01_overview.png      # Image file
+│   ├── 01_overview.yaml     # Recipe file
+│   └── 01_overview_data/    # Extracted plot data
+│       ├── plot_000_x.csv
+│       └── plot_000_y.csv
+└── recipes/
+#+end_example
+
+** Recipe YAML Structure
+
+A recipe file contains:
+1. *Figure metadata*: ID, creation timestamp, matplotlib version
+2. *Figure settings*: Size (mm), DPI, style configuration
+3. *Axes data*: Plot calls with function names, args, kwargs
+4. *Decorations*: Labels, titles, legend settings
+
+#+begin_src yaml
+figrecipe: '1.0'
+id: fig_3e964862
+created: '2026-01-16T05:58:25'
+figure:
+  figsize: [2.76, 2.17]  # inches (from mm conversion)
+  dpi: 300
+  style: {...}           # SCITEX style parameters
+axes:
+  ax_0_0:
+    calls:
+      - function: errorbar
+        args: [{data: errorbar_000_x.csv}, ...]
+        kwargs: {color: '#2E86AB', capsize: 2}
+    decorations:
+      - function: set_xlabel
+        args: [{data: "Time"}]
+#+end_src
+
+* Section 4: Panel Composition
+
+FigRecipe can compose multiple figures into a single multi-panel figure.
+
+** Horizontal Layout (2 panels)
+#+begin_src yaml
+compose:
+  sources: [figure1.png, figure2.png]
+  layout: horizontal
+  gap_mm: 3
+  panel_labels: true
+  label_style: uppercase  # A, B, C...
+#+end_src
+
+[[file:./04_mcp_out/figures/04_composed_horizontal.png]]
+
+** Grid Layout (2x2 panels)
+#+begin_src yaml
+compose:
+  sources: [fig1.png, fig2.png, fig3.png, fig4.png]
+  layout: grid
+  gap_mm: 3
+  panel_labels: true
+#+end_src
+
+[[file:./04_mcp_out/figures/04_composed_grid.png]]
+
+** Layout Options
+| Layout     | Description                    |
+|------------+--------------------------------|
+| horizontal | Figures side by side           |
+| vertical   | Figures stacked vertically     |
+| grid       | Automatic grid arrangement     |
+
+** Label Styles
+- =uppercase=: A, B, C, D
+- =lowercase=: a, b, c, d
+- =numeric=: 1, 2, 3, 4
+
+* Section 5: Figure and Panel-Level Captions
+
+** Single Figure with Title
+#+begin_src yaml
+figure:
+  width_mm: 40
+  height_mm: 28
+xlabel: "Time (s)"
+ylabel: "Amplitude (mV)"
+title: "Panel Title"        # Panel-level title
+suptitle: "Figure Title"    # Figure-level title
+#+end_src
+
+[[file:./04_mcp_out/figures/05_with_captions.png]]
+
+** Composed Figure with Caption
+
+The =compose= tool supports adding figure captions below the panels:
+
+#+begin_src yaml
+compose:
+  sources: [fig1.png, fig2.png]
+  layout: horizontal
+  panel_labels: true
+  caption: "Figure 1. Description of panels (A) and (B)..."
+#+end_src
+
+[[file:./04_mcp_out/figures/05_composed_with_caption.png]]
+
+** Caption Hierarchy
+| Level       | Parameter   | Description                |
+|-------------+-------------+----------------------------|
+| Figure      | suptitle    | Overall figure title       |
+| Panel       | title       | Individual panel title     |
+| Composition | caption     | Caption below composed fig |
+
+* Section 6: Statistical Annotations
+
+Add significance brackets and p-value indicators to your figures.
+
+** Syntax
+#+begin_src yaml
+stat_annotations:
+  - x1: 0           # First bar/group index
+    x2: 1           # Second bar/group index
+    y: 22           # Y position of bracket
+    text: "*"       # Significance text
+  - x1: 0
+    x2: 2
+    y: 26
+    text: "***"
+  - x1: 1
+    x2: 2
+    y: 24
+    text: "n.s."    # Not significant
+#+end_src
+
+** Example with Significance Brackets
+
+[[file:./04_mcp_out/figures/06_stats_annotations.png]]
+
+** Common Significance Notations
+| Symbol | Meaning          | P-value       |
+|--------+------------------+---------------|
+| n.s.   | Not significant  | p > 0.05      |
+| *      | Significant      | p < 0.05      |
+| **     | Very significant | p < 0.01      |
+| ***    | Highly signif.   | p < 0.001     |
+
+* Section 7: Reproduction
+
+The key feature of FigRecipe is reproducibility - recreate any figure from its recipe.
+
+** Reproduce from Recipe
+#+begin_src yaml
+reproduce:
+  recipe_path: "figures/02c_bar.yaml"
+  output_path: "figures/07_reproduced.png"
+  format: png
+  dpi: 300
+#+end_src
+
+*** Original Figure
+[[file:./04_mcp_out/figures/02c_bar.png]]
+
+*** Reproduced Figure
+[[file:./04_mcp_out/figures/07_reproduced.png]]
+
+** Validate Reproducibility
+
+The =validate= tool checks if a recipe produces consistent output:
+
+#+begin_src yaml
+validate:
+  recipe_path: "figures/02c_bar.yaml"
+  mse_threshold: 100  # Maximum acceptable error
+#+end_src
+
+Result: ={"valid": true, "mse": 0, "message": "Recipe produces consistent output"}=
+
+** Extract Data from Recipe
+
+Retrieve plotted data arrays from a saved recipe:
+
+#+begin_src yaml
+extract_data:
+  recipe_path: "figures/02c_bar.yaml"
+#+end_src
+
+Result:
+#+begin_example
+{
+  "bar_000": {
+    "x": ["Ctrl", "A", "B", "C"],
+    "yerr": [2.1, 2.8, 3.2, 2.5]
+  }
+}
+#+end_example
+
+** MCP Tools Summary
+| Tool          | Description                          |
+|---------------+--------------------------------------|
+| plot          | Create figure from spec              |
+| reproduce     | Recreate figure from recipe          |
+| compose       | Combine multiple figures             |
+| info          | Get recipe information               |
+| validate      | Check reproducibility                |
+| crop          | Auto-crop whitespace                 |
+| extract_data  | Get plotted data from recipe         |
+| list_styles   | List available style presets         |
+| get_plot_types| List supported plot types            |
+
+* Demo Complete
+
+This demonstration covered all major FigRecipe MCP Server capabilities:
+1. ✓ Overview and plot types
+2. ✓ Recipe file structure
+3. ✓ Panel composition
+4. ✓ Captions and labels
+5. ✓ Statistical annotations
+6. ✓ Reproducibility
+
+All artifacts are stored in =./04_mcp_out/=.
