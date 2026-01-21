@@ -65,10 +65,10 @@ def apply_plots(
         kwargs = resolve_colors_in_kwargs(kwargs)
 
         # Call the appropriate method based on plot type
-        _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec)
+        _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax)
 
 
-def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec):
+def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=None):
     """Call the appropriate plot method based on plot type."""
     if plot_type in ("hist", "pie", "eventplot"):
         # Single data argument
@@ -77,7 +77,7 @@ def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec):
         elif data is not None:
             method(data, **kwargs)
     elif plot_type in ("boxplot", "box", "violinplot", "violin"):
-        _apply_boxplot(method, plot_type, x, data, kwargs, plot_spec)
+        _apply_boxplot(method, plot_type, x, data, kwargs, plot_spec, ax)
     elif plot_type in ("imshow", "matshow", "heatmap"):
         # 2D data
         if data is not None:
@@ -108,7 +108,7 @@ def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec):
             method(x, **kwargs)
 
 
-def _apply_boxplot(method, plot_type, x, data, kwargs, plot_spec):
+def _apply_boxplot(method, plot_type, x, data, kwargs, plot_spec, ax=None):
     """Apply boxplot or violinplot with color handling."""
     box_colors = plot_spec.get("color") or plot_spec.get("colors")
 
@@ -130,6 +130,17 @@ def _apply_boxplot(method, plot_type, x, data, kwargs, plot_spec):
             elif isinstance(box_colors, (list, tuple)):
                 for box, color in zip(boxes, box_colors):
                     box.set_facecolor(color)
+
+        # Apply publication styling from loaded SCITEX style after boxplot creation
+        if plot_type in ("boxplot", "box") and ax is not None:
+            from ..styles._plot_styles import apply_boxplot_style
+            from ..styles._style_loader import get_current_style_dict
+
+            # Get underlying matplotlib axes if wrapped
+            mpl_ax = ax._ax if hasattr(ax, "_ax") else ax
+            # Use loaded style (e.g., SCITEX) instead of hardcoded values
+            style_dict = get_current_style_dict()
+            apply_boxplot_style(mpl_ax, style_dict)
 
 
 def apply_decorations(ax, spec: Dict[str, Any]) -> None:
@@ -288,7 +299,12 @@ def resolve_data(
         return None
 
     if isinstance(data, (list, tuple)):
-        return np.array(data)
+        # Handle inhomogeneous arrays (e.g., boxplot data with different group sizes)
+        try:
+            return np.array(data)
+        except ValueError:
+            # Fallback for inhomogeneous shapes - return as list for boxplot/violin
+            return list(data)
 
     if isinstance(data, str):
         # If data_file provided, treat string as column name

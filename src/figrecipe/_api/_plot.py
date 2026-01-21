@@ -109,7 +109,7 @@ PLOT_TYPES = {
 }
 
 # Keys that are not matplotlib kwargs
-RESERVED_KEYS = {"type", "x", "y", "z", "data", "id", "data_file"}
+RESERVED_KEYS = {"type", "x", "y", "z", "data", "id", "data_file", "style"}
 
 
 def create_figure_from_spec(
@@ -296,7 +296,14 @@ def _save_figure(
         result["image_path"] = img_path
         result["recipe_path"] = recipe_path
     else:
-        fig.savefig(output_path, dpi=dpi, facecolor=facecolor, transparent=transparent)
+        fig.savefig(
+            output_path,
+            dpi=dpi,
+            facecolor=facecolor,
+            transparent=transparent,
+            save_recipe=False,
+            validate=False,
+        )
         result["image_path"] = output_path
 
     return result

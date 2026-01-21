@@ -28,12 +28,14 @@ def apply_boxplot_style(ax: Axes, style: Dict[str, Any]) -> None:
     cap_lw = mm_to_pt(style.get("boxplot_cap_mm", 0.2))
     median_lw = mm_to_pt(style.get("boxplot_median_mm", 0.2))
     median_color = style.get("boxplot_median_color", "black")
+    edge_color = style.get("boxplot_edge_color", "black")
     flier_edge_lw = mm_to_pt(style.get("boxplot_flier_edge_mm", 0.2))
 
     for child in ax.get_children():
         if isinstance(child, PathPatch):
             if child.get_edgecolor() is not None:
                 child.set_linewidth(box_lw)
+                child.set_edgecolor(edge_color)
 
         elif isinstance(child, Line2D):
             xdata = child.get_xdata()
@@ -43,16 +45,18 @@ def apply_boxplot_style(ax: Axes, style: Dict[str, Any]) -> None:
             linestyle = child.get_linestyle()
             if marker and marker != "None" and linestyle in ("None", "", " "):
                 child.set_markeredgewidth(flier_edge_lw)
+                child.set_markeredgecolor(edge_color)
             elif len(xdata) == 2 and len(ydata) == 2:
                 if ydata[0] == ydata[1]:
                     if linestyle == "-":
                         child.set_linewidth(median_lw)
-                        if median_color:
-                            child.set_color(median_color)
+                        child.set_color(median_color)
                     else:
                         child.set_linewidth(cap_lw)
+                        child.set_color(edge_color)
                 elif xdata[0] == xdata[1]:
                     child.set_linewidth(whisker_lw)
+                    child.set_color(edge_color)
 
 
 def apply_violinplot_style(ax: Axes, style: Dict[str, Any]) -> None:
