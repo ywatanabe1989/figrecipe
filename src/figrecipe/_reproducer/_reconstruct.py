@@ -94,7 +94,9 @@ def reconstruct_value(
         try:
             return np.array(data, dtype=dtype if dtype else None)
         except (TypeError, ValueError):
-            return np.array(data)
+            # Handle inhomogeneous arrays (e.g., boxplot data with different group sizes)
+            # Return as list for methods that accept list input
+            return data
 
     return data
 

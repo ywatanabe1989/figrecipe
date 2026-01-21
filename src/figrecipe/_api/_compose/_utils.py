@@ -16,28 +16,92 @@ def mm_to_px(mm: float, dpi: int) -> int:
     return int(mm * dpi / 25.4)
 
 
-def load_images(sources: List[str], dpi: int) -> List[Image.Image]:
-    """Load images from source paths (images or recipe files)."""
+def load_images(
+    sources: List[str], dpi: int, facecolor: str = "white"
+) -> List[Image.Image]:
+    """Load images from source paths (images or recipe files).
+
+    Parameters
+    ----------
+    sources : list of str
+        Paths to image files or YAML recipe files.
+    dpi : int
+        DPI for rendering recipes.
+    facecolor : str
+        Background color for rendered recipes and loaded images.
+        Default is 'white' for consistent composition.
+
+    Returns
+    -------
+    list of Image
+        Loaded images with consistent background.
+    """
     import matplotlib.pyplot as plt
 
     images = []
     for source in sources:
         source_path = Path(source)
         if source_path.suffix.lower() == ".yaml":
-            # Reproduce recipe to temp image
+            # Reproduce recipe to temp image with explicit facecolor
             import figrecipe as fr
 
             fig, _ = fr.reproduce(source_path)
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-                fig.savefig(tmp.name, dpi=dpi)
-                images.append(Image.open(tmp.name).copy())
+                # Always use explicit facecolor for consistent composition
+                mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+                mpl_fig.savefig(tmp.name, dpi=dpi, facecolor=facecolor)
+                img = Image.open(tmp.name).copy()
+                # Ensure image has white background (flatten alpha)
+                img = flatten_alpha(img, facecolor)
+                images.append(img)
             os.unlink(tmp.name)
             # Close the underlying matplotlib figure
-            mpl_fig = fig.fig if hasattr(fig, "fig") else fig
             plt.close(mpl_fig)
         else:
-            images.append(Image.open(source_path))
+            img = Image.open(source_path)
+            # Ensure loaded images also have consistent background
+            img = flatten_alpha(img, facecolor)
+            images.append(img)
     return images
+
+
+def flatten_alpha(img: Image.Image, background_color: str = "white") -> Image.Image:
+    """Flatten alpha channel by compositing onto a solid background.
+
+    Parameters
+    ----------
+    img : Image
+        Input image (may have alpha channel).
+    background_color : str
+        Background color to use. Default is 'white'.
+
+    Returns
+    -------
+    Image
+        RGBA image with alpha set to fully opaque (composited onto background).
+    """
+    if img.mode != "RGBA":
+        return img.convert("RGBA")
+
+    # Create background with same size
+    if background_color.lower() == "white":
+        bg_rgba = (255, 255, 255, 255)
+    elif background_color.lower() == "black":
+        bg_rgba = (0, 0, 0, 255)
+    else:
+        # Try to parse color
+        try:
+            from PIL import ImageColor
+
+            rgb = ImageColor.getrgb(background_color)
+            bg_rgba = (*rgb, 255)
+        except ValueError:
+            bg_rgba = (255, 255, 255, 255)  # Default to white
+
+    background = Image.new("RGBA", img.size, bg_rgba)
+    # Composite img onto background using alpha channel
+    background.paste(img, (0, 0), mask=img)
+    return background
 
 
 def create_source_symlinks(sources: List[str], output_path: Path) -> Optional[Path]:

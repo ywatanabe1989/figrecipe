@@ -237,6 +237,38 @@ class TestStyleCommand:
         assert result.exit_code == 0
 
 
+class TestCompletionCommand:
+    """Test completion command."""
+
+    def test_completion_help(self, runner):
+        """Test completion --help."""
+        result = runner.invoke(main, ["completion", "--help"])
+        assert result.exit_code == 0
+        assert "install" in result.output
+        assert "status" in result.output
+        assert "bash" in result.output
+
+    def test_completion_status(self, runner):
+        """Test completion status subcommand."""
+        result = runner.invoke(main, ["completion", "status"])
+        assert result.exit_code == 0
+        assert "bash" in result.output
+        assert "zsh" in result.output
+
+    def test_completion_bash(self, runner):
+        """Test completion bash subcommand."""
+        result = runner.invoke(main, ["completion", "bash"])
+        assert result.exit_code == 0
+        # Should contain completion script
+        assert "_FIGRECIPE_COMPLETE" in result.output or "figrecipe" in result.output
+
+    def test_completion_install_help(self, runner):
+        """Test completion install --help."""
+        result = runner.invoke(main, ["completion", "install", "--help"])
+        assert result.exit_code == 0
+        assert "--shell" in result.output
+
+
 class TestConvertCommand:
     """Test convert command."""
 
