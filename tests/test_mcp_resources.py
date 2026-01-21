@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for MCP resources module."""
+"""Tests for MCP resources module.
+
+Note: MCP tests require fastmcp>=2.0.0 which needs Python 3.10+.
+Tests are skipped when fastmcp is not available.
+"""
+
+# Check if fastmcp is available (requires Python 3.10+)
+import importlib.util
+
+import pytest
+
+HAS_FASTMCP = importlib.util.find_spec("fastmcp") is not None
+
+requires_fastmcp = pytest.mark.skipif(
+    not HAS_FASTMCP, reason="fastmcp not installed (requires Python 3.10+)"
+)
 
 
+@requires_fastmcp
 class TestMCPResourcesExist:
     """Test that MCP resources are properly registered."""
 
@@ -55,6 +71,7 @@ class TestMCPResourcesExist:
         assert "stx.plt" in INTEGRATION or "scitex" in INTEGRATION.lower()
 
 
+@requires_fastmcp
 class TestMCPServerResources:
     """Test MCP server has resources registered."""
 
@@ -131,6 +148,7 @@ class TestBrandingInstructions:
         assert "compose" in instructions
 
 
+@requires_fastmcp
 class TestCSVColumnDocumentation:
     """Test CSV column input is properly documented."""
 
