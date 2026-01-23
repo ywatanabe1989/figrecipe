@@ -200,6 +200,7 @@ data/*
 **/*.pkl
 **/*.png
 !examples/02_composition_out/gallery.jpg
+!docs/style_granularity.jpg
 **/*.pth
 **/*.pt
 **/*.chk

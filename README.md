@@ -162,6 +162,16 @@ FigRecipe is designed for researchers who:
 
 It is not meant to replace exploratory notebooks or quick plotting — it is meant to **formalize results**.
 
+## Style Granularity
+
+FigRecipe provides **millimeter-precise control** over every visual element with the SCITEX style preset:
+
+<p align="center">
+  <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
+</p>
+
+Includes **statistical annotation brackets** with significance stars (*, **, ***) for publication-ready comparisons.
+
 ## Plot Gallery
 
 FigRecipe supports **47 matplotlib plot types** with publication-ready SCITEX styling:
