@@ -75,6 +75,7 @@ from ._composition import (
     distribute_panels,
     smart_align,
 )
+from ._diagram import Diagram
 
 # Graph visualization
 from ._graph_presets import (
@@ -103,11 +104,11 @@ try:
 except Exception:
     __version__ = "0.0.0"  # Fallback for development
 __all__ = [
-    # Core (essential)
+    # Core
     "subplots",
     "save",
     "reproduce",
-    "load",  # Alias for reproduce
+    "load",
     "info",
     "edit",
     "validate",
@@ -119,13 +120,13 @@ __all__ = [
     "list_presets",
     "apply_style",
     "STYLE",
-    # Plot styling utilities
+    # Plot styling
     "style_boxplot",
     "style_violinplot",
     "style_barplot",
     "style_scatter",
     "style_errorbar",
-    # Axis helpers (spines, ticks, labels, geometry)
+    # Axis helpers
     "rotate_labels",
     "hide_spines",
     "show_spines",
@@ -141,20 +142,20 @@ __all__ = [
     "sci_note",
     "force_aspect",
     "extend",
-    # Composition (simplified)
+    # Composition
     "compose",
     "compose_figures",
     "align_panels",
     "distribute_panels",
     "smart_align",
-    # Graph visualization
+    # Graph & Diagram
     "get_graph_preset",
     "list_graph_presets",
     "register_graph_preset",
+    "Diagram",
     # Extensions
     "sns",
     "enable_svg",
-    # Version
     "__version__",
 ]
 

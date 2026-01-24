@@ -10,6 +10,7 @@ from ._completion import completion
 from ._compose import compose
 from ._convert import convert
 from ._crop import crop
+from ._diagram import diagram as _diagram_cmd
 from ._edit import edit
 from ._extract import extract
 from ._fonts import fonts
@@ -75,10 +76,12 @@ def _show_recursive_help(ctx: click.Context) -> None:
 
 
 # Register commands
+
 main.add_command(completion)
 main.add_command(compose)
 main.add_command(convert)
 main.add_command(crop)
+main.add_command(_diagram_cmd, name="diagram")
 main.add_command(edit)
 main.add_command(extract)
 main.add_command(fonts)

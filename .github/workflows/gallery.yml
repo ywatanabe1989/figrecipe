@@ -1,0 +1,89 @@
+name: Gallery
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/figrecipe/**'
+      - 'examples/01_all_plots.py'
+      - 'examples/02_composition.py'
+      - 'examples/03_style_anatomy.py'
+      - '.github/workflows/gallery.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-gallery:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system fonts (Arial, etc.)
+        run: |
+          echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+          sudo apt-get update
+          sudo apt-get install -y ttf-mscorefonts-installer fontconfig
+          sudo fc-cache -f -v
+          rm -rf ~/.cache/matplotlib
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all]"
+
+      - name: Generate all demo plots
+        run: |
+          python examples/01_all_plots.py
+
+      - name: Generate composed gallery
+        run: |
+          rm -rf examples/02_composition_out/composed_data
+          python examples/02_composition.py
+
+      - name: Generate style anatomy diagram
+        run: |
+          python examples/03_style_anatomy.py
+
+      - name: Create compressed gallery
+        run: |
+          python -c "
+          from PIL import Image
+          # Gallery
+          img = Image.open('examples/02_composition_out/composed.png')
+          new_size = (int(img.width * 0.5), int(img.height * 0.5))
+          img = img.resize(new_size, Image.Resampling.LANCZOS)
+          img = img.convert('RGB')
+          img.save('examples/02_composition_out/gallery.jpg', 'JPEG', quality=90, optimize=True)
+          # Style Anatomy
+          img = Image.open('examples/03_style_anatomy_out/scitex_anatomy.png')
+          new_size = (int(img.width * 0.5), int(img.height * 0.5))
+          img = img.resize(new_size, Image.Resampling.LANCZOS)
+          img = img.convert('RGB')
+          img.save('docs/style_granularity.jpg', 'JPEG', quality=90, optimize=True)
+          "
+
+      - name: Upload gallery artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gallery
+          path: |
+            examples/02_composition_out/gallery.jpg
+            docs/style_granularity.jpg
+            examples/01_all_plots_out/*.png
+
+      - name: Commit gallery update
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add examples/02_composition_out/gallery.jpg
+          git diff --staged --quiet || git commit -m "chore: Update plot gallery [skip ci]"
+          git push

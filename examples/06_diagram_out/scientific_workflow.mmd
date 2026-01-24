@@ -1,0 +1,18 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1a2634", "primaryTextColor": "#e0e0e0", "primaryBorderColor": "#3a4a5a", "lineColor": "#5a9fcf"}}}%%
+graph LR
+    hypothesis["Hypothesis"]
+    design["Experimental Design"]
+    collect["Data Collection"]
+    analyze["Statistical Analysis"]
+    results["Results"]
+    publish["Publication"]
+    hypothesis --> design
+    design --> collect
+    collect --> analyze
+    analyze --> results
+    results --> publish
+    results -.->|"refine"| hypothesis
+    style design fill:#0d4a6b,stroke:#5a9fcf,stroke-width:2px
+    style analyze fill:#0d4a6b,stroke:#5a9fcf,stroke-width:2px
+    style results fill:#ccffcc,stroke:#00cc00
+    style publish fill:#ccffcc,stroke:#00cc00

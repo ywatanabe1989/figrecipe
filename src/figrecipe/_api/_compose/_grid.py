@@ -7,6 +7,8 @@ from typing import List, Tuple
 
 from PIL import Image
 
+from ._utils import flatten_alpha
+
 
 def _get_background_rgba(facecolor: str) -> Tuple[int, int, int, int]:
     """Convert facecolor string to RGBA tuple."""
@@ -50,35 +52,42 @@ def compose_grid_layout(
     positions = []  # List of (x, y, width, height) for each image
     bg_rgba = _get_background_rgba(facecolor)
 
+    # Flatten all images to handle transparent backgrounds
+    flattened_images = [flatten_alpha(img, facecolor) for img in images]
+
     if layout == "horizontal":
-        total_width = sum(img.width for img in images) + gap_px * (len(images) - 1)
-        max_height = max(img.height for img in images)
+        total_width = sum(img.width for img in flattened_images) + gap_px * (
+            len(flattened_images) - 1
+        )
+        max_height = max(img.height for img in flattened_images)
         result = Image.new("RGBA", (total_width, max_height), bg_rgba)
         x_offset = 0
-        for img in images:
+        for img in flattened_images:
             result.paste(img, (x_offset, 0))
             positions.append((x_offset, 0, img.width, img.height))
             x_offset += img.width + gap_px
 
     elif layout == "vertical":
-        max_width = max(img.width for img in images)
-        total_height = sum(img.height for img in images) + gap_px * (len(images) - 1)
+        max_width = max(img.width for img in flattened_images)
+        total_height = sum(img.height for img in flattened_images) + gap_px * (
+            len(flattened_images) - 1
+        )
         result = Image.new("RGBA", (max_width, total_height), bg_rgba)
         y_offset = 0
-        for img in images:
+        for img in flattened_images:
             result.paste(img, (0, y_offset))
             positions.append((0, y_offset, img.width, img.height))
             y_offset += img.height + gap_px
 
     elif layout == "grid":
-        ncols = math.ceil(math.sqrt(len(images)))
-        nrows = math.ceil(len(images) / ncols)
-        max_w = max(img.width for img in images)
-        max_h = max(img.height for img in images)
+        ncols = math.ceil(math.sqrt(len(flattened_images)))
+        nrows = math.ceil(len(flattened_images) / ncols)
+        max_w = max(img.width for img in flattened_images)
+        max_h = max(img.height for img in flattened_images)
         total_width = ncols * max_w + (ncols - 1) * gap_px
         total_height = nrows * max_h + (nrows - 1) * gap_px
         result = Image.new("RGBA", (total_width, total_height), bg_rgba)
-        for idx, img in enumerate(images):
+        for idx, img in enumerate(flattened_images):
             row = idx // ncols
             col = idx % ncols
             x = col * (max_w + gap_px)

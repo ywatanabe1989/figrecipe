@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastmcp import FastMCP
 
 from .._branding import get_mcp_instructions, get_mcp_server_name
+from ._diagram_tools import register_diagram_tools
 from ._resources import register_resources
 
 mcp = FastMCP(
@@ -430,8 +431,11 @@ def get_spec_schema() -> str:
 
 
 # Register additional documentation resources
-
 register_resources(mcp)
+
+# Register diagram tools
+
+register_diagram_tools(mcp)
 
 
 if __name__ == "__main__":

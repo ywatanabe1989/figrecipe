@@ -121,7 +121,7 @@ stat_annotation:
 
 output:
   dpi: 300
-  transparent: true
+  transparent: false
   format: "pdf"
 
 behavior:
@@ -135,17 +135,17 @@ behavior:
 theme:
   mode: "light"
   dark:
-    figure_bg: "transparent"
-    axes_bg: "transparent"
-    legend_bg: "transparent"
+    figure_bg: "#1a1a1a"
+    axes_bg: "#1a1a1a"
+    legend_bg: "#1a1a1a"
     text: "#d4d4d4"
     spine: "#d4d4d4"
     tick: "#d4d4d4"
     grid: "#3a3a3a"
   light:
-    figure_bg: "transparent"
-    axes_bg: "transparent"
-    legend_bg: "transparent"
+    figure_bg: "white"
+    axes_bg: "white"
+    legend_bg: "white"
     text: "black"
     spine: "black"
     tick: "black"

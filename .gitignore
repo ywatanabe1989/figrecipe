@@ -82,6 +82,7 @@ outputs/
 !outputs/notebook/
 *.png
 !docs/figrecipe_logo.png
+!examples/02_composition_out/gallery.jpg
 !docs/images/*.png
 !docs/images/**/*.png
 !outputs/notebook/*.png
@@ -198,6 +199,8 @@ data/*
 **/*.pdf
 **/*.pkl
 **/*.png
+!examples/02_composition_out/gallery.jpg
+!docs/style_granularity.jpg
 **/*.pth
 **/*.pt
 **/*.chk
@@ -206,6 +209,7 @@ data/*
 **/*.wav
 **/*.jpg
 **/*.jpeg
+!examples/02_composition_out/gallery.jpg
 **/*.h5
 **/*.zip
 **/*.tar
