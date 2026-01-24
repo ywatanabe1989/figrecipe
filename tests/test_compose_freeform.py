@@ -15,7 +15,11 @@ import pytest
 from PIL import Image
 
 import figrecipe as fr
-from figrecipe._api._compose import compose_figures
+from figrecipe._composition._compose_mm import (
+    compose_figures,
+    load_compose_recipe,
+    recompose,
+)
 
 
 class TestComposeFreefrom:
@@ -336,8 +340,132 @@ class TestComposeBackwardCompatibility:
         """Empty list of sources raises ValueError."""
         output_path = tmp_path / "output.png"
 
-        with pytest.raises(ValueError, match="No valid source"):
+        with pytest.raises(ValueError, match="No sources"):
             compose_figures(
                 sources=[],
                 output_path=str(output_path),
             )
+
+
+class TestComposeRecipe:
+    """Tests for compose recipe save/load/recompose functionality."""
+
+    @pytest.fixture
+    def source_images(self, tmp_path):
+        """Create source image files."""
+        img1 = Image.new("RGBA", (200, 150), (255, 0, 0, 255))
+        img1_path = tmp_path / "img1.png"
+        img1.save(img1_path)
+
+        img2 = Image.new("RGBA", (200, 150), (0, 255, 0, 255))
+        img2_path = tmp_path / "img2.png"
+        img2.save(img2_path)
+
+        return img1_path, img2_path
+
+    def test_compose_saves_recipe(self, source_images, tmp_path):
+        """compose_figures saves a .compose.yaml recipe by default."""
+        img1, img2 = source_images
+        output_path = tmp_path / "output.png"
+
+        result = compose_figures(
+            sources=[str(img1), str(img2)],
+            output_path=str(output_path),
+            layout="horizontal",
+        )
+
+        assert result["success"] is True
+        assert "recipe_path" in result
+
+        recipe_path = Path(result["recipe_path"])
+        assert recipe_path.exists()
+        assert recipe_path.suffix == ".yaml"
+
+    def test_compose_recipe_contains_layout(self, source_images, tmp_path):
+        """Saved recipe contains panel positions."""
+        img1, img2 = source_images
+        output_path = tmp_path / "output.png"
+
+        result = compose_figures(
+            sources=[str(img1), str(img2)],
+            output_path=str(output_path),
+            layout="horizontal",
+        )
+
+        recipe = load_compose_recipe(result["recipe_path"])
+
+        assert "canvas" in recipe
+        assert "panels" in recipe
+        assert "style" in recipe
+        assert len(recipe["panels"]) == 2
+
+        # Each panel has xy_mm and size_mm
+        for path, spec in recipe["panels"].items():
+            assert "xy_mm" in spec
+            assert "size_mm" in spec
+
+    def test_compose_no_recipe(self, source_images, tmp_path):
+        """compose_figures can skip recipe saving."""
+        img1, img2 = source_images
+        output_path = tmp_path / "output.png"
+
+        result = compose_figures(
+            sources=[str(img1), str(img2)],
+            output_path=str(output_path),
+            save_recipe=False,
+        )
+
+        assert result["success"] is True
+        assert "recipe_path" not in result
+
+    def test_recompose_from_recipe(self, source_images, tmp_path):
+        """recompose() recreates figure from saved recipe."""
+        img1, img2 = source_images
+        output_path = tmp_path / "output.png"
+
+        # Create initial composition
+        result1 = compose_figures(
+            sources=[str(img1), str(img2)],
+            output_path=str(output_path),
+            layout="horizontal",
+        )
+
+        # Recompose from recipe
+        result2 = recompose(result1["recipe_path"])
+
+        assert result2["success"] is True
+        assert Path(result2["output_path"]).exists()
+
+    def test_recompose_with_overrides(self, source_images, tmp_path):
+        """recompose() accepts parameter overrides."""
+        img1, img2 = source_images
+        output_path = tmp_path / "output.png"
+
+        result1 = compose_figures(
+            sources=[str(img1), str(img2)],
+            output_path=str(output_path),
+            panel_labels=True,
+        )
+
+        # Recompose with different settings
+        result2 = recompose(
+            result1["recipe_path"],
+            output_path=str(tmp_path / "recomposed.png"),
+            panel_labels=False,
+        )
+
+        assert result2["success"] is True
+
+    def test_layout_spec_in_result(self, source_images, tmp_path):
+        """compose_figures returns layout_spec for inspection."""
+        img1, img2 = source_images
+        output_path = tmp_path / "output.png"
+
+        result = compose_figures(
+            sources=[str(img1), str(img2)],
+            output_path=str(output_path),
+        )
+
+        assert "layout_spec" in result
+        assert "canvas_size_mm" in result["layout_spec"]
+        assert "panels" in result["layout_spec"]

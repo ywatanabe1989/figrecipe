@@ -16,6 +16,7 @@ Phase 1-3 of the composition feature.
 
 from ._alignment import AlignmentMode, align_panels, distribute_panels, smart_align
 from ._compose import IMAGE_EXTENSIONS, VECTOR_EXTENSIONS, compose
+from ._compose_mm import compose_mm, solve_layout_to_mm
 from ._import_axes import import_axes
 from ._visibility import hide_panel, show_panel, toggle_panel
 
@@ -23,6 +24,9 @@ __all__ = [
     # Phase 1: Composition
     "compose",
     "import_axes",
+    # Phase 1b: Mm-based composition (matplotlib, reproducible)
+    "compose_mm",
+    "solve_layout_to_mm",
     # Image formats supported for composition
     "IMAGE_EXTENSIONS",
     "VECTOR_EXTENSIONS",

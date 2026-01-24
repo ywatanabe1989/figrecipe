@@ -153,12 +153,18 @@ def compose(
     caption: Optional[str] = None,
     create_symlinks: bool = True,
     canvas_size_mm: Optional[Tuple[float, float]] = None,
+    save_recipe: bool = True,
 ) -> Dict[str, Any]:
     """Compose multiple figures into a single figure with panel labels.
 
     Supports two modes:
     1. Grid-based layout (list sources): automatic arrangement with layout parameter
     2. Free-form positioning (dict sources): precise mm-based positioning
+
+    All layouts are internally converted to mm-based positioning, enabling:
+    - Precise control over panel placement
+    - Recipe-based editing and re-composition
+    - Future adjustments without re-solving layout
 
     Parameters
     ----------
@@ -187,11 +193,14 @@ def compose(
     canvas_size_mm : tuple of (float, float), optional
         Canvas size as (width_mm, height_mm) for free-form positioning.
         Required when sources is a dict with mm positioning.
+    save_recipe : bool
+        If True (default), save a .compose.yaml recipe file for future editing.
 
     Returns
     -------
     dict
-        Result with 'output_path', 'success', and 'sources_dir' (if symlinks created).
+        Result with 'output_path', 'success', 'layout_spec', 'recipe_path',
+        and 'sources_dir' (if symlinks created).
 
     Examples
     --------
@@ -214,20 +223,75 @@ def compose(
     ...     output_path="figure.png",
     ... )
     """
-    from .._api._compose import compose_figures
+    from pathlib import Path
 
-    return compose_figures(
-        sources=sources,
-        output_path=output_path,
-        layout=layout,
-        gap_mm=gap_mm,
+    import matplotlib.pyplot as plt
+    import yaml
+
+    from .._composition._compose_mm import compose_mm, solve_layout_to_mm
+
+    # Convert list sources to mm-based dict
+    if isinstance(sources, list):
+        sources_mm, auto_canvas = solve_layout_to_mm(
+            sources, layout=layout, gap_mm=gap_mm
+        )
+        if canvas_size_mm is None:
+            canvas_size_mm = auto_canvas
+    else:
+        # Already dict with mm specs
+        sources_mm = sources
+        if canvas_size_mm is not None:
+            canvas_size_mm = tuple(canvas_size_mm)
+
+    # Create composed figure (matplotlib-based, fully editable)
+    fig, axes_dict = compose_mm(
+        sources=sources_mm,
+        canvas_size_mm=canvas_size_mm,
         dpi=dpi,
         panel_labels=panel_labels,
         label_style=label_style,
-        caption=caption,
-        create_symlinks=create_symlinks,
-        canvas_size_mm=canvas_size_mm,
+        save_recipe=save_recipe,
     )
+
+    # Save output
+    output_path = Path(output_path)
+    fig.savefig(str(output_path), dpi=dpi, facecolor=fig.get_facecolor())
+
+    result = {
+        "output_path": str(output_path),
+        "success": True,
+        "layout_spec": {
+            "canvas_size_mm": list(canvas_size_mm) if canvas_size_mm else None,
+            "panels": {
+                p: {"xy_mm": list(s["xy_mm"]), "size_mm": list(s["size_mm"])}
+                for p, s in sources_mm.items()
+            },
+        },
+    }
+
+    # Save recipe YAML for future editing
+    if save_recipe:
+        recipe_path = output_path.with_suffix(".compose.yaml")
+        recipe = {
+            "version": "1.0",
+            "type": "compose",
+            "canvas": {
+                "size_mm": list(canvas_size_mm) if canvas_size_mm else None,
+                "dpi": dpi,
+            },
+            "panels": result["layout_spec"]["panels"],
+            "style": {
+                "panel_labels": panel_labels,
+                "label_style": label_style,
+            },
+        }
+        with open(recipe_path, "w") as f:
+            yaml.dump(recipe, f, default_flow_style=False, sort_keys=False)
+        result["recipe_path"] = str(recipe_path)
+
+    plt.close(fig)
+
+    return result
 
 
 @mcp.tool

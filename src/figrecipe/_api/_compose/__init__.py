@@ -2,23 +2,71 @@
 # -*- coding: utf-8 -*-
 """Figure composition utilities for combining multiple figures.
 
-This module provides two composition modes:
-1. Grid-based layout: Automatic arrangement using 'horizontal', 'vertical', or 'grid'
-2. Free-form positioning: Precise mm-based placement with canvas_size_mm and per-source xy_mm/size_mm
+This module provides a unified mm-based composition pipeline:
+1. Grid-based layout: Automatic arrangement using layout solvers ('horizontal', 'vertical', 'grid')
+2. Free-form positioning: Direct mm-based placement with canvas_size_mm and per-source xy_mm/size_mm
+
+All layouts are solved to mm coordinates, then rendered through the same freeform pipeline.
 """
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import yaml
+
 from ._freeform import compose_freeform
-from ._grid import compose_grid_layout
+from ._solvers import solve_layout
 from ._utils import (
     add_caption,
     add_panel_labels,
     create_source_symlinks,
-    load_images,
-    mm_to_px,
 )
+
+
+def _save_compose_recipe(
+    output_path: Path,
+    sources_mm: Dict[str, Dict[str, Any]],
+    canvas_size_mm: Tuple[float, float],
+    dpi: int,
+    panel_labels: bool,
+    label_style: str,
+    caption: Optional[str],
+    facecolor: str,
+) -> Path:
+    """Save composition layout as YAML recipe for future editing.
+
+    The recipe stores all mm-based positioning, allowing users to:
+    - Re-compose with adjusted positions
+    - Change individual panel sizes without re-solving layout
+    - Add/remove panels while keeping others in place
+    """
+    recipe = {
+        "version": "1.0",
+        "type": "compose",
+        "canvas": {
+            "size_mm": list(canvas_size_mm) if canvas_size_mm else None,
+            "dpi": dpi,
+            "facecolor": facecolor,
+        },
+        "panels": {
+            path: {
+                "xy_mm": list(spec["xy_mm"]),
+                "size_mm": list(spec["size_mm"]),
+            }
+            for path, spec in sources_mm.items()
+        },
+        "style": {
+            "panel_labels": panel_labels,
+            "label_style": label_style,
+            "caption": caption,
+        },
+    }
+
+    recipe_path = output_path.with_suffix(".compose.yaml")
+    with open(recipe_path, "w") as f:
+        yaml.dump(recipe, f, default_flow_style=False, sort_keys=False)
+
+    return recipe_path
 
 
 def compose_figures(
@@ -36,6 +84,7 @@ def compose_figures(
     create_symlinks: bool = True,
     canvas_size_mm: Optional[Tuple[float, float]] = None,
     facecolor: str = "white",
+    save_recipe: bool = True,
 ) -> Dict[str, Any]:
     """Compose multiple figures into a single figure.
 
@@ -81,11 +130,16 @@ def compose_figures(
         Background color for the composed figure and all panels.
         Default is 'white'. Use this to ensure consistent backgrounds
         when source panels have different/transparent backgrounds.
+    save_recipe : bool
+        If True (default), save a YAML recipe file alongside the output.
+        The recipe contains the solved mm positions for all panels,
+        enabling future editing and re-composition.
 
     Returns
     -------
     dict
-        Result with 'output_path', 'success', and 'sources_dir' (if symlinks created).
+        Result with 'output_path', 'success', 'layout_spec', and optionally
+        'sources_dir' (if symlinks) and 'recipe_path' (if save_recipe).
 
     Examples
     --------
@@ -112,20 +166,21 @@ def compose_figures(
     """
     output_path = Path(output_path)
 
-    # Determine if using free-form mm positioning or grid-based layout
+    # Unified pipeline: all layouts go through mm-based composition
     if isinstance(sources, dict):
-        # Free-form mm-based positioning
-        result, positions, source_paths = compose_freeform(
-            sources, canvas_size_mm, dpi, facecolor
-        )
+        # Already mm-based positioning
+        sources_mm = sources
+        # canvas_size_mm is required for dict sources, but can be None for auto-calc
     else:
-        # Grid-based layout (original behavior)
-        gap_px = mm_to_px(gap_mm, dpi)
-        images = load_images(sources, dpi, facecolor)
-        if not images:
-            raise ValueError("No valid source images provided")
-        result, positions = compose_grid_layout(images, layout, gap_px, facecolor)
-        source_paths = sources
+        # Solve layout to get mm positions
+        sources_mm, canvas_size_mm = solve_layout(
+            sources, layout, gap_mm, dpi, facecolor
+        )
+
+    # Single rendering path: mm-based composition
+    result, positions, source_paths = compose_freeform(
+        sources_mm, canvas_size_mm, dpi, facecolor
+    )
 
     # Add panel labels if requested
     if panel_labels:
@@ -145,6 +200,17 @@ def compose_figures(
     result_dict = {
         "output_path": str(output_path),
         "success": True,
+        # Include solved layout for recipe/traceability
+        "layout_spec": {
+            "canvas_size_mm": list(canvas_size_mm) if canvas_size_mm else None,
+            "panels": {
+                path: {
+                    "xy_mm": list(spec["xy_mm"]),
+                    "size_mm": list(spec["size_mm"]),
+                }
+                for path, spec in sources_mm.items()
+            },
+        },
     }
 
     # Create symlinks to source files for traceability
@@ -153,7 +219,112 @@ def compose_figures(
         if sources_dir:
             result_dict["sources_dir"] = str(sources_dir)
 
+    # Save layout recipe for future editing
+    if save_recipe:
+        recipe_path = _save_compose_recipe(
+            output_path,
+            sources_mm,
+            canvas_size_mm,
+            dpi,
+            panel_labels,
+            label_style,
+            caption,
+            facecolor,
+        )
+        result_dict["recipe_path"] = str(recipe_path)
+
     return result_dict
 
 
-__all__ = ["compose_figures"]
+def load_compose_recipe(recipe_path: str) -> Dict[str, Any]:
+    """Load a composition recipe from YAML file.
+
+    Parameters
+    ----------
+    recipe_path : str
+        Path to the .compose.yaml recipe file.
+
+    Returns
+    -------
+    dict
+        Recipe containing canvas, panels, and style configuration.
+    """
+    with open(recipe_path) as f:
+        return yaml.safe_load(f)
+
+
+def recompose(
+    recipe_path: str,
+    output_path: Optional[str] = None,
+    **overrides,
+) -> Dict[str, Any]:
+    """Re-compose a figure from a saved recipe with optional overrides.
+
+    This allows editing the layout by:
+    - Adjusting individual panel positions (via overrides)
+    - Changing canvas size
+    - Modifying style options
+
+    Parameters
+    ----------
+    recipe_path : str
+        Path to the .compose.yaml recipe file.
+    output_path : str, optional
+        Output path. If None, uses original path with '_recomposed' suffix.
+    **overrides
+        Override any recipe values. Examples:
+        - canvas_size_mm=(200, 150)
+        - panel_labels=False
+        - panels={"path": {"xy_mm": [10, 10], ...}}
+
+    Returns
+    -------
+    dict
+        Result from compose_figures.
+    """
+    recipe = load_compose_recipe(recipe_path)
+
+    # Build sources dict from recipe panels
+    sources = {}
+    panels = overrides.pop("panels", recipe.get("panels", {}))
+    for path, spec in panels.items():
+        sources[path] = {
+            "xy_mm": tuple(spec["xy_mm"]),
+            "size_mm": tuple(spec["size_mm"]),
+        }
+
+    # Determine output path
+    if output_path is None:
+        orig_path = Path(recipe_path).with_suffix("")
+        if orig_path.suffix == ".compose":
+            orig_path = orig_path.with_suffix("")
+        output_path = str(orig_path) + "_recomposed.png"
+
+    # Get canvas settings
+    canvas = recipe.get("canvas", {})
+    canvas_size_mm = overrides.pop("canvas_size_mm", canvas.get("size_mm"))
+    if canvas_size_mm:
+        canvas_size_mm = tuple(canvas_size_mm)
+    dpi = overrides.pop("dpi", canvas.get("dpi", 300))
+    facecolor = overrides.pop("facecolor", canvas.get("facecolor", "white"))
+
+    # Get style settings
+    style = recipe.get("style", {})
+    panel_labels = overrides.pop("panel_labels", style.get("panel_labels", True))
+    label_style = overrides.pop("label_style", style.get("label_style", "uppercase"))
+    caption = overrides.pop("caption", style.get("caption"))
+
+    return compose_figures(
+        sources=sources,
+        output_path=output_path,
+        canvas_size_mm=canvas_size_mm,
+        dpi=dpi,
+        facecolor=facecolor,
+        panel_labels=panel_labels,
+        label_style=label_style,
+        caption=caption,
+        **overrides,
+    )
+
+
+__all__ = ["compose_figures", "load_compose_recipe", "recompose"]

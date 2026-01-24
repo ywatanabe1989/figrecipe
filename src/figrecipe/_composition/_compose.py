@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Main composition logic for combining multiple figures."""
+"""Main composition logic for combining multiple figures.
+
+Supports two composition modes:
+1. Grid-based: layout=(nrows, ncols) with sources={(row, col): path}
+2. Mm-based: canvas_size_mm=(w, h) with sources={path: {"xy_mm": ..., "size_mm": ...}}
+
+All layouts maintain matplotlib editability - no PIL image pasting.
+"""
 
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Union
