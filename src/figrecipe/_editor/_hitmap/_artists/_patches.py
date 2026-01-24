@@ -50,6 +50,7 @@ def process_patches(
     stairs_idx = 0
     fill_idx = 0
     boxplot_box_idx = 0
+    rect_idx = 0
     for i, patch in enumerate(ax.patches):
         if isinstance(patch, StepPatch):
             element_id, stairs_idx = _process_steppatch(
@@ -76,7 +77,7 @@ def process_patches(
                     boxplot_box_idx,
                 )
             else:
-                element_id = _process_rectangle(
+                element_id, rect_idx = _process_rectangle(
                     patch,
                     i,
                     ax_idx,
@@ -85,6 +86,7 @@ def process_patches(
                     color_map,
                     rect_call_id,
                     rect_type,
+                    rect_idx,
                 )
         elif isinstance(patch, Wedge):
             element_id = _process_wedge(
@@ -121,13 +123,21 @@ def process_patches(
 
 
 def _process_rectangle(
-    patch, i, ax_idx, element_id, original_props, color_map, rect_call_id, rect_type
+    patch,
+    i,
+    ax_idx,
+    element_id,
+    original_props,
+    color_map,
+    rect_call_id,
+    rect_type,
+    rect_idx=0,
 ):
     """Process Rectangle patch (bars, histogram bins)."""
     if not patch.get_visible():
-        return element_id
+        return element_id, rect_idx
     if patch.get_width() == 1.0 and patch.get_height() == 1.0:
-        return element_id
+        return element_id, rect_idx
 
     key = f"ax{ax_idx}_bar{i}"
     rgb = id_to_rgb(element_id)
@@ -140,7 +150,11 @@ def _process_rectangle(
     patch.set_facecolor(normalize_color(rgb))
     patch.set_edgecolor(normalize_color(rgb))
 
-    label = rect_call_id or patch.get_label() or f"bar_{i}"
+    # Create indexed label for distinguishing multiple bars
+    if rect_call_id:
+        label = f"{rect_call_id}_{rect_type}{rect_idx}"
+    else:
+        label = patch.get_label() or f"{rect_type}_{rect_idx}"
 
     color_map[key] = {
         "id": element_id,
@@ -150,8 +164,9 @@ def _process_rectangle(
         "rgb": list(rgb),
         "original_color": mpl_color_to_hex(original_props[key]["facecolor"]),
         "call_id": rect_call_id,
+        "layer_index": rect_idx,
     }
-    return element_id + 1
+    return element_id + 1, rect_idx + 1
 
 
 def _process_wedge(patch, i, ax_idx, element_id, original_props, color_map, pie_ids):
@@ -205,10 +220,10 @@ def _process_polygon(
 
     if fill_idx < len(fill_ids):
         call_id = fill_ids[fill_idx]
-        label = call_id
+        label = f"{call_id}_fill{fill_idx}"
     else:
         call_id = f"fill_{ax_idx}_{fill_idx}"
-        label = call_id
+        label = f"{call_id}_fill{fill_idx}"
 
     color_map[key] = {
         "id": element_id,
@@ -218,6 +233,7 @@ def _process_polygon(
         "rgb": list(rgb),
         "original_color": mpl_color_to_hex(original_props[key]["facecolor"]),
         "call_id": call_id,
+        "layer_index": fill_idx,
     }
     return element_id + 1, fill_idx + 1
 
@@ -280,10 +296,10 @@ def _process_steppatch(
 
     if stairs_idx < len(stairs_ids):
         call_id = stairs_ids[stairs_idx]
-        label = call_id
+        label = f"{call_id}_step{stairs_idx}"
     else:
         call_id = f"stairs_{ax_idx}_{stairs_idx}"
-        label = call_id
+        label = f"{call_id}_step{stairs_idx}"
 
     color_map[key] = {
         "id": element_id,
@@ -293,6 +309,7 @@ def _process_steppatch(
         "rgb": list(rgb),
         "original_color": mpl_color_to_hex(original_props[key]["facecolor"]),
         "call_id": call_id,
+        "layer_index": stairs_idx,
     }
     return element_id + 1, stairs_idx + 1
 

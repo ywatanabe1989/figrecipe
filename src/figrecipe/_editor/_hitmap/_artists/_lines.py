@@ -49,6 +49,8 @@ def process_lines(
     ecdf_line_idx = 0
     errorbar_line_idx = 0
     stem_line_idx = 0
+    boxplot_line_idx = 0
+    violin_line_idx = 0
     has_record = len(ax_plot_types) > 0
 
     for i, line in enumerate(ax.get_lines()):
@@ -91,12 +93,22 @@ def process_lines(
         call_id = None
         if has_boxplot and (is_boxplot_element(line, ax) or orig_label.startswith("_")):
             elem_type = "boxplot"
-            label = boxplot_call_id or "boxplot"
+            label = (
+                f"{boxplot_call_id}_line{boxplot_line_idx}"
+                if boxplot_call_id
+                else f"boxplot_line_{boxplot_line_idx}"
+            )
             call_id = boxplot_call_id
+            boxplot_line_idx += 1
         elif has_violin and orig_label.startswith("_"):
             elem_type = "violin"
-            label = violin_call_id or "violin"
+            label = (
+                f"{violin_call_id}_line{violin_line_idx}"
+                if violin_call_id
+                else f"violin_line_{violin_line_idx}"
+            )
             call_id = violin_call_id
+            violin_line_idx += 1
         elif has_errorbar:
             elem_type = "errorbar"
             call_id = errorbar_call_id

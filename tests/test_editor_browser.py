@@ -18,36 +18,43 @@ class TestEditorScriptIntegrity:
     """Test JavaScript code integrity without running server."""
 
     def test_no_duplicate_const_declarations(self):
-        """Check JavaScript templates for duplicate const declarations."""
+        """Check JavaScript templates for duplicate global const declarations.
+
+        Note: This test only flags top-level const declarations (not inside functions).
+        Local variables with common names (response, data, img, etc.) are expected
+        to be reused across different script modules and functions.
+        """
         import re
 
         from figrecipe._editor._templates._scripts import get_all_scripts
 
         scripts = get_all_scripts()
 
-        const_declarations = {}
+        # Only check for top-level const declarations (not inside functions)
+        # Pattern: const at start of line (not indented) = likely global
+        global_const_pattern = r"^const\s+(\w+)\s*="
+
+        global_consts = {}
         duplicates = []
 
         for script_name, script_content in scripts.items():
-            pattern = r"\bconst\s+(\w+)\s*="
-            matches = re.findall(pattern, script_content)
+            # Find const declarations at start of line (likely global scope)
+            matches = re.findall(global_const_pattern, script_content, re.MULTILINE)
 
             for var_name in matches:
-                key = var_name
-                if key in const_declarations:
-                    if const_declarations[key] != script_name:
+                if var_name in global_consts:
+                    if global_consts[var_name] != script_name:
                         duplicates.append(
-                            f"'{var_name}' declared in both "
-                            f"'{const_declarations[key]}' and '{script_name}'"
+                            f"Global '{var_name}' declared in both "
+                            f"'{global_consts[var_name]}' and '{script_name}'"
                         )
                 else:
-                    const_declarations[key] = script_name
+                    global_consts[var_name] = script_name
 
-        if duplicates:
-            pytest.skip(
-                "Potential duplicate declarations (may be false positives):\n"
-                + "\n".join(duplicates)
-            )
+        # This should now pass since local variables are not flagged
+        assert not duplicates, (
+            "Duplicate global const declarations found:\n" + "\n".join(duplicates)
+        )
 
     def test_scripts_no_obvious_errors(self):
         """Check for obvious JavaScript errors that would cause runtime failures."""
