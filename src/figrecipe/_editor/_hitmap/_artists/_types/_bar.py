@@ -76,10 +76,10 @@ def process_bar_plot(
 
         if bar_idx < len(all_bar_ids):
             call_id = all_bar_ids[0]  # Use first call_id for all bars in same call
-            label = call_id
+            label = f"{call_id}_bar{bar_idx}"
         else:
             call_id = f"bar_{ax_idx}_{bar_idx}"
-            label = patch.get_label() or call_id
+            label = patch.get_label() or f"{call_id}_bar{bar_idx}"
 
         color_map[key] = {
             "id": element_id,
@@ -154,7 +154,7 @@ def process_histogram(
         patch.set_edgecolor(normalize_color(rgb))
 
         call_id = hist_ids[0] if hist_ids else None
-        label = call_id or f"hist_bin_{hist_idx}"
+        label = f"{call_id}_bin{hist_idx}" if call_id else f"hist_bin_{hist_idx}"
 
         color_map[key] = {
             "id": element_id,

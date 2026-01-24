@@ -73,10 +73,10 @@ def process_fill_between(
 
         if fill_idx < len(fill_ids):
             call_id = fill_ids[fill_idx]
-            label = call_id
+            label = f"{call_id}_fill{fill_idx}"
         else:
             call_id = f"fill_between_{ax_idx}_{fill_idx}"
-            label = call_id
+            label = f"{call_id}_fill{fill_idx}"
 
         color_map[key] = {
             "id": element_id,
@@ -86,6 +86,7 @@ def process_fill_between(
             "rgb": list(rgb),
             "original_color": mpl_color_to_hex(orig_color),
             "call_id": call_id,
+            "layer_index": fill_idx,
         }
         element_id += 1
         fill_idx += 1
@@ -150,10 +151,10 @@ def process_fill_betweenx(
 
         if fill_idx < len(fill_ids):
             call_id = fill_ids[fill_idx]
-            label = call_id
+            label = f"{call_id}_fill{fill_idx}"
         else:
             call_id = f"fill_betweenx_{ax_idx}_{fill_idx}"
-            label = call_id
+            label = f"{call_id}_fill{fill_idx}"
 
         color_map[key] = {
             "id": element_id,
@@ -163,6 +164,7 @@ def process_fill_betweenx(
             "rgb": list(rgb),
             "original_color": mpl_color_to_hex(orig_color),
             "call_id": call_id,
+            "layer_index": fill_idx,
         }
         element_id += 1
         fill_idx += 1
@@ -307,10 +309,10 @@ def process_stairs(
 
         if stairs_idx < len(stairs_ids):
             call_id = stairs_ids[stairs_idx]
-            label = call_id
+            label = f"{call_id}_step{stairs_idx}"
         else:
             call_id = f"stairs_{ax_idx}_{stairs_idx}"
-            label = call_id
+            label = f"{call_id}_step{stairs_idx}"
 
         color_map[key] = {
             "id": element_id,
@@ -320,6 +322,7 @@ def process_stairs(
             "rgb": list(rgb),
             "original_color": mpl_color_to_hex(orig_color),
             "call_id": call_id,
+            "layer_index": stairs_idx,
         }
         element_id += 1
         stairs_idx += 1

@@ -81,6 +81,7 @@ def process_violin_plot(
             "rgb": list(rgb),
             "original_color": mpl_color_to_hex(orig_color),
             "call_id": call_id,
+            "layer_index": body_idx,
         }
         element_id += 1
         body_idx += 1
@@ -105,7 +106,7 @@ def process_violin_plot(
         coll.set_color(normalize_color(rgb))
 
         orig_color = orig_colors[0] if len(orig_colors) > 0 else [0.5, 0.5, 0.5, 1]
-        label = f"{call_id}_lines{line_idx}" if call_id else f"violin_lines_{line_idx}"
+        label = f"{call_id}_line{line_idx}" if call_id else f"violin_line_{line_idx}"
 
         color_map[key] = {
             "id": element_id,
@@ -115,6 +116,7 @@ def process_violin_plot(
             "rgb": list(rgb),
             "original_color": mpl_color_to_hex(orig_color),
             "call_id": call_id,
+            "layer_index": line_idx,
         }
         element_id += 1
         line_idx += 1

@@ -239,3 +239,67 @@ class TestDiagramImport:
         assert hasattr(fr, "Diagram")
         d = fr.Diagram(type="workflow")
         assert d is not None
+
+
+class TestDiagramRender:
+    """Test diagram rendering to image files."""
+
+    def test_get_available_backends(self):
+        """Test getting available backends."""
+        from figrecipe._diagram._render import get_available_backends
+
+        backends = get_available_backends()
+        assert "mermaid-cli" in backends
+        assert "graphviz" in backends
+        assert "mermaid.ink" in backends
+
+        # mermaid.ink should always be available
+        assert backends["mermaid.ink"]["available"] is True
+        assert "png" in backends["mermaid.ink"]["formats"]
+        assert "svg" in backends["mermaid.ink"]["formats"]
+
+    def test_render_with_mermaid_ink(self):
+        """Test rendering via mermaid.ink online API."""
+        import urllib.error
+
+        import pytest
+
+        d = Diagram(type="workflow")
+        d.add_node("a", "Start")
+        d.add_node("b", "End")
+        d.add_edge("a", "b")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "diagram.png"
+            try:
+                result = d.render(output_path, backend="mermaid.ink")
+                assert result.exists()
+                # Check it's a valid image (mermaid.ink returns JPEG for /img endpoint)
+                content = result.read_bytes()
+                # JPEG magic: b'\xff\xd8\xff' or PNG magic: b'\x89PNG'
+                is_jpeg = content[:3] == b"\xff\xd8\xff"
+                is_png = content[:4] == b"\x89PNG"
+                assert is_jpeg or is_png, f"Expected image format, got: {content[:4]}"
+            except urllib.error.HTTPError as e:
+                pytest.skip(f"mermaid.ink API unavailable: {e}")
+
+    def test_render_svg_format(self):
+        """Test rendering to SVG format."""
+        import urllib.error
+
+        import pytest
+
+        d = Diagram(type="pipeline")
+        d.add_node("x", "X")
+        d.add_node("y", "Y")
+        d.add_edge("x", "y")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "diagram.svg"
+            try:
+                result = d.render(output_path, format="svg", backend="mermaid.ink")
+                assert result.exists()
+                content = result.read_text()
+                assert "<svg" in content
+            except urllib.error.HTTPError as e:
+                pytest.skip(f"mermaid.ink API unavailable: {e}")

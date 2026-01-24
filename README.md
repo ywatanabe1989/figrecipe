@@ -152,6 +152,41 @@ ax.set_caption("Panel A description")
 ```
 </details>
 
+<details>
+<summary><b>Figure Composition</b></summary>
+
+Combine multiple figures into publication-ready layouts:
+
+```python
+import figrecipe as fr
+
+# Grid-based layout (auto-arranged)
+fr.compose(
+    sources=["panel_a.png", "panel_b.png", "panel_c.png"],
+    output_path="figure.png",
+    layout="horizontal",  # or "vertical", "grid"
+    gap_mm=5.0,
+)
+
+# Free-form mm-based positioning (precise control)
+fr.compose(
+    canvas_size_mm=(180, 120),
+    sources={
+        "panel_a.yaml": {"xy_mm": (0, 0), "size_mm": (80, 50)},
+        "panel_b.yaml": {"xy_mm": (90, 0), "size_mm": (80, 50)},
+        "panel_c.yaml": {"xy_mm": (0, 60), "size_mm": (170, 50)},
+    },
+    output_path="figure.png",
+)
+```
+
+**Key features:**
+- Auto panel labels (A, B, C...)
+- Saves `.compose.yaml` recipe for future re-composition
+- Edit positions later with `fr.recompose()`
+- All layouts internally use mm-based positioning
+</details>
+
 ## Who Is This For?
 
 FigRecipe is designed for researchers who:

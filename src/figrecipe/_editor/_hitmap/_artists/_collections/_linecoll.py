@@ -83,7 +83,11 @@ def process_linecoll(
     # Determine element type based on detected plot types
     if has_violin:
         elem_type = "violin"
-        label = violin_call_id or "violin"
+        label = (
+            f"{violin_call_id}_line{linecoll_idx}"
+            if violin_call_id
+            else f"violin_line_{linecoll_idx}"
+        )
         call_id = violin_call_id
     elif has_errorbar and errorbar_ids:
         elem_type = "errorbar"
@@ -110,6 +114,7 @@ def process_linecoll(
         "rgb": list(rgb),
         "original_color": mpl_color_to_hex(orig_color),
         "call_id": call_id,
+        "layer_index": linecoll_idx,
     }
     return element_id + 1, linecoll_idx + 1
 

@@ -1,0 +1,51 @@
+edges:
+- from: input
+  label: validate
+  style: solid
+  to: clean
+- from: clean
+  label: null
+  style: solid
+  to: transform
+- from: transform
+  label: train
+  style: solid
+  to: model
+- from: model
+  label: null
+  style: solid
+  to: output
+layout:
+  groups: {}
+  layer_gap: medium
+  layers: []
+  node_gap: medium
+nodes:
+- emphasis: normal
+  id: input
+  label: Raw Data
+  shape: stadium
+- emphasis: primary
+  id: clean
+  label: Data Cleaning
+  shape: box
+- emphasis: primary
+  id: transform
+  label: Feature Engineering
+  shape: box
+- emphasis: success
+  id: model
+  label: ML Model
+  shape: rounded
+- emphasis: normal
+  id: output
+  label: Predictions
+  shape: stadium
+paper:
+  column: single
+  emphasize: []
+  max_width_mm: 170
+  mode: draft
+  reading_direction: left_to_right
+title: Data Processing Pipeline
+type: pipeline

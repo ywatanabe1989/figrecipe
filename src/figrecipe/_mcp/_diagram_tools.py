@@ -221,3 +221,77 @@ def register_diagram_tools(mcp):
                 "publication": "Compact layout, return edges hidden, tight spacing",
             },
         }
+
+    @mcp.tool
+    def diagram_render(
+        spec_dict: Optional[Dict[str, Any]] = None,
+        spec_path: Optional[str] = None,
+        output_path: str = "",
+        format: str = "png",
+        backend: str = "auto",
+        scale: float = 2.0,
+    ) -> Dict[str, Any]:
+        """Render diagram to image file (PNG, SVG, PDF).
+
+        Parameters
+        ----------
+        spec_dict : dict, optional
+            Dictionary with diagram specification.
+        spec_path : str, optional
+            Path to YAML specification file.
+        output_path : str
+            Path to save the output image file.
+        format : str
+            Output format: 'png', 'svg', or 'pdf'.
+        backend : str
+            Rendering backend: 'mermaid-cli', 'graphviz', 'mermaid.ink', or 'auto'.
+        scale : float
+            Scale factor for output (default: 2.0).
+
+        Returns
+        -------
+        dict
+            Result with 'output_path' and 'success'.
+        """
+        from .._diagram import Diagram
+
+        if not output_path:
+            raise ValueError("output_path is required")
+
+        if spec_path:
+            d = Diagram.from_yaml(spec_path)
+        elif spec_dict:
+            d = Diagram.from_dict(spec_dict)
+        else:
+            raise ValueError("Either spec_dict or spec_path must be provided")
+
+        # Use Diagram.render() method - same as CLI
+        result_path = d.render(output_path, format=format, backend=backend, scale=scale)
+
+        return {
+            "output_path": str(result_path),
+            "format": format,
+            "backend": backend,
+            "success": True,
+        }
+
+    @mcp.tool
+    def diagram_get_backends() -> Dict[str, Any]:
+        """List available rendering backends and their status.
+
+        Returns
+        -------
+        dict
+            Dictionary with backend availability, installation instructions,
+            and supported formats.
+        """
+        from .._diagram import get_available_backends
+
+        backends = get_available_backends()
+        available_count = sum(1 for b in backends.values() if b["available"])
+
+        return {
+            "backends": backends,
+            "available_count": available_count,
+            "total_count": len(backends),
+        }
