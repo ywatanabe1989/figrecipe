@@ -36,13 +36,10 @@ def main():
     print()
 
     # Run all demos using the built-in function
-    results = run_all_demos(
-        fr, output_dir=OUTPUT_DIR, show=False, verbose=True
-    )
+    results = run_all_demos(fr, output_dir=OUTPUT_DIR, show=False, verbose=True)
 
     # Summary
     print()
-    successes = sum(1 for r in results.values() if r["success"])
     failures = [name for name, r in results.items() if not r["success"]]
 
     if failures:
