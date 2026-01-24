@@ -16,6 +16,11 @@ def mm_to_px(mm: float, dpi: int) -> int:
     return int(mm * dpi / 25.4)
 
 
+def px_to_mm(px: int, dpi: int) -> float:
+    """Convert pixels to millimeters."""
+    return px * 25.4 / dpi
+
+
 def load_images(
     sources: List[str], dpi: int, facecolor: str = "white"
 ) -> List[Image.Image]:
