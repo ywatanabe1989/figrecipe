@@ -199,6 +199,9 @@ data/*
 **/*.pdf
 **/*.pkl
 **/*.png
+!examples/01_all_plots_out/*.png
+!examples/03_style_anatomy_out/*.png
+!examples/05_csv_workflow_out/*.png
 !examples/06_diagram_out/*.png
 !examples/02_composition_out/gallery.jpg
 !docs/style_granularity.jpg
