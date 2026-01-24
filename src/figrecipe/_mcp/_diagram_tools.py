@@ -254,7 +254,6 @@ def register_diagram_tools(mcp):
             Result with 'output_path' and 'success'.
         """
         from .._diagram import Diagram
-        from .._diagram._render import render_diagram as _render_diagram
 
         if not output_path:
             raise ValueError("output_path is required")
@@ -266,9 +265,8 @@ def register_diagram_tools(mcp):
         else:
             raise ValueError("Either spec_dict or spec_path must be provided")
 
-        result_path = _render_diagram(
-            d, output_path, format=format, backend=backend, scale=scale
-        )
+        # Use Diagram.render() method - same as CLI
+        result_path = d.render(output_path, format=format, backend=backend, scale=scale)
 
         return {
             "output_path": str(result_path),
@@ -287,7 +285,7 @@ def register_diagram_tools(mcp):
             Dictionary with backend availability, installation instructions,
             and supported formats.
         """
-        from .._diagram._render import get_available_backends
+        from .._diagram import get_available_backends
 
         backends = get_available_backends()
         available_count = sum(1 for b in backends.values() if b["available"])

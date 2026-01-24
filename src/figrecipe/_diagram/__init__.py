@@ -42,6 +42,7 @@ from figrecipe._diagram._presets import (
     get_preset,
     list_presets,
 )
+from figrecipe._diagram._render import get_available_backends
 from figrecipe._diagram._schema import (
     ColumnLayout,
     DiagramSpec,
@@ -80,4 +81,6 @@ __all__ = [
     "SplitConfig",
     "SplitResult",
     "SplitStrategy",
+    # Render
+    "get_available_backends",
 ]
