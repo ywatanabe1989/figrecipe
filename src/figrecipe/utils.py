@@ -14,12 +14,18 @@ Usage
 >>> from figrecipe.utils import mm_to_inch, check_font
 """
 
+from ._api._notebook import enable_svg
 from ._api._panel import panel_label
+from ._api._seaborn_proxy import sns
+from ._api._style_manager import STYLE, apply_style
 from ._composition import (
     AlignmentMode,
+    align_panels,
+    distribute_panels,
     hide_panel,
     import_axes,
     show_panel,
+    smart_align,
     toggle_panel,
 )
 from ._integrations import (
@@ -69,12 +75,21 @@ __all__ = [
     "get_recipe_info",
     # Composition (advanced)
     "AlignmentMode",
+    "align_panels",
+    "distribute_panels",
+    "smart_align",
     "hide_panel",
     "import_axes",
     "show_panel",
     "toggle_panel",
     # Panel label
     "panel_label",
+    # Style (advanced)
+    "STYLE",
+    "apply_style",
+    # Notebook/seaborn
+    "enable_svg",
+    "sns",
     # scitex.stats integration
     "SCITEX_STATS_AVAILABLE",
     "annotate_from_stats",

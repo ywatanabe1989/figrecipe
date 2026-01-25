@@ -35,3 +35,8 @@ try:
     __all__.extend(["crop", "find_content_area"])
 except ImportError:
     pass
+
+# Colorbar styling utilities
+from ._colorbar import add_colorbar, style_colorbar  # noqa: F401
+
+__all__.extend(["style_colorbar", "add_colorbar"])

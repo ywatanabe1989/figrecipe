@@ -39,9 +39,13 @@ jobs:
         run: |
           playwright install chromium
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
-          pytest tests/ -v --tb=short --ignore=tests/editor
+          pytest tests/ -v --tb=short --ignore=tests/editor --ignore=tests/test_pixel_perfect.py
+
+      - name: Run pixel-perfect reproduction tests
+        run: |
+          pytest tests/test_pixel_perfect.py -n auto -v --tb=short
 
   lint:
     runs-on: ubuntu-latest

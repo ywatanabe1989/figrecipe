@@ -4,6 +4,125 @@
 
 from typing import Any, Dict, Optional
 
+# Methods that support clip_on parameter (plotting methods, not decoration methods)
+CLIP_ON_SUPPORTED_METHODS = {
+    "plot",
+    "scatter",
+    "bar",
+    "barh",
+    "hist",
+    "step",
+    "fill",
+    "fill_between",
+    "fill_betweenx",
+    "errorbar",
+    "axhline",
+    "axvline",
+    "axhspan",
+    "axvspan",
+    "hlines",
+    "vlines",
+    "quiver",
+    "hexbin",
+    "pcolormesh",
+    "pcolor",
+    "imshow",
+    "matshow",
+    "spy",
+    "tripcolor",
+    "tricontour",
+    "tricontourf",
+    "triplot",
+    "stackplot",
+    "stairs",
+    "broken_barh",
+    "eventplot",
+    "ecdf",
+    "magnitude_spectrum",
+    "angle_spectrum",
+    "phase_spectrum",
+    "psd",
+    "csd",
+    "cohere",
+    "specgram",
+    "acorr",
+    "xcorr",
+    # NOTE: stem, streamplot, and contour are NOT included - they do not support clip_on
+}
+
+
+def inject_clip_on_from_style(kwargs: dict, method_name: str = None) -> dict:
+    """Inject clip_on=False if style dictates (figrecipe handles cropping).
+
+    Parameters
+    ----------
+    kwargs : dict
+        Keyword arguments to augment.
+    method_name : str, optional
+        Name of the plotting method. If provided, only inject for methods
+        that support clip_on parameter.
+
+    Returns
+    -------
+    dict
+        Updated kwargs with clip_on=False if applicable.
+    """
+    from ..styles._style_loader import _STYLE_CACHE
+
+    # Only inject for methods that support clip_on
+    if method_name is not None and method_name not in CLIP_ON_SUPPORTED_METHODS:
+        return kwargs
+
+    if "clip_on" not in kwargs and _STYLE_CACHE is not None:
+        behavior = _STYLE_CACHE.get("behavior", {})
+        if behavior.get("clip_on") is False:
+            kwargs["clip_on"] = False
+    return kwargs
+
+
+def inject_method_defaults(kwargs: dict, method_name: str) -> dict:
+    """Inject method-specific defaults from SCITEX style.
+
+    Parameters
+    ----------
+    kwargs : dict
+        Keyword arguments to augment.
+    method_name : str
+        Name of the plotting method.
+
+    Returns
+    -------
+    dict
+        Updated kwargs with style defaults applied.
+    """
+    from ..styles._style_loader import _STYLE_CACHE
+
+    if _STYLE_CACHE is None:
+        return kwargs
+
+    if method_name == "fill_between" or method_name == "fill_betweenx":
+        fb_style = _STYLE_CACHE.get("fill_between", {})
+        if "edgecolor" not in kwargs:
+            edgecolor = fb_style.get("edgecolor", "none")
+            kwargs["edgecolor"] = edgecolor
+        if "alpha" not in kwargs:
+            alpha = fb_style.get("alpha")
+            if alpha is not None:
+                kwargs["alpha"] = alpha
+
+    elif method_name == "eventplot":
+        ep_style = _STYLE_CACHE.get("eventplot", {})
+        from .._utils._units import mm_to_pt
+
+        if "linewidths" not in kwargs:
+            lw_mm = ep_style.get("linewidth_mm", 0.12)
+            kwargs["linewidths"] = mm_to_pt(lw_mm)
+        if "linelengths" not in kwargs:
+            ll = ep_style.get("linelength", 0.5)
+            kwargs["linelengths"] = ll
+
+    return kwargs
+
 
 def args_have_fmt_color(args: tuple) -> bool:
     """Check if args contain a matplotlib fmt string with color specifier."""
@@ -138,6 +257,8 @@ def record_call_with_color_capture(
 
 
 __all__ = [
+    "inject_clip_on_from_style",
+    "inject_method_defaults",
     "args_have_fmt_color",
     "extract_color_from_result",
     "process_result_refs_in_args",

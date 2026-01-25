@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs clean-old-legacy lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition
+.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs clean-old-legacy lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition run-examples
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
@@ -21,6 +21,7 @@ help:
 	@echo "  make demo-gui-all       Launch GUI editor with ALL plot types (47 plots)"
 	@echo "  make demo-plot-all      Generate all demo plots to examples/demo_all_plots_out/"
 	@echo "  make demo-composition   Compose all plots into single figure"
+	@echo "  make run-examples       Run all examples in sequence"
 
 PORT ?= 5050
 
@@ -79,3 +80,6 @@ demo-plot-all:
 demo-composition:
 	@echo "Composing all plots into single figure..."
 	@python3 ./examples/demo_composition.py
+
+run-examples:
+	@./examples/00_run_all.sh

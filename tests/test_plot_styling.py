@@ -5,7 +5,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import figrecipe as fr
+from figrecipe.styles.plot_stylers import (
+    style_barplot,
+    style_boxplot,
+    style_errorbar,
+    style_scatter,
+    style_violinplot,
+)
 
 
 class TestStyleBoxplot:
@@ -17,7 +23,7 @@ class TestStyleBoxplot:
         data = [np.random.randn(100) for _ in range(3)]
         bp = ax.boxplot(data, patch_artist=True)
 
-        result = fr.style_boxplot(bp)
+        result = style_boxplot(bp)
 
         assert result is bp
         # Check line widths were set
@@ -31,7 +37,7 @@ class TestStyleBoxplot:
         data = [np.random.randn(50) for _ in range(2)]
         bp = ax.boxplot(data, patch_artist=True)
 
-        fr.style_boxplot(bp, linewidth_mm=0.5)
+        style_boxplot(bp, linewidth_mm=0.5)
 
         # 0.5mm should be ~1.42 points
         for whisker in bp["whiskers"]:
@@ -45,7 +51,7 @@ class TestStyleBoxplot:
         data = [np.random.randn(50)]
         bp = ax.boxplot(data, patch_artist=True)
 
-        fr.style_boxplot(bp, median_color="red")
+        style_boxplot(bp, median_color="red")
 
         for median in bp["medians"]:
             assert median.get_color() == "red"
@@ -58,7 +64,7 @@ class TestStyleBoxplot:
         bp = ax.boxplot(data, patch_artist=True)
 
         colors = ["#FF0000", "#00FF00"]
-        fr.style_boxplot(bp, colors=colors)
+        style_boxplot(bp, colors=colors)
 
         for i, box in enumerate(bp["boxes"]):
             assert box.get_facecolor()[:3] != (1, 1, 1)  # Not white
@@ -71,7 +77,7 @@ class TestStyleBoxplot:
         data = [np.concatenate([np.random.randn(50), [10, -10]])]
         bp = ax.boxplot(data, patch_artist=True)
 
-        fr.style_boxplot(bp, flier_size_mm=1.0)
+        style_boxplot(bp, flier_size_mm=1.0)
 
         for flier in bp["fliers"]:
             assert flier.get_markersize() > 0
@@ -87,7 +93,7 @@ class TestStyleViolinplot:
         data = [np.random.randn(100) for _ in range(3)]
         ax.violinplot(data)
 
-        result = fr.style_violinplot(ax)
+        result = style_violinplot(ax)
 
         assert result is ax
         plt.close(fig)
@@ -98,7 +104,7 @@ class TestStyleViolinplot:
         data = [np.random.randn(100)]
         ax.violinplot(data)
 
-        fr.style_violinplot(ax, edge_color="blue")
+        style_violinplot(ax, edge_color="blue")
 
         # Check collections have edge color set
         for collection in ax.collections:
@@ -113,7 +119,7 @@ class TestStyleViolinplot:
         data = [np.random.randn(100)]
         ax.violinplot(data)
 
-        fr.style_violinplot(ax, linewidth_mm=0.3)
+        style_violinplot(ax, linewidth_mm=0.3)
 
         for collection in ax.collections:
             if hasattr(collection, "get_linewidth"):
@@ -130,7 +136,7 @@ class TestStyleBarplot:
         fig, ax = plt.subplots()
         bars = ax.bar([1, 2, 3], [4, 5, 6])
 
-        result = fr.style_barplot(bars)
+        result = style_barplot(bars)
 
         assert result is bars
         plt.close(fig)
@@ -140,7 +146,7 @@ class TestStyleBarplot:
         fig, ax = plt.subplots()
         bars = ax.bar([1, 2, 3], [4, 5, 6])
 
-        fr.style_barplot(bars, edge_thickness_mm=0.4)
+        style_barplot(bars, edge_thickness_mm=0.4)
 
         for bar in bars:
             lw = bar.get_linewidth()
@@ -152,7 +158,7 @@ class TestStyleBarplot:
         fig, ax = plt.subplots()
         bars = ax.bar([1, 2, 3], [4, 5, 6])
 
-        fr.style_barplot(bars, edgecolor="red")
+        style_barplot(bars, edgecolor="red")
 
         for bar in bars:
             ec = bar.get_edgecolor()
@@ -166,7 +172,7 @@ class TestStyleBarplot:
         bars = ax.bar([1, 2, 3], [4, 5, 6])
 
         colors = ["red", "green", "blue"]
-        fr.style_barplot(bars, edgecolor=colors)
+        style_barplot(bars, edgecolor=colors)
 
         # Each bar should have different edge color
         edge_colors = [bar.get_edgecolor() for bar in bars]
@@ -182,7 +188,7 @@ class TestStyleScatter:
         fig, ax = plt.subplots()
         scatter = ax.scatter([1, 2, 3], [4, 5, 6])
 
-        result = fr.style_scatter(scatter)
+        result = style_scatter(scatter)
 
         assert result is scatter
         plt.close(fig)
@@ -192,7 +198,7 @@ class TestStyleScatter:
         fig, ax = plt.subplots()
         scatter = ax.scatter([1, 2, 3], [4, 5, 6])
 
-        fr.style_scatter(scatter, size_mm=1.5)
+        style_scatter(scatter, size_mm=1.5)
 
         sizes = scatter.get_sizes()
         assert len(sizes) > 0
@@ -204,7 +210,7 @@ class TestStyleScatter:
         fig, ax = plt.subplots()
         scatter = ax.scatter([1, 2, 3], [4, 5, 6])
 
-        fr.style_scatter(scatter, edge_thickness_mm=0.2)
+        style_scatter(scatter, edge_thickness_mm=0.2)
 
         linewidths = scatter.get_linewidths()
         assert len(linewidths) > 0
@@ -219,7 +225,7 @@ class TestStyleErrorbar:
         fig, ax = plt.subplots()
         eb = ax.errorbar([1, 2, 3], [4, 5, 6], yerr=[0.5, 0.5, 0.5])
 
-        result = fr.style_errorbar(eb)
+        result = style_errorbar(eb)
 
         assert result is eb
         plt.close(fig)
@@ -229,7 +235,7 @@ class TestStyleErrorbar:
         fig, ax = plt.subplots()
         eb = ax.errorbar([1, 2, 3], [4, 5, 6], yerr=[0.5, 0.5, 0.5])
 
-        fr.style_errorbar(eb, thickness_mm=0.3)
+        style_errorbar(eb, thickness_mm=0.3)
 
         # Data line should have linewidth set
         if eb[0] is not None:
@@ -242,7 +248,7 @@ class TestStyleErrorbar:
         fig, ax = plt.subplots()
         eb = ax.errorbar([1, 2, 3], [4, 5, 6], yerr=[0.5, 0.5, 0.5], capsize=3)
 
-        fr.style_errorbar(eb, cap_width_mm=1.0)
+        style_errorbar(eb, cap_width_mm=1.0)
 
         # Check caps have marker size set
         if len(eb) > 1 and eb[1] is not None:
@@ -256,25 +262,9 @@ class TestStyleErrorbar:
 class TestImports:
     """Test that styling functions are properly exported."""
 
-    def test_import_from_figrecipe(self):
-        """Test imports from main figrecipe module."""
-        from figrecipe import (
-            style_barplot,
-            style_boxplot,
-            style_errorbar,
-            style_scatter,
-            style_violinplot,
-        )
-
-        assert callable(style_boxplot)
-        assert callable(style_violinplot)
-        assert callable(style_barplot)
-        assert callable(style_scatter)
-        assert callable(style_errorbar)
-
-    def test_import_from_styles(self):
-        """Test imports from styles submodule."""
-        from figrecipe.styles import (
+    def test_import_from_styles_plot_stylers(self):
+        """Test imports from styles.plot_stylers submodule."""
+        from figrecipe.styles.plot_stylers import (
             style_barplot,
             style_boxplot,
             style_errorbar,

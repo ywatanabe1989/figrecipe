@@ -50,6 +50,8 @@ def save_array(
         Output file path (extension will be set based on format).
     data_format : str
         Format to use: 'csv' (default), 'npz', or 'inline'.
+        Note: 3D+ arrays (e.g., RGBA images) automatically use 'npz'
+        since CSV cannot properly represent multi-dimensional data.
 
     Returns
     -------
@@ -58,6 +60,10 @@ def save_array(
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    # 3D+ arrays (like RGBA images) must use NPZ since CSV can't handle them
+    if data.ndim > 2 and data_format == "csv":
+        data_format = "npz"
 
     if data_format == "csv":
         path = path.with_suffix(".csv")
@@ -164,13 +170,15 @@ def load_array_csv(path: Union[str, Path], dtype=None) -> np.ndarray:
     return np.array(data, dtype=dtype)
 
 
-def load_array(path: Union[str, Path]) -> np.ndarray:
+def load_array(path: Union[str, Path], dtype=None) -> np.ndarray:
     """Load numpy array from file.
 
     Parameters
     ----------
     path : str or Path
         Path to .npy, .npz, or .csv file.
+    dtype : dtype, optional
+        Expected dtype for the array. If None, infers from data.
 
     Returns
     -------
@@ -181,11 +189,17 @@ def load_array(path: Union[str, Path]) -> np.ndarray:
 
     if path.suffix == ".npz":
         with np.load(path) as f:
-            return f["data"]
+            arr = f["data"]
+            if dtype is not None:
+                arr = arr.astype(dtype)
+            return arr
     elif path.suffix == ".csv":
-        return load_array_csv(path)
+        return load_array_csv(path, dtype=dtype)
     else:
-        return np.load(path)
+        arr = np.load(path)
+        if dtype is not None:
+            arr = arr.astype(dtype)
+        return arr
 
 
 def to_serializable(data) -> Union[list, dict]:

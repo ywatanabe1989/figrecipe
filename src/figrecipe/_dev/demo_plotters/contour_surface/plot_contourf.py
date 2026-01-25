@@ -19,10 +19,13 @@ def plot_contourf(plt, rng, ax=None):
     y = np.linspace(-3, 3, 50)
     X, Y = np.meshgrid(x, y)
     Z = np.exp(-(X**2 + Y**2))
-    ax.contourf(X, Y, Z, id="contourf")
+    cf = ax.contourf(X, Y, Z, id="contourf")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("contourf")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, cf, ax=ax)
     return fig, ax
 
 

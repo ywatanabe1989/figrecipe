@@ -15,10 +15,15 @@ def plot_hist2d(plt, rng, ax=None):
 
     x = rng.normal(0, 1, 1000)
     y = rng.normal(0, 1, 1000)
-    ax.hist2d(x, y, id="hist2d")
+    result = ax.hist2d(x, y, id="hist2d")
+    # hist2d returns (h, xedges, yedges, im) - need im for colorbar
+    im = result[-1] if isinstance(result, tuple) else result
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("hist2d")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, im, ax=ax)
     return fig, ax
 
 

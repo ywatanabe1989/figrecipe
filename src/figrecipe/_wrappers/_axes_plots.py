@@ -23,26 +23,29 @@ def pie_plot(
 ) -> tuple:
     """Pie chart with automatic SCITEX styling."""
     from ..styles import get_style, resolve_colors_in_kwargs
+    from ._axes_helpers import inject_clip_on_from_style
+    from ._pie_helpers import (
+        apply_pie_autopct,
+        apply_pie_axes_visibility,
+        apply_pie_text_style,
+        apply_pie_wedgeprops,
+    )
 
-    # Resolve named colors to style colors
     kwargs = resolve_colors_in_kwargs(kwargs)
+    kwargs = inject_clip_on_from_style(kwargs, "pie")
 
-    # Get style settings before calling pie
     style = get_style()
     pie_style = style.get("pie", {}) if style else {}
 
-    # Apply wedge edge styling via wedgeprops if not already specified
-    kwargs = _apply_pie_wedgeprops(kwargs, pie_style)
+    kwargs = apply_pie_wedgeprops(kwargs, pie_style)
+    kwargs = apply_pie_autopct(kwargs, pie_style)
 
-    # Call matplotlib's pie
     result = ax.pie(x, **kwargs)
 
-    # Apply additional style settings
     if style:
-        _apply_pie_text_style(ax, pie_style, style)
-        _apply_pie_axes_visibility(ax, pie_style)
+        apply_pie_text_style(ax, pie_style, style)
+        apply_pie_axes_visibility(ax, pie_style)
 
-    # Record the call if tracking is enabled
     if track:
         recorder.record_call(
             ax_position=position,
@@ -53,53 +56,6 @@ def pie_plot(
         )
 
     return result
-
-
-def _apply_pie_wedgeprops(kwargs: dict, pie_style: dict) -> dict:
-    """Apply wedge properties to pie kwargs."""
-    from .._utils._units import mm_to_pt
-
-    edge_color = pie_style.get("edge_color", "black")
-    edge_mm = pie_style.get("edge_mm", 0.2)
-    edge_lw = mm_to_pt(edge_mm)
-
-    if "wedgeprops" not in kwargs:
-        kwargs["wedgeprops"] = {"edgecolor": edge_color, "linewidth": edge_lw}
-    elif "edgecolor" not in kwargs.get("wedgeprops", {}):
-        kwargs["wedgeprops"]["edgecolor"] = edge_color
-        kwargs["wedgeprops"]["linewidth"] = edge_lw
-
-    return kwargs
-
-
-def _apply_pie_text_style(ax: "Axes", pie_style: dict, style) -> None:
-    """Apply text styling to pie chart."""
-    from ..styles._style_applier import check_font
-
-    text_pt = pie_style.get("text_pt", 6)
-    font_family = check_font(style.get("fonts", {}).get("family", "Arial"))
-
-    # Get text color from rcParams for dark mode support
-    import matplotlib.pyplot as mpl_plt
-
-    text_color = mpl_plt.rcParams.get("text.color", "black")
-
-    for text in ax.texts:
-        text.set_fontsize(text_pt)
-        text.set_fontfamily(font_family)
-        text.set_color(text_color)
-
-
-def _apply_pie_axes_visibility(ax: "Axes", pie_style: dict) -> None:
-    """Apply axes visibility settings for pie chart."""
-    show_axes = pie_style.get("show_axes", False)
-    if not show_axes:
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        for spine in ax.spines.values():
-            spine.set_visible(False)
 
 
 def imshow_plot(
@@ -113,6 +69,9 @@ def imshow_plot(
 ):
     """Display image with automatic SCITEX styling."""
     from ..styles import get_style
+    from ._axes_helpers import inject_clip_on_from_style
+
+    kwargs = inject_clip_on_from_style(kwargs, "imshow")
 
     # Call matplotlib's imshow
     result = ax.imshow(X, **kwargs)
@@ -158,9 +117,19 @@ def violinplot_plot(
     track: bool,
     call_id: Optional[str],
     inner: Optional[str],
+    colors: Optional[List] = None,
     **kwargs,
 ) -> dict:
-    """Violin plot with support for inner display options."""
+    """Violin plot with support for inner display options.
+
+    Parameters
+    ----------
+    colors : list, optional
+        Colors for each violin body. If provided, these colors will be
+        applied to the bodies for consistent coloring and recording.
+    """
+    import matplotlib.pyplot as mpl_plt
+
     from ..styles import get_style
 
     # Get style settings
@@ -186,10 +155,15 @@ def violinplot_plot(
         **kwargs,
     )
 
-    # Apply alpha from style to violin bodies
+    # Apply alpha and colors to violin bodies
     alpha = violin_style.get("alpha", 0.7)
     if "bodies" in result:
-        for body in result["bodies"]:
+        # Get colors from parameter or style's color palette
+        if colors is None:
+            colors = mpl_plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+        for i, body in enumerate(result["bodies"]):
+            body.set_facecolor(colors[i % len(colors)])
             body.set_alpha(alpha)
 
     # Overlay inner elements
@@ -199,12 +173,32 @@ def violinplot_plot(
     _add_violin_inner_elements(ax, dataset, positions, inner, violin_style)
 
     # Record the call if tracking is enabled
+    # Note: We defer recording to save_recipe time via _capture_violin_colors
+    # This allows capturing colors that are set AFTER violinplot() returns
     if track:
         recorded_kwargs = kwargs.copy()
         recorded_kwargs["inner"] = inner
         recorded_kwargs["showmeans"] = showmeans
-        recorded_kwargs["showmedians"] = showmedians
-        recorded_kwargs["showextrema"] = showextrema
+        # Record what was ACTUALLY passed to matplotlib, not the style values
+        recorded_kwargs["showmedians"] = (
+            showmedians if inner not in ("box", "swarm") else False
+        )
+        recorded_kwargs["showextrema"] = (
+            showextrema if inner not in ("box", "swarm") else False
+        )
+
+        # Capture body colors and alphas from the result
+        if "bodies" in result:
+            body_colors = []
+            body_alphas = []
+            for body in result["bodies"]:
+                fc = body.get_facecolor()
+                if hasattr(fc, "tolist"):
+                    fc = fc.tolist()
+                body_colors.append(fc[0] if fc and len(fc) == 1 else fc)
+                body_alphas.append(body.get_alpha())
+            recorded_kwargs["_body_colors"] = body_colors
+            recorded_kwargs["_body_alphas"] = body_alphas
 
         recorder.record_call(
             ax_position=position,
@@ -422,9 +416,11 @@ def bar_plot(
     """Bar chart with SCITEX error bar styling."""
     from .._utils._units import mm_to_pt
     from ..styles import get_style, resolve_colors_in_kwargs
+    from ._axes_helpers import inject_clip_on_from_style
 
     # Resolve named colors to style colors
     kwargs = resolve_colors_in_kwargs(kwargs)
+    kwargs = inject_clip_on_from_style(kwargs, "bar")
 
     # Extract stats before passing to matplotlib (it's metadata only)
     stats = kwargs.pop("stats", None)

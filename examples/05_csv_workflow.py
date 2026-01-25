@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Timestamp: "2026-01-25 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/examples/05_csv_workflow.py
+
 """
-Example: CSV Column Workflow for MCP Integration
-================================================
+CSV Column Workflow for MCP Integration
+=======================================
 
 This example demonstrates the RECOMMENDED workflow for using figrecipe
 with MCP tools:
@@ -22,18 +25,12 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-# Setup output directory
-OUTPUT_DIR = Path(__file__).parent / "05_csv_workflow_out"
-OUTPUT_DIR.mkdir(exist_ok=True)
-os.chdir(OUTPUT_DIR)
+import scitex as stx
 
 
-def step1_generate_data():
+def step1_generate_data(output_dir, logger):
     """Step 1: Analysis code generates CSV data."""
-    print("=" * 60)
-    print("Step 1: Generate CSV data (simulating analysis code)")
-    print("=" * 60)
+    logger.info("Step 1: Generate CSV data (simulating analysis code)")
 
     # Simulate experiment data
     np.random.seed(42)
@@ -47,32 +44,29 @@ def step1_generate_data():
     df = pd.DataFrame(
         {"time_sec": time, "measured_signal": signal, "fitted_curve": fitted}
     )
-    df.to_csv("experiment_data.csv", index=False)
-    print(f"Created: experiment_data.csv ({len(df)} rows)")
-    print(f"Columns: {list(df.columns)}")
+    df.to_csv(output_dir / "experiment_data.csv", index=False)
+    logger.info(f"Created: experiment_data.csv ({len(df)} rows)")
 
     # Also create group comparison data
     groups = []
     values = []
-    for i, (name, mean, std) in enumerate(
-        [("Control", 10, 2), ("Treatment A", 15, 2.5), ("Treatment B", 18, 3)]
-    ):
+    for name, mean, std in [
+        ("Control", 10, 2),
+        ("Treatment A", 15, 2.5),
+        ("Treatment B", 18, 3),
+    ]:
         n = 30
         groups.extend([name] * n)
         values.extend(np.random.normal(mean, std, n).tolist())
 
     df_groups = pd.DataFrame({"group": groups, "measurement": values})
-    df_groups.to_csv("group_comparison.csv", index=False)
-    print(f"Created: group_comparison.csv ({len(df_groups)} rows)")
-
-    return "experiment_data.csv", "group_comparison.csv"
+    df_groups.to_csv(output_dir / "group_comparison.csv", index=False)
+    logger.info(f"Created: group_comparison.csv ({len(df_groups)} rows)")
 
 
-def step2_create_mcp_spec():
+def step2_create_mcp_spec(logger):
     """Step 2: Create MCP-compatible plot specification using CSV columns."""
-    print("\n" + "=" * 60)
-    print("Step 2: Create MCP plot specification (CSV column references)")
-    print("=" * 60)
+    logger.info("Step 2: Create MCP plot specification (CSV column references)")
 
     # This is the spec format used by MCP plt_plot tool
     spec_line_plot = {
@@ -102,42 +96,40 @@ def step2_create_mcp_spec():
         "legend": True,
     }
 
-    print("Spec for line plot:")
-    print("  data_file: experiment_data.csv")
-    print("  x column: time_sec")
-    print("  y columns: measured_signal, fitted_curve")
+    logger.info("  data_file: experiment_data.csv")
+    logger.info("  x column: time_sec")
+    logger.info("  y columns: measured_signal, fitted_curve")
 
     return spec_line_plot
 
 
-def step3_create_figure_from_spec(spec):
+def step3_create_figure_from_spec(spec, output_dir, logger):
     """Step 3: Create figure using the spec (like MCP would do)."""
-    print("\n" + "=" * 60)
-    print("Step 3: Create figure from spec (MCP-style)")
-    print("=" * 60)
+    logger.info("Step 3: Create figure from spec (MCP-style)")
 
     from figrecipe._api._plot import create_figure_from_spec
 
     result = create_figure_from_spec(
-        spec=spec, output_path="csv_workflow_demo.png", dpi=300, save_recipe=True
+        spec=spec,
+        output_path=str(output_dir / "csv_workflow_demo.png"),
+        dpi=300,
+        save_recipe=True,
     )
 
-    print(f"Created: {result['image_path']}")
-    print(f"Recipe:  {result['recipe_path']}")
+    logger.info(f"Created: {result['image_path']}")
+    logger.info(f"Recipe:  {result['recipe_path']}")
 
     return result
 
 
-def step4_demonstrate_python_api():
+def step4_demonstrate_python_api(output_dir, logger):
     """Step 4: Alternative - Direct Python API with CSV."""
-    print("\n" + "=" * 60)
-    print("Step 4: Alternative - Direct Python API")
-    print("=" * 60)
+    logger.info("Step 4: Alternative - Direct Python API")
 
     import figrecipe as fr
 
     # Load CSV data
-    df = pd.read_csv("experiment_data.csv")
+    df = pd.read_csv(output_dir / "experiment_data.csv")
 
     # Create figure with standard matplotlib API
     fig, ax = fr.subplots(axes_width_mm=80, axes_height_mm=60)
@@ -157,59 +149,67 @@ def step4_demonstrate_python_api():
     ax.legend()
 
     # Save creates: image + recipe + data CSVs
-    fr.save(fig, "python_api_demo.png")
-    print("Created: python_api_demo.png + python_api_demo.yaml + python_api_demo_data/")
+    fr.save(fig, output_dir / "python_api_demo.png")
+    logger.info(
+        "Created: python_api_demo.png + python_api_demo.yaml + python_api_demo_data/"
+    )
 
 
-def step5_show_output_structure():
+def step5_show_output_structure(output_dir, logger):
     """Step 5: Show the output file structure."""
-    print("\n" + "=" * 60)
-    print("Step 5: Output file structure")
-    print("=" * 60)
+    logger.info("Step 5: Output file structure")
 
-    for f in sorted(OUTPUT_DIR.iterdir()):
+    for f in sorted(output_dir.iterdir()):
         if f.is_dir():
-            print(f"  {f.name}/")
+            logger.info(f"  {f.name}/")
             for sub in sorted(f.iterdir()):
-                print(f"    {sub.name}")
+                logger.info(f"    {sub.name}")
         else:
             size = f.stat().st_size
-            print(f"  {f.name} ({size:,} bytes)")
+            logger.info(f"  {f.name} ({size:,} bytes)")
 
 
-def main():
+@stx.session
+def main(
+    CONFIG=stx.INJECTED,
+    logger=stx.INJECTED,
+):
     """Run the complete CSV workflow demonstration."""
-    print("\nFigRecipe CSV Workflow Demo")
-    print("===========================\n")
-    print("This demonstrates the RECOMMENDED pattern:")
-    print("  Analysis code → CSV → MCP plot spec → Figure\n")
+    output_path = Path(CONFIG.SDIR_OUT)
+
+    # Change to output directory for relative paths
+    os.chdir(output_path)
+
+    logger.info("FigRecipe CSV Workflow Demo")
+    logger.info("This demonstrates the RECOMMENDED pattern:")
+    logger.info("  Analysis code → CSV → MCP plot spec → Figure")
 
     # Step 1: Generate data (like analysis code would)
-    step1_generate_data()
+    step1_generate_data(output_path, logger)
 
     # Step 2: Create MCP-compatible spec with CSV references
-    spec = step2_create_mcp_spec()
+    spec = step2_create_mcp_spec(logger)
 
     # Step 3: Create figure from spec (MCP-style)
-    step3_create_figure_from_spec(spec)
+    step3_create_figure_from_spec(spec, output_path, logger)
 
     # Step 4: Alternative Python API
-    step4_demonstrate_python_api()
+    step4_demonstrate_python_api(output_path, logger)
 
     # Step 5: Show output structure
-    step5_show_output_structure()
+    step5_show_output_structure(output_path, logger)
 
-    print("\n" + "=" * 60)
-    print("SUMMARY: CSV Workflow Benefits")
-    print("=" * 60)
-    print("1. Data separate from visualization spec")
-    print("2. Easy to update data without changing spec")
-    print("3. Better integration with analysis code")
-    print("4. MCP can visualize any CSV file")
-    print("5. Full reproducibility via YAML recipes")
+    logger.info("SUMMARY: CSV Workflow Benefits")
+    logger.info("1. Data separate from visualization spec")
+    logger.info("2. Easy to update data without changing spec")
+    logger.info("3. Better integration with analysis code")
+    logger.info("4. MCP can visualize any CSV file")
+    logger.info("5. Full reproducibility via YAML recipes")
 
     return 0
 
 
 if __name__ == "__main__":
     main()
+
+# EOF

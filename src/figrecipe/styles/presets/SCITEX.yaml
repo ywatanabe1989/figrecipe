@@ -41,8 +41,8 @@ padding:
   title_pt: 4.0
 
 lines:
-  trace_mm: 0.2
-  errorbar_mm: 0.2
+  trace_mm: 0.12
+  errorbar_mm: 0.12
   errorbar_cap_mm: 0.8
 
 ticks:
@@ -88,14 +88,34 @@ pie:
   show_axes: false       # Hide axes for pie charts
   edge_color: "black"    # Wedge edge color (black for contrast)
   edge_mm: 0.2           # Wedge edge thickness
+  autopct: "%1.0f%%"     # Default percentage format
+
+fill_between:
+  edgecolor: "none"      # No edge by default for cleaner look
+  alpha: 0.5             # Default fill transparency
 
 imshow:
   show_axes: false       # Hide ticks, ticklabels, spines for imshow
   show_labels: false     # Hide x/y labels for imshow
 
 eventplot:
-  linewidth_mm: 0.2      # Event line thickness
-  linelength: 0.8        # Event line length (fraction of spacing)
+  linewidth_mm: 0.12     # Event line thickness (matches trace_mm)
+  linelength: 0.5        # Event line length (shorter for cleaner look)
+
+colorbar:
+  auto: true             # Auto-add colorbar for 2D plots
+  outline_mm: 0.2        # Colorbar outline thickness
+  n_ticks_min: 3         # Minimum number of ticks
+  n_ticks_max: 4         # Maximum number of ticks
+  tick_width_mm: 0.2     # Tick mark width
+  tick_length_mm: 0.8    # Tick mark length
+  tick_label_pt: 7       # Tick label font size (matches axis labels)
+  label_pt: 7            # Colorbar label font size
+  width_fraction: 0.04   # Width as fraction of axes (matplotlib default: 0.05)
+  pad_fraction: 0.02     # Padding from axes (matplotlib default: 0.05)
+  shrink: 1.0            # Height factor (1.0 = same height as axes)
+  # anchor: Not set - matplotlib default works best with constrained_layout
+  aspect: 20             # Height/width ratio of colorbar
 
 matshow:
   show_axes: false       # Hide axes for matrix display
@@ -104,6 +124,12 @@ matshow:
 spy:
   show_axes: false       # Hide axes for spy plots
   xticklabel_position: "bottom"  # Put xlabels at bottom
+
+graph:
+  edge_width_mm: 0.12      # Graph edge line thickness
+  node_size_mm: 1.5        # Node marker size
+  node_edge_width_mm: 0.12 # Node border thickness
+  font_size_pt: 6          # Label font size
 
 legend:
   frameon: false         # No frame for clean look
@@ -131,6 +157,7 @@ behavior:
   grid: false
   constrained_layout: true  # Auto-fits content; spacing controls disabled
   panel_labels: true        # Auto-add A, B, C labels to multi-panel figures
+  clip_on: false            # Disable matplotlib clipping; figrecipe cropper handles boundaries
 
 theme:
   mode: "light"

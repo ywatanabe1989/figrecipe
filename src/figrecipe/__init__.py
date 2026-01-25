@@ -40,14 +40,17 @@ Reproducing a figure:
 >>> fig, ax = fr.reproduce('my_figure.yaml')
 >>> plt.show()
 
-Utility Functions
------------------
-For advanced use cases, utility functions are available via the utils submodule:
+Submodules
+----------
+- fr.utils: Unit conversions, font checks, low-level recipe access
+- fr.styles: Axis helpers, spine management, plot styling functions
+- fr.viz: Diagram and graph visualization utilities
 
 >>> from figrecipe import utils
 >>> utils.mm_to_inch(25.4)  # Unit conversions
->>> utils.check_font('Arial')  # Font utilities
->>> utils.load_recipe('recipe.yaml')  # Low-level recipe access
+
+>>> from figrecipe import styles
+>>> styles.hide_spines(ax)  # Spine management
 """
 __doc__ = _rebrand_text(_RAW_DOC)
 
@@ -59,9 +62,17 @@ try:
 except Exception:
     __version__ = "0.0.0"  # Fallback for development
 
-# Public API functions (re-exported from _api._public)
-# Seaborn proxy and notebook support
-from ._api._notebook import enable_svg
+# =============================================================================
+# CORE PUBLIC API - Minimal, essential functions only
+# =============================================================================
+
+# Core workflow functions
+# =============================================================================
+# SCITEX COMPATIBILITY EXPORTS (not in __all__ for clean tab-completion)
+# These are re-exported for backwards compatibility with scitex.plt
+# noqa: F401 comments indicate intentional re-exports
+# =============================================================================
+from ._api._notebook import enable_svg as enable_svg  # noqa: F401
 from ._api._public import (
     crop,
     edit,
@@ -75,126 +86,49 @@ from ._api._public import (
 from ._api._public import (
     validate_recipe as validate,
 )
-from ._api._seaborn_proxy import sns
+from ._api._seaborn_proxy import sns as sns  # noqa: F401
+from ._api._style_manager import STYLE as STYLE  # noqa: F401
+from ._api._style_manager import apply_style as apply_style  # noqa: F401
 
 # Style management
 from ._api._style_manager import (
-    STYLE,
-    apply_style,
     list_presets,
     load_style,
     unload_style,
 )
+from ._composition import align_panels as align_panels  # noqa: F401
 
-# Composition - matplotlib-based (reproducible, editable)
-from ._composition import (
-    align_panels,
-    compose,
-    distribute_panels,
-    smart_align,
-)
-from ._composition._compose_mm import (
-    compose_figures,
-    load_compose_recipe,
-    recompose,
-)
+# Composition
+from ._composition import compose
+from ._composition import distribute_panels as distribute_panels  # noqa: F401
+from ._composition import smart_align as smart_align  # noqa: F401
 
-# Diagram visualization
-from ._diagram import Diagram
+# Diagram class (for scitex integration)
+from ._diagram import Diagram as Diagram  # noqa: F401
+from ._graph_presets import get_preset as get_graph_preset  # noqa: F401
+from ._graph_presets import list_presets as list_graph_presets  # noqa: F401
+from ._graph_presets import register_preset as register_graph_preset  # noqa: F401
 
-# Graph visualization presets
-from ._graph_presets import (
-    get_preset as get_graph_preset,
-)
-from ._graph_presets import (
-    list_presets as list_graph_presets,
-)
-from ._graph_presets import (
-    register_preset as register_graph_preset,
-)
-
-# Plot styling utilities
-from .styles._plot_styling import (
-    style_barplot,
-    style_boxplot,
-    style_errorbar,
-    style_scatter,
-    style_violinplot,
-)
-
-# Axis helper utilities
-from .styles.axis_helpers import (
-    OOMFormatter,
-    extend,
-    force_aspect,
-    hide_spines,
-    map_ticks,
-    rotate_labels,
-    sci_note,
-    set_n_ticks,
-    set_ticks,
-    set_x_ticks,
-    set_y_ticks,
-    show_all_spines,
-    show_classic_spines,
-    show_spines,
-    toggle_spines,
-)
+# =============================================================================
+# PUBLIC API (__all__ controls tab-completion - keep minimal)
+# =============================================================================
 
 __all__ = [
-    # Core
+    # Core workflow
     "subplots",
     "save",
     "reproduce",
     "load",
-    "info",
+    "compose",
     "edit",
-    "validate",
     "crop",
+    "info",
+    "validate",
     "extract_data",
-    # Style
+    # Style management
     "load_style",
     "unload_style",
     "list_presets",
-    "apply_style",
-    "STYLE",
-    # Plot styling
-    "style_boxplot",
-    "style_violinplot",
-    "style_barplot",
-    "style_scatter",
-    "style_errorbar",
-    # Axis helpers
-    "rotate_labels",
-    "hide_spines",
-    "show_spines",
-    "show_all_spines",
-    "show_classic_spines",
-    "toggle_spines",
-    "set_n_ticks",
-    "set_ticks",
-    "set_x_ticks",
-    "set_y_ticks",
-    "map_ticks",
-    "OOMFormatter",
-    "sci_note",
-    "force_aspect",
-    "extend",
-    # Composition
-    "compose",
-    "compose_figures",
-    "load_compose_recipe",
-    "recompose",
-    "align_panels",
-    "distribute_panels",
-    "smart_align",
-    # Graph & Diagram
-    "get_graph_preset",
-    "list_graph_presets",
-    "register_graph_preset",
-    "Diagram",
-    # Extensions
-    "sns",
-    "enable_svg",
+    # Version
     "__version__",
 ]

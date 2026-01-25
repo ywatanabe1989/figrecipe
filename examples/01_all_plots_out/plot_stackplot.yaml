@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_df8f0393
-created: '2026-01-24T10:23:50.959175'
+id: fig_6e2a9169
+created: '2026-01-26T03:02:49.202582'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -158,8 +165,9 @@ axes:
           - name: arg3
             data: plot_stackplot_data/stackplot_arg3.csv
             dtype: float64
-        kwargs: {}
-        timestamp: '2026-01-24T10:23:51.046689'
+        kwargs:
+          clip_on: false
+        timestamp: '2026-01-26T03:02:49.314857'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -167,23 +175,23 @@ axes:
           - name: xlabel
             data: X
         kwargs: {}
-        timestamp: '2026-01-24T10:23:51.047104'
+        timestamp: '2026-01-26T03:02:49.315760'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Y
         kwargs: {}
-        timestamp: '2026-01-24T10:23:51.047471'
+        timestamp: '2026-01-26T03:02:49.316284'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: stackplot
         kwargs: {}
-        timestamp: '2026-01-24T10:23:51.048182'
+        timestamp: '2026-01-26T03:02:49.317050'
     bbox:
-      - 0.12955993968253968
+      - 0.10022898730158729
       - 0.1456520444444444
-      - 0.8553198031746032
-      - 0.7412009616161617
+      - 0.8846507555555553
+      - 0.7594331585858587

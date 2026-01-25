@@ -49,11 +49,17 @@ class StyleOverrides:
     base_timestamp: Optional[str] = None
     manual_timestamp: Optional[str] = None
 
-    def get_effective_style(self) -> Dict[str, Any]:
+    def get_effective_style(self, dark_mode: bool = None) -> Dict[str, Any]:
         """
         Get the final effective style by merging all layers.
 
         Priority: base < programmatic < manual
+
+        Parameters
+        ----------
+        dark_mode : bool, optional
+            If provided, sync theme.mode with this value to ensure
+            text colors are consistent with the editor UI.
 
         Returns
         -------
@@ -67,6 +73,16 @@ class StyleOverrides:
         # Include call_overrides for apply_overrides to use
         if self.call_overrides:
             result["call_overrides"] = self.call_overrides
+
+        # Sync theme mode with dark_mode if provided
+        if dark_mode is not None:
+            if "theme" in result and isinstance(result["theme"], dict):
+                # Create a copy to avoid mutating base_style
+                result["theme"] = dict(result["theme"])
+                result["theme"]["mode"] = "dark" if dark_mode else "light"
+            elif dark_mode:
+                result["theme"] = {"mode": "dark"}
+
         return result
 
     def get_original_style(self) -> Dict[str, Any]:

@@ -382,7 +382,9 @@ def _resolve_data_references(
                     ):
                         file_path = base_dir / data_ref
                         if file_path.exists():
-                            arr = load_array(file_path)
+                            # Get dtype from YAML to ensure proper type conversion
+                            dtype = arg.get("dtype")
+                            arr = load_array(file_path, dtype=dtype)
                             arg["data"] = arr.tolist()
                             arg["_loaded_array"] = arr
                             # Store source file path for symlink support
@@ -438,6 +440,10 @@ def _resolve_single_csv_references(
 
                     if var_name in trace_arrays:
                         arr = trace_arrays[var_name]
+                        # Apply dtype from YAML if specified
+                        dtype = arg.get("dtype")
+                        if dtype is not None:
+                            arr = arr.astype(dtype)
                         arg["data"] = arr.tolist()
                         arg["_loaded_array"] = arr
 

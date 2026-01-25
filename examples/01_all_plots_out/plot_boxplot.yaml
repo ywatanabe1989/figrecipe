@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_eedd69a3
-created: '2026-01-24T10:23:38.687655'
+id: fig_f613e0ed
+created: '2026-01-26T02:56:05.350490'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -556,7 +563,21 @@ axes:
             - B
             - C
             - D
-        timestamp: '2026-01-24T10:23:38.760551'
+          patch_artist: true
+          color:
+            -   - 0.0
+                - 0.5019607843137255
+                - 0.7529411764705882
+            -   - 1.0
+                - 0.27450980392156865
+                - 0.19607843137254902
+            -   - 0.0784313725490196
+                - 0.7058823529411765
+                - 0.0784313725490196
+            -   - 0.9019607843137255
+                - 0.6274509803921569
+                - 0.0784313725490196
+        timestamp: '2026-01-26T02:56:05.432813'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -564,23 +585,23 @@ axes:
           - name: xlabel
             data: Group
         kwargs: {}
-        timestamp: '2026-01-24T10:23:38.760777'
+        timestamp: '2026-01-26T02:56:05.433105'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Value
         kwargs: {}
-        timestamp: '2026-01-24T10:23:38.760873'
+        timestamp: '2026-01-26T02:56:05.433217'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: boxplot
         kwargs: {}
-        timestamp: '2026-01-24T10:23:38.761112'
+        timestamp: '2026-01-26T02:56:05.433470'
     bbox:
       - 0.14997065396825396
       - 0.1456520444444444
       - 0.8349090888888889
-      - 0.7412009616161617
+      - 0.7594331585858587

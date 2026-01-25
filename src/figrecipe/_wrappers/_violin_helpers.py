@@ -15,6 +15,9 @@ def add_violin_inner_box(
 ) -> None:
     """Add box plot inside violin.
 
+    Draws a gray-filled IQR box with whiskers and a black median line,
+    consistent with publication-quality scientific figure standards.
+
     Parameters
     ----------
     ax : matplotlib.axes.Axes
@@ -26,10 +29,16 @@ def add_violin_inner_box(
     style : dict
         Violin style configuration.
     """
+    from matplotlib.patches import Rectangle
+
     from ..styles._style_applier import mm_to_pt
 
     whisker_lw = mm_to_pt(style.get("whisker_mm", 0.2))
-    median_size = mm_to_pt(style.get("median_mm", 0.8))
+    median_lw = mm_to_pt(style.get("median_line_mm", 0.2))  # Line thickness
+    box_edge_lw = mm_to_pt(style.get("box_edge_mm", 0.2))  # Box outline
+
+    # Use a fraction of position spacing for box width in data coordinates
+    box_half_width = 0.06  # Half-width in data coordinates
 
     for data, pos in zip(dataset, positions):
         data = np.asarray(data)
@@ -38,15 +47,25 @@ def add_violin_inner_box(
         whisker_low = max(data.min(), q1 - 1.5 * iqr)
         whisker_high = min(data.max(), q3 + 1.5 * iqr)
 
-        # Draw box (Q1 to Q3)
-        ax.vlines(pos, q1, q3, colors="black", linewidths=whisker_lw, zorder=3)
-        # Draw whiskers
+        # Draw gray-filled IQR box
+        box_rect = Rectangle(
+            (pos - box_half_width, q1),
+            box_half_width * 2,
+            q3 - q1,
+            facecolor="gray",
+            edgecolor="black",
+            linewidth=box_edge_lw,
+            zorder=3,
+        )
+        ax.add_patch(box_rect)
+
+        # Draw whiskers - thin black lines
         ax.vlines(
             pos,
             whisker_low,
             q1,
             colors="black",
-            linewidths=whisker_lw * 0.5,
+            linewidths=whisker_lw,
             zorder=3,
         )
         ax.vlines(
@@ -54,17 +73,17 @@ def add_violin_inner_box(
             q3,
             whisker_high,
             colors="black",
-            linewidths=whisker_lw * 0.5,
+            linewidths=whisker_lw,
             zorder=3,
         )
-        # Draw median as a white dot with black edge
-        ax.scatter(
-            [pos],
-            [median],
-            s=median_size**2,
-            c="white",
-            edgecolors="black",
-            linewidths=whisker_lw,
+
+        # Draw median as a black horizontal line (not a dot)
+        ax.hlines(
+            median,
+            pos - box_half_width,
+            pos + box_half_width,
+            colors="black",
+            linewidths=median_lw,
             zorder=4,
         )
 

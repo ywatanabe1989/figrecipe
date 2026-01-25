@@ -81,9 +81,17 @@ class RecordingAxesMethods:
         id: Optional[str] = None,
         track: bool = True,
         inner: Optional[str] = None,
+        colors=None,
         **kwargs,
     ):
-        """Violin plot with support for inner display options."""
+        """Violin plot with support for inner display options.
+
+        Parameters
+        ----------
+        colors : list, optional
+            Colors for each violin body. If provided, these colors will be
+            applied and recorded for pixel-perfect reproduction.
+        """
         from ._axes_plots import violinplot_plot
 
         return violinplot_plot(
@@ -95,6 +103,7 @@ class RecordingAxesMethods:
             self._track and track,
             id,
             inner,
+            colors,
             **kwargs,
         )
 

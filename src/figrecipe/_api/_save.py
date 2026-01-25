@@ -281,14 +281,28 @@ def save_figure(
             ) / 4
             pad_inches = avg_margin_mm / 25.4  # mm to inches
 
-            fig.fig.savefig(
-                image_path,
-                dpi=dpi,
-                transparent=transparent,
-                bbox_inches="tight",
-                pad_inches=pad_inches,
-                facecolor=facecolor,
-            )
+            try:
+                fig.fig.savefig(
+                    image_path,
+                    dpi=dpi,
+                    transparent=transparent,
+                    bbox_inches="tight",
+                    pad_inches=pad_inches,
+                    facecolor=facecolor,
+                )
+            except MemoryError:
+                # constrained_layout may fail for some plot types (e.g., quiver)
+                # Fall back to standard save without bbox_inches
+                import warnings
+
+                warnings.warn(
+                    "constrained_layout save failed, falling back to standard save"
+                )
+                fig.fig.savefig(
+                    image_path, dpi=dpi, transparent=transparent, facecolor=facecolor
+                )
+                # Mark for cropping since we couldn't use bbox_inches="tight"
+                use_constrained = False
         else:
             # Standard save without bbox_inches to preserve mm layout
             fig.fig.savefig(

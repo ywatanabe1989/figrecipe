@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_ea40c14b
-created: '2026-01-24T10:23:41.909233'
+id: fig_aae3b014
+created: '2026-01-26T02:56:22.945444'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -157,7 +164,9 @@ axes:
             dtype: float64
         kwargs:
           alpha: 0.5
-        timestamp: '2026-01-24T10:23:41.962060'
+          clip_on: false
+          edgecolor: "none"
+        timestamp: '2026-01-26T02:56:23.014630'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -165,23 +174,23 @@ axes:
           - name: xlabel
             data: X
         kwargs: {}
-        timestamp: '2026-01-24T10:23:41.962600'
+        timestamp: '2026-01-26T02:56:23.015047'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Y
         kwargs: {}
-        timestamp: '2026-01-24T10:23:41.962815'
+        timestamp: '2026-01-26T02:56:23.015287'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: fill_betweenx
         kwargs: {}
-        timestamp: '2026-01-24T10:23:41.963217'
+        timestamp: '2026-01-26T02:56:23.015900'
     bbox:
       - 0.10022898730158729
       - 0.1456520444444444
       - 0.8679319909969999
-      - 0.7404312646464648
+      - 0.7594331585858587

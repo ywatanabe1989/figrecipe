@@ -15,7 +15,9 @@ def plot_violinplot(plt, rng, ax=None):
 
     data = [rng.normal(i, 1, 100) for i in range(4)]
     # Modern style: show box inside (default from SCITEX style)
+    # Colors are automatically applied from the color palette by the wrapper
     ax.violinplot(data, id="violinplot")
+
     ax.set_xlabel("Group")
     ax.set_ylabel("Value")
     ax.set_title("violinplot")

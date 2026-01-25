@@ -8,12 +8,13 @@ import numpy as np
 from matplotlib.axes import Axes
 
 from ._axes_methods import RecordingAxesMethods
+from ._axes_style_mixin import AxesStyleMixin
 
 if TYPE_CHECKING:
     from .._recorder import Recorder
 
 
-class RecordingAxes(RecordingAxesMethods):
+class RecordingAxes(RecordingAxesMethods, AxesStyleMixin):
     """Wrapper around matplotlib Axes that records all calls.
 
     This wrapper intercepts calls to plotting methods and records them
@@ -87,7 +88,11 @@ class RecordingAxes(RecordingAxesMethods):
 
     def _create_recording_wrapper(self, method_name: str, method: callable):
         """Create a wrapper function that records the call."""
-        from ._axes_helpers import record_call_with_color_capture
+        from ._axes_helpers import (
+            inject_clip_on_from_style,
+            inject_method_defaults,
+            record_call_with_color_capture,
+        )
 
         def wrapper(
             *args,
@@ -99,6 +104,8 @@ class RecordingAxes(RecordingAxesMethods):
             from ..styles import resolve_colors_in_kwargs
 
             kwargs = resolve_colors_in_kwargs(kwargs)
+            kwargs = inject_clip_on_from_style(kwargs, method_name)
+            kwargs = inject_method_defaults(kwargs, method_name)
 
             result = method(*args, **kwargs)
             if self._track and track:

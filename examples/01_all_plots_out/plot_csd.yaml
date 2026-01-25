@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_c1624d58
-created: '2026-01-24T10:23:40.104000'
+id: fig_f199618e
+created: '2026-01-26T02:56:15.318923'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -154,7 +161,8 @@ axes:
             dtype: float64
         kwargs:
           Fs: 1000
-        timestamp: '2026-01-24T10:23:40.154879'
+          clip_on: false
+        timestamp: '2026-01-26T02:56:15.414455'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -162,23 +170,23 @@ axes:
           - name: xlabel
             data: Frequency
         kwargs: {}
-        timestamp: '2026-01-24T10:23:40.155141'
+        timestamp: '2026-01-26T02:56:15.415007'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: CSD
         kwargs: {}
-        timestamp: '2026-01-24T10:23:40.155288'
+        timestamp: '2026-01-26T02:56:15.415269'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: csd
         kwargs: {}
-        timestamp: '2026-01-24T10:23:40.155663'
+        timestamp: '2026-01-26T02:56:15.415697'
     bbox:
       - 0.14044565396825395
       - 0.1456520444444444
       - 0.8444340888888889
-      - 0.7412009616161617
+      - 0.7596736888888891

@@ -130,6 +130,18 @@ def to_subplots_kwargs(style: Optional["DotDict"] = None) -> Dict[str, Any]:
         if hasattr(behavior, "constrained_layout"):
             result["behavior_constrained_layout"] = behavior.constrained_layout
 
+    # Add colorbar settings (colorbar.* in YAML)
+    if "colorbar" in style:
+        colorbar = style.colorbar
+        result["colorbar"] = {
+            "auto": colorbar.get("auto", False),
+            "outline_mm": colorbar.get("outline_mm", 0.2),
+            "n_ticks_min": colorbar.get("n_ticks_min", 3),
+            "n_ticks_max": colorbar.get("n_ticks_max", 4),
+            "shrink": colorbar.get("shrink", 1.0),
+            "aspect": colorbar.get("aspect", 20),
+        }
+
     # Legacy key aliases for backwards compatibility
     result.update(_get_legacy_aliases(result))
 

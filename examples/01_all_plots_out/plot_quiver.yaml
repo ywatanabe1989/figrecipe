@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_f28e94d1
-created: '2026-01-24T10:23:48.304323'
+id: fig_2ae1f3e2
+created: '2026-01-26T03:02:35.517737'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -127,6 +134,15 @@ figure:
     auto_scale_axes: true
     constrained_layout: true
   constrained_layout: true
+  crop_info:
+    left: -4
+    upper: 17
+    right: 758
+    lower: 661
+    original_width: 826
+    original_height: 649
+    new_width: 762
+    new_height: 644
   mm_layout:
     axes_width_mm: 40
     axes_height_mm: 28
@@ -158,8 +174,9 @@ axes:
           - name: V
             data: plot_quiver_data/quiver_V.csv
             dtype: float64
-        kwargs: {}
-        timestamp: '2026-01-24T10:23:48.351380'
+        kwargs:
+          clip_on: false
+        timestamp: '2026-01-26T03:02:35.620497'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -167,23 +184,23 @@ axes:
           - name: xlabel
             data: X
         kwargs: {}
-        timestamp: '2026-01-24T10:23:48.351796'
+        timestamp: '2026-01-26T03:02:35.620941'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Y
         kwargs: {}
-        timestamp: '2026-01-24T10:23:48.351987'
+        timestamp: '2026-01-26T03:02:35.621148'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: quiver
         kwargs: {}
-        timestamp: '2026-01-24T10:23:48.352554'
+        timestamp: '2026-01-26T03:02:35.621620'
     bbox:
-      - 0.12955993968253968
-      - 0.1456520444444444
-      - 0.8553198031746032
-      - 0.7412009616161617
+      - 0.140748031496063
+      - 0.1294875776397515
+      - 0.8400918635170603
+      - 0.7759782608695652

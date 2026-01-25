@@ -19,10 +19,13 @@ def plot_tripcolor(plt, rng, ax=None):
     x = rng.uniform(0, 1, 30)
     y = rng.uniform(0, 1, 30)
     z = np.sin(x * 2 * np.pi) * np.cos(y * 2 * np.pi)
-    ax.tripcolor(x, y, z, id="tripcolor")
+    tpc = ax.tripcolor(x, y, z, id="tripcolor")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("tripcolor")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, tpc, ax=ax)
     return fig, ax
 
 

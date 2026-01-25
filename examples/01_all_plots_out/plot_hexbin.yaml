@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_da871960
-created: '2026-01-24T10:23:42.869370'
+id: fig_b511d03d
+created: '2026-01-26T02:56:26.527925'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -140,6 +147,13 @@ figure:
     crop_margin_right_mm: 1
     crop_margin_bottom_mm: 1
     crop_margin_top_mm: 1
+  colorbars:
+    - ax_key: ax_0_0
+      kwargs:
+        fraction: 0.04
+        pad: 0.02
+        shrink: 1.0
+        aspect: 20
 axes:
   ax_0_0:
     calls:
@@ -152,8 +166,9 @@ axes:
           - name: y
             data: plot_hexbin_data/hexbin_y.csv
             dtype: float64
-        kwargs: {}
-        timestamp: '2026-01-24T10:23:42.922084'
+        kwargs:
+          clip_on: false
+        timestamp: '2026-01-26T02:56:26.663020'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -161,23 +176,23 @@ axes:
           - name: xlabel
             data: X
         kwargs: {}
-        timestamp: '2026-01-24T10:23:42.922371'
+        timestamp: '2026-01-26T02:56:26.663387'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Y
         kwargs: {}
-        timestamp: '2026-01-24T10:23:42.922486'
+        timestamp: '2026-01-26T02:56:26.663552'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: hexbin
         kwargs: {}
-        timestamp: '2026-01-24T10:23:42.922736'
+        timestamp: '2026-01-26T02:56:26.663875'
     bbox:
-      - 0.12063970158730157
+      - 0.9060072035453969
       - 0.1456520444444444
-      - 0.8642400412698412
-      - 0.7412009616161617
+      - 0.02984432349206345
+      - 0.7596736888888891

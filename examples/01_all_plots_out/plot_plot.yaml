@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_262e3a78
-created: '2026-01-24T10:23:47.739323'
+id: fig_b2713db0
+created: '2026-01-26T03:02:31.682757'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -154,11 +161,12 @@ axes:
             dtype: float64
         kwargs:
           label: sin
+          clip_on: false
           color:
             - 0.0
             - 0.5019607843137255
             - 0.7529411764705882
-        timestamp: '2026-01-24T10:23:47.761752'
+        timestamp: '2026-01-26T03:02:31.792026'
       - id: cos
         function: plot
         args:
@@ -170,40 +178,41 @@ axes:
             dtype: float64
         kwargs:
           label: cos
+          clip_on: false
           color:
             - 1.0
             - 0.27450980392156865
             - 0.19607843137254902
-        timestamp: '2026-01-24T10:23:47.762390'
+        timestamp: '2026-01-26T03:02:31.794401'
     decorations:
       - id: legend_000
         function: legend
         args: []
         kwargs: {}
-        timestamp: '2026-01-24T10:23:47.774909'
+        timestamp: '2026-01-26T03:02:31.818419'
       - id: set_xlabel_000
         function: set_xlabel
         args:
           - name: xlabel
             data: X
         kwargs: {}
-        timestamp: '2026-01-24T10:23:47.775114'
+        timestamp: '2026-01-26T03:02:31.818794'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Y
         kwargs: {}
-        timestamp: '2026-01-24T10:23:47.775209'
+        timestamp: '2026-01-26T03:02:31.819062'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: plot
         kwargs: {}
-        timestamp: '2026-01-24T10:23:47.775424'
+        timestamp: '2026-01-26T03:02:31.819455'
     bbox:
       - 0.15012184444444443
       - 0.1456520444444444
       - 0.8347578984126984
-      - 0.7412009616161617
+      - 0.7594331585858587

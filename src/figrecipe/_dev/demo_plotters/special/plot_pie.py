@@ -19,6 +19,7 @@ def plot_pie(plt, rng, ax=None):
     labels = ["A", "B", "C", "D"]
     # Get colors from current style's color cycle
     colors = mpl_plt.rcParams["axes.prop_cycle"].by_key()["color"][:4]
+    # autopct default comes from SCITEX style
     ax.pie(sizes, labels=labels, colors=colors, id="pie")
     ax.set_title("pie")
     return fig, ax

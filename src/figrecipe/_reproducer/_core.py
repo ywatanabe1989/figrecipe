@@ -197,13 +197,20 @@ def reproduce_from_record(
         if not getattr(ax_record, "visible", True):
             ax.set_visible(False)
 
-    # Finalize tick configuration and special plot types (avoids categorical axis interference)
+    # Replay recorded colorbars (exact reproduction)
+    _replay_colorbars(fig, axes_2d, record, result_cache)
+
+    # Finalize tick configuration and special plot types
     from ..styles._style_applier import finalize_special_plots, finalize_ticks
+    from ._line_styles import apply_line_styles
 
     for row in range(nrows):
         for col in range(ncols):
             finalize_ticks(axes_2d[row, col])
             finalize_special_plots(axes_2d[row, col], record.style or {})
+
+    # Apply trace linewidth to all Line2D objects created during replay
+    apply_line_styles(axes_2d, record.style or {})
 
     # Apply figure-level labels if recorded
     if record.suptitle is not None:
@@ -302,6 +309,12 @@ def _replay_call(
 
         return replay_seaborn_call(ax, call)
 
+    # Handle boxplot with color kwarg specially
+    if method_name == "boxplot":
+        from ._boxplot import replay_boxplot_call
+
+        return replay_boxplot_call(ax, call)
+
     # Handle violinplot with inner option specially
     if method_name == "violinplot":
         from ._violin import replay_violinplot_call
@@ -361,7 +374,11 @@ def _replay_call(
             kwargs["transform"] = ax.transData
         elif transform_val == "figure":
             kwargs["transform"] = ax.figure.transFigure
-        # If it's already a Transform object or something else, leave it
+
+    # Fix fill_between: 'color' overrides 'edgecolor', use 'facecolor' instead
+    if method_name in ("fill_between", "fill_betweenx"):
+        if "color" in kwargs and "edgecolor" in kwargs:
+            kwargs["facecolor"] = kwargs.pop("color")
 
     # Call the method
     try:
@@ -374,25 +391,87 @@ def _replay_call(
         return None
 
 
+def _replay_colorbars(fig, axes_2d, record, result_cache):
+    """Replay recorded colorbars for exact reproduction."""
+    # Get recorded colorbars
+    colorbars = getattr(record, "colorbars", []) or []
+
+    if not colorbars:
+        # No recorded colorbars - nothing to do
+        # (Old recipes without colorbar recording won't reproduce colorbars)
+        return
+
+    # 2D plot methods that return ScalarMappable (for finding mappable)
+    COLORBAR_METHODS = {
+        "imshow",
+        "pcolormesh",
+        "pcolor",
+        "contourf",
+        "contour",
+        "hexbin",
+        "hist2d",
+        "tripcolor",
+        "tricontourf",
+        "tricontour",
+        "matshow",
+        "spy",
+        "specgram",
+    }
+
+    # Replay each recorded colorbar
+    for cbar_info in colorbars:
+        ax_key = cbar_info.get("ax_key")
+        kwargs = cbar_info.get("kwargs", {})
+
+        if ax_key is None:
+            continue
+
+        # Parse ax position
+        parts = ax_key.split("_")
+        if len(parts) >= 3:
+            row, col = int(parts[1]), int(parts[2])
+        else:
+            continue
+
+        ax = axes_2d[row, col]
+
+        # Find the mappable for this axes from result_cache
+        ax_record = record.axes.get(ax_key)
+        if ax_record is None:
+            continue
+
+        mappable = None
+        method_name = None
+        for call in ax_record.calls:
+            if call.function in COLORBAR_METHODS and call.id in result_cache:
+                mappable = result_cache[call.id]
+                method_name = call.function
+                break
+
+        if mappable is None:
+            continue
+
+        # Some methods return tuples - extract the actual mappable
+        if isinstance(mappable, tuple):
+            if method_name == "hist2d":
+                # hist2d returns (counts, xedges, yedges, image)
+                mappable = mappable[3]
+            elif method_name == "specgram":
+                # specgram returns (spectrum, freqs, t, image)
+                mappable = mappable[3]
+
+        # Add colorbar with recorded kwargs - use raw fig.colorbar to avoid
+        # add_colorbar adding extra styling kwargs that weren't in original
+        cbar = fig.colorbar(mappable, ax=ax, **kwargs)
+
+        # Apply styling to match original (style_colorbar is called by add_colorbar)
+        from .._utils._colorbar import style_colorbar
+
+        style_colorbar(cbar, record.style)
+
+
 def get_recipe_info(path: Union[str, Path]) -> Dict[str, Any]:
-    """Get information about a recipe without reproducing.
-
-    Parameters
-    ----------
-    path : str or Path
-        Path to .yaml recipe file.
-
-    Returns
-    -------
-    dict
-        Recipe information including:
-        - id: Figure ID
-        - created: Creation timestamp
-        - matplotlib_version: Version used
-        - figsize: Figure size
-        - n_axes: Number of axes
-        - calls: List of call IDs
-    """
+    """Get recipe metadata (id, figsize, dpi, n_axes, calls) without reproducing."""
     record = load_recipe(path)
 
     all_calls = []

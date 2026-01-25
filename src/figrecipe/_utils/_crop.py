@@ -229,24 +229,86 @@ def crop(
         if verbose:
             print(f"Using explicit crop_box: {crop_box}")
     else:
-        left, upper, right, lower = find_content_area(input_path)
+        content_left, content_upper, content_right, content_lower = find_content_area(
+            input_path
+        )
         if verbose:
             print(
-                f"Content area: left={left}, upper={upper}, right={right}, lower={lower}"
+                f"Content area: left={content_left}, upper={content_upper}, "
+                f"right={content_right}, lower={content_lower}"
             )
 
-        # Add per-side margins, clamping to image boundaries
-        left = max(left - margin_left_px, 0)
-        upper = max(upper - margin_top_px, 0)
-        right = min(right + margin_right_px, img.width)
-        lower = min(lower + margin_bottom_px, img.height)
+        # Calculate desired crop coordinates with margins
+        left = content_left - margin_left_px
+        upper = content_upper - margin_top_px
+        right = content_right + margin_right_px
+        lower = content_lower + margin_bottom_px
 
     if verbose:
-        print(f"Cropping to: {left},{upper} -> {right},{lower}")
+        print(f"Desired crop: {left},{upper} -> {right},{lower}")
         print(f"New size: {right - left}x{lower - upper}")
 
-    # Crop the image
-    cropped_img = img.crop((left, upper, right, lower))
+    # Check if we need to extend the canvas (content touches original edge)
+    needs_extend = left < 0 or upper < 0 or right > img.width or lower > img.height
+
+    if needs_extend:
+        # Detect background color from corners
+        img_array = np.array(img)
+        if len(img_array.shape) == 3:
+            h, w = img_array.shape[:2]
+            corners = [
+                img_array[0, 0],
+                img_array[0, w - 1],
+                img_array[h - 1, 0],
+                img_array[h - 1, w - 1],
+            ]
+            bg_color = tuple(
+                int(x) for x in np.median(corners, axis=0).astype(np.uint8)
+            )
+        else:
+            h, w = img_array.shape
+            corners = [
+                img_array[0, 0],
+                img_array[0, w - 1],
+                img_array[h - 1, 0],
+                img_array[h - 1, w - 1],
+            ]
+            bg_color = int(np.median(corners))
+
+        # Calculate new canvas size
+        new_width = right - left
+        new_height = lower - upper
+
+        # Create new canvas with background color
+        if img.mode == "RGBA":
+            # Add alpha channel to bg_color tuple
+            if len(bg_color) == 3:
+                bg_color = bg_color + (255,)
+            new_img = Image.new("RGBA", (new_width, new_height), bg_color)
+        else:
+            new_img = Image.new(img.mode, (new_width, new_height), bg_color)
+
+        # Calculate where to paste the original (negative offset becomes positive)
+        paste_x = max(-left, 0)
+        paste_y = max(-upper, 0)
+
+        # Crop the original image to what's within bounds
+        crop_left = max(left, 0)
+        crop_upper = max(upper, 0)
+        crop_right = min(right, img.width)
+        crop_lower = min(lower, img.height)
+
+        if verbose:
+            print(f"Extending canvas: paste at ({paste_x}, {paste_y})")
+            print(f"Background color: {bg_color}")
+
+        # Paste original content onto new canvas
+        cropped_original = img.crop((crop_left, crop_upper, crop_right, crop_lower))
+        new_img.paste(cropped_original, (paste_x, paste_y))
+        cropped_img = new_img
+    else:
+        # Simple crop - no extension needed
+        cropped_img = img.crop((left, upper, right, lower))
 
     # Preserve metadata
     save_kwargs = {}
@@ -255,8 +317,8 @@ def crop(
 
     ext = output_path.suffix.lower()
     if ext == ".png":
-        save_kwargs["compress_level"] = 0
-        save_kwargs["optimize"] = False
+        save_kwargs["compress_level"] = 6  # Good compression/speed balance
+        save_kwargs["optimize"] = True
 
         # Preserve PNG text chunks
         from PIL import PngImagePlugin
