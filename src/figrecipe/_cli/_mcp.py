@@ -5,10 +5,34 @@
 import click
 
 
-@click.group()
-def mcp():
+@click.group(invoke_without_command=True)
+@click.option("--help-recursive", is_flag=True, help="Show help for all subcommands")
+@click.pass_context
+def mcp(ctx, help_recursive):
     """MCP (Model Context Protocol) server commands."""
-    pass
+    if help_recursive:
+        _print_help_recursive(ctx)
+        ctx.exit(0)
+    elif ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+
+
+def _print_help_recursive(ctx):
+    """Print help for mcp and all its subcommands."""
+    fake_parent = click.Context(click.Group(), info_name="figrecipe")
+    parent_ctx = click.Context(mcp, info_name="mcp", parent=fake_parent)
+
+    click.secho("━━━ figrecipe mcp ━━━", fg="cyan", bold=True)
+    click.echo(mcp.get_help(parent_ctx))
+
+    for name in sorted(mcp.list_commands(ctx) or []):
+        cmd = mcp.get_command(ctx, name)
+        if cmd is None:
+            continue
+        click.echo()
+        click.secho(f"━━━ figrecipe mcp {name} ━━━", fg="cyan", bold=True)
+        with click.Context(cmd, info_name=name, parent=parent_ctx) as sub_ctx:
+            click.echo(cmd.get_help(sub_ctx))
 
 
 @mcp.command("run")
@@ -27,8 +51,26 @@ def run_server(host: str, port: int) -> None:
     mcp_server.run()
 
 
-def _format_signature(tool) -> str:
-    """Format tool as Python-like function signature."""
+def _extract_return_keys(description: str) -> list:
+    """Extract return dict keys from docstring Returns section."""
+    import re
+
+    if not description or "Returns" not in description:
+        return []
+    match = re.search(
+        r"Returns\s*[-]+\s*\w+\s*(.+?)(?:Raises|Examples|Notes|\Z)",
+        description,
+        re.DOTALL,
+    )
+    if not match:
+        return []
+    return re.findall(r"'([a-z_]+)'", match.group(1))
+
+
+def _format_signature(tool, multiline: bool = False, indent: str = "  ") -> str:
+    """Format tool as Python-like function signature with return type."""
+    import inspect
+
     params = []
     if hasattr(tool, "parameters") and tool.parameters:
         schema = tool.parameters
@@ -38,12 +80,36 @@ def _format_signature(tool) -> str:
             ptype = info.get("type", "any")
             default = info.get("default")
             if name in required:
-                params.append(f"{name}: {ptype}")
+                p = f"{click.style(name, fg='white', bold=True)}: {click.style(ptype, fg='cyan')}"
             elif default is not None:
-                params.append(f"{name}: {ptype} = {default!r}")
+                def_str = repr(default) if len(repr(default)) < 20 else "..."
+                p = f"{click.style(name, fg='white', bold=True)}: {click.style(ptype, fg='cyan')} = {click.style(def_str, fg='yellow')}"
             else:
-                params.append(f"{name}: {ptype} = None")
-    return f"{tool.name}({', '.join(params)})"
+                p = f"{click.style(name, fg='white', bold=True)}: {click.style(ptype, fg='cyan')} = {click.style('None', fg='yellow')}"
+            params.append(p)
+    # Get return type from function annotation + dict keys from docstring
+    ret_type = ""
+    if hasattr(tool, "fn") and tool.fn:
+        try:
+            sig = inspect.signature(tool.fn)
+            if sig.return_annotation != inspect.Parameter.empty:
+                ret = sig.return_annotation
+                ret_name = ret.__name__ if hasattr(ret, "__name__") else str(ret)
+                keys = (
+                    _extract_return_keys(tool.description) if tool.description else []
+                )
+                keys_str = (
+                    click.style(f"{{{', '.join(keys)}}}", fg="yellow") if keys else ""
+                )
+                ret_type = f" -> {click.style(ret_name, fg='magenta')}{keys_str}"
+        except Exception:
+            pass
+    name_s = click.style(tool.name, fg="green", bold=True)
+    if multiline and len(params) > 2:
+        param_indent = indent + "    "
+        params_str = ",\n".join(f"{param_indent}{p}" for p in params)
+        return f"{indent}{name_s}(\n{params_str}\n{indent}){ret_type}"
+    return f"{indent}{name_s}({', '.join(params)}){ret_type}"
 
 
 def _estimate_tokens(text: str) -> int:
@@ -81,12 +147,23 @@ def _get_mcp_summary(mcp_server) -> dict:
 
 @mcp.command("list-tools")
 @click.option("-v", "--verbose", count=True, help="Verbosity: -v, -vv, -vvv.")
+@click.option("-c", "--compact", is_flag=True, help="Compact signatures (single line)")
+@click.option(
+    "--module",
+    "-m",
+    type=str,
+    default=None,
+    help="Filter by module (plt, diagram)",
+)
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
 @click.option("--summary", "show_summary", is_flag=True, help="Show context summary.")
-def list_tools(verbose: int, as_json: bool, show_summary: bool) -> None:
+def list_tools(
+    verbose: int, compact: bool, module: str, as_json: bool, show_summary: bool
+) -> None:
     """List available MCP tools.
 
     Verbosity: (none) names, -v signatures, -vv +description, -vvv full.
+    Signatures are expanded by default; use -c/--compact for single line.
     """
     try:
         from .._mcp.server import mcp as mcp_server
@@ -95,53 +172,106 @@ def list_tools(verbose: int, as_json: bool, show_summary: bool) -> None:
             f"fastmcp not installed. Install with: pip install figrecipe[mcp]\n{e}"
         ) from e
 
-    tools = list(mcp_server._tool_manager._tools.values())
+    # Get all tools
+    tools = list(mcp_server._tool_manager._tools.keys())
+
+    # Group by module prefix
+    modules = {}
+    for tool in sorted(tools):
+        prefix = tool.split("_")[0]
+        if prefix not in modules:
+            modules[prefix] = []
+        modules[prefix].append(tool)
+
+    # Filter by module if specified
+    if module:
+        module = module.lower()
+        if module not in modules:
+            click.secho(f"ERROR: Unknown module '{module}'", fg="red", err=True)
+            click.echo(f"Available modules: {', '.join(sorted(modules.keys()))}")
+            raise SystemExit(1)
+        modules = {module: modules[module]}
+
     summary = _get_mcp_summary(mcp_server)
 
     if as_json:
         import json
 
-        tool_data = []
-        for tool in tools:
-            schema = tool.parameters if hasattr(tool, "parameters") else {}
-            tool_data.append(
-                {
-                    "name": tool.name,
-                    "signature": _format_signature(tool),
-                    "description": tool.description,
-                    "parameters": schema,
-                }
-            )
-        output = {"summary": summary, "tools": tool_data}
+        output = {
+            "summary": summary,
+            "total": sum(len(t) for t in modules.values()),
+            "modules": {},
+        }
+        for mod, tool_list in modules.items():
+            output["modules"][mod] = {
+                "count": len(tool_list),
+                "tools": [],
+            }
+            for tool_name in tool_list:
+                tool_obj = mcp_server._tool_manager._tools.get(tool_name)
+                schema = tool_obj.parameters if hasattr(tool_obj, "parameters") else {}
+                output["modules"][mod]["tools"].append(
+                    {
+                        "name": tool_name,
+                        "signature": _format_signature(tool_obj)
+                        if tool_obj
+                        else tool_name,
+                        "description": tool_obj.description if tool_obj else "",
+                        "parameters": schema,
+                    }
+                )
         click.echo(json.dumps(output, indent=2))
-        return
+    else:
+        total = sum(len(t) for t in modules.values())
+        click.secho(f"FigRecipe MCP: {summary['name']}", fg="cyan", bold=True)
+        click.echo(f"Tools: {total} ({len(modules)} modules)")
+        if show_summary:
+            click.echo(f"Context: ~{summary['total_context_tokens']:,} tokens")
+            click.echo(f"  Instructions: ~{summary['instructions_tokens']:,} tokens")
+            click.echo(f"  Descriptions: ~{summary['descriptions_tokens']:,} tokens")
+            click.echo(f"  Schemas: ~{summary['schemas_tokens']:,} tokens")
+        click.echo()
 
-    # Header with summary
-    click.echo(f"MCP Server: {summary['name']}")
-    click.echo(f"Tools: {summary['tool_count']}")
-    if show_summary:
-        click.echo(f"Context: ~{summary['total_context_tokens']:,} tokens")
-        click.echo(f"  Instructions: ~{summary['instructions_tokens']:,} tokens")
-        click.echo(f"  Descriptions: ~{summary['descriptions_tokens']:,} tokens")
-        click.echo(f"  Schemas: ~{summary['schemas_tokens']:,} tokens")
-    click.echo()
+        for mod, tool_list in sorted(modules.items()):
+            click.secho(f"{mod}: {len(tool_list)} tools", fg="green", bold=True)
+            for tool_name in tool_list:
+                tool_obj = mcp_server._tool_manager._tools.get(tool_name)
 
-    for tool in tools:
-        if verbose == 0:
-            click.echo(f"  {tool.name}")
-        elif verbose == 1:
-            click.echo(f"  {_format_signature(tool)}")
-        elif verbose == 2:
-            click.echo(f"  {_format_signature(tool)}")
-            if tool.description:
-                desc = tool.description.split("\n")[0].strip()
-                click.echo(f"    {desc}")
-            click.echo()
-        else:
-            click.echo(f"  {_format_signature(tool)}")
-            if tool.description:
-                for line in tool.description.strip().split("\n"):
-                    click.echo(f"    {line}")
+                if verbose == 0:
+                    # Names only
+                    click.echo(f"  {tool_name}")
+                elif verbose == 1:
+                    # Full signature
+                    sig = (
+                        _format_signature(tool_obj, multiline=not compact)
+                        if tool_obj
+                        else f"  {tool_name}"
+                    )
+                    click.echo(sig)
+                elif verbose == 2:
+                    # Signature + one-line description
+                    sig = (
+                        _format_signature(tool_obj, multiline=not compact)
+                        if tool_obj
+                        else f"  {tool_name}"
+                    )
+                    click.echo(sig)
+                    if tool_obj and tool_obj.description:
+                        desc = tool_obj.description.split("\n")[0].strip()
+                        click.echo(f"    {desc}")
+                    click.echo()
+                else:
+                    # Signature + full description
+                    sig = (
+                        _format_signature(tool_obj, multiline=not compact)
+                        if tool_obj
+                        else f"  {tool_name}"
+                    )
+                    click.echo(sig)
+                    if tool_obj and tool_obj.description:
+                        for line in tool_obj.description.strip().split("\n"):
+                            click.echo(f"    {line}")
+                    click.echo()
             click.echo()
 
 

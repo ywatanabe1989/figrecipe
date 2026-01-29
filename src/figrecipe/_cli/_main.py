@@ -6,6 +6,7 @@ import click
 from rich.console import Console
 
 from .. import __version__
+from ._apis import list_python_apis
 from ._completion import completion
 from ._compose import compose
 from ._convert import convert
@@ -88,6 +89,7 @@ main.add_command(edit)
 main.add_command(extract)
 main.add_command(fonts)
 main.add_command(info)
+main.add_command(list_python_apis)
 main.add_command(mcp)
 main.add_command(plot)
 main.add_command(reproduce)
