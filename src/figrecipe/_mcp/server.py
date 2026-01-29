@@ -27,7 +27,7 @@ mcp = FastMCP(
 
 
 @mcp.tool
-def plot(
+def plt_plot(
     spec: Dict[str, Any],
     output_path: str,
     dpi: int = 300,
@@ -88,7 +88,7 @@ def plot(
 
 
 @mcp.tool
-def reproduce(
+def plt_reproduce(
     recipe_path: str,
     output_path: Optional[str] = None,
     format: str = "png",
@@ -142,7 +142,7 @@ def reproduce(
 
 
 @mcp.tool
-def compose(
+def plt_compose(
     sources: List[str],
     output_path: str,
     layout: str = "horizontal",
@@ -273,7 +273,7 @@ def compose(
 
 
 @mcp.tool
-def info(recipe_path: str, verbose: bool = False) -> Dict[str, Any]:
+def plt_info(recipe_path: str, verbose: bool = False) -> Dict[str, Any]:
     """Get information about a recipe file.
 
     Parameters
@@ -296,7 +296,7 @@ def info(recipe_path: str, verbose: bool = False) -> Dict[str, Any]:
 
 
 @mcp.tool
-def validate(
+def plt_validate(
     recipe_path: str,
     mse_threshold: float = 100.0,
 ) -> Dict[str, Any]:
@@ -328,7 +328,7 @@ def validate(
 
 
 @mcp.tool
-def crop(
+def plt_crop(
     input_path: str,
     output_path: Optional[str] = None,
     margin_mm: float = 1.0,
@@ -371,7 +371,7 @@ def crop(
 
 
 @mcp.tool
-def extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
+def plt_extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
     """Extract plotted data arrays from a saved recipe.
 
     Parameters
@@ -402,7 +402,7 @@ def extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
 
 
 @mcp.tool
-def list_styles() -> Dict[str, Any]:
+def plt_list_styles() -> Dict[str, Any]:
     """List available figure style presets.
 
     Returns
@@ -421,7 +421,7 @@ def list_styles() -> Dict[str, Any]:
 
 
 @mcp.tool
-def get_plot_types() -> Dict[str, Any]:
+def plt_get_plot_types() -> Dict[str, Any]:
     """Get list of supported plot types.
 
     Returns
