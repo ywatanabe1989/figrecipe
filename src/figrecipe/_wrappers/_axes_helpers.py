@@ -166,6 +166,13 @@ def extract_color_from_result(method_name: str, result) -> Optional[str]:
                     import matplotlib.colors as mcolors
 
                     return mcolors.to_hex(fc[0])
+        elif method_name == "stem":
+            # StemContainer has markerline, stemlines, baseline
+            if hasattr(result, "markerline"):
+                color = result.markerline.get_color()
+                import matplotlib.colors as mcolors
+
+                return mcolors.to_hex(color)
     except Exception:
         pass
     return None
@@ -217,6 +224,7 @@ def record_call_with_color_capture(
         "step",
         "ecdf",
         "fill_between",
+        "stem",
     ):
         has_fmt_color = args_have_fmt_color(args)
         if (

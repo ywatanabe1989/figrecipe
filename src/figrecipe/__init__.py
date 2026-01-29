@@ -65,14 +65,6 @@ except Exception:
 # =============================================================================
 # CORE PUBLIC API - Minimal, essential functions only
 # =============================================================================
-
-# Core workflow functions
-# =============================================================================
-# SCITEX COMPATIBILITY EXPORTS (not in __all__ for clean tab-completion)
-# These are re-exported for backwards compatibility with scitex.plt
-# noqa: F401 comments indicate intentional re-exports
-# =============================================================================
-from ._api._notebook import enable_svg as enable_svg  # noqa: F401
 from ._api._public import (
     crop,
     edit,
@@ -83,31 +75,29 @@ from ._api._public import (
     save,
     subplots,
 )
-from ._api._public import (
-    validate_recipe as validate,
-)
-from ._api._seaborn_proxy import sns as sns  # noqa: F401
-from ._api._style_manager import STYLE as STYLE  # noqa: F401
-from ._api._style_manager import apply_style as apply_style  # noqa: F401
+from ._api._public import validate_recipe as validate
+from ._api._style_manager import list_presets, load_style, unload_style
+from ._composition import align_panels, compose, distribute_panels, smart_align
+from ._diagram import Diagram
+from ._graph_presets import get_preset as get_graph_preset
+from ._seaborn import get_seaborn_recorder as _get_sns
 
-# Style management
-from ._api._style_manager import (
-    list_presets,
-    load_style,
-    unload_style,
-)
-from ._composition import align_panels as align_panels  # noqa: F401
 
-# Composition
-from ._composition import compose
-from ._composition import distribute_panels as distribute_panels  # noqa: F401
-from ._composition import smart_align as smart_align  # noqa: F401
+# Lazy seaborn access (avoids import error if seaborn not installed)
+@property
+def _sns_property(self):
+    return _get_sns()
 
-# Diagram class (for scitex integration)
-from ._diagram import Diagram as Diagram  # noqa: F401
-from ._graph_presets import get_preset as get_graph_preset  # noqa: F401
-from ._graph_presets import list_presets as list_graph_presets  # noqa: F401
-from ._graph_presets import register_preset as register_graph_preset  # noqa: F401
+
+# Module-level property emulation for sns
+class _SnsModule:
+    def __getattr__(self, name):
+        return getattr(_get_sns(), name)
+
+
+sns = _SnsModule()
+from ._graph_presets import list_presets as list_graph_presets
+from ._graph_presets import register_preset as register_graph_preset
 
 # =============================================================================
 # PUBLIC API (__all__ controls tab-completion - keep minimal)
@@ -120,6 +110,9 @@ __all__ = [
     "reproduce",
     "load",
     "compose",
+    "align_panels",
+    "distribute_panels",
+    "smart_align",
     "edit",
     "crop",
     "info",
@@ -129,6 +122,14 @@ __all__ = [
     "load_style",
     "unload_style",
     "list_presets",
+    # Graph presets
+    "get_graph_preset",
+    "list_graph_presets",
+    "register_graph_preset",
+    # Diagram
+    "Diagram",
+    # Seaborn integration
+    "sns",
     # Version
     "__version__",
 ]

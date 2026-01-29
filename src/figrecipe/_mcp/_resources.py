@@ -221,13 +221,6 @@ ax.set_stats({
     "comparisons": [{"vs": "control", "p_value": 0.002}]
 })
 ```
-
-## Context Manager
-```python
-# Temporarily disable recording
-with ax.no_record():
-    ax.plot(x, debug_line)  # Not recorded
-```
 """
 
 MCP_SPEC = """\
@@ -381,7 +374,7 @@ FigRecipe provides the plotting infrastructure for SciTeX (stx.plt).
 import scitex as stx
 
 @stx.session
-def main(plt=stx.INJECTED):
+def main(plt=stx.session.INJECTED):
     fig, ax = stx.plt.subplots()
     ax.stx_line(x, y)  # Tracked with auto CSV export
     stx.io.save(fig, "plot.png", symlink_to="./data")

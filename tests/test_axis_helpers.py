@@ -431,8 +431,8 @@ class TestImports:
         assert callable(set_n_ticks)
 
     def test_import_from_axis_helpers(self):
-        """Test imports from axis_helpers submodule."""
-        from figrecipe.styles.axis_helpers import (
+        """Test imports from internal _axis_helpers submodule."""
+        from figrecipe.styles._axis_helpers import (
             OOMFormatter,
             hide_spines,
         )

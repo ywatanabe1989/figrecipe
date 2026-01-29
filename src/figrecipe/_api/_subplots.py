@@ -192,8 +192,8 @@ def _apply_style_to_axes(
     """Apply style to axes and return style dict if applied."""
     import numpy as np
 
-    from ..styles import apply_style_mm as _apply_style
-    from ..styles import to_subplots_kwargs
+    from ..styles._internal import apply_style_mm as _apply_style
+    from ..styles._internal import to_subplots_kwargs
 
     style_dict = None
     should_apply_style = False

@@ -150,7 +150,7 @@ def apply_style(ax, style=None):
     >>> trace_lw = ps.apply_style(ax)
     >>> ax.plot(x, y, lw=trace_lw)
     """
-    from ..styles import apply_style_mm, get_style, to_subplots_kwargs
+    from ..styles._internal import apply_style_mm, get_style, to_subplots_kwargs
 
     if style is None:
         style = to_subplots_kwargs(get_style())
@@ -163,12 +163,12 @@ class _StyleProxy:
     """Proxy object for lazy style loading."""
 
     def __getattr__(self, name):
-        from ..styles import STYLE
+        from ..styles._style_loader import STYLE
 
         return getattr(STYLE, name)
 
     def to_subplots_kwargs(self):
-        from ..styles import to_subplots_kwargs
+        from ..styles._internal import to_subplots_kwargs
 
         return to_subplots_kwargs()
 

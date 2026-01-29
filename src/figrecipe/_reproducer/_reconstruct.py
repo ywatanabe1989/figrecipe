@@ -62,9 +62,14 @@ def reconstruct_value(
     if result_cache is None:
         result_cache = {}
 
-    # Check if we have a pre-loaded array
+    # Check if we have a pre-loaded array (from YAML loading)
     if "_loaded_array" in arg_data:
         return arg_data["_loaded_array"]
+
+    # Check if we have a raw array (direct from recording, not yet serialized)
+    # This handles the __FILE__ placeholder case when reproducing from record
+    if "_array" in arg_data:
+        return arg_data["_array"]
 
     data = arg_data.get("data")
 

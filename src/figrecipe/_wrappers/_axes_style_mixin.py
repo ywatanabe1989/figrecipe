@@ -35,7 +35,7 @@ class AxesStyleMixin:
         >>> ax.hide_spines()  # Hide top and right
         >>> ax.hide_spines(['top', 'right', 'bottom'])
         """
-        from ..styles.axis_helpers import hide_spines
+        from ..styles._axis_helpers import hide_spines
 
         return hide_spines(self._ax, spines)
 
@@ -51,7 +51,7 @@ class AxesStyleMixin:
         --------
         >>> ax.show_spines(['left', 'bottom'])
         """
-        from ..styles.axis_helpers import show_spines
+        from ..styles._axis_helpers import show_spines
 
         return show_spines(self._ax, spines)
 
@@ -67,7 +67,7 @@ class AxesStyleMixin:
         --------
         >>> ax.toggle_spines(['top'])
         """
-        from ..styles.axis_helpers import toggle_spines
+        from ..styles._axis_helpers import toggle_spines
 
         return toggle_spines(self._ax, spines)
 
@@ -99,7 +99,7 @@ class AxesStyleMixin:
         >>> ax.rotate_labels(x=45)
         >>> ax.rotate_labels(x=45, y=30)
         """
-        from ..styles.axis_helpers import rotate_labels
+        from ..styles._axis_helpers import rotate_labels
 
         return rotate_labels(
             self._ax, x=x, y=y, x_ha=x_ha, y_ha=y_ha, auto_adjust=auto_adjust
@@ -126,12 +126,13 @@ class AxesStyleMixin:
         --------
         >>> ax.set_xyt('Time (s)', 'Amplitude', 'Signal')
         """
+        # Use self.method() to go through recording wrapper, not self._ax.method()
         if xlabel is not None:
-            self._ax.set_xlabel(xlabel, **kwargs)
+            self.set_xlabel(xlabel, **kwargs)
         if ylabel is not None:
-            self._ax.set_ylabel(ylabel, **kwargs)
+            self.set_ylabel(ylabel, **kwargs)
         if title is not None:
-            self._ax.set_title(title, **kwargs)
+            self.set_title(title, **kwargs)
         return self
 
     def set_n_ticks(self, n_x: Optional[int] = None, n_y: Optional[int] = None):
@@ -148,7 +149,7 @@ class AxesStyleMixin:
         --------
         >>> ax.set_n_ticks(5, 5)
         """
-        from ..styles.axis_helpers import set_n_ticks
+        from ..styles._axis_helpers import set_n_ticks
 
         return set_n_ticks(self._ax, n_x, n_y)
 
@@ -166,7 +167,7 @@ class AxesStyleMixin:
         --------
         >>> ax.sci_note('y')
         """
-        from ..styles.axis_helpers import sci_note
+        from ..styles._axis_helpers import sci_note
 
         return sci_note(self._ax, axis, scilimits)
 
@@ -182,7 +183,7 @@ class AxesStyleMixin:
         --------
         >>> ax.force_aspect(1.0)  # Square
         """
-        from ..styles.axis_helpers import force_aspect
+        from ..styles._axis_helpers import force_aspect
 
         return force_aspect(self._ax, ratio)
 
@@ -200,7 +201,7 @@ class AxesStyleMixin:
         --------
         >>> ax.extend('y', 0.1)  # Extend y by 10%
         """
-        from ..styles.axis_helpers import extend
+        from ..styles._axis_helpers import extend
 
         return extend(self._ax, direction, factor)
 
@@ -225,7 +226,7 @@ class AxesStyleMixin:
         --------
         >>> ax.map_ticks('x', {0: 'A', 1: 'B', 2: 'C'})
         """
-        from ..styles.axis_helpers import map_ticks
+        from ..styles._axis_helpers import map_ticks
 
         return map_ticks(self._ax, axis, mapping, labels)
 

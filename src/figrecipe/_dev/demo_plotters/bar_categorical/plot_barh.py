@@ -6,10 +6,12 @@ from figrecipe.styles import load_style
 
 
 def plot_barh(plt, rng, ax=None):
-    """Horizontal bar chart demo with different colors for each bar.
+    """Horizontal bar chart demo with grouped bars and legend.
 
-    Demonstrates: ax.barh() with SCITEX color palette
+    Demonstrates: ax.barh() with SCITEX color palette and legend
     """
+    import numpy as np
+
     if ax is None:
         fig, ax = plt.subplots()
     else:
@@ -18,17 +20,26 @@ def plot_barh(plt, rng, ax=None):
     # Get SCITEX color palette
     style = load_style()
     palette = style.get("colors", {}).get("palette", [])
-    colors = [tuple(v / 255.0 for v in c) for c in palette[:5]]
+    colors = [tuple(v / 255.0 for v in c) for c in palette[:3]]
 
-    # Generate data for 5 categories
-    categories = ["A", "B", "C", "D", "E"]
-    values = rng.integers(1, 10, 5)
+    # Generate grouped bar data
+    categories = ["A", "B", "C", "D"]
+    y = np.arange(len(categories))
+    height = 0.25
 
-    # Plot horizontal bars with different colors
-    ax.barh(categories, values, color=colors, id="barh")
+    # Three groups with legend
+    for i, (label, color) in enumerate(zip(["2022", "2023", "2024"], colors)):
+        values = rng.integers(3, 10, len(categories))
+        ax.barh(
+            y + i * height, values, height, label=label, color=color, id=f"barh_{i}"
+        )
+
     ax.set_xlabel("Value")
     ax.set_ylabel("Category")
     ax.set_title("barh")
+    ax.set_yticks(y + height)
+    ax.set_yticklabels(categories)
+    ax.legend()
     return fig, ax
 
 

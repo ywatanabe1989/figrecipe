@@ -365,6 +365,7 @@ class RecordingFigure:
         dpi: Optional[int] = None,
         image_format: Optional[str] = None,
         facecolor: Optional[str] = None,
+        save_hitmap: bool = False,
         **kwargs,
     ):
         """Save figure image and recipe. Unified API with fr.save().
@@ -394,6 +395,7 @@ class RecordingFigure:
             dpi=dpi,
             image_format=image_format,
             facecolor=facecolor,
+            save_hitmap=save_hitmap,
         )
 
     def save_recipe(

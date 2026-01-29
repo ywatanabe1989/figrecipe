@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# ruff: noqa: F401 - Re-exports are intentional
 """Style management for figrecipe.
 
 Provides style loading, application, and management for publication-quality figures.
@@ -14,134 +15,73 @@ Usage:
     print(style.axes.width_mm)
     print(style.fonts.axis_label_pt)
 
-    # Use with subplots
-    fig, ax = ps.subplots(**style.to_subplots_kwargs())
+Public API:
+    Style Management:
+        - load_style, unload_style, list_presets, STYLE
+
+    Axis Helpers (also available as ax.method() via RecordingAxes):
+        - hide_spines, show_spines, toggle_spines
+        - rotate_labels, set_n_ticks, map_ticks
+        - sci_note, force_aspect, extend
+
+    Font Utilities:
+        - check_font, list_available_fonts
 """
 
-from ._color_resolver import (
-    get_color_map,
-    resolve_color,
-    resolve_colors_in_kwargs,
-)
-from ._dotdict import DotDict
-from ._finalize import finalize_special_plots, finalize_ticks
-from ._fonts import check_font, list_available_fonts
-from ._plot_styling import (
-    style_barplot,
-    style_boxplot,
-    style_errorbar,
-    style_scatter,
-    style_violinplot,
-)
-from ._style_applier import apply_style_mm
-from ._style_loader import (
-    STYLE,
-    get_style,
-    list_presets,
-    load_style,
-    reload_style,
-    to_subplots_kwargs,
-    unload_style,
-)
-from ._themes import apply_theme_colors
+# =============================================================================
+# PUBLIC API - User-facing functions only
+# =============================================================================
 
-# Axis helper utilities
-from .axis_helpers import (
-    OOMFormatter,
-    extend,
-    force_aspect,
-    hide_spines,
-    map_ticks,
-    rotate_labels,
-    sci_note,
-    set_n_ticks,
-    set_ticks,
-    set_x_ticks,
-    set_y_ticks,
-    show_all_spines,
-    show_classic_spines,
-    show_spines,
-    toggle_spines,
-)
+# Style management
+# Axis helper utilities (user-facing)
+from ._axis_helpers import extend as extend
+from ._axis_helpers import force_aspect as force_aspect
+from ._axis_helpers import hide_spines as hide_spines
+from ._axis_helpers import map_ticks as map_ticks
+from ._axis_helpers import rotate_labels as rotate_labels
+from ._axis_helpers import sci_note as sci_note
+from ._axis_helpers import set_n_ticks as set_n_ticks
+from ._axis_helpers import set_ticks as set_ticks
+from ._axis_helpers import set_x_ticks as set_x_ticks
+from ._axis_helpers import set_y_ticks as set_y_ticks
+from ._axis_helpers import show_all_spines as show_all_spines
+from ._axis_helpers import show_classic_spines as show_classic_spines
+from ._axis_helpers import show_spines as show_spines
+from ._axis_helpers import toggle_spines as toggle_spines
+from ._fonts import check_font as check_font
+from ._fonts import list_available_fonts as list_available_fonts
+from ._style_loader import STYLE as STYLE
+from ._style_loader import list_presets as list_presets
+from ._style_loader import load_style as load_style
+from ._style_loader import unload_style as unload_style
 
-# Also expose styler classes and additional functions
-from .plot_stylers import (
-    BarplotStyler,
-    BoxplotStyler,
-    ErrorbarStyler,
-    HeatmapStyler,
-    HistogramStyler,
-    ImshowStyler,
-    LineStyler,
-    PieStyler,
-    PlotStyler,
-    ScatterStyler,
-    ViolinplotStyler,
-    mm_to_pt,
-    style_heatmap,
-    style_histogram,
-    style_imshow,
-    style_line,
-    style_pie,
-)
-
+# =============================================================================
+# __all__ - Controls tab-completion and import *, keep minimal and user-focused
+# =============================================================================
 __all__ = [
-    "DotDict",
+    # Style management
     "load_style",
     "unload_style",
-    "get_style",
-    "reload_style",
     "list_presets",
     "STYLE",
-    "to_subplots_kwargs",
-    "apply_style_mm",
-    "apply_theme_colors",
+    # Font utilities
     "check_font",
     "list_available_fonts",
-    "finalize_ticks",
-    "finalize_special_plots",
-    "resolve_color",
-    "resolve_colors_in_kwargs",
-    "get_color_map",
-    # Plot styling utilities (convenience functions)
-    "style_boxplot",
-    "style_violinplot",
-    "style_barplot",
-    "style_scatter",
-    "style_errorbar",
-    "style_pie",
-    "style_imshow",
-    "style_line",
-    "style_histogram",
-    "style_heatmap",
-    # Styler classes
-    "PlotStyler",
-    "BoxplotStyler",
-    "ViolinplotStyler",
-    "BarplotStyler",
-    "ScatterStyler",
-    "ErrorbarStyler",
-    "PieStyler",
-    "ImshowStyler",
-    "LineStyler",
-    "HistogramStyler",
-    "HeatmapStyler",
-    # Unit conversion
-    "mm_to_pt",
-    # Axis helper utilities
-    "rotate_labels",
+    # Axis helper utilities (user-facing)
     "hide_spines",
     "show_spines",
     "show_all_spines",
     "show_classic_spines",
     "toggle_spines",
+    "rotate_labels",
     "set_n_ticks",
     "set_ticks",
     "set_x_ticks",
     "set_y_ticks",
     "map_ticks",
-    "OOMFormatter",
     "sci_note",
     "force_aspect",
     "extend",
 ]
+
+# EOF

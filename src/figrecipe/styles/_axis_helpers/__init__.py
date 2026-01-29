@@ -1,30 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Axis helper utilities for matplotlib axes.
+"""Internal axis helper utilities for matplotlib axes.
 
-This module provides functions for common axis styling operations including:
-- Label rotation with automatic alignment
-- Spine visibility management
-- Tick customization (number, positions, labels)
-- Scientific notation formatting
-- Axis geometry (aspect ratio, size)
-
-Usage:
-    from figrecipe.styles.axis_helpers import rotate_labels, hide_spines
-
-    # Or import all utilities
-    from figrecipe.styles import axis_helpers
-
-Examples:
-    >>> import figrecipe as fr
-    >>> fig, ax = fr.subplots()
-    >>> ax.plot([1, 2, 3], [1, 4, 9])
-    >>> fr.hide_spines(ax)  # Hide top and right spines
-    >>> fr.rotate_labels(ax, x=45)  # Rotate x-axis labels
+This is an internal module. Use the public API instead:
+    from figrecipe.styles import hide_spines, rotate_labels
+    # Or via RecordingAxes methods:
+    ax.hide_spines()
+    ax.rotate_labels(x=45)
 """
-
-# Base utilities (internal)
-from ._base import get_axis_from_wrapper, validate_axis
 
 # Geometry utilities
 from ._geometry import extend, force_aspect
@@ -48,9 +31,6 @@ from ._spines import (
 from ._ticks import map_ticks, set_n_ticks, set_ticks, set_x_ticks, set_y_ticks
 
 __all__ = [
-    # Base utilities
-    "validate_axis",
-    "get_axis_from_wrapper",
     # Label rotation
     "rotate_labels",
     # Spine visibility
@@ -66,8 +46,8 @@ __all__ = [
     "set_y_ticks",
     "map_ticks",
     # Scientific notation
-    "OOMFormatter",
     "sci_note",
+    "OOMFormatter",
     # Geometry
     "force_aspect",
     "extend",

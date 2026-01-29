@@ -24,7 +24,7 @@ def boxplot_plot(
     Setting patch_artist=True ensures boxes are rendered as patches (PathPatch)
     rather than lines, which allows the editor to detect and modify box colors.
     """
-    from ..styles import get_style, resolve_colors_in_kwargs
+    from ..styles._internal import get_style, resolve_colors_in_kwargs
     from ..styles._plot_styles import apply_boxplot_style
     from ._axes_helpers import inject_clip_on_from_style
 

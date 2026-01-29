@@ -57,7 +57,7 @@ def to_subplots_kwargs(style: Optional["DotDict"] = None) -> Dict[str, Any]:
         "ticks_n_ticks_max": style.ticks.get("n_ticks_max", 4),
         # Lines (lines.* in YAML)
         "lines_trace_mm": style.lines.trace_mm,
-        "lines_errorbar_mm": style.lines.get("errorbar_mm", 0.2),
+        "lines_errorbar_mm": style.lines.get("errorbar_mm", 0.12),
         "lines_errorbar_cap_mm": style.lines.get("errorbar_cap_mm", 0.8),
         # Markers (markers.* in YAML)
         "markers_size_mm": style.markers.size_mm,
@@ -112,8 +112,12 @@ def to_subplots_kwargs(style: Optional["DotDict"] = None) -> Dict[str, Any]:
     if "theme" in style and theme_mode in style.theme:
         result["theme_colors"] = dict(style.theme[theme_mode])
 
-    # Add color palette if available
-    if "colors" in style and "palette" in style.colors:
+    # Add color palette if available (skip if None for MATPLOTLIB style)
+    if (
+        "colors" in style
+        and "palette" in style.colors
+        and style.colors.palette is not None
+    ):
         result["color_palette"] = list(style.colors.palette)
 
     # Add behavior settings (behavior.* in YAML)

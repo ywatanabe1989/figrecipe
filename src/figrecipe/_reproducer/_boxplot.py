@@ -60,7 +60,7 @@ def replay_boxplot_call(ax: Axes, call: CallRecord) -> Any:
                 box.set_facecolor(color)
 
     # Apply boxplot styling from loaded style (linewidths, etc.)
-    from ..styles import get_style
+    from ..styles._internal import get_style
     from ..styles._kwargs_converter import to_subplots_kwargs
     from ..styles._plot_styles import apply_boxplot_style
 

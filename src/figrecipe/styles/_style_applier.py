@@ -86,6 +86,11 @@ def _normalize_style_keys(style: Dict[str, Any]) -> Dict[str, Any]:
         "padding_tick_pt": "tick_pad_pt",
         "padding_title_pt": "title_pad_pt",
         "theme_mode": "theme",
+        # Legend settings
+        "legend_frameon": "legend_frameon",
+        "legend_fancybox": "legend_fancybox",
+        "legend_edgecolor": "legend_edgecolor",
+        "legend_edge_mm": "legend_edge_mm",
     }
 
     for old_key, new_key in mm_mappings.items():
@@ -269,8 +274,17 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         mpl.rcParams["legend.facecolor"] = legend_bg
         mpl.rcParams["legend.framealpha"] = 1.0
 
-    # Set legend text and edge colors
-    mpl.rcParams["legend.edgecolor"] = spine_color
+    # Set legend frame and edge settings
+    legend_frameon = style.get("legend_frameon", True)
+    legend_fancybox = style.get("legend_fancybox", False)
+    legend_edgecolor = style.get("legend_edgecolor", spine_color)
+    legend_edge_mm = style.get("legend_edge_mm", 0.2)
+
+    mpl.rcParams["legend.frameon"] = legend_frameon
+    mpl.rcParams["legend.fancybox"] = legend_fancybox
+    mpl.rcParams["legend.edgecolor"] = (
+        legend_edgecolor if legend_edgecolor else spine_color
+    )
     mpl.rcParams["legend.labelcolor"] = text_color
 
     legend = ax.get_legend()
@@ -278,6 +292,10 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         for text in legend.get_texts():
             text.set_fontsize(legend_fs)
             text.set_fontfamily(font_family)
+        # Apply frame linewidth from legend_edge_mm
+        if legend_frameon and legend_edge_mm:
+            frame = legend.get_frame()
+            frame.set_linewidth(legend_edge_mm * 72 / 25.4)  # mm to points
 
     # Configure grid
     if style.get("grid", False):

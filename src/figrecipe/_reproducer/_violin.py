@@ -58,7 +58,7 @@ def replay_violinplot_call(ax: Axes, call: CallRecord) -> Any:
         )
 
         # Get style settings for inner display
-        from ..styles import get_style
+        from ..styles._internal import get_style
 
         style = get_style()
         violin_style = style.get("violinplot", {}) if style else {}

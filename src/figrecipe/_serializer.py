@@ -128,6 +128,15 @@ def save_recipe(
     return path
 
 
+def _sanitize_filename(name: str) -> str:
+    """Sanitize a string for safe use in filenames.
+
+    Replaces dots (except for extensions) to avoid Path.with_suffix() issues.
+    """
+    # Replace dots with underscores to avoid Path suffix confusion
+    return name.replace(".", "_")
+
+
 def _process_arrays_for_save(
     data: Dict[str, Any],
     data_dir: Path,
@@ -158,6 +167,8 @@ def _process_arrays_for_save(
         for call_list in [ax_data.get("calls", []), ax_data.get("decorations", [])]:
             for call in call_list:
                 call_id = call.get("id", "unknown")
+                # Sanitize call_id to avoid Path.with_suffix() issues with dots
+                safe_call_id = _sanitize_filename(call_id)
 
                 # Process args
                 for i, arg in enumerate(call.get("args", [])):
@@ -168,7 +179,7 @@ def _process_arrays_for_save(
                             data_dir_created = True
 
                         arr = arg.pop("_array")
-                        filename = f"{call_id}_{arg.get('name', f'arg{i}')}"
+                        filename = f"{safe_call_id}_{arg.get('name', f'arg{i}')}"
                         file_path = save_array(arr, data_dir / filename, data_format)
                         arg["data"] = str(file_path.relative_to(data_dir.parent))
 
@@ -213,6 +224,8 @@ def _process_arrays_with_symlinks(
         for call_list in [ax_data.get("calls", []), ax_data.get("decorations", [])]:
             for call in call_list:
                 call_id = call.get("id", "unknown")
+                # Sanitize call_id to avoid Path.with_suffix() issues with dots
+                safe_call_id = _sanitize_filename(call_id)
 
                 # Process args
                 for i, arg in enumerate(call.get("args", [])):
@@ -248,7 +261,7 @@ def _process_arrays_with_symlinks(
                             data_dir_created = True
 
                         var_name = arg.get("name", f"arg{i}")
-                        filename = f"{call_id}_{var_name}"
+                        filename = f"{safe_call_id}_{var_name}"
                         file_path = save_array(arr, data_dir / filename, data_format)
                         arg["data"] = str(file_path.relative_to(data_dir.parent))
 
@@ -385,8 +398,35 @@ def _resolve_data_references(
                             # Get dtype from YAML to ensure proper type conversion
                             dtype = arg.get("dtype")
                             arr = load_array(file_path, dtype=dtype)
-                            arg["data"] = arr.tolist()
-                            arg["_loaded_array"] = arr
+
+                            # Check if this was a list of arrays
+                            if arg.get("_is_array_list"):
+                                # Reconstruct list of arrays from 2D array
+                                n_arrays = arg.get(
+                                    "_n_arrays", arr.shape[1] if arr.ndim > 1 else 1
+                                )
+                                array_lengths = arg.get("_array_lengths")
+
+                                arrays = []
+                                for i in range(n_arrays):
+                                    if arr.ndim > 1:
+                                        col = arr[:, i]
+                                    else:
+                                        col = arr
+
+                                    # Trim to original length (remove NaN padding)
+                                    if array_lengths and i < len(array_lengths):
+                                        col = col[: array_lengths[i]]
+                                        # Remove NaN values if any remain
+                                        col = col[~np.isnan(col)]
+                                    arrays.append(col)
+
+                                arg["data"] = [a.tolist() for a in arrays]
+                                arg["_loaded_array"] = arrays
+                            else:
+                                arg["data"] = arr.tolist()
+                                arg["_loaded_array"] = arr
+
                             # Store source file path for symlink support
                             arg["_source_file"] = str(file_path.resolve())
 

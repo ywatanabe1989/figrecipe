@@ -45,7 +45,7 @@ def style_colorbar(cbar: "Colorbar", style: Optional[dict] = None) -> "Colorbar"
     # Get style settings
     if style is None:
         try:
-            from ..styles import get_style
+            from ..styles._internal import get_style
 
             style = get_style() or {}
         except Exception:
@@ -123,7 +123,7 @@ def add_colorbar(
     # Get style settings
     if style is None:
         try:
-            from ..styles import get_style
+            from ..styles._internal import get_style
 
             style = get_style() or {}
         except Exception:

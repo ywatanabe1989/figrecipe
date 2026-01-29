@@ -132,9 +132,11 @@ graph:
   font_size_pt: 6          # Label font size
 
 legend:
-  frameon: false         # No frame for clean look
+  frameon: true          # Show frame with edge
+  fancybox: false        # Square corners for scientific style
   bg: null               # Background (null = use theme.legend_bg)
-  edgecolor: null        # Frame edge color
+  edgecolor: "black"     # Black frame edge
+  edge_mm: 0.2           # Frame edge thickness (0.2mm)
   alpha: 1.0             # Transparency
   loc: "best"
 
@@ -148,7 +150,7 @@ stat_annotation:
 output:
   dpi: 300
   transparent: false
-  format: "pdf"
+  format: "png"
 
 behavior:
   auto_scale_axes: true

@@ -143,6 +143,45 @@ def _make_patches_opaque(fig):
     return restore
 
 
+def _save_hitmap(fig, image_path: Path, dpi: int, verbose: bool) -> Optional[Path]:
+    """Save hitmap image for GUI editor element selection.
+
+    Parameters
+    ----------
+    fig : RecordingFigure
+        The figure to generate hitmap for.
+    image_path : Path
+        Path to the main image file (hitmap will be saved alongside).
+    dpi : int
+        DPI for hitmap rendering.
+    verbose : bool
+        Whether to print status.
+
+    Returns
+    -------
+    Path or None
+        Path to saved hitmap, or None if generation failed.
+    """
+    try:
+        from .._editor._hitmap import generate_hitmap
+
+        # Generate hitmap (uses 150 dpi by default for reasonable file size)
+        hitmap_img, color_map = generate_hitmap(fig, dpi=min(dpi, 150))
+
+        # Save hitmap image
+        hitmap_path = image_path.with_stem(image_path.stem + "_hitmap")
+        hitmap_img.save(hitmap_path)
+
+        if verbose:
+            print(f"  Hitmap: {hitmap_path}")
+
+        return hitmap_path
+    except Exception as e:
+        if verbose:
+            print(f"  Hitmap generation failed: {e}")
+        return None
+
+
 def save_figure(
     fig,
     path,
@@ -158,6 +197,7 @@ def save_figure(
     image_format: Optional[str] = None,
     crop_margin_mm: Optional[float] = None,
     facecolor: Optional[str] = None,
+    save_hitmap: bool = False,
 ):
     """Core save implementation.
 
@@ -201,6 +241,10 @@ def save_figure(
     facecolor : str, optional
         Background color for the saved image. When set to an opaque color,
         figure and axes patches are temporarily made opaque before saving.
+    save_hitmap : bool
+        If True, save a hitmap image alongside the figure for GUI editor use.
+        The hitmap enables pixel-perfect element selection in the editor.
+        Saved as {basename}_hitmap.png. Default: False.
 
     Returns
     -------
@@ -355,6 +399,10 @@ def save_figure(
     # Store mm_layout in record for consistent cropping on reproduce
     if hasattr(fig, "_mm_layout") and fig._mm_layout is not None:
         fig.record.mm_layout = fig._mm_layout
+
+    # Save hitmap if requested (for GUI editor element selection)
+    if save_hitmap:
+        _save_hitmap(fig, image_path, dpi, verbose)
 
     # If not saving recipe, return early
     if not save_recipe:

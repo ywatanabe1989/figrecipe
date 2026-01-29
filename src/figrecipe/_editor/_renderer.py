@@ -226,7 +226,7 @@ def _finalize_figure(fig: RecordingFigure, mpl_fig: Any) -> None:
     # Get style dict for finalization
     style_dict = {}
     if hasattr(fig, "style") and fig.style:
-        from ..styles import get_style
+        from ..styles._internal import get_style
 
         style_dict = get_style(fig.style)
 

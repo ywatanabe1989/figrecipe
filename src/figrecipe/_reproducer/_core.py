@@ -157,7 +157,7 @@ def reproduce_from_record(
     # Apply style BEFORE replaying calls (to match original order:
     # style is applied during subplots(), then user creates plots/decorations)
     if record.style is not None:
-        from ..styles import apply_style_mm
+        from ..styles._internal import apply_style_mm
 
         for row in range(nrows):
             for col in range(ncols):
@@ -303,50 +303,45 @@ def _replay_call(
 
     method_name = call.function
 
-    # Check if it's a seaborn call
+    # Special method handlers
     if method_name.startswith("sns."):
         from ._seaborn import replay_seaborn_call
 
         return replay_seaborn_call(ax, call)
-
-    # Handle boxplot with color kwarg specially
     if method_name == "boxplot":
         from ._boxplot import replay_boxplot_call
 
         return replay_boxplot_call(ax, call)
-
-    # Handle violinplot with inner option specially
     if method_name == "violinplot":
         from ._violin import replay_violinplot_call
 
         return replay_violinplot_call(ax, call)
-
-    # Handle joyplot specially (custom method)
     if method_name == "joyplot":
         from ._custom_plots import replay_joyplot_call
 
         return replay_joyplot_call(ax, call)
-
-    # Handle swarmplot specially (custom method)
     if method_name == "swarmplot":
         from ._custom_plots import replay_swarmplot_call
 
         return replay_swarmplot_call(ax, call)
-
-    # Handle stat_annotation specially (custom method)
     if method_name == "stat_annotation":
         from .._wrappers._stat_annotation import draw_stat_annotation
 
         kwargs = call.kwargs.copy()
-        x1 = kwargs.pop("x1", 0)
-        x2 = kwargs.pop("x2", 1)
+        x1, x2 = kwargs.pop("x1", 0), kwargs.pop("x2", 1)
         return draw_stat_annotation(ax, x1, x2, **kwargs)
-
-    # Handle graph specially (requires networkx)
     if method_name == "graph":
         from ._replay_graph import replay_graph_call
 
         return replay_graph_call(ax, call)
+    if method_name == "legend":
+        from ._legend import replay_legend_call
+
+        return replay_legend_call(ax, call, result_cache)
+    if method_name == "stem":
+        from ._stem import replay_stem_call
+
+        return replay_stem_call(ax, call)
 
     method = getattr(ax, method_name, None)
 

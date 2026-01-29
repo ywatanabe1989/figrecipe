@@ -22,7 +22,7 @@ def pie_plot(
     **kwargs,
 ) -> tuple:
     """Pie chart with automatic SCITEX styling."""
-    from ..styles import get_style, resolve_colors_in_kwargs
+    from ..styles._internal import get_style, resolve_colors_in_kwargs
     from ._axes_helpers import inject_clip_on_from_style
     from ._pie_helpers import (
         apply_pie_autopct,
@@ -68,7 +68,7 @@ def imshow_plot(
     **kwargs,
 ):
     """Display image with automatic SCITEX styling."""
-    from ..styles import get_style
+    from ..styles._internal import get_style
     from ._axes_helpers import inject_clip_on_from_style
 
     kwargs = inject_clip_on_from_style(kwargs, "imshow")
@@ -130,7 +130,7 @@ def violinplot_plot(
     """
     import matplotlib.pyplot as mpl_plt
 
-    from ..styles import get_style
+    from ..styles._internal import get_style
 
     # Get style settings
     style = get_style()
@@ -249,7 +249,7 @@ def joyplot_plot(
 ):
     """Create a joyplot (ridgeline plot)."""
     from .._utils._units import mm_to_pt
-    from ..styles import get_style
+    from ..styles._internal import get_style
 
     # Convert dict to list of arrays
     if isinstance(arrays, dict):
@@ -352,7 +352,7 @@ def swarmplot_plot(
 ) -> List[Any]:
     """Create a swarm plot (beeswarm plot)."""
     from .._utils._units import mm_to_pt
-    from ..styles import get_style
+    from ..styles._internal import get_style
 
     # Get style
     style = get_style()
@@ -415,7 +415,7 @@ def bar_plot(
 ):
     """Bar chart with SCITEX error bar styling."""
     from .._utils._units import mm_to_pt
-    from ..styles import get_style, resolve_colors_in_kwargs
+    from ..styles._internal import get_style, resolve_colors_in_kwargs
     from ._axes_helpers import inject_clip_on_from_style
 
     # Resolve named colors to style colors
@@ -431,7 +431,7 @@ def bar_plot(
     # Apply error bar styling if yerr or xerr is present
     if style and ("yerr" in kwargs or "xerr" in kwargs):
         lines_style = style.get("lines", {})
-        errorbar_mm = lines_style.get("errorbar_mm", 0.2)
+        errorbar_mm = lines_style.get("errorbar_mm", 0.12)
         errorbar_cap_mm = lines_style.get("errorbar_cap_mm", 0.8)
 
         # Convert mm to points

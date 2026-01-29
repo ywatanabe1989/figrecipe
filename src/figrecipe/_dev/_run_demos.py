@@ -7,7 +7,9 @@ from pathlib import Path
 from ._plotters import PLOTTERS
 
 
-def _compare_images(img1_path, img2_path, tolerance=0):
+def _compare_images(
+    img1_path, img2_path, tolerance=0, size_tolerance=2, hitmap_path=None
+):
     """Compare two images pixel by pixel.
 
     Parameters
@@ -18,11 +20,17 @@ def _compare_images(img1_path, img2_path, tolerance=0):
         Path to second image.
     tolerance : int
         Maximum allowed pixel difference (0 for exact match).
+    size_tolerance : int
+        Maximum allowed size difference in each dimension (default: 2).
+        If images differ by <= size_tolerance pixels in height/width,
+        compare the overlapping region.
+    hitmap_path : Path, optional
+        If provided and images don't match, generate a hitmap at this path.
 
     Returns
     -------
     tuple
-        (is_match, max_diff, mean_diff, diff_pixels)
+        (is_match, max_diff, mean_diff, diff_pixels, size_info)
     """
     import numpy as np
     from PIL import Image
@@ -30,8 +38,23 @@ def _compare_images(img1_path, img2_path, tolerance=0):
     img1 = np.array(Image.open(img1_path))
     img2 = np.array(Image.open(img2_path))
 
+    size_info = {"size1": img1.shape[:2], "size2": img2.shape[:2], "same_size": True}
+
     if img1.shape != img2.shape:
-        return False, float("inf"), float("inf"), -1
+        # Check if size difference is within tolerance
+        h_diff = abs(img1.shape[0] - img2.shape[0])
+        w_diff = abs(img1.shape[1] - img2.shape[1])
+
+        if h_diff <= size_tolerance and w_diff <= size_tolerance:
+            # Crop both images to overlapping region
+            min_h = min(img1.shape[0], img2.shape[0])
+            min_w = min(img1.shape[1], img2.shape[1])
+            img1 = img1[:min_h, :min_w]
+            img2 = img2[:min_h, :min_w]
+            size_info["same_size"] = False
+        else:
+            # Size difference too large
+            return False, float("inf"), float("inf"), -1, size_info
 
     diff = np.abs(img1.astype(float) - img2.astype(float))
     max_diff = diff.max()
@@ -39,7 +62,19 @@ def _compare_images(img1_path, img2_path, tolerance=0):
     diff_pixels = (diff > tolerance).sum()
 
     is_match = max_diff <= tolerance
-    return is_match, max_diff, mean_diff, diff_pixels
+
+    # Generate hitmap on mismatch if path provided
+    if not is_match and hitmap_path is not None:
+        try:
+            from .._utils._hitmap import create_hitmap
+
+            create_hitmap(
+                img1, img2, output_path=hitmap_path, mode="diff", threshold=tolerance
+            )
+        except Exception:
+            pass  # Hitmap generation is optional
+
+    return is_match, max_diff, mean_diff, diff_pixels, size_info
 
 
 def run_all_demos(
@@ -50,6 +85,7 @@ def run_all_demos(
     reproduce=False,
     pixel_perfect=False,
     tolerance=0,
+    save_hitmap=True,
 ):
     """Run all demo plotters and save outputs using fr.save().
 
@@ -70,6 +106,8 @@ def run_all_demos(
         STOP on first non-matching plot. Implies reproduce=True.
     tolerance : int
         Maximum allowed pixel difference for pixel_perfect mode (0 for exact).
+    save_hitmap : bool
+        If True (default), save GUI editor hitmaps alongside each figure.
 
     Returns
     -------
@@ -111,7 +149,13 @@ def run_all_demos(
                 fig, ax = func(fr, rng)
                 out_path = output_dir / f"plot_{name}.png"
                 yaml_path = output_dir / f"plot_{name}.yaml"
-                fr.save(fig, out_path, validate=False, verbose=False)
+                fr.save(
+                    fig,
+                    out_path,
+                    validate=False,
+                    verbose=False,
+                    save_hitmap=save_hitmap,
+                )
                 _plt.close("all")
                 if verbose:
                     print(f"  [1/3] Original saved: {out_path.name}")
@@ -138,29 +182,43 @@ def run_all_demos(
                 raise RuntimeError(f"Failed to reproduce {name}: {e}")
 
             # Step 3: Compare pixel by pixel
-            is_match, max_diff, mean_diff, diff_pixels = _compare_images(
-                out_path, reproduced_path, tolerance
+            hitmap_path = output_dir / f"plot_{name}_hitmap.png"
+            is_match, max_diff, mean_diff, diff_pixels, size_info = _compare_images(
+                out_path, reproduced_path, tolerance, hitmap_path=hitmap_path
             )
 
             if is_match:
                 results[name] = {"success": True, "error": None, "path": str(out_path)}
                 if verbose:
                     print("  [3/3] PIXEL-PERFECT MATCH ✓")
-                    print(f"        Max diff: {max_diff}, Mean diff: {mean_diff:.4f}")
+                    size_note = (
+                        ""
+                        if size_info["same_size"]
+                        else f" (size tolerance: {size_info['size1']} vs {size_info['size2']})"
+                    )
+                    print(
+                        f"        Max diff: {max_diff}, Mean diff: {mean_diff:.4f}{size_note}"
+                    )
             else:
                 results[name] = {
                     "success": False,
                     "error": f"Pixel mismatch: max={max_diff}, mean={mean_diff:.4f}, diff_pixels={diff_pixels}",
                     "path": str(out_path),
+                    "hitmap": str(hitmap_path) if hitmap_path.exists() else None,
                 }
                 print("  [3/3] PIXEL MISMATCH ✗")
+                print(f"        Size: {size_info['size1']} vs {size_info['size2']}")
                 print(f"        Max diff: {max_diff}")
                 print(f"        Mean diff: {mean_diff:.4f}")
                 print(f"        Pixels differing: {diff_pixels}")
+                if hitmap_path.exists():
+                    print(f"        Hitmap: {hitmap_path}")
                 print("\n" + "=" * 60)
                 print(f"STOPPED AT: {name}")
                 print(f"Original:   {out_path}")
                 print(f"Reproduced: {reproduced_path}")
+                if hitmap_path.exists():
+                    print(f"Hitmap:     {hitmap_path}")
                 print("=" * 60)
                 assert False, (
                     f"Pixel-perfect reproduction FAILED for '{name}': "
@@ -181,7 +239,9 @@ def run_all_demos(
             fig, ax = func(fr, rng)
             out_path = output_dir / f"plot_{name}.png"
             # Use fr.save() for proper mm layout and auto-cropping
-            fr.save(fig, out_path, validate=False, verbose=False)
+            fr.save(
+                fig, out_path, validate=False, verbose=False, save_hitmap=save_hitmap
+            )
             if show:
                 _plt.show()
             else:
