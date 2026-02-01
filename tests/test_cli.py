@@ -59,7 +59,7 @@ class TestMainCommand:
         # Check for categorized command sections
         assert "Figure Creation:" in result.output
         # Help should mention how to launch GUI editor
-        assert "figrecipe edit" in result.output
+        assert "figrecipe gui" in result.output
 
 
 class TestVersionCommand:
@@ -199,12 +199,12 @@ class TestFontsCommand:
         assert "--search" in result.output
 
 
-class TestEditCommand:
-    """Test edit command."""
+class TestGuiCommand:
+    """Test gui command."""
 
-    def test_edit_help(self, runner):
-        """Test edit --help."""
-        result = runner.invoke(main, ["edit", "--help"])
+    def test_gui_help(self, runner):
+        """Test gui --help."""
+        result = runner.invoke(main, ["gui", "--help"])
         assert result.exit_code == 0
         assert "SOURCE" in result.output or "source" in result.output.lower()
 

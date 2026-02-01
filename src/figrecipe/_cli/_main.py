@@ -13,9 +13,10 @@ from ._convert import convert
 from ._crop import crop
 from ._diagram import diagram as _diagram_cmd
 from ._diff import diff
-from ._edit import edit
 from ._extract import extract
 from ._fonts import fonts
+from ._gui import gui
+from ._hitmap import hitmap
 from ._info import info
 from ._mcp import mcp
 from ._plot import plot
@@ -30,8 +31,8 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 # Command categories for organized help display
 COMMAND_CATEGORIES = [
-    ("Figure Creation", ["plot", "reproduce", "compose", "edit"]),
-    ("Image Processing", ["convert", "crop", "diff"]),
+    ("Figure Creation", ["plot", "reproduce", "compose", "gui"]),
+    ("Image Processing", ["convert", "crop", "diff", "hitmap"]),
     ("Data & Validation", ["extract", "validate", "info"]),
     ("Diagram", ["diagram"]),
     ("Style & Appearance", ["style", "fonts"]),
@@ -107,7 +108,7 @@ def _print_command_help(cmd, prefix: str, parent_ctx) -> None:
 def main(ctx: click.Context, version: bool, help_recursive: bool) -> None:
     """FigRecipe - Reproducible, style-editable scientific figures via YAML recipes.
 
-    Use 'figrecipe edit' to launch the GUI editor.
+    Use 'figrecipe gui' to launch the GUI editor.
     """
     if version:
         click.echo(f"figrecipe {__version__}")
@@ -138,9 +139,10 @@ main.add_command(convert)
 main.add_command(crop)
 main.add_command(_diagram_cmd, name="diagram")
 main.add_command(diff)
-main.add_command(edit)
 main.add_command(extract)
 main.add_command(fonts)
+main.add_command(gui)
+main.add_command(hitmap)
 main.add_command(info)
 main.add_command(list_python_apis)
 main.add_command(mcp)

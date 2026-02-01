@@ -277,4 +277,79 @@ def generate_hitmap_report(
     }
 
 
-__all__ = ["create_hitmap", "generate_hitmap_report"]
+def compute_diff_stats(
+    original: Union[str, Path, np.ndarray],
+    reproduced: Union[str, Path, np.ndarray],
+    threshold: int = 0,
+) -> Dict[str, float]:
+    """Compute difference statistics between two images without visualization.
+
+    Parameters
+    ----------
+    original : str, Path, or ndarray
+        Path to original image or numpy array.
+    reproduced : str, Path, or ndarray
+        Path to reproduced image or numpy array.
+    threshold : int
+        Pixel difference threshold (0-255). Differences <= threshold
+        are considered matches. Default 0 (exact match required).
+
+    Returns
+    -------
+    stats : dict
+        Statistics including:
+        - match_ratio: Fraction of matching pixels
+        - mismatch_ratio: Fraction of mismatching pixels
+        - match_pixels: Number of matching pixels
+        - mismatch_pixels: Number of mismatching pixels
+        - total_pixels: Total number of pixels
+        - max_diff: Maximum pixel difference
+        - mean_diff: Mean pixel difference
+        - mse: Mean squared error
+    """
+    # Load images
+    if isinstance(original, (str, Path)):
+        img1 = np.array(Image.open(original).convert("RGB"))
+    else:
+        img1 = original
+
+    if isinstance(reproduced, (str, Path)):
+        img2 = np.array(Image.open(reproduced).convert("RGB"))
+    else:
+        img2 = reproduced
+
+    # Ensure same shape
+    if img1.shape != img2.shape:
+        h = min(img1.shape[0], img2.shape[0])
+        w = min(img1.shape[1], img2.shape[1])
+        img1 = img1[:h, :w]
+        img2 = img2[:h, :w]
+
+    # Calculate difference
+    diff = np.abs(img1.astype(np.float32) - img2.astype(np.float32))
+    diff_gray = np.mean(diff, axis=2)
+
+    # Calculate statistics
+    max_diff = float(np.max(diff_gray))
+    mean_diff = float(np.mean(diff_gray))
+    mse = float(np.mean(diff_gray**2))
+
+    # Create match/mismatch masks
+    match_mask = diff_gray <= threshold
+    total_pixels = diff_gray.size
+    match_count = np.sum(match_mask)
+    mismatch_count = total_pixels - match_count
+
+    return {
+        "match_ratio": float(match_count / total_pixels),
+        "mismatch_ratio": float(mismatch_count / total_pixels),
+        "match_pixels": int(match_count),
+        "mismatch_pixels": int(mismatch_count),
+        "total_pixels": int(total_pixels),
+        "max_diff": max_diff,
+        "mean_diff": mean_diff,
+        "mse": mse,
+    }
+
+
+__all__ = ["create_hitmap", "generate_hitmap_report", "compute_diff_stats"]

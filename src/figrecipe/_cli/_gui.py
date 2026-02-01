@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""edit command - Launch GUI editor."""
+"""gui command - Launch GUI editor."""
 
 from pathlib import Path
 from typing import Optional
@@ -32,7 +32,7 @@ import click
     is_flag=True,
     help="Launch as native desktop window (requires pywebview).",
 )
-def edit(
+def gui(
     source: Optional[str],
     port: int,
     host: str,
