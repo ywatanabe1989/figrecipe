@@ -18,6 +18,7 @@ FigRecipe - Reproducible Scientific Figures
 
    gallery
    style_reference
+   cli_reference
    mcp_spec
 
 .. toctree::
