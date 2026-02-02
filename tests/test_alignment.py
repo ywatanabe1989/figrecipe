@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Tests for alignment feature (Phase 3).
 
-Tests for align_panels(), distribute_panels(), and smart_align() functions.
+Tests for align_panels(), distribute_panels(), and align_smart() functions.
 """
 
 import matplotlib
@@ -185,43 +185,43 @@ class TestDistributePanels:
         assert fig is not None
 
 
-class TestSmartAlign:
-    """Tests for smart_align() function."""
+class TestAlignSmart:
+    """Tests for align_smart() function."""
 
-    def test_smart_align_basic(self):
+    def test_align_smart_basic(self):
         """Smart align all panels."""
         fig, axes = fr.subplots(2, 2)
         for i in range(2):
             for j in range(2):
                 axes[i, j].plot([1, 2], [i + j, i + j + 1])
 
-        fr.smart_align(fig)
+        fr.align_smart(fig)
         assert fig is not None
 
-    def test_smart_align_specific_panels(self):
+    def test_align_smart_specific_panels(self):
         """Smart align specific panels only."""
         fig, axes = fr.subplots(2, 2)
         for i in range(2):
             for j in range(2):
                 axes[i, j].plot([1, 2], [i + j, i + j + 1])
 
-        fr.smart_align(fig, panels=[(0, 0), (0, 1)])
+        fr.align_smart(fig, panels=[(0, 0), (0, 1)])
         assert fig is not None
 
-    def test_smart_align_empty_panels(self):
+    def test_align_smart_empty_panels(self):
         """Smart align with empty panel list."""
         fig, ax = fr.subplots()
         ax.plot([1, 2], [1, 2])
 
-        fr.smart_align(fig, panels=[])
+        fr.align_smart(fig, panels=[])
         assert fig is not None
 
-    def test_smart_align_single_panel(self):
+    def test_align_smart_single_panel(self):
         """Smart align with single panel does nothing special."""
         fig, ax = fr.subplots()
         ax.plot([1, 2], [1, 2])
 
-        fr.smart_align(fig)
+        fr.align_smart(fig)
         assert fig is not None
 
 
@@ -273,7 +273,7 @@ class TestAlignmentWithComposition:
         fr.distribute_panels(fig, [(0, 0), (0, 1), (0, 2)], direction="horizontal")
 
         # Smart align
-        fr.smart_align(fig)
+        fr.align_smart(fig)
 
         assert fig is not None
         assert "ax_0_0" in fig.record.axes

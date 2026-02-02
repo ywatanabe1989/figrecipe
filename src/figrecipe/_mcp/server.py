@@ -8,7 +8,7 @@ matplotlib figures through the figrecipe library.
 Usage:
     fastmcp run figrecipe._mcp.server:mcp
     # or
-    figrecipe mcp run
+    figrecipe mcp start
 """
 
 from pathlib import Path

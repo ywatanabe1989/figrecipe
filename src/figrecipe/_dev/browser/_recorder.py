@@ -122,7 +122,7 @@ class DemoRecorder(ABC):
             return
 
         self._server_process = subprocess.Popen(
-            ["figrecipe", "edit", "--no-browser", "--port", str(port), "--host", host],
+            ["figrecipe", "gui", "--no-browser", "--port", str(port), "--host", host],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )

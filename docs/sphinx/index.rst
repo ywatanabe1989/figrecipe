@@ -14,6 +14,14 @@ FigRecipe - Reproducible Scientific Figures
 
 .. toctree::
    :maxdepth: 2
+   :caption: User Guide
+
+   gallery
+   style_reference
+   mcp_spec
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
 
    api/figrecipe
@@ -71,7 +79,7 @@ MCP Server:
 .. code-block:: bash
 
     # Start MCP server for AI agent integration
-    figrecipe mcp run
+    figrecipe mcp start
 
 Indices and tables
 ==================

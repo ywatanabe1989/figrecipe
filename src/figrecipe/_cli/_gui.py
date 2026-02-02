@@ -45,7 +45,7 @@ def gui(
     If not provided, creates a new blank figure.
     """
     try:
-        from .. import edit as fr_edit
+        from .. import gui as fr_gui
     except ImportError:
         raise click.ClickException(
             "Editor requires Flask. Install with: pip install figrecipe[editor]"
@@ -59,7 +59,7 @@ def gui(
         click.echo(f"Starting editor on http://{host}:{port}")
 
     try:
-        fr_edit(
+        fr_gui(
             source_path,
             port=port,
             host=host,

@@ -35,11 +35,11 @@ def _print_help_recursive(ctx):
             click.echo(cmd.get_help(sub_ctx))
 
 
-@mcp.command("run")
+@mcp.command("start")
 @click.option("--host", default="127.0.0.1", help="Host to bind to.")
 @click.option("--port", default=8000, type=int, help="Port to bind to.")
-def run_server(host: str, port: int) -> None:
-    """Run the figrecipe MCP server."""
+def start_server(host: str, port: int) -> None:
+    """Start the figrecipe MCP server."""
     try:
         from .._mcp.server import mcp as mcp_server
     except ImportError as e:
@@ -302,7 +302,7 @@ def doctor() -> None:
         return
 
     click.echo("\nMCP server is ready.")
-    click.echo("Run with: figrecipe mcp run")
+    click.echo("Run with: figrecipe mcp start")
 
 
 @mcp.command("install")
@@ -314,7 +314,7 @@ def install(claude_code: bool) -> None:
         click.echo()
         click.echo('  "figrecipe": {')
         click.echo('    "command": "figrecipe",')
-        click.echo('    "args": ["mcp", "run"]')
+        click.echo('    "args": ["mcp", "start"]')
         click.echo("  }")
     else:
         click.echo("figrecipe MCP Server Installation")
@@ -348,5 +348,5 @@ def info() -> None:
         click.echo(f"  - {tool.name}")
     click.echo()
     click.echo("Usage:")
-    click.echo("  figrecipe mcp run")
+    click.echo("  figrecipe mcp start")
     click.echo("  fastmcp run figrecipe._mcp.server:mcp")
