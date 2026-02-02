@@ -112,10 +112,10 @@ function findOverlappingElements(screenPos) {
             }
         }
     }
-    // Click priority (lower = higher priority). 'panel' lowest - selected only in empty space
-    const clickPriority = { 'scatter': 0, 'legend': 1, 'panel_label': 2, 'text': 2, 'title': 3, 'xlabel': 3, 'ylabel': 3,
+    // Click priority (lower = higher priority). 'figure' lowest - selected only when nothing else matches
+    const clickPriority = { 'scatter': 0, 'legend': 1, 'panel_label': 2, 'text': 2, 'box': 2, 'title': 3, 'xlabel': 3, 'ylabel': 3,
         'line': 4, 'bar': 5, 'pie': 5, 'hist': 5, 'contour': 6, 'quiver': 6, 'image': 6, 'fill': 7,
-        'xticks': 8, 'yticks': 8, 'spine': 9, 'axes': 10, 'panel': 11 };
+        'xticks': 8, 'yticks': 8, 'spine': 9, 'axes': 10, 'panel': 11, 'figure': 99, 'suptitle': 3, 'supxlabel': 3, 'supylabel': 3 };
     overlapping.forEach(e => {
         e._d = Infinity; const bb = currentBboxes[e.key];
         if (bb?.points?.length) { for (const p of bb.points) { const d = Math.hypot(imgX - p[0], imgY - p[1]); if (d < e._d) e._d = d; } }
