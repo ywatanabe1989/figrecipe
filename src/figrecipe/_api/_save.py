@@ -204,8 +204,8 @@ def save_figure(
     Supports multiple output formats:
     - Image file (.png, .pdf, etc.): Saves image + .yaml recipe (if save_recipe=True)
     - YAML file (.yaml): Saves recipe + image
-    - Directory (path/ or no extension): Saves as bundle directory
-    - ZIP file (.zip): Saves as ZIP bundle
+    - ZIP file (.zip): Saves as layered bundle (spec.json + style.json + data.csv)
+    - Directory (path/): Saves as directory bundle with recipe.yaml
 
     Parameters
     ----------
@@ -276,7 +276,20 @@ def save_figure(
         finalize_ticks(ax)
         finalize_special_plots(ax, style_dict)
 
-    # Check if saving as bundle (only with recipe)
+    # Check if saving as ZIP bundle (layered format: spec.json + style.json + data.csv)
+    if path.suffix.lower() == ".zip":
+        from .._bundle import save_bundle
+
+        bundle_path = save_bundle(
+            fig,
+            path,
+            dpi=dpi,
+            save_hitmap=save_hitmap,
+            verbose=verbose,
+        )
+        return bundle_path, None, None
+
+    # Check if saving as directory bundle (legacy recipe.yaml format)
     if save_recipe and _is_bundle_path(path):
         bundle_path, yaml_path = _save_as_bundle(
             fig,

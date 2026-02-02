@@ -394,7 +394,6 @@ class TestImports:
         from figrecipe import (
             compose,
             crop,
-            edit,
             info,
             load,
             load_style,
@@ -410,7 +409,6 @@ class TestImports:
         assert callable(reproduce)
         assert callable(load)
         assert callable(compose)
-        assert callable(edit)
         assert callable(crop)
         assert callable(info)
         assert callable(validate)

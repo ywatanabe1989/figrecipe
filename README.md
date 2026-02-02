@@ -80,6 +80,27 @@ figrecipe extract fig.yaml     # Extract plotted data
 figrecipe --help-recursive     # Show all commands
 ```
 
+### Bundle Format (for sharing)
+
+Save as a self-contained ZIP bundle with layered architecture:
+
+```python
+fr.save(fig, "figure.zip")  # → Layered bundle
+
+# Bundle contains:
+# - spec.json   (WHAT: semantic specification)
+# - style.json  (HOW: appearance settings)
+# - data.csv    (DATA: immutable source)
+# - exports/    (PNG, hitmap)
+```
+
+Load and reproduce from bundle:
+
+```python
+spec, style, data = fr.load_bundle("figure.zip")
+fig, ax = fr.reproduce_bundle("figure.zip")
+```
+
 ## Documentation
 
 📚 **[Full Documentation on Read the Docs](https://figrecipe.readthedocs.io/)**
