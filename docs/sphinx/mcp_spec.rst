@@ -374,3 +374,123 @@ Get supported plot types:
 
    types = plt_get_plot_types()
    # Returns: {"plot_types": [...], "categories": {...}}
+
+Diagram Tools
+-------------
+
+diagram_create
+^^^^^^^^^^^^^^
+
+Create a diagram from YAML specification:
+
+.. code-block:: python
+
+   result = diagram_create(
+       spec_dict={...},       # Or spec_path="diagram.yaml"
+   )
+   # Returns: {"mermaid": "...", "graphviz": "..."}
+
+diagram_render
+^^^^^^^^^^^^^^
+
+Render diagram to image:
+
+.. code-block:: python
+
+   result = diagram_render(
+       spec_path="diagram.yaml",
+       output_path="diagram.png",
+       format="png",           # png, svg, pdf
+       backend="auto",         # mermaid-cli, graphviz, mermaid.ink
+       scale=2.0
+   )
+
+diagram_compile_mermaid
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Compile to Mermaid format:
+
+.. code-block:: python
+
+   result = diagram_compile_mermaid(
+       spec_path="diagram.yaml",
+       output_path="diagram.mmd"
+   )
+
+diagram_compile_graphviz
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compile to Graphviz DOT format:
+
+.. code-block:: python
+
+   result = diagram_compile_graphviz(
+       spec_path="diagram.yaml",
+       output_path="diagram.dot"
+   )
+
+diagram_list_presets
+^^^^^^^^^^^^^^^^^^^^
+
+List available diagram presets:
+
+.. code-block:: python
+
+   presets = diagram_list_presets()
+   # Returns: {"workflow": ..., "decision": ..., "pipeline": ..., "scientific": ...}
+
+diagram_get_backends
+^^^^^^^^^^^^^^^^^^^^
+
+Check rendering backend availability:
+
+.. code-block:: python
+
+   backends = diagram_get_backends()
+   # Returns availability and installation instructions
+
+All MCP Tools Summary
+---------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Tool
+     - Description
+   * - **plt_plot**
+     - Create figure from declarative spec
+   * - **plt_reproduce**
+     - Reproduce figure from recipe
+   * - **plt_compose**
+     - Combine multiple figures
+   * - **plt_info**
+     - Get recipe information
+   * - **plt_validate**
+     - Validate reproduction fidelity
+   * - **plt_crop**
+     - Crop whitespace from image
+   * - **plt_extract_data**
+     - Extract plotted data arrays
+   * - **plt_list_styles**
+     - List style presets
+   * - **plt_get_plot_types**
+     - Get supported plot types
+   * - **diagram_create**
+     - Create diagram from spec
+   * - **diagram_render**
+     - Render diagram to image
+   * - **diagram_compile_mermaid**
+     - Compile to Mermaid format
+   * - **diagram_compile_graphviz**
+     - Compile to Graphviz format
+   * - **diagram_list_presets**
+     - List diagram presets
+   * - **diagram_get_preset**
+     - Get preset configuration
+   * - **diagram_get_backends**
+     - Check backend availability
+   * - **diagram_split**
+     - Split large diagram into parts
+   * - **diagram_get_paper_modes**
+     - Get paper layout modes
