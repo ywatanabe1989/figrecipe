@@ -6,39 +6,76 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+LOG_PATH="$SCRIPT_DIR/.run_all.log"
 
-echo "========================================"
-echo "FigRecipe Examples Runner"
-echo "========================================"
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Skip patterns (interactive/special)
-SKIP_PATTERNS="editor|gui|mcp"
+log() { echo -e "$1" | tee -a "$LOG_PATH"; }
 
-# Find all numbered .py files
-SCRIPTS=$(find . -maxdepth 1 -name '[0-9][0-9]_*.py' | sort)
-TOTAL=$(echo "$SCRIPTS" | wc -l)
-COUNT=0
+main() {
+    cd "$SCRIPT_DIR"
+    echo >"$LOG_PATH"
 
-for script in $SCRIPTS; do
-    name=$(basename "$script")
+    log "========================================"
+    log "FigRecipe Examples Runner"
+    log "========================================"
+    log ""
 
-    # Skip interactive examples
-    if echo "$name" | grep -qiE "$SKIP_PATTERNS"; then
-        echo "[SKIP] $name (interactive)"
-        continue
-    fi
+    # Skip patterns (interactive/special)
+    local SKIP_PATTERNS="editor|gui|mcp|check_api"
 
-    COUNT=$((COUNT + 1))
-    echo ""
-    echo "[$COUNT/$TOTAL] Running $name..."
-    python "$name" || echo "[WARN] $name exited with error"
-    echo "Done: $name"
-done
+    # Delete existing out directories
+    log "Cleaning *_out directories..."
+    rm -rf "$SCRIPT_DIR"/*_out
+    log "Done."
+    log ""
 
-echo ""
-echo "========================================"
-echo "Completed $COUNT examples"
-echo "========================================"
-echo "Output directories created: *_out/"
-ls -d ./*_out 2>/dev/null || echo "(none)"
+    # Find all numbered .py files
+    local -a SCRIPTS
+    mapfile -t SCRIPTS < <(find . -maxdepth 1 -name '[0-9][0-9]*.py' | sort)
+    local TOTAL=${#SCRIPTS[@]}
+    local COUNT=0
+    local PASSED=0
+    local FAILED=0
+
+    for script in "${SCRIPTS[@]}"; do
+        local name
+        name=$(basename "$script")
+
+        # Skip interactive examples
+        if echo "$name" | grep -qiE "$SKIP_PATTERNS"; then
+            log "${YELLOW}[SKIP]${NC} $name (interactive/special)"
+            continue
+        fi
+
+        COUNT=$((COUNT + 1))
+        log ""
+        log "[$COUNT/$TOTAL] Running $name..."
+
+        if python "$name" >>"$LOG_PATH" 2>&1; then
+            log "${GREEN}[PASS]${NC} $name"
+            PASSED=$((PASSED + 1))
+        else
+            log "${RED}[FAIL]${NC} $name (see $LOG_PATH)"
+            FAILED=$((FAILED + 1))
+        fi
+    done
+
+    log ""
+    log "========================================"
+    log "Results: $PASSED passed, $FAILED failed, $((TOTAL - COUNT)) skipped"
+    log "========================================"
+    log ""
+    log "Output directories:"
+    find . -maxdepth 1 -type d -name '*_out' | sort | tee -a "$LOG_PATH" || log "(none)"
+    log ""
+    log "Log: $LOG_PATH"
+}
+
+main "$@"
+
+# EOF
