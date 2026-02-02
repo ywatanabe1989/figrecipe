@@ -3,159 +3,431 @@
 # Timestamp: "2026-02-02 (ywatanabe)"
 # File: /home/ywatanabe/proj/figrecipe/examples/07_figrecipe_concept_diagram.py
 
-"""FigRecipe Concept Diagram - Visualize the core workflow.
+"""FigRecipe Concept Diagram - For Researchers.
 
-Creates a diagram showing FigRecipe's architecture and workflow:
-- Figure creation with automatic recording
-- Recipe (YAML) generation
-- Reproduction and editing cycle
-- MCP server integration for AI agents
+Creates a visual explanation of FigRecipe's core concepts:
+- Separation of DATA (what to show) from STYLE (how to show)
+- Auto-recording from Python code to YAML recipe
+- Validation and reproduction workflow
+
+Usage:
+    python 07_figrecipe_concept_diagram.py
+
+Output:
+    07_figrecipe_concept_diagram_out/figrecipe_concept.png (200 dpi)
+    07_figrecipe_concept_diagram_out/figrecipe_concept.svg (vector)
 """
 
 from pathlib import Path
 
-import figrecipe as fr
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+
+# Colors - muted, professional (Material Design inspired)
+COLORS = {
+    "code": "#E3F2FD",
+    "code_border": "#1976D2",
+    "recipe": "#FFF8E1",
+    "recipe_border": "#FF8F00",
+    "data": "#E8F5E9",
+    "data_border": "#388E3C",
+    "style": "#F3E5F5",
+    "style_border": "#7B1FA2",
+    "figure": "#FFEBEE",
+    "figure_border": "#C62828",
+    "text": "#212121",
+    "subtext": "#616161",
+}
 
 
-def create_figrecipe_workflow_diagram(output_dir):
-    """Create the main FigRecipe workflow diagram."""
-    d = fr.Diagram(type="workflow", title="FigRecipe Workflow")
-
-    # Input sources
-    d.add_node("python", "Python Code\nfr.subplots()", shape="stadium")
-    d.add_node("mcp", "MCP Server\n(AI Agents)", shape="stadium")
-    d.add_node("cli", "CLI\nfigrecipe plot", shape="stadium")
-
-    # Core processing
-    d.add_node("record", "Automatic\nRecording", emphasis="primary")
-    d.add_node("figure", "matplotlib\nFigure", emphasis="primary")
-
-    # Outputs
-    d.add_node("image", "Image\n(.png/.pdf)", shape="rounded", emphasis="success")
-    d.add_node("recipe", "Recipe\n(.yaml)", shape="rounded", emphasis="success")
-    d.add_node("data", "Data\n(.csv)", shape="rounded", emphasis="success")
-
-    # Reproduction cycle
-    d.add_node("reproduce", "Reproduce\nfr.reproduce()", emphasis="primary")
-    d.add_node("gui", "GUI Editor\nfr.gui()", emphasis="primary")
-
-    # Edges - creation flow
-    d.add_edge("python", "record")
-    d.add_edge("mcp", "record")
-    d.add_edge("cli", "record")
-    d.add_edge("record", "figure")
-    d.add_edge("figure", "image", label="fr.save()")
-    d.add_edge("figure", "recipe")
-    d.add_edge("figure", "data")
-
-    # Edges - reproduction flow
-    d.add_edge("recipe", "reproduce", style="dashed")
-    d.add_edge("reproduce", "figure", style="dashed")
-    d.add_edge("recipe", "gui", style="dashed")
-    d.add_edge("gui", "recipe", label="edit", style="dashed")
-
-    # Export
-    d.to_mermaid(output_dir / "figrecipe_workflow.mmd")
-    d.to_yaml(output_dir / "figrecipe_workflow.yaml")
-
-    try:
-        d.render(output_dir / "figrecipe_workflow.png", format="png")
-    except RuntimeError:
-        pass  # Rendering requires mermaid-cli
-
-    return d
+def _add_box(ax, xy, w, h, face, edge, lw=2, rounding=0.2):
+    """Add a rounded box patch."""
+    box = FancyBboxPatch(
+        xy,
+        w,
+        h,
+        boxstyle=f"round,pad=0.05,rounding_size={rounding}",
+        facecolor=face,
+        edgecolor=edge,
+        linewidth=lw,
+    )
+    ax.add_patch(box)
+    return box
 
 
-def create_recipe_structure_diagram(output_dir):
-    """Create a diagram showing recipe structure."""
-    d = fr.Diagram(type="workflow", title="Recipe Structure")
-
-    # Recipe file
-    d.add_node("recipe", "recipe.yaml", shape="stadium", emphasis="primary")
-
-    # Components
-    d.add_node("figure", "figure:\n  size, dpi", shape="rounded")
-    d.add_node("axes", "axes:\n  ax_0_0, ax_0_1...", shape="rounded")
-    d.add_node("calls", "calls:\n  plot, scatter...", shape="rounded")
-    d.add_node("style", "style:\n  colors, fonts...", shape="rounded")
-
-    # Data files
-    d.add_node("data_dir", "recipe_data/", shape="stadium", emphasis="success")
-    d.add_node("csv1", "plot_000_x.csv", shape="rounded")
-    d.add_node("csv2", "plot_000_y.csv", shape="rounded")
-
-    # Edges
-    d.add_edge("recipe", "figure")
-    d.add_edge("recipe", "axes")
-    d.add_edge("recipe", "calls")
-    d.add_edge("recipe", "style")
-    d.add_edge("calls", "data_dir", label="data refs")
-    d.add_edge("data_dir", "csv1")
-    d.add_edge("data_dir", "csv2")
-
-    d.to_mermaid(output_dir / "recipe_structure.mmd")
-
-    return d
+def _add_text(ax, x, y, text, **kwargs):
+    """Add centered text with defaults."""
+    defaults = {"ha": "center", "va": "center", "color": COLORS["text"]}
+    defaults.update(kwargs)
+    ax.text(x, y, text, **defaults)
 
 
-def create_mcp_integration_diagram(output_dir):
-    """Create a diagram showing MCP server integration."""
-    d = fr.Diagram(type="workflow", title="MCP Server Integration")
-
-    # AI Agent
-    d.add_node("agent", "AI Agent\n(Claude)", shape="stadium")
-
-    # MCP Server
-    d.add_node("mcp", "FigRecipe\nMCP Server", emphasis="primary")
-
-    # Tools
-    d.add_node("plt_plot", "plt_plot", shape="rounded")
-    d.add_node("plt_compose", "plt_compose", shape="rounded")
-    d.add_node("plt_reproduce", "plt_reproduce", shape="rounded")
-    d.add_node("diagram", "diagram_*", shape="rounded")
-
-    # Outputs
-    d.add_node(
-        "output", "Publication-Ready\nFigures", shape="stadium", emphasis="success"
+def _draw_code_section(ax):
+    """Draw the Python Code box."""
+    _add_box(ax, (0.5, 5.8), 2.5, 1.4, COLORS["code"], COLORS["code_border"])
+    _add_text(
+        ax,
+        1.75,
+        6.7,
+        "Python Code",
+        fontsize=11,
+        fontweight="bold",
+        color=COLORS["code_border"],
+    )
+    _add_text(
+        ax,
+        1.75,
+        6.25,
+        "import figrecipe as fr",
+        fontsize=8,
+        family="monospace",
+        color=COLORS["subtext"],
+    )
+    _add_text(
+        ax,
+        1.75,
+        5.95,
+        "ax.plot(x, y)",
+        fontsize=8,
+        family="monospace",
+        color=COLORS["subtext"],
     )
 
-    # Edges
-    d.add_edge("agent", "mcp", label="tool calls")
-    d.add_edge("mcp", "plt_plot")
-    d.add_edge("mcp", "plt_compose")
-    d.add_edge("mcp", "plt_reproduce")
-    d.add_edge("mcp", "diagram")
-    d.add_edge("plt_plot", "output")
-    d.add_edge("plt_compose", "output")
+    # Arrow to Recipe
+    arrow = FancyArrowPatch(
+        (3.0, 6.5),
+        (4.3, 6.5),
+        arrowstyle="-|>",
+        mutation_scale=15,
+        color="#757575",
+        linewidth=2,
+    )
+    ax.add_patch(arrow)
+    _add_text(
+        ax,
+        3.65,
+        6.75,
+        "auto-record",
+        fontsize=8,
+        color=COLORS["subtext"],
+        fontstyle="italic",
+    )
 
-    d.to_mermaid(output_dir / "mcp_integration.mmd")
 
-    return d
+def _draw_recipe_section(ax):
+    """Draw the Recipe (YAML) box."""
+    _add_box(
+        ax, (4.3, 5.5), 3.4, 2.0, COLORS["recipe"], COLORS["recipe_border"], lw=2.5
+    )
+    _add_text(
+        ax,
+        6.0,
+        7.1,
+        "Recipe (YAML)",
+        fontsize=12,
+        fontweight="bold",
+        color=COLORS["recipe_border"],
+    )
+    _add_text(ax, 6.0, 6.6, "Structure + Plot Calls", fontsize=9)
+    _add_text(
+        ax,
+        6.0,
+        6.15,
+        "version, environment",
+        fontsize=8,
+        color=COLORS["subtext"],
+        fontstyle="italic",
+    )
+    _add_text(
+        ax,
+        6.0,
+        5.75,
+        "Reproducible specification",
+        fontsize=8,
+        color=COLORS["recipe_border"],
+        fontweight="bold",
+    )
 
 
-def main():
-    """Generate all FigRecipe concept diagrams."""
-    output_dir = Path(__file__).parent / "07_figrecipe_concept_diagram_out"
+def _draw_separation_section(ax):
+    """Draw the DATA/STYLE separation section."""
+    # Container
+    _add_box(ax, (0.5, 2.2), 7.2, 2.8, "#ECEFF1", "#455A64", lw=2.5, rounding=0.25)
+    _add_text(
+        ax,
+        4.1,
+        4.7,
+        "Key Innovation: Separation of Concerns",
+        fontsize=11,
+        fontweight="bold",
+        color="#37474F",
+    )
+
+    # DATA box
+    _add_box(
+        ax,
+        (0.8, 2.5),
+        3.0,
+        1.9,
+        COLORS["data"],
+        COLORS["data_border"],
+        lw=2.5,
+        rounding=0.15,
+    )
+    _add_text(
+        ax,
+        2.3,
+        4.0,
+        "DATA",
+        fontsize=13,
+        fontweight="bold",
+        color=COLORS["data_border"],
+    )
+    _add_text(ax, 2.3, 3.55, "CSV / NPZ files", fontsize=9)
+    _add_text(
+        ax,
+        2.3,
+        3.1,
+        "Scientific Meaning",
+        fontsize=10,
+        fontweight="bold",
+        color="#2E7D32",
+    )
+    _add_text(
+        ax,
+        2.3,
+        2.7,
+        "WHAT to show",
+        fontsize=9,
+        fontstyle="italic",
+        color=COLORS["subtext"],
+    )
+
+    # STYLE box
+    _add_box(
+        ax,
+        (4.4, 2.5),
+        3.0,
+        1.9,
+        COLORS["style"],
+        COLORS["style_border"],
+        lw=2.5,
+        rounding=0.15,
+    )
+    _add_text(
+        ax,
+        5.9,
+        4.0,
+        "STYLE",
+        fontsize=13,
+        fontweight="bold",
+        color=COLORS["style_border"],
+    )
+    _add_text(ax, 5.9, 3.55, "Presets / GUI editing", fontsize=9)
+    _add_text(
+        ax,
+        5.9,
+        3.1,
+        "Visual Appearance",
+        fontsize=10,
+        fontweight="bold",
+        color="#6A1B9A",
+    )
+    _add_text(
+        ax,
+        5.9,
+        2.7,
+        "HOW to show",
+        fontsize=9,
+        fontstyle="italic",
+        color=COLORS["subtext"],
+    )
+
+    # Arrows from Recipe
+    ax.annotate(
+        "",
+        xy=(2.3, 4.4),
+        xytext=(5.3, 5.5),
+        arrowprops=dict(arrowstyle="-|>", color=COLORS["data_border"], lw=2),
+    )
+    ax.annotate(
+        "",
+        xy=(5.9, 4.4),
+        xytext=(6.3, 5.5),
+        arrowprops=dict(arrowstyle="-|>", color=COLORS["style_border"], lw=2),
+    )
+
+
+def _draw_figure_section(ax):
+    """Draw the Figure output box."""
+    _add_box(
+        ax, (8.5, 4.2), 3.0, 2.3, COLORS["figure"], COLORS["figure_border"], lw=2.5
+    )
+    _add_text(
+        ax,
+        10.0,
+        6.1,
+        "Figure",
+        fontsize=13,
+        fontweight="bold",
+        color=COLORS["figure_border"],
+    )
+    _add_text(ax, 10.0, 5.6, "PNG / PDF / SVG", fontsize=10)
+    _add_text(
+        ax,
+        10.0,
+        5.15,
+        "Publication-ready",
+        fontsize=9,
+        color=COLORS["subtext"],
+        fontstyle="italic",
+    )
+    _add_text(
+        ax,
+        10.0,
+        4.6,
+        "Validated & Reproducible",
+        fontsize=9,
+        fontweight="bold",
+        color="#388E3C",
+    )
+
+    # Arrows to Figure
+    ax.annotate(
+        "",
+        xy=(8.5, 5.3),
+        xytext=(7.7, 6.0),
+        arrowprops=dict(arrowstyle="-|>", color=COLORS["recipe_border"], lw=2),
+    )
+    ax.annotate(
+        "",
+        xy=(8.5, 4.8),
+        xytext=(7.4, 3.5),
+        arrowprops=dict(
+            arrowstyle="-|>",
+            color=COLORS["data_border"],
+            lw=2,
+            connectionstyle="arc3,rad=0.2",
+        ),
+    )
+    ax.annotate(
+        "",
+        xy=(8.5, 5.0),
+        xytext=(7.4, 3.5),
+        arrowprops=dict(
+            arrowstyle="-|>",
+            color=COLORS["style_border"],
+            lw=2,
+            connectionstyle="arc3,rad=-0.1",
+        ),
+    )
+
+    # Validation feedback loop
+    ax.annotate(
+        "",
+        xy=(7.7, 6.3),
+        xytext=(11.2, 5.3),
+        arrowprops=dict(
+            arrowstyle="-|>",
+            color="#388E3C",
+            lw=2,
+            ls="--",
+            connectionstyle="arc3,rad=-0.4",
+        ),
+    )
+    _add_text(
+        ax, 10.3, 6.5, "validate", fontsize=8, color="#388E3C", fontstyle="italic"
+    )
+
+
+def _draw_benefits_section(ax):
+    """Draw the benefits section at bottom."""
+    _add_box(ax, (0.5, 0.4), 11.0, 1.4, "#E0F7FA", "#00838F", rounding=0.2)
+    _add_text(
+        ax,
+        6.0,
+        1.5,
+        "Benefits for Researchers",
+        fontsize=11,
+        fontweight="bold",
+        color="#006064",
+    )
+
+    # Three benefits
+    for x, title, desc in [
+        (2.2, "Reproducibility", "Same recipe = Same figure"),
+        (6.0, "Flexibility", "Change style, keep meaning"),
+        (9.8, "Verification", "Pixel-level validation"),
+    ]:
+        _add_text(ax, x, 1.0, title, fontsize=10, fontweight="bold", color="#00695C")
+        _add_text(ax, x, 0.65, desc, fontsize=8, color=COLORS["subtext"])
+
+    # Vertical separators
+    ax.plot([4.0, 4.0], [0.55, 1.15], color="#B0BEC5", lw=1)
+    ax.plot([8.0, 8.0], [0.55, 1.15], color="#B0BEC5", lw=1)
+
+
+def create_figrecipe_concept_diagram(output_dir: Path = None, dpi: int = 200):
+    """Create FigRecipe concept diagram explaining the separation of concerns.
+
+    Parameters
+    ----------
+    output_dir : Path, optional
+        Output directory. Defaults to script_out directory.
+    dpi : int
+        DPI for PNG output. Default 200.
+
+    Returns
+    -------
+    tuple
+        Paths to (png_file, svg_file)
+    """
+    if output_dir is None:
+        output_dir = Path(__file__).parent / "07_figrecipe_concept_diagram_out"
+    output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
 
-    print("Creating FigRecipe concept diagrams...")
+    # Set up figure
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    ax.set_xlim(0, 12)
+    ax.set_ylim(0, 8)
+    ax.set_aspect("equal")
+    ax.axis("off")
 
-    print("1. FigRecipe Workflow")
-    create_figrecipe_workflow_diagram(output_dir)
+    # Title
+    _add_text(
+        ax,
+        6,
+        7.6,
+        "FigRecipe: Reproducible Scientific Figures",
+        fontsize=16,
+        fontweight="bold",
+    )
 
-    print("2. Recipe Structure")
-    create_recipe_structure_diagram(output_dir)
+    # Draw all sections
+    _draw_code_section(ax)
+    _draw_recipe_section(ax)
+    _draw_separation_section(ax)
+    _draw_figure_section(ax)
+    _draw_benefits_section(ax)
 
-    print("3. MCP Integration")
-    create_mcp_integration_diagram(output_dir)
+    # Save
+    plt.tight_layout()
+    png_path = output_dir / "figrecipe_concept.png"
+    svg_path = output_dir / "figrecipe_concept.svg"
 
-    print(f"\nAll diagrams saved to: {output_dir}")
-    print("\nGenerated files:")
-    for f in sorted(output_dir.glob("*")):
-        print(f"  {f.name}")
+    plt.savefig(
+        png_path, dpi=dpi, bbox_inches="tight", facecolor="white", edgecolor="none"
+    )
+    plt.savefig(svg_path, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.close(fig)
+
+    print(f"Saved: {png_path}")
+    print(f"Saved: {svg_path}")
+    return png_path, svg_path
 
 
 if __name__ == "__main__":
-    main()
+    create_figrecipe_concept_diagram()
 
 # EOF
