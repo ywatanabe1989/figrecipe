@@ -16,31 +16,86 @@ FigRecipe wraps matplotlib with automatic recording. Use the standard matplotlib
 
     # Use standard matplotlib methods
     x = np.linspace(0, 2 * np.pi, 100)
-    ax.plot(x, np.sin(x), label="sin(x)", color="blue")
-    ax.plot(x, np.cos(x), label="cos(x)", color="red")
+    ax.plot(x, np.sin(x), label="sin(x)", color="blue", id="sine")
+    ax.plot(x, np.cos(x), label="cos(x)", color="red", id="cosine")
 
     ax.set_xlabel("X (radians)")
     ax.set_ylabel("Y")
     ax.set_title("Trigonometric Functions")
     ax.legend()
 
-    # Save creates: plot.png + plot.yaml + plot_data/
+    # Save creates: plot.png + plot.yaml
     fr.save(fig, "trig_plot.png")
+
+.. image:: _static/quickstart_trig.png
+   :width: 400px
+   :align: center
+   :alt: Trigonometric plot example
+
+Bundle Format (Recommended for Sharing)
+---------------------------------------
+
+For sharing reproducible figures, use the **ZIP bundle format**:
+
+.. code-block:: python
+
+    import figrecipe as fr
+    import numpy as np
+
+    fig, ax = fr.subplots()
+    x = np.array([1, 2, 3, 4, 5])
+    y = x ** 2
+    ax.scatter(x, y, id="data")
+    ax.set_title("Quadratic Data")
+
+    # Save as self-contained ZIP bundle
+    fr.save(fig, "figure.zip")
+
+.. image:: _static/quickstart_bundle.png
+   :width: 400px
+   :align: center
+   :alt: Bundle format example
+
+**Bundle Structure:**
+
+::
+
+    figure.zip
+    ├── spec.json         # WHAT to plot (semantic specification)
+    ├── style.json        # HOW it looks (colors, fonts, sizes)
+    ├── data.csv          # Immutable source data
+    └── exports/
+        ├── figure.png
+        └── figure_hitmap.png
+
+**Load and Reproduce from Bundle:**
+
+.. code-block:: python
+
+    # Load components separately
+    spec, style, data = fr.load_bundle("figure.zip")
+
+    # Or reproduce directly
+    fig, ax = fr.reproduce_bundle("figure.zip")
 
 Output Files
 ------------
 
-FigRecipe automatically creates:
+FigRecipe creates different outputs depending on format:
+
+**PNG/YAML format** (for development):
 
 ::
 
-    trig_plot.png          # The figure image
-    trig_plot.yaml         # Recipe for reproduction
-    trig_plot_data/        # Data CSV files
-      plot_000_x.csv         # X data from first plot call
-      plot_000_y.csv         # Y data from first plot call
-      plot_001_x.csv         # X data from second plot call
-      plot_001_y.csv         # Y data from second plot call
+    plot.png               # The figure image
+    plot.yaml              # Recipe for reproduction
+    plot_data/             # Data CSV files
+
+**ZIP bundle** (for sharing):
+
+::
+
+    plot.zip               # Self-contained bundle with all data
 
 Reproducing a Figure
 --------------------
@@ -51,12 +106,15 @@ Recreate any figure from its recipe:
 
     import figrecipe as fr
 
-    # Reproduce from recipe
+    # From YAML recipe
     fig, ax = fr.reproduce("trig_plot.yaml")
+
+    # From ZIP bundle
+    fig, ax = fr.reproduce_bundle("figure.zip")
 
     # Optionally modify and save again
     ax.set_title("Modified Title")
-    fr.save(fig, "modified_plot.png")
+    fr.save(fig, "modified.png")
 
 CLI Commands
 ------------
@@ -77,14 +135,8 @@ FigRecipe provides a comprehensive CLI:
     # Compare two images
     figrecipe diff original.png reproduced.png
 
-    # Generate hitmap visualization
-    figrecipe hitmap original.png reproduced.png
-
     # Launch GUI editor
     figrecipe gui trig_plot.yaml
-
-    # Create figure from declarative spec
-    figrecipe plot spec.yaml -o output.png
 
 MCP Server for AI Agents
 ------------------------
@@ -142,9 +194,9 @@ Compose multiple figures:
     fr.save(fig2, "panel_b.png")
 
     # Compose into multi-panel figure
-    fig, axes = fr.compose(
+    fr.compose(
         sources=["panel_a.yaml", "panel_b.yaml"],
+        output_path="composed.png",
         layout="horizontal",
         panel_labels=True
     )
-    fr.save(fig, "composed.png")

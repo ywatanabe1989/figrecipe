@@ -20,8 +20,34 @@ Demonstration scripts showcasing FigRecipe's capabilities for reproducible scien
 
 ## Examples Overview
 
+### Recommended Starting Point
+
+**01. Bundle Format** (`01_bundle_format.py`) - The recommended way to save and share figures:
+```python
+import figrecipe as fr
+
+fig, ax = fr.subplots()
+ax.scatter(x, y, id="data")
+
+# Save as self-contained ZIP bundle
+fr.save(fig, "figure.zip")
+
+# Load and reproduce
+spec, style, data = fr.load_bundle("figure.zip")
+fig2, ax2 = fr.reproduce_bundle("figure.zip")
+```
+
+The ZIP bundle packages everything needed for reproducibility:
+- `spec.json` - WHAT to plot (semantic specification)
+- `style.json` - HOW it looks (colors, fonts, sizes)
+- `data.csv` - Immutable source data
+- `exports/` - PNG and hitmap images
+
+### All Examples
+
 | # | File | Description |
 |---|------|-------------|
+| 01 | `01_bundle_format.py` | **ZIP bundle format (recommended for sharing)** |
 | 01 | `01_plot_and_reproduce_all.py` | Generate & reproduce all 47 plot types |
 | 02 | `02_compose_and_reproduce.py` | Multi-panel figure composition |
 | 03 | `03_statistical_notations_and_captions.py` | Statistical annotations & captions |
