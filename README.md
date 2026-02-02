@@ -9,6 +9,7 @@
 **Reproducible scientific figures as first-class objects**
 
 [![PyPI version](https://badge.fury.io/py/figrecipe.svg)](https://badge.fury.io/py/figrecipe)
+[![Documentation](https://readthedocs.org/projects/figrecipe/badge/?version=latest)](https://figrecipe.readthedocs.io/)
 [![Tests](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
@@ -67,16 +68,26 @@ Reopen and edit later:
 
 ```python
 fig, ax = fr.load("figure.png")
-fr.edit(fig)  # Launch GUI editor
+fr.gui(fig)  # Launch GUI editor
 ```
 
 CLI:
 
 ```bash
-figrecipe edit figure.png      # Launch GUI editor
+figrecipe gui figure.png       # Launch GUI editor
 figrecipe reproduce fig.yaml   # Recreate figure
 figrecipe extract fig.yaml     # Extract plotted data
+figrecipe --help-recursive     # Show all commands
 ```
+
+## Documentation
+
+📚 **[Full Documentation on Read the Docs](https://figrecipe.readthedocs.io/)**
+
+- [Plot Gallery](https://figrecipe.readthedocs.io/en/latest/gallery.html) — Visual examples of all plot types
+- [CLI Reference](https://figrecipe.readthedocs.io/en/latest/cli_reference.html) — Complete command-line reference
+- [MCP Specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html) — AI agent integration guide
+- [Style Reference](https://figrecipe.readthedocs.io/en/latest/style_reference.html) — Style parameters and anatomy
 
 ## What Makes FigRecipe Different?
 
