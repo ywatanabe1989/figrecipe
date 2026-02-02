@@ -1,13 +1,34 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-# Timestamp: "2026-01-26 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/08_cli_commands.sh
+# Timestamp: "2026-02-02 08:34:38 (ywatanabe)"
+# File: ./examples/09_cli_commands.sh
+
+ORIG_DIR="$(pwd)"
+THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
+LOG_PATH="$THIS_DIR/.$(basename $0).log"
+echo > "$LOG_PATH"
+
+GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+
+GRAY='\033[0;90m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+echo_info() { echo -e "${GRAY}INFO: $1${NC}"; }
+echo_success() { echo -e "${GREEN}SUCC: $1${NC}"; }
+echo_warning() { echo -e "${YELLOW}WARN: $1${NC}"; }
+echo_error() { echo -e "${RED}ERRO: $1${NC}"; }
+echo_header() { echo_info "=== $1 ==="; }
+# ---------------------------------------
 
 # FigRecipe CLI Commands Demo
 # ===========================
 #
 # This script demonstrates all figrecipe CLI commands.
 # Run: ./08_cli_commands.sh
+
 
 set -e
 

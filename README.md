@@ -20,7 +20,7 @@ Instead of treating figures as static images, FigRecipe treats them as **structu
 Part of [**SciTeX™**](https://scitex.ai).
 
 <p align="center">
-  <img src="docs/FigRecipe-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
+  <img src="docs/figrecipe-gui-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
 </p>
 
 ### 🤖 MCP Server — AI Agents Can Create Figures

@@ -5,6 +5,13 @@ FigRecipe - Reproducible Scientific Figures
 
 **FigRecipe** is a framework for creating reproducible, style-editable scientific figures via YAML recipes. It wraps matplotlib with automatic recording, enabling figures to be reproduced, modified, and shared.
 
+.. figure:: /_static/figrecipe-gui-demo.png
+   :alt: FigRecipe GUI Editor
+   :width: 100%
+   :align: center
+
+   The FigRecipe GUI Editor allows interactive figure styling with real-time preview.
+
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started
