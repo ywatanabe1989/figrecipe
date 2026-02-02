@@ -22,7 +22,7 @@ def get_colors_from_style(n_colors: int, explicit_colors=None) -> List:
     list
         List of colors.
     """
-    from ..styles import resolve_color
+    from ..styles._internal import resolve_color
 
     if explicit_colors is not None:
         if isinstance(explicit_colors, list):
@@ -31,7 +31,7 @@ def get_colors_from_style(n_colors: int, explicit_colors=None) -> List:
         # Resolve single color
         return [resolve_color(explicit_colors)] * n_colors
 
-    from ..styles import get_style
+    from ..styles._internal import get_style
 
     style = get_style()
     if style and "colors" in style and "palette" in style.colors:

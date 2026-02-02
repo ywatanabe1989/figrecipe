@@ -12,7 +12,7 @@ def apply_plots(
     ax, plots: List[Dict[str, Any]], plot_types: Dict, reserved_keys: set
 ) -> None:
     """Apply plot elements to an axes."""
-    from ..styles import resolve_colors_in_kwargs
+    from ..styles._internal import resolve_colors_in_kwargs
 
     # Additional reserved keys for specific plot types
     boxplot_reserved_keys = {"color", "colors"}

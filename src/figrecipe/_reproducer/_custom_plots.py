@@ -53,7 +53,7 @@ def replay_joyplot_call(ax: Axes, call: CallRecord) -> Any:
     n_ridges = len(arrays)
 
     # Get colors from style
-    from ..styles import get_style
+    from ..styles._internal import get_style
 
     style = get_style()
     if style and "colors" in style and "palette" in style.colors:
@@ -180,7 +180,7 @@ def replay_swarmplot_call(ax: Axes, call: CallRecord) -> List[Any]:
 
     # Get style
     from .._utils._units import mm_to_pt
-    from ..styles import get_style
+    from ..styles._internal import get_style
 
     style = get_style()
     size_pt = mm_to_pt(size) ** 2  # matplotlib uses area

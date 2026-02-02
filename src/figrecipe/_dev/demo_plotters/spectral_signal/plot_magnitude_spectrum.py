@@ -19,6 +19,7 @@ def plot_magnitude_spectrum(plt, rng, ax=None):
     t = np.linspace(0, 1, fs)
     signal = np.sin(2 * np.pi * 50 * t) + 0.5 * np.sin(2 * np.pi * 120 * t)
     ax.magnitude_spectrum(signal, Fs=fs, id="magnitude_spectrum")
+    ax.margins(x=0.02)  # Add padding to prevent edge clipping
     ax.set_xlabel("Frequency")
     ax.set_ylabel("Magnitude")
     ax.set_title("magnitude_spectrum")

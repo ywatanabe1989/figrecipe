@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-01-10 (ywatanabe)"
-# File: /home/ywatanabe/proj/.claude-worktree/figrecipe-feature-graph-support/src/figrecipe/_graph.py
-
 """Core graph visualization module for FigRecipe.
 
 Provides publication-quality graph/network visualizations compatible with
 scitex styling (40mm width, 6pt fonts) and interactive HTML export.
-
-Supports NetworkX graphs with attribute-based styling for nodes and edges.
 """
 
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -16,7 +12,6 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import numpy as np
 from matplotlib.axes import Axes
 
-# Layout algorithm names
 LAYOUTS = {
     "spring": "spring_layout",
     "circular": "circular_layout",
@@ -218,11 +213,11 @@ def draw_graph(
     node_alpha: float = 0.8,
     node_shape: str = "o",
     node_edgecolors: str = "white",
-    node_linewidths: float = 0.5,
-    # Edge styling
-    edge_width: Union[str, Callable, float] = 1.0,
+    node_linewidths: float = 0.34,  # 0.12mm
+    # Edge styling (0.34pt = 0.12mm for SCITEX compatibility)
+    edge_width: Union[str, Callable, float] = 0.34,
     edge_color: Union[str, Callable, Any] = "gray",
-    edge_alpha: float = 0.4,
+    edge_alpha: float = 0.5,
     edge_style: str = "solid",
     arrows: Optional[bool] = None,
     arrowsize: float = 10,

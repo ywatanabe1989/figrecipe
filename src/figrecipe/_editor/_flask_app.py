@@ -185,8 +185,8 @@ class FigureEditor:
         self.style_overrides.manual_overrides = value
 
     def get_effective_style(self) -> Dict[str, Any]:
-        """Get the final merged style."""
-        return self.style_overrides.get_effective_style()
+        """Get the final merged style with theme.mode synced to dark_mode."""
+        return self.style_overrides.get_effective_style(dark_mode=self.dark_mode)
 
     def _ensure_original_positions_in_base_style(self) -> None:
         """Ensure original positions are captured in base_style (for existing overrides)."""

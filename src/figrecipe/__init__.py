@@ -40,14 +40,17 @@ Reproducing a figure:
 >>> fig, ax = fr.reproduce('my_figure.yaml')
 >>> plt.show()
 
-Utility Functions
------------------
-For advanced use cases, utility functions are available via the utils submodule:
+Submodules
+----------
+- fr.utils: Unit conversions, font checks, low-level recipe access
+- fr.styles: Axis helpers, spine management, plot styling functions
+- fr.viz: Diagram and graph visualization utilities
 
 >>> from figrecipe import utils
 >>> utils.mm_to_inch(25.4)  # Unit conversions
->>> utils.check_font('Arial')  # Font utilities
->>> utils.load_recipe('recipe.yaml')  # Low-level recipe access
+
+>>> from figrecipe import styles
+>>> styles.hide_spines(ax)  # Spine management
 """
 __doc__ = _rebrand_text(_RAW_DOC)
 
@@ -59,9 +62,9 @@ try:
 except Exception:
     __version__ = "0.0.0"  # Fallback for development
 
-# Public API functions (re-exported from _api._public)
-# Seaborn proxy and notebook support
-from ._api._notebook import enable_svg
+# =============================================================================
+# CORE PUBLIC API - Minimal, essential functions only
+# =============================================================================
 from ._api._public import (
     crop,
     edit,
@@ -72,129 +75,61 @@ from ._api._public import (
     save,
     subplots,
 )
-from ._api._public import (
-    validate_recipe as validate,
-)
-from ._api._seaborn_proxy import sns
-
-# Style management
-from ._api._style_manager import (
-    STYLE,
-    apply_style,
-    list_presets,
-    load_style,
-    unload_style,
-)
-
-# Composition - matplotlib-based (reproducible, editable)
-from ._composition import (
-    align_panels,
-    compose,
-    distribute_panels,
-    smart_align,
-)
-from ._composition._compose_mm import (
-    compose_figures,
-    load_compose_recipe,
-    recompose,
-)
-
-# Diagram visualization
+from ._api._public import validate_recipe as validate
+from ._api._style_manager import list_presets, load_style, unload_style
+from ._composition import align_panels, compose, distribute_panels, smart_align
 from ._diagram import Diagram
+from ._graph_presets import get_preset as get_graph_preset
+from ._seaborn import get_seaborn_recorder as _get_sns
 
-# Graph visualization presets
-from ._graph_presets import (
-    get_preset as get_graph_preset,
-)
-from ._graph_presets import (
-    list_presets as list_graph_presets,
-)
-from ._graph_presets import (
-    register_preset as register_graph_preset,
-)
 
-# Plot styling utilities
-from .styles._plot_styling import (
-    style_barplot,
-    style_boxplot,
-    style_errorbar,
-    style_scatter,
-    style_violinplot,
-)
+# Lazy seaborn access (avoids import error if seaborn not installed)
+@property
+def _sns_property(self):
+    return _get_sns()
 
-# Axis helper utilities
-from .styles.axis_helpers import (
-    OOMFormatter,
-    extend,
-    force_aspect,
-    hide_spines,
-    map_ticks,
-    rotate_labels,
-    sci_note,
-    set_n_ticks,
-    set_ticks,
-    set_x_ticks,
-    set_y_ticks,
-    show_all_spines,
-    show_classic_spines,
-    show_spines,
-    toggle_spines,
-)
+
+# Module-level property emulation for sns
+class _SnsModule:
+    def __getattr__(self, name):
+        return getattr(_get_sns(), name)
+
+
+sns = _SnsModule()
+from ._graph_presets import list_presets as list_graph_presets
+from ._graph_presets import register_preset as register_graph_preset
+
+# =============================================================================
+# PUBLIC API (__all__ controls tab-completion - keep minimal)
+# =============================================================================
 
 __all__ = [
-    # Core
+    # Core workflow
     "subplots",
     "save",
     "reproduce",
     "load",
-    "info",
-    "edit",
-    "validate",
-    "crop",
-    "extract_data",
-    # Style
-    "load_style",
-    "unload_style",
-    "list_presets",
-    "apply_style",
-    "STYLE",
-    # Plot styling
-    "style_boxplot",
-    "style_violinplot",
-    "style_barplot",
-    "style_scatter",
-    "style_errorbar",
-    # Axis helpers
-    "rotate_labels",
-    "hide_spines",
-    "show_spines",
-    "show_all_spines",
-    "show_classic_spines",
-    "toggle_spines",
-    "set_n_ticks",
-    "set_ticks",
-    "set_x_ticks",
-    "set_y_ticks",
-    "map_ticks",
-    "OOMFormatter",
-    "sci_note",
-    "force_aspect",
-    "extend",
-    # Composition
     "compose",
-    "compose_figures",
-    "load_compose_recipe",
-    "recompose",
     "align_panels",
     "distribute_panels",
     "smart_align",
-    # Graph & Diagram
+    "edit",
+    "crop",
+    "info",
+    "validate",
+    "extract_data",
+    # Style management
+    "load_style",
+    "unload_style",
+    "list_presets",
+    # Graph presets
     "get_graph_preset",
     "list_graph_presets",
     "register_graph_preset",
+    # Diagram
     "Diagram",
-    # Extensions
+    # Seaborn integration
     "sns",
-    "enable_svg",
+    # Version
     "__version__",
 ]

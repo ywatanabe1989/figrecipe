@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_13b3fc43
-created: '2026-01-24T10:23:39.746030'
+id: fig_12e240c8
+created: '2026-01-26T02:56:11.435718'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -140,6 +147,13 @@ figure:
     crop_margin_right_mm: 1
     crop_margin_bottom_mm: 1
     crop_margin_top_mm: 1
+  colorbars:
+    - ax_key: ax_0_0
+      kwargs:
+        fraction: 0.04
+        pad: 0.02
+        shrink: 1.0
+        aspect: 20
 axes:
   ax_0_0:
     calls:
@@ -156,7 +170,7 @@ axes:
             data: plot_contourf_data/contourf_Z.csv
             dtype: float64
         kwargs: {}
-        timestamp: '2026-01-24T10:23:39.808517'
+        timestamp: '2026-01-26T02:56:11.541731'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -164,23 +178,23 @@ axes:
           - name: xlabel
             data: X
         kwargs: {}
-        timestamp: '2026-01-24T10:23:39.808798'
+        timestamp: '2026-01-26T02:56:11.542288'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Y
         kwargs: {}
-        timestamp: '2026-01-24T10:23:39.808939'
+        timestamp: '2026-01-26T02:56:11.542543'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: contourf
         kwargs: {}
-        timestamp: '2026-01-24T10:23:39.809206'
+        timestamp: '2026-01-26T02:56:11.543103'
     bbox:
-      - 0.15012184444444443
-      - 0.1456520444444444
-      - 0.8102650412698412
-      - 0.7412009616161617
+      - 0.8785107393473015
+      - 0.17416822833131412
+      - 0.0276037661866666
+      - 0.7026413211151497

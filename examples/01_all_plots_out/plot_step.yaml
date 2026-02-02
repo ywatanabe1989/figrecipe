@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_f203ecc8
-created: '2026-01-24T10:23:52.022561'
+id: fig_6bf97d28
+created: '2026-01-26T03:02:53.861151'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -154,11 +161,12 @@ axes:
             dtype: float64
         kwargs:
           where: mid
+          clip_on: false
           color:
             - 0.0
             - 0.5019607843137255
             - 0.7529411764705882
-        timestamp: '2026-01-24T10:23:52.078361'
+        timestamp: '2026-01-26T03:02:53.950641'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -166,23 +174,23 @@ axes:
           - name: xlabel
             data: X
         kwargs: {}
-        timestamp: '2026-01-24T10:23:52.078576'
+        timestamp: '2026-01-26T03:02:53.951150'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Y
         kwargs: {}
-        timestamp: '2026-01-24T10:23:52.078675'
+        timestamp: '2026-01-26T03:02:53.951389'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: step
         kwargs: {}
-        timestamp: '2026-01-24T10:23:52.078917'
+        timestamp: '2026-01-26T03:02:53.951765'
     bbox:
-      - 0.14921470158730157
+      - 0.12955993968253968
       - 0.1456520444444444
-      - 0.8356650412698412
-      - 0.7412009616161617
+      - 0.8553198031746032
+      - 0.7594331585858587

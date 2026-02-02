@@ -8,12 +8,13 @@ import numpy as np
 from matplotlib.axes import Axes
 
 from ._axes_methods import RecordingAxesMethods
+from ._axes_style_mixin import AxesStyleMixin
 
 if TYPE_CHECKING:
     from .._recorder import Recorder
 
 
-class RecordingAxes(RecordingAxesMethods):
+class RecordingAxes(RecordingAxesMethods, AxesStyleMixin):
     """Wrapper around matplotlib Axes that records all calls.
 
     This wrapper intercepts calls to plotting methods and records them
@@ -36,10 +37,10 @@ class RecordingAxes(RecordingAxesMethods):
     >>> # The call is recorded automatically
     """
 
-    # Methods whose results can be referenced by other methods
-    RESULT_REFERENCEABLE_METHODS = {"contour", "contourf"}
-    # Methods that take results from other methods as arguments
-    RESULT_REFERENCING_METHODS = {"clabel"}
+    # Internal: Methods whose results can be referenced by other methods
+    _RESULT_REFERENCEABLE_METHODS = {"contour", "contourf"}
+    # Internal: Methods that take results from other methods as arguments
+    _RESULT_REFERENCING_METHODS = {"clabel"}
 
     def __init__(
         self,
@@ -76,6 +77,14 @@ class RecordingAxes(RecordingAxesMethods):
         if callable(attr) and name == "boxplot":
             return self._create_boxplot_wrapper()
 
+        # Route legend to wrapper that applies frame styling
+        if callable(attr) and name == "legend":
+            return self._create_legend_wrapper()
+
+        # Route stem to wrapper that handles color kwarg
+        if callable(attr) and name == "stem":
+            return self._create_stem_wrapper()
+
         # If it's a plotting or decoration method, wrap it
         if callable(attr) and name in (
             self._recorder.PLOTTING_METHODS | self._recorder.DECORATION_METHODS
@@ -85,9 +94,30 @@ class RecordingAxes(RecordingAxesMethods):
         # For other methods/attributes, return as-is
         return attr
 
+    def __dir__(self):
+        """Return list of attributes for tab completion.
+
+        Exposes all matplotlib plotting and decoration methods alongside
+        figrecipe's custom methods and properties.
+        """
+        # Get base attributes (excluding private)
+        base_attrs = [a for a in super().__dir__() if not a.startswith("_")]
+
+        # Add all matplotlib plotting methods
+        from .._params import DECORATION_METHODS, PLOTTING_METHODS
+
+        matplotlib_methods = sorted(PLOTTING_METHODS | DECORATION_METHODS)
+
+        # Combine and deduplicate
+        return sorted(set(base_attrs + matplotlib_methods))
+
     def _create_recording_wrapper(self, method_name: str, method: callable):
         """Create a wrapper function that records the call."""
-        from ._axes_helpers import record_call_with_color_capture
+        from ._axes_helpers import (
+            inject_clip_on_from_style,
+            inject_method_defaults,
+            record_call_with_color_capture,
+        )
 
         def wrapper(
             *args,
@@ -96,9 +126,11 @@ class RecordingAxes(RecordingAxesMethods):
             stats: Optional[Dict[str, Any]] = None,
             **kwargs,
         ):
-            from ..styles import resolve_colors_in_kwargs
+            from ..styles._internal import resolve_colors_in_kwargs
 
             kwargs = resolve_colors_in_kwargs(kwargs)
+            kwargs = inject_clip_on_from_style(kwargs, method_name)
+            kwargs = inject_method_defaults(kwargs, method_name)
 
             result = method(*args, **kwargs)
             if self._track and track:
@@ -114,8 +146,8 @@ class RecordingAxes(RecordingAxesMethods):
                     result,
                     id,
                     self._result_refs,
-                    self.RESULT_REFERENCING_METHODS,
-                    self.RESULT_REFERENCEABLE_METHODS,
+                    self._RESULT_REFERENCING_METHODS,
+                    self._RESULT_REFERENCEABLE_METHODS,
                 )
             return result
 
@@ -174,6 +206,115 @@ class RecordingAxes(RecordingAxesMethods):
 
         return wrapper
 
+    def _create_stem_wrapper(self):
+        """Create wrapper for stem() that accepts color kwarg."""
+        original_stem = self._ax.stem
+
+        def wrapper(
+            *args,
+            id: Optional[str] = None,
+            track: bool = True,
+            color=None,
+            **kwargs,
+        ):
+            # Call original stem
+            container = original_stem(*args, **kwargs)
+
+            # Apply color if provided (stem doesn't accept color kwarg natively)
+            if color is not None:
+                import matplotlib.colors as mcolors
+
+                color_val = mcolors.to_rgba(color)
+                container.markerline.set_color(color_val)
+                container.stemlines.set_color(color_val)
+
+            # Record the call with color
+            if self._track and track:
+                record_kwargs = kwargs.copy()
+                # Capture the actual color (either provided or from cycle)
+                if color is not None:
+                    import matplotlib.colors as mcolors
+
+                    record_kwargs["color"] = mcolors.to_hex(color)
+                else:
+                    # Capture from result
+                    try:
+                        import matplotlib.colors as mcolors
+
+                        c = container.markerline.get_color()
+                        record_kwargs["color"] = mcolors.to_hex(c)
+                    except Exception:
+                        pass
+
+                self._recorder.record_call(
+                    ax_position=self._position,
+                    method_name="stem",
+                    args=args,
+                    kwargs=record_kwargs,
+                    call_id=id,
+                )
+
+            return container
+
+        return wrapper
+
+    def _create_legend_wrapper(self):
+        """Create wrapper for legend() that applies frame styling and records the call."""
+        from ..styles import load_style
+
+        original_legend = self._ax.legend
+
+        def wrapper(
+            *args,
+            id: Optional[str] = None,
+            track: bool = True,
+            **kwargs,
+        ):
+            legend = original_legend(*args, **kwargs)
+
+            # Apply SCITEX style frame settings
+            if legend is not None:
+                style = load_style()
+                legend_config = style.get("legend", {})
+
+                frameon = legend_config.get("frameon", True)
+                edge_mm = legend_config.get("edge_mm", 0.2)
+                edgecolor = legend_config.get("edgecolor", "black")
+
+                if frameon and edge_mm:
+                    frame = legend.get_frame()
+                    frame.set_linewidth(edge_mm * 72 / 25.4)  # mm to points
+                    if edgecolor:
+                        frame.set_edgecolor(edgecolor)
+
+            # Record the legend call for reproduction
+            if self._track and track:
+                record_kwargs = kwargs.copy()
+                # Handle custom handles - extract color/label info for serialization
+                if "handles" in record_kwargs:
+                    handles = record_kwargs.pop("handles")
+                    handle_specs = []
+                    for h in handles:
+                        spec = {"label": h.get_label()}
+                        if hasattr(h, "get_facecolor"):
+                            spec["facecolor"] = list(h.get_facecolor())
+                        if hasattr(h, "get_edgecolor"):
+                            spec["edgecolor"] = list(h.get_edgecolor())
+                        handle_specs.append(spec)
+                    record_kwargs["_handle_specs"] = handle_specs
+
+                self._recorder.record_call(
+                    ax_position=self._position,
+                    method_name="legend",
+                    args=args,
+                    kwargs=record_kwargs,
+                    call_id=id,
+                )
+
+            return legend
+
+        return wrapper
+
     def set_caption(self, caption: str) -> "RecordingAxes":
         """Set panel caption metadata (not rendered, stored in recipe)."""
         ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
@@ -198,11 +339,11 @@ class RecordingAxes(RecordingAxesMethods):
         ax_record = self._recorder.figure_record.get_or_create_axes(*self._position)
         return ax_record.stats
 
-    def no_record(self):
-        """Context manager to temporarily disable recording."""
+    def _no_record(self):
+        """Context manager to temporarily disable recording (internal)."""
         return _NoRecordContext(self)
 
-    def record_seaborn_call(
+    def _record_seaborn_call(
         self,
         func_name: str,
         args: tuple,

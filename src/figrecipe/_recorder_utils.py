@@ -72,6 +72,15 @@ def _process_single_arg(
         # List of arrays (e.g., boxplot, violinplot data)
         return _process_array_list(name, value, to_serializable)
 
+    if isinstance(value, (list, tuple)) and len(value) > 0:
+        # Check if it's a list of numbers that can be converted to array
+        try:
+            arr = np.asarray(value)
+            if arr.dtype.kind in ("i", "f", "u", "b"):  # numeric types
+                return _process_ndarray(name, arr, should_store_inline, to_serializable)
+        except (ValueError, TypeError):
+            pass
+
     # Scalar or other serializable value
     return _process_scalar(name, value, is_serializable_func)
 
@@ -96,15 +105,56 @@ def _process_ndarray(
         }
 
 
-def _process_array_list(name: str, value: list, to_serializable) -> Dict[str, Any]:
-    """Process list of arrays argument."""
-    arrays_data = [to_serializable(arr) for arr in value]
+def _process_array_list(
+    name: str, value: list, to_serializable, should_store_inline=None
+) -> Dict[str, Any]:
+    """Process list of arrays argument.
+
+    For list of arrays (boxplot, violinplot data), we mark them for file
+    storage using _array key, same as single arrays.
+    """
+    # Convert list of arrays to single 2D array if possible (same length arrays)
+    # Otherwise concatenate with padding or store as jagged array
+    try:
+        lengths = [len(arr) for arr in value]
+        if len(set(lengths)) == 1:
+            # All same length - can stack
+            stacked = np.column_stack(value)
+        else:
+            # Jagged array - pad to max length
+            max_len = max(lengths)
+            padded = []
+            for arr in value:
+                if len(arr) < max_len:
+                    pad_arr = np.full(max_len, np.nan)
+                    pad_arr[: len(arr)] = arr
+                    padded.append(pad_arr)
+                else:
+                    padded.append(arr)
+            stacked = np.column_stack(padded)
+    except Exception:
+        # Fallback to original inline storage
+        arrays_data = [to_serializable(arr) for arr in value]
+        dtypes = [str(arr.dtype) for arr in value]
+        return {
+            "name": name,
+            "data": arrays_data,
+            "dtype": (dtypes[0] if len(set(dtypes)) == 1 else dtypes),
+            "_is_array_list": True,
+        }
+
     dtypes = [str(arr.dtype) for arr in value]
+    dtype_str = dtypes[0] if len(set(dtypes)) == 1 else dtypes
+
+    # Mark for file storage (same pattern as single arrays)
     return {
         "name": name,
-        "data": arrays_data,
-        "dtype": (dtypes[0] if len(set(dtypes)) == 1 else dtypes),
+        "data": "__FILE__",
+        "dtype": dtype_str,
+        "_array": stacked,  # Will be saved to CSV by serializer
         "_is_array_list": True,
+        "_n_arrays": len(value),
+        "_array_lengths": lengths,
     }
 
 

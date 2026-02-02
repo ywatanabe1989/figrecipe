@@ -18,10 +18,13 @@ def plot_tricontour(plt, rng, ax=None):
     x = rng.uniform(0, 1, 50)
     y = rng.uniform(0, 1, 50)
     z = np.sin(x * 2 * np.pi) * np.cos(y * 2 * np.pi)
-    ax.tricontour(x, y, z, id="tricontour")
+    tc = ax.tricontour(x, y, z, id="tricontour")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("tricontour")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, tc, ax=ax)
     return fig, ax
 
 

@@ -99,6 +99,13 @@ def register_style_routes(app, editor):
                 if "palette" in colors_dict and colors_dict["palette"] is not None:
                     flat_style["color_palette"] = list(colors_dict["palette"])
 
+            # Sync theme mode with editor dark_mode preference
+            # This ensures text colors are consistent with the UI
+            if "theme" in flat_style and isinstance(flat_style["theme"], dict):
+                flat_style["theme"]["mode"] = "dark" if editor.dark_mode else "light"
+            elif editor.dark_mode:
+                flat_style["theme"] = {"mode": "dark"}
+
             editor.style_overrides.base_style = flat_style
 
             if hasattr(editor.fig, "record") and editor.fig.record is not None:

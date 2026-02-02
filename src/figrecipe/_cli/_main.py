@@ -6,14 +6,17 @@ import click
 from rich.console import Console
 
 from .. import __version__
+from ._apis import list_python_apis
 from ._completion import completion
 from ._compose import compose
 from ._convert import convert
 from ._crop import crop
 from ._diagram import diagram as _diagram_cmd
-from ._edit import edit
+from ._diff import diff
 from ._extract import extract
 from ._fonts import fonts
+from ._gui import gui
+from ._hitmap import hitmap
 from ._info import info
 from ._mcp import mcp
 from ._plot import plot
@@ -25,6 +28,61 @@ from ._version import version as version_cmd
 console = Console()
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
+
+# Command categories for organized help display
+COMMAND_CATEGORIES = [
+    ("Figure Creation", ["plot", "reproduce", "compose", "gui"]),
+    ("Image Processing", ["convert", "crop", "diff", "hitmap"]),
+    ("Data & Validation", ["extract", "validate", "info"]),
+    ("Diagram", ["diagram"]),
+    ("Style & Appearance", ["style", "fonts"]),
+    ("Integration", ["mcp", "list-python-apis"]),
+    ("Utility", ["completion", "version"]),
+]
+
+
+class CategorizedGroup(click.Group):
+    """Custom Click group that displays commands organized by category."""
+
+    def format_commands(self, ctx, formatter):
+        """Write categorized commands to the formatter."""
+        # Build command lookup
+        commands = {}
+        for subcommand in self.list_commands(ctx):
+            cmd = self.get_command(ctx, subcommand)
+            if cmd is not None and not cmd.hidden:
+                commands[subcommand] = cmd
+
+        if not commands:
+            return
+
+        # Track which commands we've displayed
+        displayed = set()
+
+        # Display commands by category
+        for category_name, category_commands in COMMAND_CATEGORIES:
+            # Filter to commands that exist and haven't been displayed
+            category_items = []
+            for name in category_commands:
+                if name in commands and name not in displayed:
+                    cmd = commands[name]
+                    help_text = cmd.get_short_help_str(limit=formatter.width)
+                    category_items.append((name, help_text))
+                    displayed.add(name)
+
+            if category_items:
+                with formatter.section(category_name):
+                    formatter.write_dl(category_items)
+
+        # Display any uncategorized commands
+        uncategorized = [
+            (name, commands[name].get_short_help_str(limit=formatter.width))
+            for name in sorted(commands.keys())
+            if name not in displayed
+        ]
+        if uncategorized:
+            with formatter.section("Other"):
+                formatter.write_dl(uncategorized)
 
 
 def _print_command_help(cmd, prefix: str, parent_ctx) -> None:
@@ -40,6 +98,7 @@ def _print_command_help(cmd, prefix: str, parent_ctx) -> None:
 
 
 @click.group(
+    cls=CategorizedGroup,
     invoke_without_command=True,
     context_settings=CONTEXT_SETTINGS,
 )
@@ -47,12 +106,9 @@ def _print_command_help(cmd, prefix: str, parent_ctx) -> None:
 @click.option("--help-recursive", is_flag=True, help="Show help for all commands.")
 @click.pass_context
 def main(ctx: click.Context, version: bool, help_recursive: bool) -> None:
-    """figrecipe - Reproducible matplotlib figures.
+    """FigRecipe - Reproducible, style-editable scientific figures via YAML recipes.
 
-    A command-line interface for creating, reproducing, and editing
-    matplotlib figures using YAML recipes.
-
-    When run without a subcommand, launches the GUI editor.
+    Use 'figrecipe gui' to launch the GUI editor.
     """
     if version:
         click.echo(f"figrecipe {__version__}")
@@ -63,7 +119,7 @@ def main(ctx: click.Context, version: bool, help_recursive: bool) -> None:
         ctx.exit(0)
 
     if ctx.invoked_subcommand is None:
-        ctx.invoke(edit)
+        click.echo(ctx.get_help())
 
 
 def _show_recursive_help(ctx: click.Context) -> None:
@@ -82,10 +138,13 @@ main.add_command(compose)
 main.add_command(convert)
 main.add_command(crop)
 main.add_command(_diagram_cmd, name="diagram")
-main.add_command(edit)
+main.add_command(diff)
 main.add_command(extract)
 main.add_command(fonts)
+main.add_command(gui)
+main.add_command(hitmap)
 main.add_command(info)
+main.add_command(list_python_apis)
 main.add_command(mcp)
 main.add_command(plot)
 main.add_command(reproduce)

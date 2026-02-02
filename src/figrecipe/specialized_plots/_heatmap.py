@@ -211,12 +211,10 @@ def conf_mat(
 
 
 def _style_colorbar(cbar: Colorbar) -> None:
-    """Apply consistent styling to colorbar."""
-    from matplotlib.ticker import MaxNLocator
+    """Apply consistent styling to colorbar using SCITEX style."""
+    from .._utils._colorbar import style_colorbar
 
-    cbar.outline.set_linewidth(0.2 * 2.83465)  # 0.2mm in points
-    cbar.ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=3))
-    cbar.ax.tick_params(width=0.2 * 2.83465, length=0.8 * 2.83465)
+    style_colorbar(cbar)
 
 
 def _set_heatmap_ticks(

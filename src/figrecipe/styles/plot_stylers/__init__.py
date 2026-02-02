@@ -23,18 +23,11 @@ Stylers follow a consistent pattern:
 """
 
 # Base class and utilities
-# Core stylers (actively used)
+# Core stylers
 from ._barplot import BarplotStyler, style_barplot
-from ._base import (
-    PlotStyler,
-    get_color_palette,
-    get_style_value,
-    mm_to_pt,
-)
+from ._base import PlotStyler, mm_to_pt
 from ._boxplot import BoxplotStyler, style_boxplot
 from ._errorbar import ErrorbarStyler, style_errorbar
-
-# Placeholder stylers (for future expansion)
 from ._heatmap import HeatmapStyler, style_heatmap
 from ._histogram import HistogramStyler, style_histogram
 from ._imshow import ImshowStyler, style_imshow
@@ -43,34 +36,35 @@ from ._pie import PieStyler, style_pie
 from ._scatter import ScatterStyler, style_scatter
 from ._violinplot import ViolinplotStyler, style_violinplot
 
+# Note: This module is primarily for internal use.
+# User-facing styling is handled automatically by figrecipe.
+# Direct access to stylers is rarely needed by end users.
 __all__ = [
-    # Base
+    # Base class
     "PlotStyler",
     "mm_to_pt",
-    "get_style_value",
-    "get_color_palette",
-    # Core stylers
-    "BoxplotStyler",
-    "style_boxplot",
-    "ViolinplotStyler",
-    "style_violinplot",
+    # Styler classes
     "BarplotStyler",
-    "style_barplot",
-    "ScatterStyler",
-    "style_scatter",
+    "BoxplotStyler",
     "ErrorbarStyler",
-    "style_errorbar",
-    "PieStyler",
-    "style_pie",
-    "ImshowStyler",
-    "style_imshow",
-    # Placeholder stylers
-    "LineStyler",
-    "style_line",
-    "HistogramStyler",
-    "style_histogram",
     "HeatmapStyler",
+    "HistogramStyler",
+    "ImshowStyler",
+    "LineStyler",
+    "PieStyler",
+    "ScatterStyler",
+    "ViolinplotStyler",
+    # Styling functions
+    "style_barplot",
+    "style_boxplot",
+    "style_errorbar",
     "style_heatmap",
+    "style_histogram",
+    "style_imshow",
+    "style_line",
+    "style_pie",
+    "style_scatter",
+    "style_violinplot",
 ]
 
 

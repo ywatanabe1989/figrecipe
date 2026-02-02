@@ -258,7 +258,7 @@ def _resolve_style(
         from ..styles._style_loader import _STYLE_CACHE
 
         if _STYLE_CACHE is not None:
-            from ..styles import to_subplots_kwargs
+            from ..styles._internal import to_subplots_kwargs
 
             return to_subplots_kwargs(_STYLE_CACHE)
         return None
@@ -267,7 +267,8 @@ def _resolve_style(
         return style
 
     if isinstance(style, str):
-        from ..styles import load_style, to_subplots_kwargs
+        from ..styles import load_style
+        from ..styles._internal import to_subplots_kwargs
 
         loaded = load_style(style)
         return to_subplots_kwargs(loaded) if loaded else None

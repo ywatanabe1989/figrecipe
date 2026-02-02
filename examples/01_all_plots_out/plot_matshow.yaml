@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_e5780d8f
-created: '2026-01-24T10:23:45.872060'
+id: fig_bf199a95
+created: '2026-01-26T03:02:26.034565'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -140,6 +147,13 @@ figure:
     crop_margin_right_mm: 1
     crop_margin_bottom_mm: 1
     crop_margin_top_mm: 1
+  colorbars:
+    - ax_key: ax_0_0
+      kwargs:
+        fraction: 0.04
+        pad: 0.02
+        shrink: 1.0
+        aspect: 20
 axes:
   ax_0_0:
     calls:
@@ -149,8 +163,9 @@ axes:
           - name: Z
             data: plot_matshow_data/matshow_Z.csv
             dtype: float64
-        kwargs: {}
-        timestamp: '2026-01-24T10:23:45.947394'
+        kwargs:
+          clip_on: false
+        timestamp: '2026-01-26T03:02:26.147261'
     decorations:
       - id: axis_000
         function: axis
@@ -158,16 +173,16 @@ axes:
           - name: arg
             data: off
         kwargs: {}
-        timestamp: '2026-01-24T10:23:45.947659'
+        timestamp: '2026-01-26T03:02:26.147757'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: matshow
         kwargs: {}
-        timestamp: '2026-01-24T10:23:45.948063'
+        timestamp: '2026-01-26T03:02:26.148635'
     bbox:
-      - 0.15915359047619038
-      - 0.019243963636363635
-      - 0.6816928190476192
-      - 0.8676090424242425
+      - 0.8530945825219046
+      - 0.044044543482828796
+      - 0.0328617382501587
+      - 0.8364806100040394

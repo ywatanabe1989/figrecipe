@@ -178,6 +178,25 @@ class RecordingFigure:
         # Call the underlying figure's supylabel
         return self._fig.supylabel(t, **kwargs)
 
+    def colorbar(self, mappable, ax=None, **kwargs) -> Any:
+        """Add a colorbar and record it for reproduction."""
+        ax_key = None
+        mpl_ax = getattr(ax, "_ax", ax)  # RecordingAxes._ax or raw Axes
+        for row in self._axes:
+            for rec_ax in row:
+                if rec_ax._ax is mpl_ax:
+                    ax_key = f"ax_{rec_ax._position[0]}_{rec_ax._position[1]}"
+                    break
+        ser_kw = {
+            k: v
+            for k, v in kwargs.items()
+            if isinstance(v, (str, int, float, bool, list, type(None)))
+        }
+        self._recorder.figure_record.colorbars.append(
+            {"ax_key": ax_key, "kwargs": ser_kw}
+        )
+        return self._fig.colorbar(mappable, ax=mpl_ax, **kwargs)
+
     def add_panel_labels(
         self,
         labels: Optional[List[str]] = None,
@@ -346,6 +365,7 @@ class RecordingFigure:
         dpi: Optional[int] = None,
         image_format: Optional[str] = None,
         facecolor: Optional[str] = None,
+        save_hitmap: bool = False,
         **kwargs,
     ):
         """Save figure image and recipe. Unified API with fr.save().
@@ -375,6 +395,7 @@ class RecordingFigure:
             dpi=dpi,
             image_format=image_format,
             facecolor=facecolor,
+            save_hitmap=save_hitmap,
         )
 
     def save_recipe(

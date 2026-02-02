@@ -275,7 +275,7 @@ class SeabornRecorder:
         # to prevent recording the underlying matplotlib calls (e.g., scatter)
         # that seaborn makes internally. We only want to record the seaborn call.
         if isinstance(ax, RecordingAxes):
-            with ax.no_record():
+            with ax._no_record():
                 result = func(*args, **kwargs)
 
             # Serialize arguments
@@ -283,8 +283,8 @@ class SeabornRecorder:
                 func_name, args, kwargs
             )
 
-            # Record as a seaborn call (outside no_record context)
-            ax.record_seaborn_call(
+            # Record as a seaborn call (outside _no_record context)
+            ax._record_seaborn_call(
                 func_name=func_name,
                 args=proc_args,
                 kwargs=proc_kwargs,

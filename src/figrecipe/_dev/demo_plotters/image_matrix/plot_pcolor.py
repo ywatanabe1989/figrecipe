@@ -19,10 +19,13 @@ def plot_pcolor(plt, rng, ax=None):
     y = np.arange(0, 10, 1)
     X, Y = np.meshgrid(x, y)
     Z = np.sin(X) * np.cos(Y)
-    ax.pcolor(X, Y, Z, id="pcolor")
+    pc = ax.pcolor(X, Y, Z, id="pcolor")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("pcolor")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, pc, ax=ax)
     return fig, ax
 
 

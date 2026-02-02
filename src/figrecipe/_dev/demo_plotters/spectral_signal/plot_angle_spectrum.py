@@ -19,6 +19,7 @@ def plot_angle_spectrum(plt, rng, ax=None):
     t = np.linspace(0, 1, fs)
     signal = np.sin(2 * np.pi * 50 * t) + 0.5 * np.sin(2 * np.pi * 120 * t + np.pi / 3)
     ax.angle_spectrum(signal, Fs=fs, id="angle_spectrum")
+    ax.margins(x=0.02)  # Add padding to prevent edge clipping
     ax.set_xlabel("Frequency")
     ax.set_ylabel("Phase (radians)")
     ax.set_title("angle_spectrum")

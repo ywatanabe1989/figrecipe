@@ -134,6 +134,8 @@ class FigureRecord:
     # Source data directories for composition (enables symlinks instead of copying)
     # Maps ax_key -> source data directory path
     source_data_dirs: Optional[Dict[str, Path]] = None
+    # Colorbar calls: list of {mappable_id, ax_key, kwargs}
+    colorbars: List[Dict[str, Any]] = field(default_factory=list)
 
     def get_axes_key(self, row: int, col: int) -> str:
         """Get dictionary key for axes at position."""
@@ -196,6 +198,9 @@ class FigureRecord:
         # Add mm_layout if set (for consistent cropping on reproduce)
         if self.mm_layout is not None:
             result["figure"]["mm_layout"] = self.mm_layout
+        # Add colorbars if set
+        if self.colorbars:
+            result["figure"]["colorbars"] = self.colorbars
         return result
 
     @classmethod
@@ -221,6 +226,7 @@ class FigureRecord:
             stats=metadata.get("stats"),
             crop_info=fig_data.get("crop_info"),
             mm_layout=fig_data.get("mm_layout"),
+            colorbars=fig_data.get("colorbars", []),
         )
 
         # Reconstruct axes

@@ -192,8 +192,8 @@ def _apply_style_to_axes(
     """Apply style to axes and return style dict if applied."""
     import numpy as np
 
-    from ..styles import apply_style_mm as _apply_style
-    from ..styles import to_subplots_kwargs
+    from ..styles._internal import apply_style_mm as _apply_style
+    from ..styles._internal import to_subplots_kwargs
 
     style_dict = None
     should_apply_style = False
@@ -241,9 +241,10 @@ def create_subplots(
 ) -> Tuple[RecordingFigure, Union[RecordingAxes, NDArray]]:
     """Core subplots implementation."""
     from .._wrappers._figure import create_recording_subplots
-    from ..styles._style_loader import _STYLE_CACHE, to_subplots_kwargs
+    from ..styles._style_loader import get_style, to_subplots_kwargs
 
-    global_style = _STYLE_CACHE
+    # Use get_style() to ensure style is loaded (triggers auto-load if needed)
+    global_style = get_style()
 
     # Always use mm-based layout by default (never fall back to matplotlib defaults)
     # Only skip if figsize is explicitly provided by the user

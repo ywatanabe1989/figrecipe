@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_dac9c395
-created: '2026-01-24T10:23:37.418016'
+id: fig_6242b958
+created: '2026-01-26T03:27:25.036863'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -151,31 +158,38 @@ axes:
             dtype: float64
         kwargs:
           Fs: 1000
-        timestamp: '2026-01-24T10:23:37.486356'
+          clip_on: false
+        timestamp: '2026-01-26T03:27:25.137242'
     decorations:
+      - id: margins_000
+        function: margins
+        args: []
+        kwargs:
+          x: 0.02
+        timestamp: '2026-01-26T03:27:25.163138'
       - id: set_xlabel_000
         function: set_xlabel
         args:
           - name: xlabel
             data: Frequency
         kwargs: {}
-        timestamp: '2026-01-24T10:23:37.486594'
+        timestamp: '2026-01-26T03:27:25.163875'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Phase (radians)
         kwargs: {}
-        timestamp: '2026-01-24T10:23:37.486699'
+        timestamp: '2026-01-26T03:27:25.164478'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: angle_spectrum
         kwargs: {}
-        timestamp: '2026-01-24T10:23:37.486933'
+        timestamp: '2026-01-26T03:27:25.165147'
     bbox:
       - 0.12063970158730158
       - 0.1456520444444444
       - 0.8642400412698412
-      - 0.7412009616161617
+      - 0.7594331585858587

@@ -24,6 +24,9 @@ def plot_contour(plt, rng, ax=None):
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("contour")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, cs, ax=ax)
     return fig, ax
 
 

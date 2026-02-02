@@ -35,3 +35,16 @@ try:
     __all__.extend(["crop", "find_content_area"])
 except ImportError:
     pass
+
+# Colorbar styling utilities
+from ._colorbar import add_colorbar, style_colorbar  # noqa: F401
+
+__all__.extend(["style_colorbar", "add_colorbar"])
+
+# Optional: hitmap visualization (requires PIL, scipy for bbox detection)
+try:
+    from ._hitmap import create_hitmap, generate_hitmap_report  # noqa: F401
+
+    __all__.extend(["create_hitmap", "generate_hitmap_report"])
+except ImportError:
+    pass

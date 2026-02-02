@@ -50,16 +50,16 @@ class TestMainCommand:
         assert result.exit_code == 0
         assert "figrecipe" in result.output
 
-    def test_no_command_launches_editor(self, runner):
-        """Test that no command launches editor (behavior changed from showing help).
-
-        Note: We don't actually run this as it would start a server.
-        Just verify the help text documents this behavior.
-        """
-        result = runner.invoke(main, ["--help"])
+    def test_no_command_shows_help(self, runner):
+        """Test that running without subcommand shows help (not editor)."""
+        result = runner.invoke(main, [])
         assert result.exit_code == 0
-        # Help should mention that running without subcommand launches editor
-        assert "GUI editor" in result.output or "edit" in result.output.lower()
+        # Should show help message, not launch editor
+        assert "Usage:" in result.output
+        # Check for categorized command sections
+        assert "Figure Creation:" in result.output
+        # Help should mention how to launch GUI editor
+        assert "figrecipe gui" in result.output
 
 
 class TestVersionCommand:
@@ -199,12 +199,12 @@ class TestFontsCommand:
         assert "--search" in result.output
 
 
-class TestEditCommand:
-    """Test edit command."""
+class TestGuiCommand:
+    """Test gui command."""
 
-    def test_edit_help(self, runner):
-        """Test edit --help."""
-        result = runner.invoke(main, ["edit", "--help"])
+    def test_gui_help(self, runner):
+        """Test gui --help."""
+        result = runner.invoke(main, ["gui", "--help"])
         assert result.exit_code == 0
         assert "SOURCE" in result.output or "source" in result.output.lower()
 

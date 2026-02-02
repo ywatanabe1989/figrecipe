@@ -27,7 +27,7 @@ mcp = FastMCP(
 
 
 @mcp.tool
-def plot(
+def plt_plot(
     spec: Dict[str, Any],
     output_path: str,
     dpi: int = 300,
@@ -88,7 +88,7 @@ def plot(
 
 
 @mcp.tool
-def reproduce(
+def plt_reproduce(
     recipe_path: str,
     output_path: Optional[str] = None,
     format: str = "png",
@@ -142,7 +142,7 @@ def reproduce(
 
 
 @mcp.tool
-def compose(
+def plt_compose(
     sources: List[str],
     output_path: str,
     layout: str = "horizontal",
@@ -226,76 +226,54 @@ def compose(
     from pathlib import Path
 
     import matplotlib.pyplot as plt
-    import yaml
 
-    from .._composition._compose_mm import compose_mm, solve_layout_to_mm
+    from .. import compose as fr_compose
+    from .. import save as fr_save
+    from .._composition._layout_solver import solve_layout_to_mm
 
     # Convert list sources to mm-based dict
     if isinstance(sources, list):
-        sources_mm, auto_canvas = solve_layout_to_mm(
-            sources, layout=layout, gap_mm=gap_mm
-        )
-        if canvas_size_mm is None:
-            canvas_size_mm = auto_canvas
+        sources_mm = solve_layout_to_mm(sources, layout, gap_mm)
     else:
-        # Already dict with mm specs
-        sources_mm = sources
-        if canvas_size_mm is not None:
-            canvas_size_mm = tuple(canvas_size_mm)
+        sources_mm = {
+            p: {"xy_mm": tuple(s["xy_mm"]), "size_mm": tuple(s["size_mm"])}
+            for p, s in sources.items()
+        }
 
-    # Create composed figure (matplotlib-based, fully editable)
-    fig, axes_dict = compose_mm(
+    # Create composed figure using unified matplotlib-based API
+    fig, axes = fr_compose(
         sources=sources_mm,
-        canvas_size_mm=canvas_size_mm,
+        canvas_size_mm=tuple(canvas_size_mm) if canvas_size_mm else None,
         dpi=dpi,
         panel_labels=panel_labels,
         label_style=label_style,
-        save_recipe=save_recipe,
     )
 
-    # Save output
+    # Save output with recipe
     output_path = Path(output_path)
-    fig.savefig(str(output_path), dpi=dpi, facecolor=fig.get_facecolor())
+    fr_save(fig, output_path, verbose=False, validate=False)
 
     result = {
         "output_path": str(output_path),
         "success": True,
         "layout_spec": {
-            "canvas_size_mm": list(canvas_size_mm) if canvas_size_mm else None,
+            "canvas_size_mm": list(fig.record.canvas_size_mm)
+            if hasattr(fig.record, "canvas_size_mm")
+            else None,
             "panels": {
                 p: {"xy_mm": list(s["xy_mm"]), "size_mm": list(s["size_mm"])}
                 for p, s in sources_mm.items()
             },
         },
+        "recipe_path": str(output_path.with_suffix(".yaml")),
     }
 
-    # Save recipe YAML for future editing
-    if save_recipe:
-        recipe_path = output_path.with_suffix(".compose.yaml")
-        recipe = {
-            "version": "1.0",
-            "type": "compose",
-            "canvas": {
-                "size_mm": list(canvas_size_mm) if canvas_size_mm else None,
-                "dpi": dpi,
-            },
-            "panels": result["layout_spec"]["panels"],
-            "style": {
-                "panel_labels": panel_labels,
-                "label_style": label_style,
-            },
-        }
-        with open(recipe_path, "w") as f:
-            yaml.dump(recipe, f, default_flow_style=False, sort_keys=False)
-        result["recipe_path"] = str(recipe_path)
-
-    plt.close(fig)
-
+    plt.close(fig._fig if hasattr(fig, "_fig") else fig)
     return result
 
 
 @mcp.tool
-def info(recipe_path: str, verbose: bool = False) -> Dict[str, Any]:
+def plt_info(recipe_path: str, verbose: bool = False) -> Dict[str, Any]:
     """Get information about a recipe file.
 
     Parameters
@@ -318,7 +296,7 @@ def info(recipe_path: str, verbose: bool = False) -> Dict[str, Any]:
 
 
 @mcp.tool
-def validate(
+def plt_validate(
     recipe_path: str,
     mse_threshold: float = 100.0,
 ) -> Dict[str, Any]:
@@ -350,7 +328,7 @@ def validate(
 
 
 @mcp.tool
-def crop(
+def plt_crop(
     input_path: str,
     output_path: Optional[str] = None,
     margin_mm: float = 1.0,
@@ -393,7 +371,7 @@ def crop(
 
 
 @mcp.tool
-def extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
+def plt_extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
     """Extract plotted data arrays from a saved recipe.
 
     Parameters
@@ -424,7 +402,7 @@ def extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
 
 
 @mcp.tool
-def list_styles() -> Dict[str, Any]:
+def plt_list_styles() -> Dict[str, Any]:
     """List available figure style presets.
 
     Returns
@@ -443,7 +421,7 @@ def list_styles() -> Dict[str, Any]:
 
 
 @mcp.tool
-def get_plot_types() -> Dict[str, Any]:
+def plt_get_plot_types() -> Dict[str, Any]:
     """Get list of supported plot types.
 
     Returns

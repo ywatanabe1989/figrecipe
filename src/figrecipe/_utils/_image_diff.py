@@ -20,11 +20,26 @@ def load_image(path: Union[str, Path]) -> np.ndarray:
     -------
     np.ndarray
         Image as (H, W, C) array with values 0-255.
+
+    Raises
+    ------
+    ValueError
+        If image exceeds maximum allowed size (decompression bomb protection).
     """
     from PIL import Image
 
-    img = Image.open(path).convert("RGB")
-    return np.array(img)
+    # Temporarily increase limit for scientific figures (some can be large)
+    # Default is ~178M pixels, allow up to 500M
+    old_limit = Image.MAX_IMAGE_PIXELS
+    Image.MAX_IMAGE_PIXELS = 500_000_000
+
+    try:
+        img = Image.open(path).convert("RGB")
+        return np.array(img)
+    except Image.DecompressionBombError:
+        raise ValueError(f"Image too large to load safely (>500M pixels): {path}")
+    finally:
+        Image.MAX_IMAGE_PIXELS = old_limit
 
 
 def compute_diff(

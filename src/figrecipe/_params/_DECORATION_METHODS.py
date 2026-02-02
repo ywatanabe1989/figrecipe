@@ -28,6 +28,7 @@ DECORATION_METHODS = {
     "set_xticklabels",
     "set_yticklabels",
     "tick_params",
+    "margins",  # For ax.margins(x=0.02) padding
     # Statistical annotations
     "stat_annotation",  # Comparison brackets with stars/p-values
 }

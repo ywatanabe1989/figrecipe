@@ -15,10 +15,13 @@ def plot_hexbin(plt, rng, ax=None):
 
     x = rng.normal(0, 1, 1000)
     y = rng.normal(0, 1, 1000)
-    ax.hexbin(x, y, id="hexbin")
+    hb = ax.hexbin(x, y, id="hexbin")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_title("hexbin")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, hb, ax=ax)
     return fig, ax
 
 

@@ -50,8 +50,25 @@ for method_name in sorted(PLOTTING_METHODS):
             pass
 
 
-def list_plotters():
-    """List all available plotter names."""
+def list_plotters(representative_only=False):
+    """List all available plotter names.
+
+    Parameters
+    ----------
+    representative_only : bool
+        If True, return only representative plot types for quick demos.
+        Can also be controlled via FIGRECIPE_DEV_REPRESENTATIVE_PLOTS env var.
+
+    Returns
+    -------
+    list
+        List of plotter names.
+    """
+    if representative_only:
+        from .._params import get_representative_plots
+
+        rep_plots = get_representative_plots()
+        return [k for k in PLOTTERS.keys() if k in rep_plots]
     return list(PLOTTERS.keys())
 
 

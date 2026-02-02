@@ -32,6 +32,74 @@ from ._plot_styles import (
 from ._themes import THEME_COLORS, apply_theme_colors
 
 
+def _normalize_style_keys(style: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize style keys to handle multiple naming conventions.
+
+    Converts YAML-format keys (with behavior_ prefix) to the format expected
+    by apply_style_mm. This ensures compatibility with different style sources:
+    - YAML recipes: use behavior_hide_top_spine, behavior_hide_right_spine, etc.
+    - Programmatic API: use hide_top_spine, hide_right_spine, etc.
+    - Style objects: use various formats
+
+    Parameters
+    ----------
+    style : dict
+        Style dictionary with potentially mixed key formats.
+
+    Returns
+    -------
+    dict
+        Normalized style dictionary with consistent key names.
+    """
+    normalized = style.copy()
+
+    # Map behavior_* keys to their non-prefixed equivalents
+    behavior_mappings = {
+        "behavior_hide_top_spine": "hide_top_spine",
+        "behavior_hide_right_spine": "hide_right_spine",
+        "behavior_grid": "grid",
+        "behavior_auto_scale_axes": "auto_scale_axes",
+        "behavior_constrained_layout": "constrained_layout",
+    }
+
+    for old_key, new_key in behavior_mappings.items():
+        if old_key in normalized and new_key not in normalized:
+            normalized[new_key] = normalized[old_key]
+
+    # Map old mm-based keys to new names if needed
+    mm_mappings = {
+        "axes_thickness_mm": "axes_thickness_mm",  # Already correct
+        "ticks_length_mm": "tick_length_mm",
+        "ticks_thickness_mm": "tick_thickness_mm",
+        "ticks_direction": "tick_direction",
+        "ticks_n_ticks_min": "n_ticks_min",
+        "ticks_n_ticks_max": "n_ticks_max",
+        "lines_trace_mm": "trace_thickness_mm",
+        "markers_size_mm": "marker_size_mm",
+        "markers_flier_mm": "markers_flier_mm",  # Already correct
+        "fonts_family": "font_family",
+        "fonts_axis_label_pt": "axis_font_size_pt",
+        "fonts_tick_label_pt": "tick_font_size_pt",
+        "fonts_title_pt": "title_font_size_pt",
+        "fonts_legend_pt": "legend_font_size_pt",
+        "padding_label_pt": "label_pad_pt",
+        "padding_tick_pt": "tick_pad_pt",
+        "padding_title_pt": "title_pad_pt",
+        "theme_mode": "theme",
+        # Legend settings
+        "legend_frameon": "legend_frameon",
+        "legend_fancybox": "legend_fancybox",
+        "legend_edgecolor": "legend_edgecolor",
+        "legend_edge_mm": "legend_edge_mm",
+    }
+
+    for old_key, new_key in mm_mappings.items():
+        if old_key in normalized and new_key not in normalized:
+            normalized[new_key] = normalized[old_key]
+
+    return normalized
+
+
 def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     """Apply publication-quality style using millimeter-based settings.
 
@@ -64,6 +132,9 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         - 'hide_right_spine' (bool): Hide right spine (default: True)
         - 'grid' (bool): Show grid (default: False)
 
+    Also supports YAML-format keys (e.g., behavior_hide_top_spine, fonts_family)
+    which are automatically normalized to the above formats.
+
     Returns
     -------
     float
@@ -83,6 +154,9 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     >>> ax.plot(x, y, lw=trace_lw)
     """
     import matplotlib as mpl
+
+    # Normalize style keys to handle different naming conventions
+    style = _normalize_style_keys(style)
 
     # Apply theme colors (dark/light mode)
     theme_section = style.get("theme", {})
@@ -104,8 +178,9 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     if style.get("hide_right_spine", True):
         ax.spines["right"].set_visible(False)
 
-    # Convert trace thickness from mm to points
+    # Convert trace thickness from mm to points and set as default line width
     trace_lw_pt = mm_to_pt(style.get("trace_thickness_mm", 0.3))
+    mpl.rcParams["lines.linewidth"] = trace_lw_pt
 
     # Convert marker size from mm to points
     marker_size_mm = style.get("marker_size_mm")
@@ -199,8 +274,17 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         mpl.rcParams["legend.facecolor"] = legend_bg
         mpl.rcParams["legend.framealpha"] = 1.0
 
-    # Set legend text and edge colors
-    mpl.rcParams["legend.edgecolor"] = spine_color
+    # Set legend frame and edge settings
+    legend_frameon = style.get("legend_frameon", True)
+    legend_fancybox = style.get("legend_fancybox", False)
+    legend_edgecolor = style.get("legend_edgecolor", spine_color)
+    legend_edge_mm = style.get("legend_edge_mm", 0.2)
+
+    mpl.rcParams["legend.frameon"] = legend_frameon
+    mpl.rcParams["legend.fancybox"] = legend_fancybox
+    mpl.rcParams["legend.edgecolor"] = (
+        legend_edgecolor if legend_edgecolor else spine_color
+    )
     mpl.rcParams["legend.labelcolor"] = text_color
 
     legend = ax.get_legend()
@@ -208,6 +292,10 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
         for text in legend.get_texts():
             text.set_fontsize(legend_fs)
             text.set_fontfamily(font_family)
+        # Apply frame linewidth from legend_edge_mm
+        if legend_frameon and legend_edge_mm:
+            frame = legend.get_frame()
+            frame.set_linewidth(legend_edge_mm * 72 / 25.4)  # mm to points
 
     # Configure grid
     if style.get("grid", False):

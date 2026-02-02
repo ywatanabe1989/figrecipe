@@ -14,9 +14,12 @@ def plot_matshow(plt, rng, ax=None):
         fig = ax.get_figure() if hasattr(ax, "get_figure") else ax.fig
 
     data = rng.uniform(0, 1, (10, 10))
-    ax.matshow(data, id="matshow")
+    mat = ax.matshow(data, id="matshow")
     ax.axis("off")
     ax.set_title("matshow")
+    from figrecipe._utils._colorbar import add_colorbar
+
+    add_colorbar(fig, mat, ax=ax)
     return fig, ax
 
 

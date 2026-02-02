@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Example: Create diagrams with figrecipe.
+# Timestamp: "2026-01-25 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/examples/06_diagram.py
+
+"""Create diagrams with figrecipe.
 
 Demonstrates programmatic diagram creation and YAML specification loading.
 Outputs to Mermaid (.mmd) and Graphviz (.dot) formats.
@@ -8,14 +11,12 @@ Outputs to Mermaid (.mmd) and Graphviz (.dot) formats.
 
 from pathlib import Path
 
+import scitex as stx
+
 import figrecipe as fr
 
-# Output directory
-OUT_DIR = Path(__file__).parent / "06_diagram_out"
-OUT_DIR.mkdir(exist_ok=True)
 
-
-def example_programmatic():
+def example_programmatic(output_dir, logger):
     """Create a diagram programmatically."""
     # Create a pipeline diagram
     d = fr.Diagram(type="pipeline", title="Data Processing Pipeline")
@@ -34,10 +35,10 @@ def example_programmatic():
     d.add_edge("model", "output")
 
     # Export to multiple formats
-    mermaid_path = OUT_DIR / "pipeline.mmd"
-    graphviz_path = OUT_DIR / "pipeline.dot"
-    yaml_path = OUT_DIR / "pipeline.yaml"
-    png_path = OUT_DIR / "pipeline.png"
+    mermaid_path = output_dir / "pipeline.mmd"
+    graphviz_path = output_dir / "pipeline.dot"
+    yaml_path = output_dir / "pipeline.yaml"
+    png_path = output_dir / "pipeline.png"
 
     mermaid_content = d.to_mermaid(mermaid_path)
     d.to_graphviz(graphviz_path)
@@ -46,23 +47,21 @@ def example_programmatic():
     # Render to PNG (requires mermaid-cli or uses mermaid.ink)
     try:
         d.render(png_path, format="png")
-        print(f"Created: {png_path}")
+        logger.info(f"Created: {png_path}")
     except RuntimeError as e:
-        print(f"PNG rendering skipped: {e}")
+        logger.warning(f"PNG rendering skipped: {e}")
 
-    print(f"Created: {mermaid_path}")
-    print(f"Created: {graphviz_path}")
-    print(f"Created: {yaml_path}")
-    print("\nMermaid output:")
-    print(mermaid_content)
+    logger.info(f"Created: {mermaid_path}")
+    logger.info(f"Created: {graphviz_path}")
+    logger.info(f"Created: {yaml_path}")
+    logger.info("Mermaid output:")
+    logger.info(mermaid_content)
 
     return d
 
 
-def example_scientific():
+def example_scientific(output_dir, logger):
     """Create a scientific workflow diagram."""
-    # Note: "scientific" preset is applied via compile functions internally
-    # when using workflow type with publication-style emphasis
     d = fr.Diagram(type="workflow", title="Experiment Workflow")
 
     # Typical scientific workflow
@@ -83,14 +82,14 @@ def example_scientific():
     # Feedback loop
     d.add_edge("results", "hypothesis", label="refine", style="dashed")
 
-    mermaid_path = OUT_DIR / "scientific_workflow.mmd"
+    mermaid_path = output_dir / "scientific_workflow.mmd"
     d.to_mermaid(mermaid_path)
-    print(f"\nCreated scientific diagram: {mermaid_path}")
+    logger.info(f"Created scientific diagram: {mermaid_path}")
 
     return d
 
 
-def example_decision_tree():
+def example_decision_tree(output_dir, logger):
     """Create a decision tree diagram."""
     d = fr.Diagram(type="decision", title="Model Selection")
 
@@ -113,14 +112,14 @@ def example_decision_tree():
     d.add_edge("categorical", "chi2", label="> 2")
     d.add_edge("categorical", "fisher", label="= 2")
 
-    mermaid_path = OUT_DIR / "decision_tree.mmd"
+    mermaid_path = output_dir / "decision_tree.mmd"
     d.to_mermaid(mermaid_path)
-    print(f"\nCreated decision tree: {mermaid_path}")
+    logger.info(f"Created decision tree: {mermaid_path}")
 
     return d
 
 
-def example_from_yaml():
+def example_from_yaml(output_dir, logger):
     """Load and modify a diagram from YAML specification."""
     # First create a YAML spec
     yaml_content = """
@@ -168,57 +167,59 @@ edges:
   - source: dense
     target: output
 """
-    yaml_path = OUT_DIR / "neural_net_spec.yaml"
+    yaml_path = output_dir / "neural_net_spec.yaml"
     yaml_path.write_text(yaml_content)
 
     # Load and convert
     d = fr.Diagram.from_yaml(yaml_path)
-    mermaid_path = OUT_DIR / "neural_net.mmd"
+    mermaid_path = output_dir / "neural_net.mmd"
     d.to_mermaid(mermaid_path)
 
-    print(f"\nLoaded from YAML and created: {mermaid_path}")
-    print(f"  Nodes: {len(d.spec.nodes)}")
-    print(f"  Edges: {len(d.spec.edges)}")
+    logger.info(f"Loaded from YAML and created: {mermaid_path}")
+    logger.info(f"  Nodes: {len(d.spec.nodes)}")
+    logger.info(f"  Edges: {len(d.spec.edges)}")
 
     return d
 
 
-def list_presets():
+def list_presets(logger):
     """Show available diagram presets."""
     from figrecipe._diagram import list_presets
 
-    print("\nAvailable diagram presets:")
+    logger.info("Available diagram presets:")
     for name, desc in list_presets().items():
-        print(f"  {name}: {desc}")
+        logger.info(f"  {name}: {desc}")
+
+
+@stx.session
+def main(
+    CONFIG=stx.INJECTED,
+    logger=stx.INJECTED,
+):
+    """FigRecipe Diagram Examples."""
+    output_path = Path(CONFIG.SDIR_OUT)
+
+    logger.info("FigRecipe Diagram Examples")
+
+    list_presets(logger)
+
+    logger.info("1. Programmatic Pipeline Diagram")
+    example_programmatic(output_path, logger)
+
+    logger.info("2. Scientific Workflow (SCITEX style)")
+    example_scientific(output_path, logger)
+
+    logger.info("3. Decision Tree")
+    example_decision_tree(output_path, logger)
+
+    logger.info("4. Load from YAML Specification")
+    example_from_yaml(output_path, logger)
+
+    logger.info(f"All outputs saved to: {output_path}")
+    return 0
 
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("FigRecipe Diagram Examples")
-    print("=" * 60)
+    main()
 
-    list_presets()
-
-    print("\n" + "-" * 60)
-    print("1. Programmatic Pipeline Diagram")
-    print("-" * 60)
-    example_programmatic()
-
-    print("\n" + "-" * 60)
-    print("2. Scientific Workflow (SCITEX style)")
-    print("-" * 60)
-    example_scientific()
-
-    print("\n" + "-" * 60)
-    print("3. Decision Tree")
-    print("-" * 60)
-    example_decision_tree()
-
-    print("\n" + "-" * 60)
-    print("4. Load from YAML Specification")
-    print("-" * 60)
-    example_from_yaml()
-
-    print("\n" + "=" * 60)
-    print(f"All outputs saved to: {OUT_DIR}")
-    print("=" * 60)
+# EOF

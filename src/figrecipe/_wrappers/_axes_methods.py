@@ -28,8 +28,8 @@ class RecordingAxesMethods:
     _position: tuple
     _track: bool
     _result_refs: Dict[int, str]
-    RESULT_REFERENCING_METHODS: set
-    RESULT_REFERENCEABLE_METHODS: set
+    _RESULT_REFERENCING_METHODS: set
+    _RESULT_REFERENCEABLE_METHODS: set
 
     def pie(
         self,
@@ -81,9 +81,17 @@ class RecordingAxesMethods:
         id: Optional[str] = None,
         track: bool = True,
         inner: Optional[str] = None,
+        colors=None,
         **kwargs,
     ):
-        """Violin plot with support for inner display options."""
+        """Violin plot with support for inner display options.
+
+        Parameters
+        ----------
+        colors : list, optional
+            Colors for each violin body. If provided, these colors will be
+            applied and recorded for pixel-perfect reproduction.
+        """
         from ._axes_plots import violinplot_plot
 
         return violinplot_plot(
@@ -95,6 +103,7 @@ class RecordingAxesMethods:
             self._track and track,
             id,
             inner,
+            colors,
             **kwargs,
         )
 
@@ -396,7 +405,7 @@ class RecordingAxesMethods:
         When using a figrecipe style (e.g., SCITEX), the `annotation_pt` font size
         from the style is used as the default if `fontsize` is not specified.
         """
-        from ..styles import get_style
+        from ..styles._internal import get_style
 
         if fontsize is None:
             style = get_style()
@@ -426,8 +435,8 @@ class RecordingAxesMethods:
                 result,
                 id,
                 self._result_refs,
-                self.RESULT_REFERENCING_METHODS,
-                self.RESULT_REFERENCEABLE_METHODS,
+                self._RESULT_REFERENCING_METHODS,
+                self._RESULT_REFERENCEABLE_METHODS,
             )
 
         return result
@@ -444,7 +453,7 @@ class RecordingAxesMethods:
         **kwargs,
     ):
         """Add annotation to axes with style-aware default fontsize."""
-        from ..styles import get_style
+        from ..styles._internal import get_style
 
         if fontsize is None:
             style = get_style()
@@ -484,8 +493,8 @@ class RecordingAxesMethods:
                 result,
                 id,
                 self._result_refs,
-                self.RESULT_REFERENCING_METHODS,
-                self.RESULT_REFERENCEABLE_METHODS,
+                self._RESULT_REFERENCING_METHODS,
+                self._RESULT_REFERENCEABLE_METHODS,
             )
 
         return result
