@@ -3,23 +3,21 @@
 """Demo script for GUI editor with diverse plot types.
 
 Usage:
-    python 03_editor.py [PORT] [--all]
-    python 03_editor.py 5051
-    python 03_editor.py 5050 --all   # Launch with all plot types
+    python 06_gui_editor.py [--port PORT] [--all]
+    python 06_gui_editor.py --port 5051
+    python 06_gui_editor.py --port 5050 --all   # Launch with all plot types
 """
+
+import subprocess
+import time
+from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
 
-import subprocess
-import sys
-import time
-from pathlib import Path
-
 import numpy as np
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+import scitex as stx
 
 import figrecipe as fr
 from figrecipe._dev.demo_plotters import get_representative_plots
@@ -43,7 +41,7 @@ def kill_port(port=5050):
         time.sleep(1)
 
 
-def plot_figure(all_plots=False):
+def plot_figure(all_plots=False, logger=None):
     """Create a figure with diverse plot types.
 
     Parameters
@@ -51,6 +49,8 @@ def plot_figure(all_plots=False):
     all_plots : bool
         If True, show all available plot types. If False (default),
         show only representative plots (one per category).
+    logger : optional
+        Logger instance.
     """
     from figrecipe._dev import get_plotter
     from figrecipe._dev.demo_plotters import list_plots
@@ -89,48 +89,56 @@ def plot_figure(all_plots=False):
 
     # Report
     successes = sum(1 for r in results.values() if r["success"])
-    print(f"Plotted {successes}/{len(results)} plot types successfully")
+    msg = f"Plotted {successes}/{len(results)} plot types successfully"
+    if logger:
+        logger.info(msg)
+    else:
+        print(msg)
+
     if successes < len(results):
         for name, r in results.items():
             if not r["success"]:
-                print(f"  - {name}: {r['error']}")
+                msg = f"  - {name}: {r['error']}"
+                if logger:
+                    logger.warning(msg)
+                else:
+                    print(msg)
 
     return fig
 
 
-def main(port=5050, all_plots=False):
+@stx.session
+def main(
+    port: int = 5050,
+    all_plots: bool = False,
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
+):
+    """Launch GUI editor with diverse plot types."""
+    OUT = Path(CONFIG.SDIR_OUT)
+
     kill_port(port)
 
     fr.load_style("SCITEX")
 
-    fig = plot_figure(all_plots=all_plots)
+    fig = plot_figure(all_plots=all_plots, logger=logger)
 
     # Save temporarily for reproduction
-    output_dir = Path("/tmp/figrecipe_editor_demo")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "editor_demo.png"
+    output_path = OUT / "editor_demo.png"
 
     fr.save(fig, output_path, validate_error_level="warning")
 
     # Reproduce and launch editor
     fig, axes = fr.reproduce(output_path)
 
-    print(f"\nLaunching editor on port {port}...")
-    print(f"Open http://localhost:{port} in your browser")
+    logger.info(f"Launching editor on port {port}...")
+    logger.info(f"Open http://localhost:{port} in your browser")
     fr.edit(fig, host="0.0.0.0", port=port)
+
+    return 0
 
 
 if __name__ == "__main__":
-    # Parse arguments
-    port = 5050
-    all_plots = False
-
-    for arg in sys.argv[1:]:
-        if arg == "--all":
-            all_plots = True
-        elif arg.isdigit():
-            port = int(arg)
-
-    main(port, all_plots=all_plots)
+    main()
 
 # EOF

@@ -21,6 +21,7 @@ Output:
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import scitex as stx
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 # Colors - muted, professional (Material Design inspired)
@@ -427,7 +428,21 @@ def create_figrecipe_concept_diagram(output_dir: Path = None, dpi: int = 200):
     return png_path, svg_path
 
 
+@stx.session
+def main(
+    dpi: int = 200,
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
+):
+    """Create FigRecipe concept diagram."""
+    OUT = Path(CONFIG.SDIR_OUT)
+    png_path, svg_path = create_figrecipe_concept_diagram(output_dir=OUT, dpi=dpi)
+    logger.info(f"Saved: {png_path}")
+    logger.info(f"Saved: {svg_path}")
+    return 0
+
+
 if __name__ == "__main__":
-    create_figrecipe_concept_diagram()
+    main()
 
 # EOF

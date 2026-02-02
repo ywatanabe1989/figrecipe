@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Time-stamp: "2026-01-11 22:35:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/02_composition.py
-
 """Demo script for figure composition using fr.compose().
 
 Combines all plot types from 01_all_plots into a single composed figure.
 Demonstrates the composition feature with proper recipe output.
 
-Requires: Run 01_all_plots.py first to generate the individual plot recipes.
+Requires: Run 01_plot_and_reproduce_all.py first to generate individual plot recipes.
 
 Outputs:
     ./02a_composition_out/composed.png
@@ -16,41 +13,48 @@ Outputs:
     ./02a_composition_out/composed_data/
 """
 
+import math
+from pathlib import Path
+
 import matplotlib
 
 matplotlib.use("Agg")
 
-import math
-from pathlib import Path
+import scitex as stx
 
 import figrecipe as fr
 
-# Input: recipes from 01_all_plots
-INPUT_DIR = Path(__file__).parent / "01_all_plots_out"
-OUTPUT_DIR = Path(__file__).parent / (Path(__file__).stem + "_out")
+# Input: recipes from 01_plot_and_reproduce_all
+INPUT_DIR = Path(__file__).parent / "01_plot_and_reproduce_all_out"
 
 
-def main():
+@stx.session
+def main(
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
+):
     """Compose all plot recipes into a single figure."""
+    OUT = Path(CONFIG.SDIR_OUT)
+
     # Check input exists
     if not INPUT_DIR.exists():
-        print(f"Input directory not found: {INPUT_DIR}")
-        print("Run 'make demo-plot-all' first to generate individual plots.")
-        return
+        logger.warning(f"Input directory not found: {INPUT_DIR}")
+        logger.warning("Run 01_plot_and_reproduce_all.py first.")
+        return 1
 
     # Find all recipe YAML files
     recipe_files = sorted(INPUT_DIR.glob("plot_*.yaml"))
     if not recipe_files:
-        print("No recipe files found. Run 'make demo-plot-all' first.")
-        return
+        logger.warning("No recipe files found. Run 01_plot_and_reproduce_all.py first.")
+        return 1
 
-    print(f"Found {len(recipe_files)} recipes to compose")
+    logger.info(f"Found {len(recipe_files)} recipes to compose")
 
     # Calculate grid layout
     ncols = 8
     n_recipes = len(recipe_files)
     nrows = math.ceil(n_recipes / ncols)
-    print(f"Layout: {nrows} rows x {ncols} cols")
+    logger.info(f"Layout: {nrows} rows x {ncols} cols")
 
     # Build sources mapping: (row, col) -> recipe_path
     sources = {}
@@ -65,7 +69,7 @@ def main():
     fr.load_style("SCITEX")
 
     # Compose figure from all recipes
-    print("Composing figure...")
+    logger.info("Composing figure...")
     fig, axes = fr.compose(layout=(nrows, ncols), sources=sources)
 
     # Add titles to each panel
@@ -82,12 +86,13 @@ def main():
             ax = axes[row, col]
         ax.set_title(name, fontsize=6)
 
-    # Save composed figure with recipe (PNG format explicitly)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = OUTPUT_DIR / "composed.png"
+    # Save composed figure with recipe
+    output_path = OUT / "composed.png"
     fr.save(fig, output_path, verbose=True, validate=False)
 
-    print(f"\nComposed figure saved to: {OUTPUT_DIR}/")
+    logger.info(f"Composed figure saved to: {OUT}/")
+
+    return 0
 
 
 if __name__ == "__main__":

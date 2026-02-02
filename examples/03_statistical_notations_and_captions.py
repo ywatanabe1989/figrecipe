@@ -9,15 +9,18 @@ Demonstrates statistical annotations (significance brackets) and caption generat
 from pathlib import Path
 
 import numpy as np
+import scitex as stx
 
 import figrecipe as fr
 
-OUT = Path(__file__).parent / (Path(__file__).stem + "_out")
 
-
-def main():
+@stx.session
+def main(
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
+):
     """Demonstrate statistical annotations and captions."""
-    OUT.mkdir(exist_ok=True)
+    OUT = Path(CONFIG.SDIR_OUT)
 
     # Set up figure with subplots
     fig, axes = fr.subplots(1, 3, figsize=(180 / 25.4, 60 / 25.4))
@@ -110,7 +113,7 @@ def main():
     fr.save(fig, OUT / "stat_annotations.png", validate=False)
 
     # === Caption Generation Demo ===
-    print("\n=== Caption Generation Demo ===")
+    logger.info("=== Caption Generation Demo ===")
 
     # Generate panel caption from stats
     panel_stats = {"n": 30, "group": "Treatment group", "mean": 3.5, "std": 0.8}
@@ -120,7 +123,7 @@ def main():
     )
 
     panel_caption = generate_panel_caption(label="A", stats=panel_stats)
-    print(f"Panel caption: {panel_caption}")
+    logger.info(f"Panel caption: {panel_caption}")
 
     # Generate figure caption with comparisons
     figure_stats = {
@@ -135,9 +138,11 @@ def main():
         stats=figure_stats,
         style="publication",
     )
-    print(f"\nFigure caption:\n{fig_caption}")
+    logger.info(f"Figure caption:\n{fig_caption}")
 
-    print(f"\nOutput: {OUT / 'stat_annotations.png'}")
+    logger.info(f"Output: {OUT / 'stat_annotations.png'}")
+
+    return 0
 
 
 if __name__ == "__main__":

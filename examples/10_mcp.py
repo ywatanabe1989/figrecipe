@@ -9,130 +9,14 @@ This shows how AI agents can create figures using declarative specifications.
 See also: 10_mcp.sh for CLI-based MCP commands.
 """
 
+import csv
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
+import scitex as stx
 
 import figrecipe as fr
-
-
-def main():
-    """Demonstrate MCP-style declarative plot creation."""
-    output_dir = Path("./10_mcp_out")
-    output_dir.mkdir(exist_ok=True)
-
-    print("FigRecipe MCP Integration Demo (Python)")
-    print("=" * 50)
-
-    # === Demo 1: Basic MCP-style declarative spec ===
-    print("\n1. Basic MCP Declarative Specification")
-
-    spec = {
-        "figure": {"width_mm": 80, "height_mm": 60},
-        "plots": [
-            {
-                "type": "plot",
-                "x": [1, 2, 3, 4, 5],
-                "y": [1, 4, 2, 5, 3],
-                "kwargs": {"label": "Series A", "id": "line_a"},
-            },
-            {
-                "type": "scatter",
-                "x": [1, 2, 3, 4, 5],
-                "y": [2, 3, 1, 4, 2],
-                "kwargs": {"label": "Series B", "id": "scatter_b"},
-            },
-        ],
-        "xlabel": "X Axis",
-        "ylabel": "Y Axis",
-        "title": "MCP Demo: Declarative Plot",
-        "legend": True,
-    }
-
-    fig, ax = execute_mcp_spec(spec)
-    fr.save(fig, output_dir / "mcp_basic.png")
-    print(f"   Created: {output_dir / 'mcp_basic.png'}")
-
-    # === Demo 2: CSV-based data (recommended workflow) ===
-    print("\n2. CSV-based Data Workflow (Recommended)")
-
-    # Create sample CSV
-    np.random.seed(42)
-    import csv
-
-    csv_path = output_dir / "experiment_data.csv"
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["time", "control", "treatment"])
-        for t in range(20):
-            writer.writerow([t, np.random.normal(10, 2), np.random.normal(15, 3)])
-
-    # MCP spec using CSV columns
-    spec_csv = {
-        "figure": {"width_mm": 100, "height_mm": 70},
-        "plots": [
-            {
-                "type": "plot",
-                "data_file": str(csv_path),
-                "x_column": "time",
-                "y_column": "control",
-                "kwargs": {"label": "Control", "id": "ctrl"},
-            },
-            {
-                "type": "plot",
-                "data_file": str(csv_path),
-                "x_column": "time",
-                "y_column": "treatment",
-                "kwargs": {"label": "Treatment", "id": "treat"},
-            },
-        ],
-        "xlabel": "Time (min)",
-        "ylabel": "Response",
-        "title": "CSV-based MCP Plot",
-        "legend": True,
-    }
-
-    fig, ax = execute_mcp_spec(spec_csv)
-    fr.save(fig, output_dir / "mcp_csv.png")
-    print(f"   Created: {output_dir / 'mcp_csv.png'}")
-
-    # === Demo 3: Statistical plot with annotations ===
-    print("\n3. Statistical Plot with Annotations")
-
-    spec_stats = {
-        "figure": {"width_mm": 90, "height_mm": 65},
-        "plots": [
-            {
-                "type": "bar",
-                "x": [0, 1, 2],
-                "height": [2.1, 3.5, 4.2],
-                "kwargs": {"yerr": [0.3, 0.4, 0.35], "capsize": 3, "id": "bars"},
-            }
-        ],
-        "stat_annotations": [
-            {"x1": 0, "x2": 1, "y": 4.5, "p_value": 0.032},
-            {"x1": 1, "x2": 2, "y": 5.2, "p_value": 0.008},
-        ],
-        "xlabel": "Group",
-        "ylabel": "Value",
-        "title": "MCP Stats Demo",
-        "xticks": {"ticks": [0, 1, 2], "labels": ["A", "B", "C"]},
-    }
-
-    fig, ax = execute_mcp_spec(spec_stats)
-    fr.save(fig, output_dir / "mcp_stats.png")
-    print(f"   Created: {output_dir / 'mcp_stats.png'}")
-
-    # Summary
-    print("\n" + "=" * 50)
-    print("MCP Demo Complete")
-    print("=" * 50)
-    print("\nTo enable MCP in Claude Code:")
-    print("  figrecipe mcp install")
-    print("\nMCP Resources for AI agents:")
-    print("  figrecipe://cheatsheet   - Quick reference")
-    print("  figrecipe://mcp-spec     - Declarative spec format")
-    print("  figrecipe://api/core     - Python API documentation")
 
 
 def execute_mcp_spec(spec: dict):
@@ -140,8 +24,6 @@ def execute_mcp_spec(spec: dict):
 
     This simulates what the MCP server does when receiving a plot request.
     """
-    import pandas as pd
-
     # Create figure
     fig_spec = spec.get("figure", {})
     fig, ax = fr.subplots(
@@ -187,7 +69,7 @@ def execute_mcp_spec(spec: dict):
 
     # Handle stat annotations
     for ann in spec.get("stat_annotations", []):
-        ax.stat_annotation(
+        ax.add_stat_annotation(
             ann["x1"],
             ann["x2"],
             y=ann.get("y"),
@@ -196,6 +78,129 @@ def execute_mcp_spec(spec: dict):
         )
 
     return fig, ax
+
+
+@stx.session
+def main(
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
+):
+    """Demonstrate MCP-style declarative plot creation."""
+    OUT = Path(CONFIG.SDIR_OUT)
+
+    logger.info("FigRecipe MCP Integration Demo (Python)")
+    logger.info("=" * 50)
+
+    # === Demo 1: Basic MCP-style declarative spec ===
+    logger.info("1. Basic MCP Declarative Specification")
+
+    spec = {
+        "figure": {"width_mm": 80, "height_mm": 60},
+        "plots": [
+            {
+                "type": "plot",
+                "x": [1, 2, 3, 4, 5],
+                "y": [1, 4, 2, 5, 3],
+                "kwargs": {"label": "Series A", "id": "line_a"},
+            },
+            {
+                "type": "scatter",
+                "x": [1, 2, 3, 4, 5],
+                "y": [2, 3, 1, 4, 2],
+                "kwargs": {"label": "Series B", "id": "scatter_b"},
+            },
+        ],
+        "xlabel": "X Axis",
+        "ylabel": "Y Axis",
+        "title": "MCP Demo: Declarative Plot",
+        "legend": True,
+    }
+
+    fig, ax = execute_mcp_spec(spec)
+    fr.save(fig, OUT / "mcp_basic.png")
+    logger.info(f"   Created: {OUT / 'mcp_basic.png'}")
+
+    # === Demo 2: CSV-based data (recommended workflow) ===
+    logger.info("2. CSV-based Data Workflow (Recommended)")
+
+    # Create sample CSV
+    np.random.seed(42)
+
+    csv_path = OUT / "experiment_data.csv"
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["time", "control", "treatment"])
+        for t in range(20):
+            writer.writerow([t, np.random.normal(10, 2), np.random.normal(15, 3)])
+
+    # MCP spec using CSV columns
+    spec_csv = {
+        "figure": {"width_mm": 100, "height_mm": 70},
+        "plots": [
+            {
+                "type": "plot",
+                "data_file": str(csv_path),
+                "x_column": "time",
+                "y_column": "control",
+                "kwargs": {"label": "Control", "id": "ctrl"},
+            },
+            {
+                "type": "plot",
+                "data_file": str(csv_path),
+                "x_column": "time",
+                "y_column": "treatment",
+                "kwargs": {"label": "Treatment", "id": "treat"},
+            },
+        ],
+        "xlabel": "Time (min)",
+        "ylabel": "Response",
+        "title": "CSV-based MCP Plot",
+        "legend": True,
+    }
+
+    fig, ax = execute_mcp_spec(spec_csv)
+    fr.save(fig, OUT / "mcp_csv.png")
+    logger.info(f"   Created: {OUT / 'mcp_csv.png'}")
+
+    # === Demo 3: Statistical plot with annotations ===
+    logger.info("3. Statistical Plot with Annotations")
+
+    spec_stats = {
+        "figure": {"width_mm": 90, "height_mm": 65},
+        "plots": [
+            {
+                "type": "bar",
+                "x": [0, 1, 2],
+                "height": [2.1, 3.5, 4.2],
+                "kwargs": {"yerr": [0.3, 0.4, 0.35], "capsize": 3, "id": "bars"},
+            }
+        ],
+        "stat_annotations": [
+            {"x1": 0, "x2": 1, "y": 4.5, "p_value": 0.032},
+            {"x1": 1, "x2": 2, "y": 5.2, "p_value": 0.008},
+        ],
+        "xlabel": "Group",
+        "ylabel": "Value",
+        "title": "MCP Stats Demo",
+        "xticks": {"ticks": [0, 1, 2], "labels": ["A", "B", "C"]},
+    }
+
+    fig, ax = execute_mcp_spec(spec_stats)
+    fr.save(fig, OUT / "mcp_stats.png")
+    logger.info(f"   Created: {OUT / 'mcp_stats.png'}")
+
+    # Summary
+    logger.info("=" * 50)
+    logger.info("MCP Demo Complete")
+    logger.info("=" * 50)
+    logger.info("To enable MCP in Claude Code:")
+    logger.info("  figrecipe mcp install")
+    logger.info("MCP Resources for AI agents:")
+    logger.info("  figrecipe://cheatsheet   - Quick reference")
+    logger.info("  figrecipe://mcp-spec     - Declarative spec format")
+    logger.info("  figrecipe://api/core     - Python API documentation")
+
+    return 0
 
 
 if __name__ == "__main__":
