@@ -94,7 +94,7 @@ FigRecipe includes an MCP server for AI integration:
 .. code-block:: bash
 
     # Start MCP server
-    figrecipe mcp run
+    figrecipe mcp start
 
     # List available MCP tools
     figrecipe mcp list-tools

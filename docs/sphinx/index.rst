@@ -71,7 +71,7 @@ MCP Server:
 .. code-block:: bash
 
     # Start MCP server for AI agent integration
-    figrecipe mcp run
+    figrecipe mcp start
 
 Indices and tables
 ==================
