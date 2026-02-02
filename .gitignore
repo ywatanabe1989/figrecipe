@@ -88,6 +88,7 @@ outputs/
 !outputs/notebook/*.png
 *.yaml
 !.pre-commit-config.yaml
+!.readthedocs.yaml
 !pyproject.toml
 !outputs/notebook/*.yaml
 !src/figrecipe/styles/presets/*.yaml
@@ -241,6 +242,7 @@ data/*
 **/*.ppt
 **/*.pptx
 **/*.txt
+!docs/sphinx/requirements.txt
 **/*.log
 **/*.db
 **/*.sqlite
