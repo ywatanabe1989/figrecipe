@@ -9,8 +9,14 @@ Basic Plots
 Line Plot
 ^^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_line.png
+   :alt: Line Plot
+   :width: 80%
+   :align: center
+
+   Line plot with multiple series.
+
+.. code-block:: python
 
    import figrecipe as fr
    import numpy as np
@@ -21,8 +27,8 @@ Line Plot
    ax.plot(x, np.cos(x), label="cos(x)", id="cosine")
    ax.set_xlabel("X")
    ax.set_ylabel("Y")
-   ax.set_title("Line Plot")
    ax.legend()
+   fr.save(fig, "line_plot.png")
 
 MCP Specification:
 
@@ -42,8 +48,14 @@ MCP Specification:
 Scatter Plot
 ^^^^^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_scatter.png
+   :alt: Scatter Plot
+   :width: 80%
+   :align: center
+
+   Scatter plot with color mapping.
+
+.. code-block:: python
 
    import figrecipe as fr
    import numpy as np
@@ -55,7 +67,7 @@ Scatter Plot
    ax.scatter(x, y, c=x, cmap="viridis", s=50, id="data")
    ax.set_xlabel("X")
    ax.set_ylabel("Y")
-   ax.set_title("Scatter Plot")
+   fr.save(fig, "scatter_plot.png")
 
 MCP Specification:
 
@@ -74,11 +86,16 @@ MCP Specification:
 Bar Plot
 ^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_bar.png
+   :alt: Bar Plot
+   :width: 80%
+   :align: center
+
+   Vertical bar plot.
+
+.. code-block:: python
 
    import figrecipe as fr
-   import numpy as np
 
    fig, ax = fr.subplots()
    categories = ["A", "B", "C", "D", "E"]
@@ -86,7 +103,7 @@ Bar Plot
    ax.bar(categories, values, color="steelblue", id="bars")
    ax.set_xlabel("Category")
    ax.set_ylabel("Value")
-   ax.set_title("Bar Plot")
+   fr.save(fig, "bar_plot.png")
 
 MCP Specification:
 
@@ -106,8 +123,14 @@ Statistical Plots
 Histogram
 ^^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_hist.png
+   :alt: Histogram
+   :width: 80%
+   :align: center
+
+   Histogram showing data distribution.
+
+.. code-block:: python
 
    import figrecipe as fr
    import numpy as np
@@ -118,13 +141,19 @@ Histogram
    ax.hist(data, bins=30, alpha=0.7, color="steelblue", edgecolor="white", id="hist")
    ax.set_xlabel("Value")
    ax.set_ylabel("Frequency")
-   ax.set_title("Histogram")
+   fr.save(fig, "histogram.png")
 
 Box Plot
 ^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_boxplot.png
+   :alt: Box Plot
+   :width: 80%
+   :align: center
+
+   Box plot comparing distributions.
+
+.. code-block:: python
 
    import figrecipe as fr
    import numpy as np
@@ -135,13 +164,19 @@ Box Plot
    ax.boxplot(data, labels=["A", "B", "C", "D"], id="boxplot")
    ax.set_xlabel("Group")
    ax.set_ylabel("Value")
-   ax.set_title("Box Plot")
+   fr.save(fig, "boxplot.png")
 
 Violin Plot
 ^^^^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_violin.png
+   :alt: Violin Plot
+   :width: 80%
+   :align: center
+
+   Violin plot showing distribution shape.
+
+.. code-block:: python
 
    import figrecipe as fr
    import numpy as np
@@ -152,9 +187,7 @@ Violin Plot
    ax.violinplot(data, positions=[1, 2, 3, 4], id="violin")
    ax.set_xticks([1, 2, 3, 4])
    ax.set_xticklabels(["A", "B", "C", "D"])
-   ax.set_xlabel("Group")
-   ax.set_ylabel("Value")
-   ax.set_title("Violin Plot")
+   fr.save(fig, "violinplot.png")
 
 2D Plots
 --------
@@ -162,8 +195,14 @@ Violin Plot
 Heatmap / Imshow
 ^^^^^^^^^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_heatmap.png
+   :alt: Heatmap
+   :width: 80%
+   :align: center
+
+   Heatmap visualization of 2D data.
+
+.. code-block:: python
 
    import figrecipe as fr
    import numpy as np
@@ -173,13 +212,19 @@ Heatmap / Imshow
    data = np.random.randn(10, 10)
    im = ax.imshow(data, cmap="coolwarm", id="heatmap")
    fig.fig.colorbar(im, ax=ax._ax)
-   ax.set_title("Heatmap")
+   fr.save(fig, "heatmap.png")
 
 Contour Plot
 ^^^^^^^^^^^^
 
-.. plot::
-   :include-source:
+.. figure:: /_static/gallery_contour.png
+   :alt: Contour Plot
+   :width: 80%
+   :align: center
+
+   Filled contour plot.
+
+.. code-block:: python
 
    import figrecipe as fr
    import numpy as np
@@ -191,92 +236,30 @@ Contour Plot
    Z = np.sin(X) * np.cos(Y)
    cs = ax.contourf(X, Y, Z, levels=20, cmap="viridis", id="contour")
    fig.fig.colorbar(cs, ax=ax._ax)
-   ax.set_xlabel("X")
-   ax.set_ylabel("Y")
-   ax.set_title("Contour Plot")
+   fr.save(fig, "contour.png")
 
-Multi-Panel Layouts
--------------------
+Supported Plot Types
+--------------------
 
-Subplots
-^^^^^^^^
+FigRecipe supports all standard matplotlib axes methods:
 
-.. plot::
-   :include-source:
+**Line/Curve:**
+``plot``, ``step``, ``fill``, ``fill_between``, ``errorbar``
 
-   import figrecipe as fr
-   import numpy as np
+**Points:**
+``scatter``
 
-   fig, axes = fr.subplots(2, 2, figsize=(8, 6))
-   x = np.linspace(0, 10, 100)
+**Bars:**
+``bar``, ``barh``
 
-   axes[0, 0].plot(x, np.sin(x), id="sin")
-   axes[0, 0].set_title("Sine")
+**Distribution:**
+``hist``, ``hist2d``, ``boxplot``, ``violinplot``
 
-   axes[0, 1].plot(x, np.cos(x), color="orange", id="cos")
-   axes[0, 1].set_title("Cosine")
+**2D/Image:**
+``imshow``, ``matshow``, ``heatmap``, ``pcolormesh``, ``contour``, ``contourf``
 
-   axes[1, 0].plot(x, np.exp(-x/5) * np.sin(x), color="green", id="damped")
-   axes[1, 0].set_title("Damped Sine")
-
-   axes[1, 1].plot(x, np.tan(x), color="red", id="tan")
-   axes[1, 1].set_ylim(-5, 5)
-   axes[1, 1].set_title("Tangent")
-
-   fig.fig.tight_layout()
-
-Statistical Annotations
------------------------
-
-FigRecipe supports statistical significance annotations with brackets and p-values:
-
-.. plot::
-   :include-source:
-
-   import figrecipe as fr
-   import numpy as np
-
-   fig, ax = fr.subplots()
-   np.random.seed(42)
-
-   groups = ["Control", "Treatment A", "Treatment B"]
-   means = [10, 15, 12]
-   stds = [2, 3, 2.5]
-
-   x = np.arange(len(groups))
-   bars = ax.bar(x, means, yerr=stds, capsize=5, color=["gray", "steelblue", "coral"], id="bars")
-   ax.set_xticks(x)
-   ax.set_xticklabels(groups)
-   ax.set_ylabel("Value")
-   ax.set_title("Group Comparison with Statistics")
-
-   # Add significance brackets manually
-   y_max = max(means) + max(stds) + 2
-   ax.plot([0, 0, 1, 1], [y_max, y_max+0.5, y_max+0.5, y_max], 'k-', lw=1)
-   ax.text(0.5, y_max+0.7, "**", ha='center', va='bottom', fontsize=12)
-
-MCP Specification with Statistics
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: yaml
-
-   plots:
-     - type: bar
-       x: [0, 1, 2]
-       height: [10, 15, 12]
-       yerr: [2, 3, 2.5]
-       color: ["gray", "steelblue", "coral"]
-       capsize: 5
-
-   stat_annotations:
-     - group1_idx: 0
-       group2_idx: 1
-       p_value: 0.003
-       test: "t-test"
-
-   xlabel: "Group"
-   ylabel: "Value"
-   title: "Statistical Comparison"
+**Special:**
+``pie``, ``stem``, ``eventplot``, ``hexbin``, ``quiver``, ``streamplot``
 
 CSV Column Workflow
 -------------------
@@ -285,7 +268,6 @@ FigRecipe can read data directly from CSV files:
 
 .. code-block:: yaml
 
-   # Reference CSV columns instead of inline data
    plots:
      - type: scatter
        data_file: "experiment_data.csv"
@@ -295,43 +277,17 @@ FigRecipe can read data directly from CSV files:
 
    xlabel: "Time (s)"
    ylabel: "Amplitude"
-   title: "CSV Data Workflow"
 
-Supported Plot Types
---------------------
+Statistical Annotations
+-----------------------
 
-FigRecipe supports all standard matplotlib axes methods:
+Add significance brackets with p-values:
 
-**Line/Curve:**
-- ``plot`` - Basic line plot
-- ``step`` - Step plot
-- ``fill`` - Filled polygon
-- ``fill_between`` - Fill between curves
-- ``errorbar`` - Error bar plot
+.. code-block:: yaml
 
-**Points:**
-- ``scatter`` - Scatter plot
-
-**Bars:**
-- ``bar`` - Vertical bar plot
-- ``barh`` - Horizontal bar plot
-
-**Distribution:**
-- ``hist`` - Histogram
-- ``hist2d`` - 2D histogram
-- ``boxplot`` / ``box`` - Box plot
-- ``violinplot`` / ``violin`` - Violin plot
-
-**2D/Image:**
-- ``imshow`` - Image display
-- ``matshow`` - Matrix display
-- ``heatmap`` - Heatmap (alias)
-- ``pcolormesh`` - Pseudocolor mesh
-- ``contour`` - Contour lines
-- ``contourf`` - Filled contours
-
-**Special:**
-- ``pie`` - Pie chart
-- ``stem`` - Stem plot
-- ``eventplot`` - Event plot
-- ``hexbin`` - Hexagonal binning
+   stat_annotations:
+     - group1_idx: 0
+       group2_idx: 1
+       p_value: 0.003
+       test: "t-test"
+       stars: true
