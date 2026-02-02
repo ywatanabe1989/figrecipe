@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_7cc3d40c
-created: '2026-01-20T10:09:29.607704'
+id: fig_df7c5e56
+created: '2026-02-03T03:58:57.959742'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -22,8 +22,8 @@ figure:
     ticks_direction: "out"
     ticks_n_ticks_min: 3
     ticks_n_ticks_max: 4
-    lines_trace_mm: 0.2
-    lines_errorbar_mm: 0.2
+    lines_trace_mm: 0.12
+    lines_errorbar_mm: 0.12
     lines_errorbar_cap_mm: 0.8
     markers_size_mm: 0.8
     markers_scatter_mm: 0.8
@@ -57,13 +57,13 @@ figure:
     padding_tick_pt: 2.0
     padding_title_pt: 4.0
     output_dpi: 300
-    output_transparent: true
-    output_format: "pdf"
+    output_transparent: false
+    output_format: "png"
     theme_mode: "light"
     theme_colors:
-      figure_bg: "transparent"
-      axes_bg: "transparent"
-      legend_bg: "transparent"
+      figure_bg: "white"
+      axes_bg: "white"
+      legend_bg: "white"
       text: "black"
       spine: "black"
       tick: "black"
@@ -98,6 +98,13 @@ figure:
     behavior_grid: false
     behavior_auto_scale_axes: true
     behavior_constrained_layout: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
     margin_left_mm: 1
     margin_right_mm: 1
     margin_bottom_mm: 1
@@ -108,7 +115,7 @@ figure:
     tick_thickness_mm: 0.2
     n_ticks_min: 3
     n_ticks_max: 4
-    trace_thickness_mm: 0.2
+    trace_thickness_mm: 0.12
     marker_size_mm: 0.8
     font_family: "Arial"
     axis_font_size_pt: 7
@@ -159,7 +166,8 @@ axes:
             - 0.7529411764705882
           alpha: 0.6
           label: Measured
-        timestamp: '2026-01-20T10:09:29.783825'
+          clip_on: false
+        timestamp: '2026-02-03T03:58:58.075533'
       - id: plot_000
         function: plot
         args:
@@ -175,7 +183,8 @@ axes:
             - 0.27450980392156865
             - 0.19607843137254902
           label: Fitted
-        timestamp: '2026-01-20T10:09:29.825449'
+          clip_on: false
+        timestamp: '2026-02-03T03:58:58.114901'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -183,28 +192,28 @@ axes:
           - name: xlabel
             data: Time (s)
         kwargs: {}
-        timestamp: '2026-01-20T10:09:29.863888'
+        timestamp: '2026-02-03T03:58:58.138136'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Signal (mV)
         kwargs: {}
-        timestamp: '2026-01-20T10:09:29.899670'
+        timestamp: '2026-02-03T03:58:58.157394'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: Damped Oscillation
         kwargs: {}
-        timestamp: '2026-01-20T10:09:29.944774'
+        timestamp: '2026-02-03T03:58:58.175325'
       - id: legend_000
         function: legend
         args: []
         kwargs: {}
-        timestamp: '2026-01-20T10:09:30.005812'
+        timestamp: '2026-02-03T03:58:58.199725'
     bbox:
       - 0.09543587070707069
       - 0.09207887867177521
       - 0.8949421474747472
-      - 0.8359048224776501
+      - 0.8479175140485313

@@ -6,15 +6,21 @@
 Demonstrates statistical annotations (significance brackets) and caption generation.
 """
 
+from pathlib import Path
+
 import numpy as np
 
 import figrecipe as fr
 
+OUT = Path(__file__).parent / (Path(__file__).stem + "_out")
+
 
 def main():
     """Demonstrate statistical annotations and captions."""
+    OUT.mkdir(exist_ok=True)
+
     # Set up figure with subplots
-    fig, axes = fr.subplots(1, 3, figsize_mm=(180, 50))
+    fig, axes = fr.subplots(1, 3, figsize=(180 / 25.4, 60 / 25.4))
     np.random.seed(42)
 
     # === Panel A: Basic statistical annotation ===
@@ -39,9 +45,9 @@ def main():
     ax.set_title("Stars only")
 
     # Add statistical annotation brackets
-    ax.stat_annotation(0, 1, y=5.0, p_value=0.032, style="stars", id="stat_0_1")
-    ax.stat_annotation(1, 2, y=5.8, p_value=0.008, style="stars", id="stat_1_2")
-    ax.stat_annotation(0, 2, y=6.6, p_value=0.001, style="stars", id="stat_0_2")
+    ax.add_stat_annotation(0, 1, y=5.0, p_value=0.032, style="stars", id="stat_0_1")
+    ax.add_stat_annotation(1, 2, y=5.8, p_value=0.008, style="stars", id="stat_1_2")
+    ax.add_stat_annotation(0, 2, y=6.6, p_value=0.001, style="stars", id="stat_0_2")
 
     # Set panel stats for caption generation
     ax.set_stats(
@@ -73,8 +79,8 @@ def main():
     ax.set_title("P-values")
 
     # P-value style annotations
-    ax.stat_annotation(0, 1, y=5.5, p_value=0.023, style="p_value", id="pval_0_1")
-    ax.stat_annotation(0, 2, y=6.3, p_value=0.156, style="p_value", id="pval_0_2")
+    ax.add_stat_annotation(0, 1, y=5.5, p_value=0.023, style="p_value", id="pval_0_1")
+    ax.add_stat_annotation(0, 2, y=6.3, p_value=0.156, style="p_value", id="pval_0_2")
 
     # === Panel C: Both stars and p-values ===
     ax = axes[2]
@@ -95,13 +101,13 @@ def main():
     ax.set_title("Stars + p-values")
 
     # Combined style
-    ax.stat_annotation(0, 2, y=6.2, p_value=0.0003, style="both", id="both_0_2")
+    ax.add_stat_annotation(0, 2, y=6.2, p_value=0.0003, style="both", id="both_0_2")
 
     # Add panel labels
     fig.add_panel_labels(["A", "B", "C"])
 
     # Save figure
-    fr.save(fig, "./03_statistical_notations_and_captions_out/stat_annotations.png")
+    fr.save(fig, OUT / "stat_annotations.png", validate=False)
 
     # === Caption Generation Demo ===
     print("\n=== Caption Generation Demo ===")
@@ -131,7 +137,7 @@ def main():
     )
     print(f"\nFigure caption:\n{fig_caption}")
 
-    print("\nOutput: ./03_statistical_notations_and_captions_out/stat_annotations.png")
+    print(f"\nOutput: {OUT / 'stat_annotations.png'}")
 
 
 if __name__ == "__main__":

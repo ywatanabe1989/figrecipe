@@ -11,9 +11,9 @@ Demonstrates the composition feature with proper recipe output.
 Requires: Run 01_all_plots.py first to generate the individual plot recipes.
 
 Outputs:
-    ./02_composition_out/composed.png
-    ./02_composition_out/composed.yaml
-    ./02_composition_out/composed_data/
+    ./02a_composition_out/composed.png
+    ./02a_composition_out/composed.yaml
+    ./02a_composition_out/composed_data/
 """
 
 import matplotlib
@@ -27,7 +27,7 @@ import figrecipe as fr
 
 # Input: recipes from 01_all_plots
 INPUT_DIR = Path(__file__).parent / "01_all_plots_out"
-OUTPUT_DIR = Path(__file__.replace(".py", "_out"))
+OUTPUT_DIR = Path(__file__).parent / (Path(__file__).stem + "_out")
 
 
 def main():

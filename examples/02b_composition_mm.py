@@ -8,10 +8,10 @@ Demonstrates the new mm-based composition pipeline with:
 3. Recipe save/load for future editing
 
 Outputs:
-    ./02_composition_out/mm_horizontal.png
-    ./02_composition_out/mm_horizontal.compose.yaml
-    ./02_composition_out/mm_freeform.png
-    ./02_composition_out/mm_freeform.compose.yaml
+    ./02b_composition_mm_out/mm_horizontal.png
+    ./02b_composition_mm_out/mm_horizontal.compose.yaml
+    ./02b_composition_mm_out/mm_freeform.png
+    ./02b_composition_mm_out/mm_freeform.compose.yaml
 """
 
 import matplotlib
@@ -23,7 +23,7 @@ from pathlib import Path
 import figrecipe as fr
 from figrecipe import compose_figures, recompose
 
-OUTPUT_DIR = Path(__file__).parent / "02_composition_out"
+OUTPUT_DIR = Path(__file__).parent / (Path(__file__).stem + "_out")
 
 
 def create_sample_panels(output_dir: Path):
