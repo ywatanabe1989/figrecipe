@@ -14,6 +14,14 @@ FigRecipe - Reproducible Scientific Figures
 
 .. toctree::
    :maxdepth: 2
+   :caption: User Guide
+
+   gallery
+   style_reference
+   mcp_spec
+
+.. toctree::
+   :maxdepth: 2
    :caption: API Reference
 
    api/figrecipe

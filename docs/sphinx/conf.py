@@ -26,11 +26,19 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.coverage",
+    "matplotlib.sphinxext.plot_directive",
     "sphinx_rtd_theme",
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_autodoc_typehints",
 ]
+
+# Plot directive settings
+plot_include_source = True
+plot_html_show_source_link = True
+plot_html_show_formats = False
+plot_formats = ["png"]
+plot_rcparams = {"figure.figsize": (6, 4), "figure.dpi": 100}
 
 # Autodoc settings
 autodoc_default_options = {

@@ -133,7 +133,7 @@ def distribute_panels(
         _distribute_vertical(fig, valid_panels, bboxes, spacing_mm)
 
 
-def smart_align(
+def align_smart(
     fig: RecordingFigure,
     panels: Optional[List[Tuple[int, int]]] = None,
 ) -> None:
@@ -162,7 +162,7 @@ def smart_align(
     >>> import figrecipe as fr
     >>> fig, axes = fr.subplots(2, 2)
     >>> # ... add plots ...
-    >>> fr.smart_align(fig)  # Align all panels using theme settings
+    >>> fr.align_smart(fig)  # Align all panels using theme settings
     """
     from .._utils._units import mm_to_inch
 
@@ -448,5 +448,5 @@ __all__ = [
     "AlignmentMode",
     "align_panels",
     "distribute_panels",
-    "smart_align",
+    "align_smart",
 ]

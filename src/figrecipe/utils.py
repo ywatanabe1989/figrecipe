@@ -21,11 +21,11 @@ from ._api._style_manager import STYLE, apply_style
 from ._composition import (
     AlignmentMode,
     align_panels,
+    align_smart,
     distribute_panels,
     hide_panel,
     import_axes,
     show_panel,
-    smart_align,
     toggle_panel,
 )
 from ._integrations import (
@@ -76,8 +76,8 @@ __all__ = [
     # Composition (advanced)
     "AlignmentMode",
     "align_panels",
+    "align_smart",
     "distribute_panels",
-    "smart_align",
     "hide_panel",
     "import_axes",
     "show_panel",

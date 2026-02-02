@@ -12,10 +12,10 @@ Usage
 >>> import figrecipe as fr
 >>> fig, ax = fr.subplots()
 >>> ax.plot(x, y, id='data')
->>> fr.edit(fig)  # Opens browser with interactive editor
+>>> fr.gui(fig)  # Opens browser with interactive editor
 
 >>> # Or from saved recipe
->>> fr.edit('recipe.yaml')
+>>> fr.gui('recipe.yaml')
 """
 
 from pathlib import Path
@@ -25,7 +25,7 @@ from .._wrappers import RecordingFigure
 from ._flask_app import FigureEditor
 
 
-def edit(
+def gui(
     source: Optional[Union[RecordingFigure, str, Path]] = None,
     style: Optional[Union[str, Dict[str, Any]]] = None,
     port: int = 5050,
@@ -89,15 +89,15 @@ def edit(
     >>> import figrecipe as fr
     >>> fig, ax = fr.subplots()
     >>> ax.plot([1, 2, 3], [1, 4, 9], id='quadratic')
-    >>> overrides = fr.edit(fig)
+    >>> overrides = fr.gui(fig)
 
     Edit a saved recipe:
 
-    >>> overrides = fr.edit('my_figure.yaml')
+    >>> overrides = fr.gui('my_figure.yaml')
 
     With explicit style:
 
-    >>> overrides = fr.edit(fig, style='SCITEX_DARK')
+    >>> overrides = fr.gui(fig, style='SCITEX_DARK')
     """
     import importlib.util
 
@@ -276,4 +276,4 @@ def _resolve_style(
     raise TypeError(f"style must be str, dict, or None, got {type(style)}")
 
 
-__all__ = ["edit", "FigureEditor"]
+__all__ = ["gui", "FigureEditor"]

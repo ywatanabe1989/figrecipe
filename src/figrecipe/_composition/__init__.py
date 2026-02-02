@@ -18,7 +18,7 @@ Supported image formats for composition:
 PNG, JPG, JPEG, TIFF, BMP, GIF, WEBP, SVG (SVG requires cairosvg)
 """
 
-from ._alignment import AlignmentMode, align_panels, distribute_panels, smart_align
+from ._alignment import AlignmentMode, align_panels, align_smart, distribute_panels
 from ._compose import IMAGE_EXTENSIONS, VECTOR_EXTENSIONS, compose
 from ._import_axes import import_axes
 from ._layout_solver import solve_layout_to_mm
@@ -40,5 +40,5 @@ __all__ = [
     "AlignmentMode",
     "align_panels",
     "distribute_panels",
-    "smart_align",
+    "align_smart",
 ]

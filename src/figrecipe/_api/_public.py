@@ -286,7 +286,7 @@ def crop(
     return _crop(input_path, output_path, margin_mm, margin_px, overwrite, verbose)
 
 
-def edit(
+def gui(
     source=None,
     style=None,
     port: int = 5050,
@@ -324,9 +324,9 @@ def edit(
     dict
         Final style overrides after editing session.
     """
-    from .._editor import edit as _edit
+    from .._editor import gui as _gui
 
-    return _edit(
+    return _gui(
         source,
         style=style,
         port=port,
@@ -351,5 +351,5 @@ __all__ = [
     "extract_data",
     "validate_recipe",
     "crop",
-    "edit",
+    "gui",
 ]

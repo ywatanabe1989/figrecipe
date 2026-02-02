@@ -67,8 +67,8 @@ except Exception:
 # =============================================================================
 from ._api._public import (
     crop,
-    edit,
     extract_data,
+    gui,
     info,
     load,
     reproduce,
@@ -77,7 +77,7 @@ from ._api._public import (
 )
 from ._api._public import validate_recipe as validate
 from ._api._style_manager import list_presets, load_style, unload_style
-from ._composition import align_panels, compose, distribute_panels, smart_align
+from ._composition import align_panels, align_smart, compose, distribute_panels
 from ._diagram import Diagram
 from ._graph_presets import get_preset as get_graph_preset
 from ._seaborn import get_seaborn_recorder as _get_sns
@@ -112,8 +112,8 @@ __all__ = [
     "compose",
     "align_panels",
     "distribute_panels",
-    "smart_align",
-    "edit",
+    "align_smart",
+    "gui",
     "crop",
     "info",
     "validate",
