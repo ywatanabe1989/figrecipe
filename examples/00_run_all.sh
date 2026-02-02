@@ -5,8 +5,9 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_PATH="$SCRIPT_DIR/.run_all.log"
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_PATH="$THIS_DIR/$(basename "$0").log"
+echo >"$LOG_PATH"
 
 # Colors
 GREEN='\033[0;32m'
@@ -17,7 +18,7 @@ NC='\033[0m'
 log() { echo -e "$1" | tee -a "$LOG_PATH"; }
 
 main() {
-    cd "$SCRIPT_DIR"
+    cd "$THIS_DIR"
     echo >"$LOG_PATH"
 
     log "========================================"
@@ -30,7 +31,7 @@ main() {
 
     # Delete existing out directories
     log "Cleaning *_out directories..."
-    rm -rf "$SCRIPT_DIR"/*_out
+    rm -rf "$THIS_DIR"/*_out
     log "Done."
     log ""
 
