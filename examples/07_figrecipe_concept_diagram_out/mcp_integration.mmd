@@ -1,0 +1,21 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1a2634", "primaryTextColor": "#e0e0e0", "primaryBorderColor": "#3a4a5a", "lineColor": "#5a9fcf"}}}%%
+graph LR
+    agent(["AI Agent
+(Claude)"])
+    mcp["FigRecipe
+MCP Server"]
+    plt_plot("plt_plot")
+    plt_compose("plt_compose")
+    plt_reproduce("plt_reproduce")
+    diagram("diagram_*")
+    output(["Publication-Ready
+Figures"])
+    agent -->|"tool calls"| mcp
+    mcp --> plt_plot
+    mcp --> plt_compose
+    mcp --> plt_reproduce
+    mcp --> diagram
+    plt_plot --> output
+    plt_compose --> output
+    style mcp fill:#0d4a6b,stroke:#5a9fcf,stroke-width:2px
+    style output fill:#ccffcc,stroke:#00cc00
