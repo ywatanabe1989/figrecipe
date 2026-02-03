@@ -172,17 +172,24 @@ def reproduce(
     path: Union[str, Path],
     calls: Optional[List[str]] = None,
     skip_decorations: bool = False,
+    apply_style: bool = True,
 ) -> Tuple[Figure, Union[Axes, List[Axes]]]:
-    """Reproduce a figure from a recipe file.
+    """Reproduce a figure from a recipe file or bundle.
 
     Parameters
     ----------
     path : str or Path
-        Path to .yaml recipe file.
+        Path to recipe. Supports multiple formats:
+        - .yaml/.yml file: Direct recipe file
+        - .png/.jpg/etc: Image with associated .yaml
+        - Directory: Bundle containing recipe.yaml
+        - .zip: ZIP bundle (both old recipe.yaml format and new spec.json format)
     calls : list of str, optional
         If provided, only reproduce these specific call IDs.
     skip_decorations : bool
         If True, skip decoration calls.
+    apply_style : bool
+        If True (default), apply saved style.
 
     Returns
     -------
@@ -191,6 +198,27 @@ def reproduce(
     axes : Axes or list of Axes
         Reproduced axes.
     """
+    import zipfile
+
+    path = Path(path)
+
+    # Check if this is a new-format bundle (ZIP with spec.json)
+    if path.suffix.lower() == ".zip" and zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path, "r") as zf:
+            namelist = zf.namelist()
+            # Check for spec.json (new bundle format)
+            has_spec = any(n.endswith("spec.json") for n in namelist)
+            has_recipe = any(
+                n.endswith("recipe.yaml") or n.endswith("recipe.yml") for n in namelist
+            )
+
+            if has_spec and not has_recipe:
+                # Use new bundle reproduction
+                from .._bundle._load import reproduce_bundle
+
+                return reproduce_bundle(path, apply_style=apply_style)
+
+    # Use old recipe-based reproduction
     return _reproduce_core(path, calls=calls, skip_decorations=skip_decorations)
 
 

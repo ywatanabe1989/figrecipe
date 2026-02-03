@@ -119,16 +119,18 @@ def save_bundle(
                 if verbose:
                     warnings.warn(f"Hitmap generation failed: {e}")
 
-        # Create ZIP file
+        # Create ZIP file with root directory matching zip filename
         path.parent.mkdir(parents=True, exist_ok=True)
+        root_dir = path.stem  # e.g., "figure" from "figure.zip"
         with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
             for file in tmpdir.rglob("*"):
                 if file.is_file():
-                    arcname = file.relative_to(tmpdir)
+                    arcname = Path(root_dir) / file.relative_to(tmpdir)
                     zf.write(file, arcname)
 
     if verbose:
         print(f"Saved bundle: {path}")
+        print(f"  (extracts to: {path.stem}/)")
         with zipfile.ZipFile(path, "r") as zf:
             for info in zf.infolist():
                 if not info.is_dir():

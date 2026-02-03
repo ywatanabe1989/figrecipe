@@ -12,6 +12,19 @@ import pytest
 import figrecipe as fr
 
 
+def _find_bundle_file(zf, filename):
+    """Find file in bundle, handling both root and subdirectory formats."""
+    namelist = zf.namelist()
+    # Try root first
+    if filename in namelist:
+        return filename
+    # Try subdirectory (new format uses zip stem as root)
+    for name in namelist:
+        if name.endswith(f"/{filename}") or name.endswith(filename):
+            return name
+    return None
+
+
 class TestSaveBundle:
     """Test save_bundle functionality."""
 
@@ -35,8 +48,9 @@ class TestSaveBundle:
         bundle_path = fr.save_bundle(fig, tmp_path / "test", verbose=False)
 
         with zipfile.ZipFile(bundle_path, "r") as zf:
-            assert "spec.json" in zf.namelist()
-            with zf.open("spec.json") as f:
+            spec_path = _find_bundle_file(zf, "spec.json")
+            assert spec_path is not None, f"spec.json not found in {zf.namelist()}"
+            with zf.open(spec_path) as f:
                 spec = json.load(f)
 
         assert "version" in spec
@@ -54,8 +68,9 @@ class TestSaveBundle:
         bundle_path = fr.save_bundle(fig, tmp_path / "test", verbose=False)
 
         with zipfile.ZipFile(bundle_path, "r") as zf:
-            assert "style.json" in zf.namelist()
-            with zf.open("style.json") as f:
+            style_path = _find_bundle_file(zf, "style.json")
+            assert style_path is not None, f"style.json not found in {zf.namelist()}"
+            with zf.open(style_path) as f:
                 style = json.load(f)
 
         assert "version" in style
@@ -71,8 +86,9 @@ class TestSaveBundle:
         bundle_path = fr.save_bundle(fig, tmp_path / "test", verbose=False)
 
         with zipfile.ZipFile(bundle_path, "r") as zf:
-            assert "data.csv" in zf.namelist()
-            with zf.open("data.csv") as f:
+            data_path = _find_bundle_file(zf, "data.csv")
+            assert data_path is not None, f"data.csv not found in {zf.namelist()}"
+            with zf.open(data_path) as f:
                 df = pd.read_csv(f)
 
         assert "mydata_x" in df.columns
@@ -89,7 +105,9 @@ class TestSaveBundle:
 
         with zipfile.ZipFile(bundle_path, "r") as zf:
             names = zf.namelist()
-            assert "exports/figure.png" in names
+            # Check for exports/figure.png in any subdirectory
+            has_figure = any("exports/figure.png" in n for n in names)
+            assert has_figure, f"exports/figure.png not found in {names}"
 
     def test_save_creates_hitmap(self, tmp_path):
         """Test that hitmap is saved when requested."""
@@ -102,7 +120,9 @@ class TestSaveBundle:
 
         with zipfile.ZipFile(bundle_path, "r") as zf:
             names = zf.namelist()
-            assert "exports/figure_hitmap.png" in names
+            # Check for exports/figure_hitmap.png in any subdirectory
+            has_hitmap = any("exports/figure_hitmap.png" in n for n in names)
+            assert has_hitmap, f"exports/figure_hitmap.png not found in {names}"
 
 
 class TestLoadBundle:
@@ -202,12 +222,15 @@ class TestUnifiedSave:
         assert result[0].suffix == ".zip"
         assert result[0].exists()
 
-        # Should contain layered format
+        # Should contain layered format (may be in subdirectory)
         with zipfile.ZipFile(result[0], "r") as zf:
             names = zf.namelist()
-            assert "spec.json" in names
-            assert "style.json" in names
-            assert "data.csv" in names
+            has_spec = any("spec.json" in n for n in names)
+            has_style = any("style.json" in n for n in names)
+            has_data = any("data.csv" in n for n in names)
+            assert has_spec, f"spec.json not found in {names}"
+            assert has_style, f"style.json not found in {names}"
+            assert has_data, f"data.csv not found in {names}"
 
 
 class TestBundlePaths:

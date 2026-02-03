@@ -246,9 +246,26 @@ def create_subplots(
     # Use get_style() to ensure style is loaded (triggers auto-load if needed)
     global_style = get_style()
 
-    # Always use mm-based layout by default (never fall back to matplotlib defaults)
-    # Only skip if figsize is explicitly provided by the user
-    if "figsize" not in kwargs:
+    # Check if mm-based layout should be used
+    # Skip mm layout if:
+    # 1. figsize is explicitly provided, OR
+    # 2. style has null width_mm/height_mm (e.g., MATPLOTLIB style)
+    use_mm_layout = "figsize" not in kwargs
+    if use_mm_layout and global_style is not None:
+        # Check if style defines mm dimensions
+        style_width = None
+        style_height = None
+        try:
+            if hasattr(global_style, "axes"):
+                style_width = getattr(global_style.axes, "width_mm", None)
+                style_height = getattr(global_style.axes, "height_mm", None)
+        except (KeyError, AttributeError):
+            pass
+        # If style explicitly sets null dimensions, don't use mm layout
+        if style_width is None and style_height is None:
+            use_mm_layout = False
+
+    if use_mm_layout:
         mm_layout, kwargs = _calculate_mm_layout(
             nrows,
             ncols,

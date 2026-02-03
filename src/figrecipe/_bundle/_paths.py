@@ -34,7 +34,9 @@ def is_bundle_path(path: Union[str, Path]) -> bool:
         if path.exists():
             try:
                 with zipfile.ZipFile(path, "r") as zf:
-                    return SPEC_FILENAME in zf.namelist()
+                    namelist = zf.namelist()
+                    # Check for spec.json at root or in subdirectory
+                    return any(n.endswith(SPEC_FILENAME) for n in namelist)
             except zipfile.BadZipFile:
                 return False
         return True  # Assume valid if doesn't exist yet
@@ -68,7 +70,9 @@ def bundle_exists(path: Union[str, Path]) -> bool:
     if path.suffix.lower() == ".zip":
         try:
             with zipfile.ZipFile(path, "r") as zf:
-                return SPEC_FILENAME in zf.namelist()
+                namelist = zf.namelist()
+                # Check for spec.json at root or in subdirectory
+                return any(n.endswith(SPEC_FILENAME) for n in namelist)
         except zipfile.BadZipFile:
             return False
 

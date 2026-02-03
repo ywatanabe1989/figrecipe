@@ -42,11 +42,33 @@ def load_bundle(
 
 
 def _load_from_zip(path: Path) -> Tuple[Dict, Dict, Optional[pd.DataFrame]]:
-    """Load bundle from ZIP file."""
+    """Load bundle from ZIP file.
+
+    Supports both formats:
+    - New format: files inside root directory (e.g., figure/spec.json)
+    - Legacy format: files at root (e.g., spec.json)
+    """
     with zipfile.ZipFile(path, "r") as zf:
+        # Determine prefix (new format uses zip stem as root directory)
+        namelist = zf.namelist()
+        root_dir = path.stem
+
+        # Check if files are in root directory (new format) or at root (legacy)
+        if f"{root_dir}/{SPEC_FILENAME}" in namelist:
+            prefix = f"{root_dir}/"
+        elif SPEC_FILENAME in namelist:
+            prefix = ""
+        else:
+            # Try to find spec.json in any subdirectory
+            spec_files = [n for n in namelist if n.endswith(SPEC_FILENAME)]
+            if spec_files:
+                prefix = spec_files[0].replace(SPEC_FILENAME, "")
+            else:
+                raise FileNotFoundError(f"spec.json not found in bundle: {path}")
+
         # Load spec
         try:
-            with zf.open(SPEC_FILENAME) as f:
+            with zf.open(f"{prefix}{SPEC_FILENAME}") as f:
                 spec = json.load(f)
         except KeyError:
             raise FileNotFoundError(f"spec.json not found in bundle: {path}")
@@ -54,7 +76,7 @@ def _load_from_zip(path: Path) -> Tuple[Dict, Dict, Optional[pd.DataFrame]]:
         # Load style
         style = {}
         try:
-            with zf.open(STYLE_FILENAME) as f:
+            with zf.open(f"{prefix}{STYLE_FILENAME}") as f:
                 style = json.load(f)
         except KeyError:
             pass  # style.json is optional
@@ -62,7 +84,7 @@ def _load_from_zip(path: Path) -> Tuple[Dict, Dict, Optional[pd.DataFrame]]:
         # Load data
         data = None
         try:
-            with zf.open(DATA_FILENAME) as f:
+            with zf.open(f"{prefix}{DATA_FILENAME}") as f:
                 data = pd.read_csv(StringIO(f.read().decode("utf-8")))
         except KeyError:
             pass  # data.csv is optional
