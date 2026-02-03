@@ -25,7 +25,7 @@ import scitex as stx
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 # Colors - muted, professional (Material Design inspired)
-COLORS = {
+_COLORS = {
     "code": "#E3F2FD",
     "code_border": "#1976D2",
     "recipe": "#FFF8E1",
@@ -58,14 +58,14 @@ def _add_box(ax, xy, w, h, face, edge, lw=2, rounding=0.2):
 
 def _add_text(ax, x, y, text, **kwargs):
     """Add centered text with defaults."""
-    defaults = {"ha": "center", "va": "center", "color": COLORS["text"]}
+    defaults = {"ha": "center", "va": "center", "color": _COLORS["text"]}
     defaults.update(kwargs)
     ax.text(x, y, text, **defaults)
 
 
 def _draw_code_section(ax):
     """Draw the Python Code box."""
-    _add_box(ax, (0.5, 5.8), 2.5, 1.4, COLORS["code"], COLORS["code_border"])
+    _add_box(ax, (0.5, 5.8), 2.5, 1.4, _COLORS["code"], _COLORS["code_border"])
     _add_text(
         ax,
         1.75,
@@ -73,7 +73,7 @@ def _draw_code_section(ax):
         "Python Code",
         fontsize=11,
         fontweight="bold",
-        color=COLORS["code_border"],
+        color=_COLORS["code_border"],
     )
     _add_text(
         ax,
@@ -82,7 +82,7 @@ def _draw_code_section(ax):
         "import figrecipe as fr",
         fontsize=8,
         family="monospace",
-        color=COLORS["subtext"],
+        color=_COLORS["subtext"],
     )
     _add_text(
         ax,
@@ -91,7 +91,7 @@ def _draw_code_section(ax):
         "ax.plot(x, y)",
         fontsize=8,
         family="monospace",
-        color=COLORS["subtext"],
+        color=_COLORS["subtext"],
     )
 
     # Arrow to Recipe
@@ -110,7 +110,7 @@ def _draw_code_section(ax):
         6.75,
         "auto-record",
         fontsize=8,
-        color=COLORS["subtext"],
+        color=_COLORS["subtext"],
         fontstyle="italic",
     )
 
@@ -118,7 +118,7 @@ def _draw_code_section(ax):
 def _draw_recipe_section(ax):
     """Draw the Recipe (YAML) box."""
     _add_box(
-        ax, (4.3, 5.5), 3.4, 2.0, COLORS["recipe"], COLORS["recipe_border"], lw=2.5
+        ax, (4.3, 5.5), 3.4, 2.0, _COLORS["recipe"], _COLORS["recipe_border"], lw=2.5
     )
     _add_text(
         ax,
@@ -127,7 +127,7 @@ def _draw_recipe_section(ax):
         "Recipe (YAML)",
         fontsize=12,
         fontweight="bold",
-        color=COLORS["recipe_border"],
+        color=_COLORS["recipe_border"],
     )
     _add_text(ax, 6.0, 6.6, "Structure + Plot Calls", fontsize=9)
     _add_text(
@@ -136,7 +136,7 @@ def _draw_recipe_section(ax):
         6.15,
         "version, environment",
         fontsize=8,
-        color=COLORS["subtext"],
+        color=_COLORS["subtext"],
         fontstyle="italic",
     )
     _add_text(
@@ -145,7 +145,7 @@ def _draw_recipe_section(ax):
         5.75,
         "Reproducible specification",
         fontsize=8,
-        color=COLORS["recipe_border"],
+        color=_COLORS["recipe_border"],
         fontweight="bold",
     )
 
@@ -170,8 +170,8 @@ def _draw_separation_section(ax):
         (0.8, 2.5),
         3.0,
         1.9,
-        COLORS["data"],
-        COLORS["data_border"],
+        _COLORS["data"],
+        _COLORS["data_border"],
         lw=2.5,
         rounding=0.15,
     )
@@ -182,7 +182,7 @@ def _draw_separation_section(ax):
         "DATA",
         fontsize=13,
         fontweight="bold",
-        color=COLORS["data_border"],
+        color=_COLORS["data_border"],
     )
     _add_text(ax, 2.3, 3.55, "CSV / NPZ files", fontsize=9)
     _add_text(
@@ -201,7 +201,7 @@ def _draw_separation_section(ax):
         "WHAT to show",
         fontsize=9,
         fontstyle="italic",
-        color=COLORS["subtext"],
+        color=_COLORS["subtext"],
     )
 
     # STYLE box
@@ -210,8 +210,8 @@ def _draw_separation_section(ax):
         (4.4, 2.5),
         3.0,
         1.9,
-        COLORS["style"],
-        COLORS["style_border"],
+        _COLORS["style"],
+        _COLORS["style_border"],
         lw=2.5,
         rounding=0.15,
     )
@@ -222,7 +222,7 @@ def _draw_separation_section(ax):
         "STYLE",
         fontsize=13,
         fontweight="bold",
-        color=COLORS["style_border"],
+        color=_COLORS["style_border"],
     )
     _add_text(ax, 5.9, 3.55, "Presets / GUI editing", fontsize=9)
     _add_text(
@@ -241,7 +241,7 @@ def _draw_separation_section(ax):
         "HOW to show",
         fontsize=9,
         fontstyle="italic",
-        color=COLORS["subtext"],
+        color=_COLORS["subtext"],
     )
 
     # Arrows from Recipe
@@ -249,20 +249,20 @@ def _draw_separation_section(ax):
         "",
         xy=(2.3, 4.4),
         xytext=(5.3, 5.5),
-        arrowprops=dict(arrowstyle="-|>", color=COLORS["data_border"], lw=2),
+        arrowprops=dict(arrowstyle="-|>", color=_COLORS["data_border"], lw=2),
     )
     ax.annotate(
         "",
         xy=(5.9, 4.4),
         xytext=(6.3, 5.5),
-        arrowprops=dict(arrowstyle="-|>", color=COLORS["style_border"], lw=2),
+        arrowprops=dict(arrowstyle="-|>", color=_COLORS["style_border"], lw=2),
     )
 
 
 def _draw_figure_section(ax):
     """Draw the Figure output box."""
     _add_box(
-        ax, (8.5, 4.2), 3.0, 2.3, COLORS["figure"], COLORS["figure_border"], lw=2.5
+        ax, (8.5, 4.2), 3.0, 2.3, _COLORS["figure"], _COLORS["figure_border"], lw=2.5
     )
     _add_text(
         ax,
@@ -271,7 +271,7 @@ def _draw_figure_section(ax):
         "Figure",
         fontsize=13,
         fontweight="bold",
-        color=COLORS["figure_border"],
+        color=_COLORS["figure_border"],
     )
     _add_text(ax, 10.0, 5.6, "PNG / PDF / SVG", fontsize=10)
     _add_text(
@@ -280,7 +280,7 @@ def _draw_figure_section(ax):
         5.15,
         "Publication-ready",
         fontsize=9,
-        color=COLORS["subtext"],
+        color=_COLORS["subtext"],
         fontstyle="italic",
     )
     _add_text(
@@ -298,7 +298,7 @@ def _draw_figure_section(ax):
         "",
         xy=(8.5, 5.3),
         xytext=(7.7, 6.0),
-        arrowprops=dict(arrowstyle="-|>", color=COLORS["recipe_border"], lw=2),
+        arrowprops=dict(arrowstyle="-|>", color=_COLORS["recipe_border"], lw=2),
     )
     ax.annotate(
         "",
@@ -306,7 +306,7 @@ def _draw_figure_section(ax):
         xytext=(7.4, 3.5),
         arrowprops=dict(
             arrowstyle="-|>",
-            color=COLORS["data_border"],
+            color=_COLORS["data_border"],
             lw=2,
             connectionstyle="arc3,rad=0.2",
         ),
@@ -317,7 +317,7 @@ def _draw_figure_section(ax):
         xytext=(7.4, 3.5),
         arrowprops=dict(
             arrowstyle="-|>",
-            color=COLORS["style_border"],
+            color=_COLORS["style_border"],
             lw=2,
             connectionstyle="arc3,rad=-0.1",
         ),
@@ -361,7 +361,7 @@ def _draw_benefits_section(ax):
         (9.8, "Verification", "Pixel-level validation"),
     ]:
         _add_text(ax, x, 1.0, title, fontsize=10, fontweight="bold", color="#00695C")
-        _add_text(ax, x, 0.65, desc, fontsize=8, color=COLORS["subtext"])
+        _add_text(ax, x, 0.65, desc, fontsize=8, color=_COLORS["subtext"])
 
     # Vertical separators
     ax.plot([4.0, 4.0], [0.55, 1.15], color="#B0BEC5", lw=1)

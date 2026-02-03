@@ -142,11 +142,11 @@ def plot_anatomy_of_a_figure(save_dir):
 # Functions and Classes
 @stx.session
 def main(
-    CONFIG=stx.INJECTED,
-    plt=stx.INJECTED,
-    COLORS=stx.INJECTED,
-    rng=stx.INJECTED,
-    logger=stx.INJECTED,
+    CONFIG=stx.session.INJECTED,
+    plt=stx.session.INJECTED,
+    COLORS=stx.session.INJECTED,
+    rng=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
 ):
     """Anatomy of a SCITEX figure - based on official matplotlib anatomy."""
 

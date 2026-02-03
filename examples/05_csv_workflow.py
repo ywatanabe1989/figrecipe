@@ -171,8 +171,8 @@ def step5_show_output_structure(output_dir, logger):
 
 @stx.session
 def main(
-    CONFIG=stx.INJECTED,
-    logger=stx.INJECTED,
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
 ):
     """Run the complete CSV workflow demonstration."""
     output_path = Path(CONFIG.SDIR_OUT)

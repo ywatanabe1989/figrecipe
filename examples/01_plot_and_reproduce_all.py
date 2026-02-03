@@ -28,12 +28,13 @@ from figrecipe._dev import run_all_demos
 
 @stx.session
 def main(
-    CONFIG=stx.INJECTED,
-    logger=stx.INJECTED,
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
     pixel_perfect: bool = True,
     tolerance: int = 0,
+    full: bool = False,
 ):
-    """Generate all demo plots and their reproduced versions.
+    """Generate demo plots and their reproduced versions.
 
     Parameters
     ----------
@@ -42,6 +43,9 @@ def main(
         Stops immediately on first mismatch. Default: True.
     tolerance : int
         Maximum allowed pixel difference (0 = exact match). Default: 0.
+    full : bool
+        If True, run all 47 plots. If False (default), run only 18 representative
+        plots for faster testing. Use --full for comprehensive testing.
     """
     output_dir = Path(CONFIG.SDIR_OUT)
     output_dir.mkdir(exist_ok=True)
@@ -49,11 +53,14 @@ def main(
     # Load SCITEX style (40x28mm axes, 1mm margins after crop)
     fr.load_style("SCITEX")
 
-    logger.info("Generating all demo plots...")
+    mode = "all 47 plots" if full else "18 representative plots"
+    logger.info(f"Generating {mode}...")
     logger.info(f"Output directory: {output_dir}")
     logger.info(f"Pixel-perfect mode: {pixel_perfect}, Tolerance: {tolerance}")
+    if not full:
+        logger.info("(Use --full flag to run all 47 plot types)")
 
-    # Run all demos with pixel-perfect verification
+    # Run demos with pixel-perfect verification
     results = run_all_demos(
         fr,
         output_dir=output_dir,
@@ -62,6 +69,7 @@ def main(
         reproduce=True,
         pixel_perfect=pixel_perfect,
         tolerance=tolerance,
+        representative_only=not full,
     )
 
     # Summary

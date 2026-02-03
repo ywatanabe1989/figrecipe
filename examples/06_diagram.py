@@ -193,8 +193,8 @@ def list_presets(logger):
 
 @stx.session
 def main(
-    CONFIG=stx.INJECTED,
-    logger=stx.INJECTED,
+    CONFIG=stx.session.INJECTED,
+    logger=stx.session.INJECTED,
 ):
     """FigRecipe Diagram Examples."""
     output_path = Path(CONFIG.SDIR_OUT)

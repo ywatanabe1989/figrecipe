@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-01-25 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/02_composition_mm.py
+# File: /home/ywatanabe/proj/figrecipe/examples/02_compose_and_reproduce.py
 
-"""Figure composition with grid and mm-based positioning.
+"""Basic figure composition with fr.compose() API.
 
-Demonstrates the unified fr.compose() API supporting:
+Demonstrates the unified fr.compose() API for combining multiple panels:
 1. Grid-based layout: sources={(row, col): path}
 2. Free-form mm-based positioning: sources={path: {"xy_mm": ..., "size_mm": ...}}
 
-All composition is matplotlib-native for reproducibility.
+This is the simplest way to compose figures in FigRecipe.
 
 Outputs:
-    ./02_composition_mm_out/composed_grid.png
-    ./02_composition_mm_out/composed_freeform.png
+    ./02_compose_and_reproduce_out/composed_grid.png
+    ./02_compose_and_reproduce_out/composed_freeform.png
 """
 
 import matplotlib

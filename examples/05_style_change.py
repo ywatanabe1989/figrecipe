@@ -75,24 +75,41 @@ def main(
     scitex_path = create_demo_plot("SCITEX", output_dir, logger)
     matplotlib_path = create_demo_plot("MATPLOTLIB", output_dir, logger)
 
+    # Create side-by-side comparison using PIL (preserves original styles)
+    # Note: fr.compose() would apply uniform styling to both panels
+    logger.info("Creating comparison figure (PIL tiling)...")
+    from PIL import Image
+
+    img_scitex = Image.open(scitex_path.with_suffix(".png"))
+    img_matplotlib = Image.open(matplotlib_path.with_suffix(".png"))
+
+    # Resize to same height for fair comparison
+    target_height = max(img_scitex.height, img_matplotlib.height)
+    if img_scitex.height != target_height:
+        ratio = target_height / img_scitex.height
+        img_scitex = img_scitex.resize(
+            (int(img_scitex.width * ratio), target_height), Image.LANCZOS
+        )
+    if img_matplotlib.height != target_height:
+        ratio = target_height / img_matplotlib.height
+        img_matplotlib = img_matplotlib.resize(
+            (int(img_matplotlib.width * ratio), target_height), Image.LANCZOS
+        )
+
     # Create side-by-side comparison
-    logger.info("Creating comparison figure...")
-    fig, axes = fr.compose(
-        sources={
-            (0, 0): str(scitex_path),
-            (0, 1): str(matplotlib_path),
-        },
-        panel_labels=True,
-        label_style="uppercase",
-    )
+    gap = 20
+    total_width = img_scitex.width + gap + img_matplotlib.width
+    comparison = Image.new("RGBA", (total_width, target_height), (255, 255, 255, 255))
+    comparison.paste(img_scitex, (0, 0))
+    comparison.paste(img_matplotlib, (img_scitex.width + gap, 0))
 
     comparison_path = output_dir / "comparison.png"
-    fr.save(fig, comparison_path, verbose=True, validate=False)
+    comparison.save(comparison_path)
 
     logger.info(f"Comparison saved: {comparison_path}")
-    logger.info("Style differences:")
+    logger.info("Style differences (preserved via PIL tiling):")
     logger.info("  - SCITEX: Scientific publication style (40x28mm axes)")
-    logger.info("  - MATPLOTLIB: Matplotlib default style")
+    logger.info("  - MATPLOTLIB: Matplotlib default style (6.4x4.8 inches)")
 
     return 0
 
