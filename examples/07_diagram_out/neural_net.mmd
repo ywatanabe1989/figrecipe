@@ -1,0 +1,21 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#1a2634", "primaryTextColor": "#e0e0e0", "primaryBorderColor": "#3a4a5a", "lineColor": "#5a9fcf"}}}%%
+graph LR
+    input(["Input Layer"])
+    conv1["Conv2D (32)"]
+    pool1["MaxPool"]
+    conv2["Conv2D (64)"]
+    pool2["MaxPool"]
+    flatten["Flatten"]
+    dense["Dense (128)"]
+    output(["Softmax"])
+    input --> conv1
+    conv1 --> pool1
+    pool1 --> conv2
+    conv2 --> pool2
+    pool2 --> flatten
+    flatten --> dense
+    dense --> output
+    style conv1 fill:#0d4a6b,stroke:#5a9fcf,stroke-width:2px
+    style conv2 fill:#0d4a6b,stroke:#5a9fcf,stroke-width:2px
+    style dense fill:#0d4a6b,stroke:#5a9fcf,stroke-width:2px
+    style output fill:#ccffcc,stroke:#00cc00

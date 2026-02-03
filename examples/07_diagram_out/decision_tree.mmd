@@ -1,0 +1,19 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#f5f5f5", "primaryTextColor": "#333333", "primaryBorderColor": "#666666", "lineColor": "#666666"}}}%%
+graph TB
+    start{"Data Type?"}
+    numeric{"Sample Size?"}
+    categorical{"# Categories?"}
+    linear["Linear Regression"]
+    tree["Decision Tree"]
+    chi2["Chi-Square Test"]
+    fisher["Fisher's Exact"]
+    start -->|"Continuous"| numeric
+    start -->|"Categorical"| categorical
+    numeric -->|"n > 30"| linear
+    numeric -->|"n <= 30"| tree
+    categorical -->|"> 2"| chi2
+    categorical -->|"= 2"| fisher
+    style linear fill:#e6ffe6,stroke:#00aa00
+    style tree fill:#e6ffe6,stroke:#00aa00
+    style chi2 fill:#e6ffe6,stroke:#00aa00
+    style fisher fill:#e6ffe6,stroke:#00aa00
