@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_45efe656
-created: '2026-02-03T03:58:59.164886'
+id: fig_b622b332
+created: '2026-02-03T09:36:23.025722'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -167,7 +167,7 @@ axes:
           alpha: 0.6
           label: Measured
           clip_on: false
-        timestamp: '2026-02-03T03:58:59.222397'
+        timestamp: '2026-02-03T09:36:23.067491'
       - id: plot_000
         function: plot
         args:
@@ -184,7 +184,7 @@ axes:
             - 0.19607843137254902
           label: Fitted
           clip_on: false
-        timestamp: '2026-02-03T03:58:59.224937'
+        timestamp: '2026-02-03T09:36:23.069060'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -192,26 +192,26 @@ axes:
           - name: xlabel
             data: Time (s)
         kwargs: {}
-        timestamp: '2026-02-03T03:58:59.225489'
+        timestamp: '2026-02-03T09:36:23.069621'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Signal (mV)
         kwargs: {}
-        timestamp: '2026-02-03T03:58:59.225881'
+        timestamp: '2026-02-03T09:36:23.070069'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: Python API Demo
         kwargs: {}
-        timestamp: '2026-02-03T03:58:59.226591'
+        timestamp: '2026-02-03T09:36:23.070758'
       - id: legend_000
         function: legend
         args: []
         kwargs: {}
-        timestamp: '2026-02-03T03:58:59.238218'
+        timestamp: '2026-02-03T09:36:23.076232'
     bbox:
       - 0.09543587070707069
       - 0.09207887867177521

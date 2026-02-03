@@ -1,0 +1,3123 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2026-02-03T09:35:45.862940"
+    },
+    "figure": {
+        "size_px": [
+            2250,
+            2250
+        ],
+        "dpi": 100.0,
+        "figsize_inches": [
+            7.5,
+            7.5
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 150,
+                "y0": 104,
+                "x1": 660,
+                "y1": 615
+            },
+            "position": [
+                0.2,
+                0.1799999999999999,
+                0.6800000000000002,
+                0.6800000000000002
+            ],
+            "xlim": [
+                0.0,
+                4.0
+            ],
+            "ylim": [
+                0.0,
+                4.0
+            ]
+        }
+    },
+    "elements": {
+        "ax_00_line_00": {
+            "id": "ax_00_line_00",
+            "axes_id": "ax_00",
+            "element_type": "line",
+            "label": "Blue signal",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 64,
+                    "y0": 16,
+                    "x1": 446,
+                    "y1": 255
+                },
+                "path_simplified": [
+                    [
+                        63.8,
+                        15.6
+                    ],
+                    [
+                        79.2,
+                        23.9
+                    ],
+                    [
+                        94.7,
+                        33.6
+                    ],
+                    [
+                        125.6,
+                        57.1
+                    ],
+                    [
+                        156.5,
+                        84.7
+                    ],
+                    [
+                        226.0,
+                        153.4
+                    ],
+                    [
+                        256.9,
+                        182.7
+                    ],
+                    [
+                        291.7,
+                        211.7
+                    ],
+                    [
+                        318.8,
+                        230.1
+                    ],
+                    [
+                        334.2,
+                        238.6
+                    ],
+                    [
+                        349.7,
+                        245.5
+                    ],
+                    [
+                        365.1,
+                        250.6
+                    ],
+                    [
+                        384.4,
+                        254.5
+                    ],
+                    [
+                        399.9,
+                        255.5
+                    ],
+                    [
+                        415.3,
+                        254.6
+                    ],
+                    [
+                        434.7,
+                        251.0
+                    ],
+                    [
+                        446.2,
+                        247.4
+                    ]
+                ],
+                "path": null
+            },
+            "style": {
+                "color": "C0",
+                "linewidth": 2.5,
+                "linestyle": "-",
+                "alpha": null,
+                "marker": "None",
+                "markersize": 6.0
+            },
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "linestyle",
+                "alpha",
+                "marker"
+            ],
+            "zorder": 10,
+            "visible": true
+        },
+        "ax_00_line_01": {
+            "id": "ax_00_line_01",
+            "axes_id": "ax_00",
+            "element_type": "line",
+            "label": "Orange signal",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 64,
+                    "y0": 331,
+                    "x1": 446,
+                    "y1": 447
+                },
+                "path_simplified": [
+                    [
+                        63.8,
+                        389.4
+                    ],
+                    [
+                        90.8,
+                        406.9
+                    ],
+                    [
+                        110.1,
+                        418.3
+                    ],
+                    [
+                        133.3,
+                        430.1
+                    ],
+                    [
+                        152.6,
+                        437.9
+                    ],
+                    [
+                        171.9,
+                        443.4
+                    ],
+                    [
+                        191.2,
+                        446.5
+                    ],
+                    [
+                        210.6,
+                        447.0
+                    ],
+                    [
+                        226.0,
+                        445.6
+                    ],
+                    [
+                        241.5,
+                        442.5
+                    ],
+                    [
+                        256.9,
+                        437.9
+                    ],
+                    [
+                        276.3,
+                        430.1
+                    ],
+                    [
+                        291.7,
+                        422.5
+                    ],
+                    [
+                        318.8,
+                        406.9
+                    ],
+                    [
+                        396.0,
+                        356.7
+                    ],
+                    [
+                        423.1,
+                        341.5
+                    ],
+                    [
+                        446.2,
+                        331.1
+                    ]
+                ],
+                "path": null
+            },
+            "style": {
+                "color": "C1",
+                "linewidth": 2.5,
+                "linestyle": "-",
+                "alpha": null,
+                "marker": "None",
+                "markersize": 6.0
+            },
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "linestyle",
+                "alpha",
+                "marker"
+            ],
+            "zorder": 2,
+            "visible": true
+        },
+        "ax_00_line_02": {
+            "id": "ax_00_line_02",
+            "axes_id": "ax_00",
+            "element_type": "line",
+            "label": "line_2",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 64,
+                    "y0": 122,
+                    "x1": 446,
+                    "y1": 439
+                },
+                "path_simplified": [
+                    [
+                        63.8,
+                        277.4
+                    ],
+                    [
+                        75.3,
+                        234.4
+                    ],
+                    [
+                        86.9,
+                        121.7
+                    ],
+                    [
+                        98.5,
+                        306.5
+                    ],
+                    [
+                        110.1,
+                        406.6
+                    ],
+                    [
+                        121.7,
+                        314.4
+                    ],
+                    [
+                        133.3,
+                        334.7
+                    ],
+                    [
+                        144.9,
+                        217.2
+                    ],
+                    [
+                        156.5,
+                        340.5
+                    ],
+                    [
+                        168.1,
+                        167.3
+                    ],
+                    [
+                        179.7,
+                        222.9
+                    ],
+                    [
+                        191.2,
+                        155.1
+                    ],
+                    [
+                        202.8,
+                        438.5
+                    ],
+                    [
+                        214.4,
+                        314.9
+                    ],
+                    [
+                        226.0,
+                        418.2
+                    ],
+                    [
+                        237.6,
+                        341.1
+                    ],
+                    [
+                        249.2,
+                        238.4
+                    ],
+                    [
+                        260.8,
+                        214.6
+                    ],
+                    [
+                        272.4,
+                        248.2
+                    ],
+                    [
+                        284.0,
+                        310.5
+                    ],
+                    [
+                        295.6,
+                        362.0
+                    ],
+                    [
+                        307.2,
+                        394.2
+                    ],
+                    [
+                        318.8,
+                        338.8
+                    ],
+                    [
+                        330.3,
+                        277.5
+                    ],
+                    [
+                        341.9,
+                        361.6
+                    ],
+                    [
+                        353.5,
+                        371.4
+                    ],
+                    [
+                        365.1,
+                        326.0
+                    ],
+                    [
+                        376.7,
+                        301.4
+                    ],
+                    [
+                        388.3,
+                        345.3
+                    ],
+                    [
+                        399.9,
+                        294.3
+                    ],
+                    [
+                        411.5,
+                        287.8
+                    ],
+                    [
+                        423.1,
+                        256.4
+                    ],
+                    [
+                        434.7,
+                        295.2
+                    ],
+                    [
+                        446.2,
+                        324.4
+                    ]
+                ],
+                "path": null
+            },
+            "style": {
+                "color": [
+                    0.0,
+                    0.5,
+                    0.75,
+                    0.9
+                ],
+                "linewidth": 0.0,
+                "linestyle": "-",
+                "alpha": null,
+                "marker": "s",
+                "markersize": 9.0
+            },
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "linestyle",
+                "alpha",
+                "marker"
+            ],
+            "zorder": 2,
+            "visible": true
+        },
+        "ax_00_text_00": {
+            "id": "ax_00_text_00",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Minor tick label",
+            "text": "Minor tick label",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 399,
+                    "y0": 553,
+                    "x1": 493,
+                    "y1": 563
+                },
+                "anchor": {
+                    "x": 446.2,
+                    "y": 553.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_01": {
+            "id": "ax_00_text_01",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "tick_label_pt: 7\ncol",
+            "text": "tick_label_pt: 7\ncolor: 0.25",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 399,
+                    "y0": 570,
+                    "x1": 493,
+                    "y1": 592
+                },
+                "anchor": {
+                    "x": 446.2,
+                    "y": 569.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_02": {
+            "id": "ax_00_text_02",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Minor tick label",
+            "text": "Minor tick label",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 399,
+                    "y0": 553,
+                    "x1": 493,
+                    "y1": 563
+                },
+                "anchor": {
+                    "x": 446.2,
+                    "y": 553.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_03": {
+            "id": "ax_00_text_03",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "tick_label_pt: 7\ncol",
+            "text": "tick_label_pt: 7\ncolor: 0.25",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 399,
+                    "y0": 570,
+                    "x1": 493,
+                    "y1": 592
+                },
+                "anchor": {
+                    "x": 446.2,
+                    "y": 569.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_04": {
+            "id": "ax_00_text_04",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Major tick",
+            "text": "Major tick",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -33,
+                    "y0": 409,
+                    "x1": 26,
+                    "y1": 420
+                },
+                "anchor": {
+                    "x": -3.8,
+                    "y": 408.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_05": {
+            "id": "ax_00_text_05",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "length: 0.8mm\nthick:",
+            "text": "length: 0.8mm\nthick: 0.2mm",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -42,
+                    "y0": 426,
+                    "x1": 34,
+                    "y1": 447
+                },
+                "anchor": {
+                    "x": -3.8,
+                    "y": 425.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_06": {
+            "id": "ax_00_text_06",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Major tick",
+            "text": "Major tick",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -33,
+                    "y0": 409,
+                    "x1": 26,
+                    "y1": 420
+                },
+                "anchor": {
+                    "x": -3.8,
+                    "y": 408.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_07": {
+            "id": "ax_00_text_07",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "length: 0.8mm\nthick:",
+            "text": "length: 0.8mm\nthick: 0.2mm",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -42,
+                    "y0": 426,
+                    "x1": 34,
+                    "y1": 447
+                },
+                "anchor": {
+                    "x": -3.8,
+                    "y": 425.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_08": {
+            "id": "ax_00_text_08",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Minor tick",
+            "text": "Minor tick",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -29,
+                    "y0": 58,
+                    "x1": 29,
+                    "y1": 68
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 57.5
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_09": {
+            "id": "ax_00_text_09",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "direction: out",
+            "text": "direction: out",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -41,
+                    "y0": 75,
+                    "x1": 41,
+                    "y1": 85
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 74.1
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_10": {
+            "id": "ax_00_text_10",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Minor tick",
+            "text": "Minor tick",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -29,
+                    "y0": 58,
+                    "x1": 29,
+                    "y1": 68
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 57.5
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_11": {
+            "id": "ax_00_text_11",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "direction: out",
+            "text": "direction: out",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -41,
+                    "y0": 75,
+                    "x1": 41,
+                    "y1": 85
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 74.1
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_12": {
+            "id": "ax_00_text_12",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Major tick label",
+            "text": "Major tick label",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -66,
+                    "y0": 154,
+                    "x1": 28,
+                    "y1": 165
+                },
+                "anchor": {
+                    "x": -19.1,
+                    "y": 153.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_13": {
+            "id": "ax_00_text_13",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "tick_label_pt: 7",
+            "text": "tick_label_pt: 7",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -66,
+                    "y0": 171,
+                    "x1": 28,
+                    "y1": 181
+                },
+                "anchor": {
+                    "x": -19.1,
+                    "y": 169.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_14": {
+            "id": "ax_00_text_14",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Major tick label",
+            "text": "Major tick label",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -66,
+                    "y0": 154,
+                    "x1": 28,
+                    "y1": 165
+                },
+                "anchor": {
+                    "x": -19.1,
+                    "y": 153.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_15": {
+            "id": "ax_00_text_15",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "tick_label_pt: 7",
+            "text": "tick_label_pt: 7",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -66,
+                    "y0": 171,
+                    "x1": 28,
+                    "y1": 181
+                },
+                "anchor": {
+                    "x": -19.1,
+                    "y": 169.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_16": {
+            "id": "ax_00_text_16",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "xlabel",
+            "text": "xlabel",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 197,
+                    "y0": 586,
+                    "x1": 232,
+                    "y1": 596
+                },
+                "anchor": {
+                    "x": 214.2,
+                    "y": 586.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_17": {
+            "id": "ax_00_text_17",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "axis_label_pt: 7\npad",
+            "text": "axis_label_pt: 7\npad: 2pt",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 167,
+                    "y0": 603,
+                    "x1": 261,
+                    "y1": 625
+                },
+                "anchor": {
+                    "x": 214.2,
+                    "y": 603.0
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_18": {
+            "id": "ax_00_text_18",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "xlabel",
+            "text": "xlabel",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 197,
+                    "y0": 586,
+                    "x1": 232,
+                    "y1": 596
+                },
+                "anchor": {
+                    "x": 214.2,
+                    "y": 586.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_19": {
+            "id": "ax_00_text_19",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "axis_label_pt: 7\npad",
+            "text": "axis_label_pt: 7\npad: 2pt",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 167,
+                    "y0": 603,
+                    "x1": 261,
+                    "y1": 625
+                },
+                "anchor": {
+                    "x": 214.2,
+                    "y": 603.0
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_20": {
+            "id": "ax_00_text_20",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "ylabel",
+            "text": "ylabel",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -66,
+                    "y0": 324,
+                    "x1": -31,
+                    "y1": 334
+                },
+                "anchor": {
+                    "x": -48.4,
+                    "y": 323.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_21": {
+            "id": "ax_00_text_21",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "axis_label_pt: 7\npad",
+            "text": "axis_label_pt: 7\npad: 2pt",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -95,
+                    "y0": 340,
+                    "x1": -1,
+                    "y1": 363
+                },
+                "anchor": {
+                    "x": -48.4,
+                    "y": 339.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_22": {
+            "id": "ax_00_text_22",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "ylabel",
+            "text": "ylabel",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -66,
+                    "y0": 324,
+                    "x1": -31,
+                    "y1": 334
+                },
+                "anchor": {
+                    "x": -48.4,
+                    "y": 323.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_23": {
+            "id": "ax_00_text_23",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "axis_label_pt: 7\npad",
+            "text": "axis_label_pt: 7\npad: 2pt",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -95,
+                    "y0": 340,
+                    "x1": -1,
+                    "y1": 363
+                },
+                "anchor": {
+                    "x": -48.4,
+                    "y": 339.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_24": {
+            "id": "ax_00_text_24",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Title",
+            "text": "Title",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 179,
+                    "y0": 7,
+                    "x1": 208,
+                    "y1": 17
+                },
+                "anchor": {
+                    "x": 193.8,
+                    "y": 6.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_25": {
+            "id": "ax_00_text_25",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "title_pt: 8\npad: 4pt",
+            "text": "title_pt: 8\npad: 4pt",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 161,
+                    "y0": 24,
+                    "x1": 226,
+                    "y1": 46
+                },
+                "anchor": {
+                    "x": 193.8,
+                    "y": 23.0
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_26": {
+            "id": "ax_00_text_26",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Title",
+            "text": "Title",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 179,
+                    "y0": 7,
+                    "x1": 208,
+                    "y1": 17
+                },
+                "anchor": {
+                    "x": 193.8,
+                    "y": 6.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_27": {
+            "id": "ax_00_text_27",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "title_pt: 8\npad: 4pt",
+            "text": "title_pt: 8\npad: 4pt",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 161,
+                    "y0": 24,
+                    "x1": 226,
+                    "y1": 46
+                },
+                "anchor": {
+                    "x": 193.8,
+                    "y": 23.0
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_28": {
+            "id": "ax_00_text_28",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Line",
+            "text": "Line",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 211,
+                    "y0": 180,
+                    "x1": 235,
+                    "y1": 190
+                },
+                "anchor": {
+                    "x": 223.1,
+                    "y": 178.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_29": {
+            "id": "ax_00_text_29",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "trace_mm: 0.12",
+            "text": "trace_mm: 0.12",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 182,
+                    "y0": 196,
+                    "x1": 264,
+                    "y1": 207
+                },
+                "anchor": {
+                    "x": 223.1,
+                    "y": 195.5
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_30": {
+            "id": "ax_00_text_30",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Line",
+            "text": "Line",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 211,
+                    "y0": 180,
+                    "x1": 235,
+                    "y1": 190
+                },
+                "anchor": {
+                    "x": 223.1,
+                    "y": 178.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_31": {
+            "id": "ax_00_text_31",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "trace_mm: 0.12",
+            "text": "trace_mm: 0.12",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 182,
+                    "y0": 196,
+                    "x1": 264,
+                    "y1": 207
+                },
+                "anchor": {
+                    "x": 223.1,
+                    "y": 195.5
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_32": {
+            "id": "ax_00_text_32",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Markers",
+            "text": "Markers",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 266,
+                    "y0": 340,
+                    "x1": 307,
+                    "y1": 350
+                },
+                "anchor": {
+                    "x": 286.9,
+                    "y": 339.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_33": {
+            "id": "ax_00_text_33",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "scatter_mm: 0.8\nedge",
+            "text": "scatter_mm: 0.8\nedge: none",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 243,
+                    "y0": 357,
+                    "x1": 331,
+                    "y1": 379
+                },
+                "anchor": {
+                    "x": 286.9,
+                    "y": 356.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_34": {
+            "id": "ax_00_text_34",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Markers",
+            "text": "Markers",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 266,
+                    "y0": 340,
+                    "x1": 307,
+                    "y1": 350
+                },
+                "anchor": {
+                    "x": 286.9,
+                    "y": 339.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_35": {
+            "id": "ax_00_text_35",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "scatter_mm: 0.8\nedge",
+            "text": "scatter_mm: 0.8\nedge: none",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 243,
+                    "y0": 357,
+                    "x1": 331,
+                    "y1": 379
+                },
+                "anchor": {
+                    "x": 286.9,
+                    "y": 356.4
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_36": {
+            "id": "ax_00_text_36",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Grid",
+            "text": "Grid",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 371,
+                    "y0": 154,
+                    "x1": 394,
+                    "y1": 164
+                },
+                "anchor": {
+                    "x": 382.5,
+                    "y": 153.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_37": {
+            "id": "ax_00_text_37",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "grid: false",
+            "text": "grid: false",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 350,
+                    "y0": 171,
+                    "x1": 415,
+                    "y1": 181
+                },
+                "anchor": {
+                    "x": 382.5,
+                    "y": 169.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_38": {
+            "id": "ax_00_text_38",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Grid",
+            "text": "Grid",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 371,
+                    "y0": 154,
+                    "x1": 394,
+                    "y1": 164
+                },
+                "anchor": {
+                    "x": 382.5,
+                    "y": 153.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_39": {
+            "id": "ax_00_text_39",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "grid: false",
+            "text": "grid: false",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 350,
+                    "y0": 171,
+                    "x1": 415,
+                    "y1": 181
+                },
+                "anchor": {
+                    "x": 382.5,
+                    "y": 169.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_40": {
+            "id": "ax_00_text_40",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Legend",
+            "text": "Legend",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 441,
+                    "y0": 80,
+                    "x1": 477,
+                    "y1": 90
+                },
+                "anchor": {
+                    "x": 459.0,
+                    "y": 79.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_41": {
+            "id": "ax_00_text_41",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "legend_pt: 6\nframeon",
+            "text": "legend_pt: 6\nframeon: false",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 418,
+                    "y0": 97,
+                    "x1": 500,
+                    "y1": 119
+                },
+                "anchor": {
+                    "x": 459.0,
+                    "y": 95.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_42": {
+            "id": "ax_00_text_42",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Legend",
+            "text": "Legend",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 441,
+                    "y0": 80,
+                    "x1": 477,
+                    "y1": 90
+                },
+                "anchor": {
+                    "x": 459.0,
+                    "y": 79.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_43": {
+            "id": "ax_00_text_43",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "legend_pt: 6\nframeon",
+            "text": "legend_pt: 6\nframeon: false",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 418,
+                    "y0": 97,
+                    "x1": 500,
+                    "y1": 119
+                },
+                "anchor": {
+                    "x": 459.0,
+                    "y": 95.8
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_44": {
+            "id": "ax_00_text_44",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Axes",
+            "text": "Axes",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 307,
+                    "y0": 466,
+                    "x1": 331,
+                    "y1": 476
+                },
+                "anchor": {
+                    "x": 318.8,
+                    "y": 466.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_45": {
+            "id": "ax_00_text_45",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "40x28mm\nthick: 0.2mm",
+            "text": "40x28mm\nthick: 0.2mm",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 284,
+                    "y0": 483,
+                    "x1": 354,
+                    "y1": 505
+                },
+                "anchor": {
+                    "x": 318.8,
+                    "y": 482.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_46": {
+            "id": "ax_00_text_46",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Axes",
+            "text": "Axes",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 307,
+                    "y0": 466,
+                    "x1": 331,
+                    "y1": 476
+                },
+                "anchor": {
+                    "x": 318.8,
+                    "y": 466.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_47": {
+            "id": "ax_00_text_47",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "40x28mm\nthick: 0.2mm",
+            "text": "40x28mm\nthick: 0.2mm",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 284,
+                    "y0": 483,
+                    "x1": 354,
+                    "y1": 505
+                },
+                "anchor": {
+                    "x": 318.8,
+                    "y": 482.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_48": {
+            "id": "ax_00_text_48",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Figure",
+            "text": "Figure",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 492,
+                    "y0": -37,
+                    "x1": 528,
+                    "y1": -27
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": -38.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_49": {
+            "id": "ax_00_text_49",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "dpi: 300\nformat: pdf",
+            "text": "dpi: 300\nformat: pdf",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 478,
+                    "y0": -21,
+                    "x1": 542,
+                    "y1": 1
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": -21.7
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_50": {
+            "id": "ax_00_text_50",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Figure",
+            "text": "Figure",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 492,
+                    "y0": -37,
+                    "x1": 528,
+                    "y1": -27
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": -38.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_51": {
+            "id": "ax_00_text_51",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "dpi: 300\nformat: pdf",
+            "text": "dpi: 300\nformat: pdf",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 478,
+                    "y0": -21,
+                    "x1": 542,
+                    "y1": 1
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": -21.7
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_52": {
+            "id": "ax_00_text_52",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "x Axis",
+            "text": "x Axis",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 65,
+                    "y0": 535,
+                    "x1": 100,
+                    "y1": 545
+                },
+                "anchor": {
+                    "x": 82.9,
+                    "y": 535.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_53": {
+            "id": "ax_00_text_53",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "n_ticks: 3-4",
+            "text": "n_ticks: 3-4",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 48,
+                    "y0": 552,
+                    "x1": 118,
+                    "y1": 563
+                },
+                "anchor": {
+                    "x": 82.9,
+                    "y": 551.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_54": {
+            "id": "ax_00_text_54",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "x Axis",
+            "text": "x Axis",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 65,
+                    "y0": 535,
+                    "x1": 100,
+                    "y1": 545
+                },
+                "anchor": {
+                    "x": 82.9,
+                    "y": 535.3
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_55": {
+            "id": "ax_00_text_55",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "n_ticks: 3-4",
+            "text": "n_ticks: 3-4",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 48,
+                    "y0": 552,
+                    "x1": 118,
+                    "y1": 563
+                },
+                "anchor": {
+                    "x": 82.9,
+                    "y": 551.9
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_56": {
+            "id": "ax_00_text_56",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "y Axis",
+            "text": "y Axis",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -18,
+                    "y0": 491,
+                    "x1": 18,
+                    "y1": 501
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 490.6
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_57": {
+            "id": "ax_00_text_57",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "n_ticks: 3-4",
+            "text": "n_ticks: 3-4",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -35,
+                    "y0": 507,
+                    "x1": 35,
+                    "y1": 518
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 507.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_58": {
+            "id": "ax_00_text_58",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "y Axis",
+            "text": "y Axis",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -18,
+                    "y0": 491,
+                    "x1": 18,
+                    "y1": 501
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 490.6
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_59": {
+            "id": "ax_00_text_59",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "n_ticks: 3-4",
+            "text": "n_ticks: 3-4",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": -35,
+                    "y0": 507,
+                    "x1": 35,
+                    "y1": 518
+                },
+                "anchor": {
+                    "x": 0.0,
+                    "y": 507.2
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_60": {
+            "id": "ax_00_text_60",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Spine",
+            "text": "Spine",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 495,
+                    "y0": 447,
+                    "x1": 525,
+                    "y1": 457
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": 447.1
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_61": {
+            "id": "ax_00_text_61",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "thick: 0.2mm\ntop/rig",
+            "text": "thick: 0.2mm\ntop/right: hidden",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 460,
+                    "y0": 464,
+                    "x1": 560,
+                    "y1": 485
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": 463.7
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "white",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_62": {
+            "id": "ax_00_text_62",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "Spine",
+            "text": "Spine",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 495,
+                    "y0": 447,
+                    "x1": 525,
+                    "y1": 457
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": 447.1
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": [
+                    0,
+                    0.078125,
+                    0.3203125
+                ],
+                "fontweight": "bold",
+                "fontstyle": "italic",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        },
+        "ax_00_text_63": {
+            "id": "ax_00_text_63",
+            "axes_id": "ax_00",
+            "element_type": "text",
+            "label": "thick: 0.2mm\ntop/rig",
+            "text": "thick: 0.2mm\ntop/right: hidden",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 460,
+                    "y0": 464,
+                    "x1": 560,
+                    "y1": 485
+                },
+                "anchor": {
+                    "x": 510.0,
+                    "y": 463.7
+                }
+            },
+            "style": {
+                "fontsize": 7.0,
+                "color": "black",
+                "fontweight": "normal",
+                "fontstyle": "normal",
+                "fontfamily": [
+                    "monospace"
+                ],
+                "alpha": null,
+                "ha": "center",
+                "va": "top",
+                "rotation": 0.0
+            },
+            "editable_styles": [
+                "fontsize",
+                "color",
+                "fontweight",
+                "alpha"
+            ],
+            "zorder": 100,
+            "visible": true
+        }
+    },
+    "statistics": {},
+    "data": {},
+    "output": {
+        "format": "png",
+        "width_px": 750,
+        "height_px": 750
+    }
+}

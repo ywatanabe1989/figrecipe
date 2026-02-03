@@ -1,6 +1,6 @@
 figrecipe: '1.0'
-id: fig_df7c5e56
-created: '2026-02-03T03:58:57.959742'
+id: fig_b76a5c76
+created: '2026-02-03T09:36:22.097919'
 matplotlib_version: 3.10.8
 figure:
   figsize:
@@ -167,7 +167,7 @@ axes:
           alpha: 0.6
           label: Measured
           clip_on: false
-        timestamp: '2026-02-03T03:58:58.075533'
+        timestamp: '2026-02-03T09:36:22.198325'
       - id: plot_000
         function: plot
         args:
@@ -184,7 +184,7 @@ axes:
             - 0.19607843137254902
           label: Fitted
           clip_on: false
-        timestamp: '2026-02-03T03:58:58.114901'
+        timestamp: '2026-02-03T09:36:22.225200'
     decorations:
       - id: set_xlabel_000
         function: set_xlabel
@@ -192,26 +192,26 @@ axes:
           - name: xlabel
             data: Time (s)
         kwargs: {}
-        timestamp: '2026-02-03T03:58:58.138136'
+        timestamp: '2026-02-03T09:36:22.245575'
       - id: set_ylabel_000
         function: set_ylabel
         args:
           - name: ylabel
             data: Signal (mV)
         kwargs: {}
-        timestamp: '2026-02-03T03:58:58.157394'
+        timestamp: '2026-02-03T09:36:22.259621'
       - id: set_title_000
         function: set_title
         args:
           - name: label
             data: Damped Oscillation
         kwargs: {}
-        timestamp: '2026-02-03T03:58:58.175325'
+        timestamp: '2026-02-03T09:36:22.275291'
       - id: legend_000
         function: legend
         args: []
         kwargs: {}
-        timestamp: '2026-02-03T03:58:58.199725'
+        timestamp: '2026-02-03T09:36:22.302261'
     bbox:
       - 0.09543587070707069
       - 0.09207887867177521
