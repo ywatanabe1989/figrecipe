@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:40:53
+!-- Timestamp: 2026-02-07 10:43:01
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -250,12 +250,9 @@ figrecipe mcp install
 
 </details>
 
-## Plot Gallery
-
-FigRecipe supports **47 matplotlib plot types** with publication-ready SCITEX styling.
+## Supported Plot Types — **47 matplotlib plot types**
 
 <details>
-<summary><b>Supported Plot Types</b></summary>
 
 **Line & Curve**: plot, step, fill, fill_between, fill_betweenx, errorbar, stackplot, stairs
 
