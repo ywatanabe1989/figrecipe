@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://scitex.ai">
-    <img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="80">
+    <img src="docs/scitex-logo-blue-cropped.png" alt="SciTeX" width="400">
   </a>
 </p>
 
@@ -29,36 +29,15 @@ FigRecipe is a framework for creating **reproducible, editable, and publication-
   <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
 
-### 🤖 MCP Server — AI Agents Can Create Figures
-
-FigRecipe includes an **MCP (Model Context Protocol) server**, enabling AI agents like Claude to create, compose, and reproduce publication-ready figures autonomously.
-
-📄 **[Full MCP Demo (PDF)](examples/demo_mcp_out/figrecipe-v0.14.0-demo.pdf)**
-
-[![Video Demo](examples/demo_mcp_out/figrecipe-v0.14.0-demo-thumbnail.png)](https://scitex.ai/media/videos/figrecipe-v0.14.0-demo.mp4)
-▶️ *Click to watch video demo*
-
-```bash
-# Add to your Claude Code MCP config
-figrecipe mcp install
-```
-
-## Why FigRecipe?
-
-Most scientific figures are created by code, but cannot be reproduced once the code is lost or modified.
-
-FigRecipe solves this by separating:
-- **What** is plotted (data & semantics)
-- **How** it is styled (layout, colors, typography)
-- **How** it is edited (GUI or code)
-
-This makes figures: **reproducible** · **inspectable** · **editable after publication**
-
 ## Quick Start
 
 ```bash
 pip install figrecipe
 ```
+
+## Three APIs
+
+### Python API
 
 ```python
 import figrecipe as fr
@@ -67,66 +46,34 @@ import numpy as np
 fig, ax = fr.subplots()
 ax.plot(np.sin(np.linspace(0, 10, 100)), id="sine")
 
-fr.save(fig, "figure.png")  # → figure.png + figure.yaml
+fr.save(fig, "figure.png")  # → figure.png + figure.yaml + figure_data/
 ```
 
-Reopen and edit later:
-
-```python
-fig, ax = fr.load("figure.png")
-fr.gui(fig)  # Launch GUI editor
-```
-
-CLI:
+### CLI
 
 ```bash
-figrecipe gui figure.png       # Launch GUI editor
-figrecipe reproduce fig.yaml   # Recreate figure
-figrecipe extract fig.yaml     # Extract plotted data
-figrecipe --help-recursive     # Show all commands
+figrecipe reproduce fig.yaml      # Recreate figure from recipe
+figrecipe gui figure.png          # Launch visual editor
+figrecipe validate fig.yaml       # Verify pixel-identical reproduction
+figrecipe extract fig.yaml        # Extract plotted data as CSV
+figrecipe compose a.yaml b.yaml   # Compose multi-panel figure
 ```
 
-### Bundle Format (for sharing)
+### MCP Server (for AI agents)
 
-Save as a self-contained ZIP bundle with layered architecture:
-
-```python
-fr.save(fig, "figure.zip")  # → Layered bundle
-
-# Bundle contains:
-# - spec.json   (WHAT: semantic specification)
-# - style.json  (HOW: appearance settings)
-# - data.csv    (DATA: immutable source)
-# - exports/    (PNG, hitmap)
+```bash
+figrecipe mcp install             # Add to Claude Code config
 ```
 
-Load and reproduce from bundle:
-
-```python
-spec, style, data = fr.load_bundle("figure.zip")
-fig, ax = fr.reproduce_bundle("figure.zip")
-```
+AI agents can create, compose, and reproduce publication-ready figures autonomously via MCP tools.
 
 ## Documentation
 
-📚 **[Full Documentation on Read the Docs](https://figrecipe.readthedocs.io/)**
-
-- [Plot Gallery](https://figrecipe.readthedocs.io/en/latest/gallery.html) — Visual examples of all plot types
-- [CLI Reference](https://figrecipe.readthedocs.io/en/latest/cli_reference.html) — Complete command-line reference
-- [MCP Specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html) — AI agent integration guide
-- [Style Reference](https://figrecipe.readthedocs.io/en/latest/style_reference.html) — Style parameters and anatomy
-
-## What Makes FigRecipe Different?
-
-**🔹 Figures are first-class objects** — Figures are not just images — they are structured, versionable artifacts.
-
-**🔹 Declarative, not imperative** — You describe what the figure is, not just how to draw it.
-
-**🔹 GUI + Code coexist** — The GUI is a frontend, not a black box. Everything is backed by a reproducible spec.
-
-**🔹 Millimeter-precise layout** — Designed for journal figures, not dashboards.
-
-**🔹 MCP Server for AI agents** — Let Claude and other AI agents create publication-ready figures autonomously.
+- [Full Documentation](https://figrecipe.readthedocs.io/)
+- [Plot Gallery](https://figrecipe.readthedocs.io/en/latest/gallery.html) — All 47 plot types
+- [CLI Reference](https://figrecipe.readthedocs.io/en/latest/cli_reference.html)
+- [MCP Specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)
+- [Style Reference](https://figrecipe.readthedocs.io/en/latest/style_reference.html)
 
 <details>
 <summary><b>Core Features</b></summary>
@@ -247,11 +194,7 @@ Includes **statistical annotation brackets** with significance stars (*, **, ***
 
 ## Plot Gallery
 
-FigRecipe supports **47 matplotlib plot types** with publication-ready SCITEX styling:
-
-<p align="center">
-  <img src="examples/02_composition_out/gallery.jpg" alt="FigRecipe Plot Gallery" width="100%"/>
-</p>
+FigRecipe supports **47 matplotlib plot types** with publication-ready SCITEX styling.
 
 <details>
 <summary><b>Supported Plot Types</b></summary>
