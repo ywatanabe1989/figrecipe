@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:46:04
+!-- Timestamp: 2026-02-07 10:47:28
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -250,27 +250,21 @@ figrecipe mcp install
 
 </details>
 
-## Supported Plot Types — **47 matplotlib plot types**
+## 47 matplotlib plot types supported
 
 <details>
 
-**Line & Curve**: plot, step, fill, fill_between, fill_betweenx, errorbar, stackplot, stairs
-
-**Scatter & Points**: scatter
-
-**Bar & Categorical**: bar, barh
-
-**Distribution**: hist, hist2d, boxplot, violinplot, ecdf
-
-**2D Image & Matrix**: imshow, matshow, pcolor, pcolormesh, hexbin, spy
-
-**Contour & Surface**: contour, contourf, tricontour, tricontourf, tripcolor, triplot
-
-**Spectral & Signal**: specgram, psd, csd, cohere, angle_spectrum, magnitude_spectrum, phase_spectrum, acorr, xcorr
-
-**Vector & Flow**: quiver, barbs, streamplot
-
-**Special**: pie, stem, eventplot, loglog, semilogx, semilogy, graph
+| Category | Plot Types |
+|----------|------------|
+| Line & Curve | plot, step, fill, fill_between, fill_betweenx, errorbar, stackplot, stairs |
+| Scatter & Points | scatter |
+| Bar & Categorical | bar, barh |
+| Distribution | hist, hist2d, boxplot, violinplot, ecdf |
+| 2D Image & Matrix | imshow, matshow, pcolor, pcolormesh, hexbin, spy |
+| Contour & Surface | contour, contourf, tricontour, tricontourf, tripcolor, triplot |
+| Spectral & Signal | specgram, psd, csd, cohere, angle_spectrum, magnitude_spectrum, phase_spectrum, acorr, xcorr |
+| Vector & Flow | quiver, barbs, streamplot |
+| Special | pie, stem, eventplot, loglog, semilogx, semilogy, graph |
 
 </details>
 
