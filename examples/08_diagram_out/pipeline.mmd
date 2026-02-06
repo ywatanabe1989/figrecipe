@@ -1,0 +1,14 @@
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#333333", "primaryBorderColor": "#0066cc", "lineColor": "#0066cc"}}}%%
+graph LR
+    input(["Raw Data"])
+    clean["Data Cleaning"]
+    transform["Feature Engineering"]
+    model("ML Model")
+    output(["Predictions"])
+    input -->|"validate"| clean
+    clean --> transform
+    transform -->|"train"| model
+    model --> output
+    style clean fill:#e6f0ff,stroke:#0044aa,stroke-width:2px
+    style transform fill:#e6f0ff,stroke:#0044aa,stroke-width:2px
+    style model fill:#e6ffe6,stroke:#00aa00

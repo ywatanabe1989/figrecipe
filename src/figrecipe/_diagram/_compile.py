@@ -226,6 +226,15 @@ def _mermaid_node(node, preset: DiagramPreset) -> str:
     return f"{_sanitize_id(node.id)}{shape_str}"
 
 
+def _escape_mermaid_label(label: str) -> str:
+    """Escape special characters in Mermaid labels."""
+    # Replace characters that Mermaid interprets as markdown
+    label = label.replace(">", "&gt;")
+    label = label.replace("<", "&lt;")
+    label = label.replace("#", "&num;")
+    return label
+
+
 def _mermaid_edge(edge) -> str:
     """Generate Mermaid edge definition."""
     arrow = "-->" if edge.arrow == "normal" else "---"
@@ -238,7 +247,8 @@ def _mermaid_edge(edge) -> str:
     tgt = _sanitize_id(edge.target)
 
     if edge.label:
-        return f'{src} {arrow}|"{edge.label}"| {tgt}'
+        escaped = _escape_mermaid_label(edge.label)
+        return f'{src} {arrow}|"{escaped}"| {tgt}'
     return f"{src} {arrow} {tgt}"
 
 

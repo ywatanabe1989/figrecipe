@@ -78,6 +78,28 @@ For sharing reproducible figures, use the **ZIP bundle format**:
     # Or reproduce directly
     fig, ax = fr.reproduce_bundle("figure.zip")
 
+Saving Figures
+--------------
+
+All three save methods are equivalent for RecordingFigures:
+
+.. code-block:: python
+
+    # These produce identical output (same DPI, crop, recipe):
+    fr.save(fig, "plot.png")       # Explicit API
+    fig.savefig("plot.png")        # Delegates to fr.save()
+
+    # In a @stx.session context:
+    stx.io.save(fig, "plot.png")   # SciTeX universal I/O
+
+Use whichever style you prefer — they all go through the same pipeline
+with style-based DPI, auto-crop, and recipe generation.
+
+.. warning::
+
+    Never bypass the wrapper with ``fig.fig.savefig()`` — that accesses
+    the raw matplotlib figure and skips DPI, crop, and recipe logic.
+
 Output Files
 ------------
 
@@ -108,6 +130,9 @@ Recreate any figure from its recipe:
 
     # From YAML recipe
     fig, ax = fr.reproduce("trig_plot.yaml")
+
+    # Save reproduced figure (pixel-identical to original)
+    fr.save(fig, "reproduced.png")
 
     # From ZIP bundle
     fig, ax = fr.reproduce_bundle("figure.zip")
@@ -200,3 +225,46 @@ Compose multiple figures:
         layout="horizontal",
         panel_labels=True
     )
+
+Box-and-Arrow Schematics
+-------------------------
+
+Create publication-quality schematic diagrams with mm-based coordinates:
+
+.. code-block:: python
+
+    import figrecipe as fr
+
+    s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=350, height_mm=100)
+    s.add_box("raw", "Raw EEG", subtitle="64 channels", emphasis="muted")
+    s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
+    s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
+    s.add_arrow("raw", "filter")
+    s.add_arrow("filter", "ica")
+    s.auto_layout(layout="lr", gap_mm=15)
+
+    fig, ax = fr.subplots()
+    ax.schematic(s, id="pipeline")
+    fr.save(fig, "pipeline.png")
+
+.. image:: _static/quickstart_schematic_lr.png
+   :width: 100%
+   :align: center
+   :alt: Left-to-right schematic pipeline
+
+Top-to-bottom layouts work the same way:
+
+.. code-block:: python
+
+    s = fr.Schematic(title="Neural Network", width_mm=150, height_mm=250)
+    s.add_box("input", "Input Layer", subtitle="784 neurons", emphasis="muted")
+    s.add_box("conv", "Conv2D", subtitle="32 filters", emphasis="primary")
+    s.add_box("out", "Output", subtitle="10 classes", emphasis="warning")
+    s.add_arrow("input", "conv")
+    s.add_arrow("conv", "out")
+    s.auto_layout(layout="tb", gap_mm=10)
+
+.. image:: _static/quickstart_schematic_tb.png
+   :width: 40%
+   :align: center
+   :alt: Top-to-bottom schematic architecture

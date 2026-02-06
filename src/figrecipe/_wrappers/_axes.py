@@ -8,13 +8,14 @@ import numpy as np
 from matplotlib.axes import Axes
 
 from ._axes_methods import RecordingAxesMethods
+from ._axes_schematic import SchematicMixin
 from ._axes_style_mixin import AxesStyleMixin
 
 if TYPE_CHECKING:
     from .._recorder import Recorder
 
 
-class RecordingAxes(RecordingAxesMethods, AxesStyleMixin):
+class RecordingAxes(RecordingAxesMethods, AxesStyleMixin, SchematicMixin):
     """Wrapper around matplotlib Axes that records all calls.
 
     This wrapper intercepts calls to plotting methods and records them

@@ -1,0 +1,20 @@
+digraph G {
+    rankdir=LR;
+    ranksep=1.2;
+    nodesep=0.4;
+    splines=ortho;
+    node [fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=9];
+
+    input [label="Raw Data", shape=box, fillcolor="#ffffff", color="#0066cc", style="filled"];
+    clean [label="Data Cleaning", shape=box, fillcolor="#e6f0ff", color="#0044aa", style="filled"];
+    transform [label="Feature Engineering", shape=box, fillcolor="#e6f0ff", color="#0044aa", style="filled"];
+    model [label="ML Model", shape=box, fillcolor="#e6ffe6", color="#00aa00", style="filled,rounded"];
+    output [label="Predictions", shape=box, fillcolor="#ffffff", color="#0066cc", style="filled"];
+
+
+    input -> clean [label="validate"];
+    clean -> transform;
+    transform -> model [label="train"];
+    model -> output;
+}

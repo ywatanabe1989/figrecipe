@@ -1,26 +1,30 @@
 <!-- ---
-!-- Timestamp: 2026-01-16 07:15:25
+!-- Timestamp: 2026-02-07 08:17:00
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
 
-# FigRecipe
+<p align="center">
+  <a href="https://scitex.ai">
+    <img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="80">
+  </a>
+</p>
 
-**Reproducible scientific figures as first-class objects**
+<h1 align="center">FigRecipe (<code>scitex-plt</code>)</h1>
 
-[![PyPI version](https://badge.fury.io/py/figrecipe.svg)](https://badge.fury.io/py/figrecipe)
-[![Documentation](https://readthedocs.org/projects/figrecipe/badge/?version=latest)](https://figrecipe.readthedocs.io/)
-[![Tests](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-
-FigRecipe is a framework for creating **reproducible, editable, and publication-ready** scientific figures.
-
-Instead of treating figures as static images, FigRecipe treats them as **structured objects** — with explicit data, layout, and style — that can be reproduced, edited, and shared.
-
-Part of [**SciTeX™**](https://scitex.ai).
+<p align="center"><b>Reproducible scientific figures as first-class objects</b></p>
 
 <p align="center">
-  <img src="docs/figrecipe-gui-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
+  <a href="https://badge.fury.io/py/figrecipe"><img src="https://badge.fury.io/py/figrecipe.svg" alt="PyPI version"></a>
+  <a href="https://figrecipe.readthedocs.io/"><img src="https://readthedocs.org/projects/figrecipe/badge/?version=latest" alt="Documentation"></a>
+  <a href="https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
+</p>
+
+FigRecipe is a framework for creating **reproducible, editable, and publication-ready** scientific figures. Part of [**SciTeX**](https://scitex.ai).
+
+<p align="center">
+  <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
 
 ### 🤖 MCP Server — AI Agents Can Create Figures
@@ -270,11 +274,31 @@ FigRecipe supports **47 matplotlib plot types** with publication-ready SCITEX st
 
 </details>
 
-## Philosophy
+## Schematic Diagrams
 
-> *A scientific figure is not an image. It is a structured representation of knowledge.*
+Create publication-quality box-and-arrow schematics with mm-based coordinates:
 
-FigRecipe treats figures as **first-class scientific objects**.
+```python
+s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=350, height_mm=100)
+s.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted")
+s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
+s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
+s.add_arrow("raw", "filter")
+s.add_arrow("filter", "ica")
+s.auto_layout(layout="lr", gap_mm=15)
+
+fig, ax = fr.subplots()
+ax.schematic(s, id="pipeline")
+fr.save(fig, "pipeline.png")
+```
+
+<p align="center">
+  <img src="examples/09_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
+</p>
+
+<p align="center">
+  <img src="examples/09_schematic_out/schematic_tb.png" alt="Top-to-bottom schematic" width="35%"/>
+</p>
 
 ---
 

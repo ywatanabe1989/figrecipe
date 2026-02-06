@@ -368,10 +368,9 @@ class RecordingFigure:
         save_hitmap: bool = False,
         **kwargs,
     ):
-        """Save figure image and recipe. Unified API with fr.save().
+        """Save figure — equivalent to fr.save(). Same DPI, crop, recipe.
 
-        Parameters match fr.save(). Returns (image_path, yaml_path, result).
-        If save_recipe=False, returns (image_path, None, None).
+        Returns (image_path, yaml_path, result).
         **kwargs passed to matplotlib savefig for file-like objects.
         """
         # Handle file-like objects (BytesIO, etc.) - direct matplotlib save

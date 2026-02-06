@@ -112,6 +112,19 @@ title: "Quadratic Function"
 legend: true
 ```
 
+## Saving Figures (Unified Interface)
+All three are equivalent for RecordingFigures:
+```python
+fr.save(fig, "plot.png")       # Explicit API
+fig.savefig("plot.png")        # Delegates to fr.save()
+stx.io.save(fig, "plot.png")   # SciTeX universal I/O
+# All produce: plot.png + plot.yaml + plot_data/
+# All use: style-based DPI, auto-crop, recipe generation
+```
+
+IMPORTANT: Never bypass via `fig.fig.savefig()` — that accesses
+the raw matplotlib figure and skips DPI/crop/recipe logic.
+
 ## Key Patterns
 1. **Recording is automatic** - Just use standard matplotlib API
 2. **Always creates recipe** - PNG + YAML together
@@ -159,11 +172,13 @@ All standard matplotlib methods are auto-recorded when called on RecordingAxes:
 
 ## Saving and Loading
 
-### fr.save()
+### fr.save() / fig.savefig() — equivalent
 ```python
-fr.save(fig, "plot.png")           # PNG + YAML
+# These produce identical output (same pipeline):
+fr.save(fig, "plot.png")           # Explicit function
+fig.savefig("plot.png")            # Method on RecordingFigure
+
 fr.save(fig, "plot.pdf", dpi=300)  # PDF + YAML
-fr.save(fig, "plot.svg")           # SVG + YAML
 fr.save(fig, "plot.png", validate=False)  # Skip validation
 ```
 
@@ -171,6 +186,9 @@ fr.save(fig, "plot.png", validate=False)  # Skip validation
 ```python
 fig, ax = fr.reproduce("plot.yaml")
 fig, ax = fr.reproduce("plot.png")  # Also works
+
+# Save reproduced figure (pixel-identical to original):
+fr.save(fig, "reproduced.png")
 ```
 
 ## Composition
@@ -395,8 +413,11 @@ fr.save(fig, "plot.png")
 | Import | `import scitex as stx` | `import figrecipe as fr` |
 | Methods | `ax.stx_line()` | `ax.plot()` |
 | Session | `@stx.session` | Not needed |
-| Save | `stx.io.save()` | `fr.save()` |
+| Save | `stx.io.save()` / `fig.savefig()` | `fr.save()` / `fig.savefig()` |
 | Symlinks | Built-in | Manual |
+
+Note: `fig.savefig()` on a RecordingFigure delegates to `fr.save()`,
+so all save methods produce identical output.
 
 ## Recipe Format Compatibility
 Both produce identical YAML recipes that can be reproduced:
