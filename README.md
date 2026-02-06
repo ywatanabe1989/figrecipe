@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:27:39
+!-- Timestamp: 2026-02-07 10:31:12
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -30,8 +30,7 @@
 **Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
 
 > **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
->
-> [**`scitex-linter`**](https://github.com/ywatanabe1989/scitex-linter) checks your scripts for proper `fr.save()` / `stx.io.save()` usage, mm-based layout, and 45 SciTeX patterns — run `scitex linter check script.py`.
+
 
 <p align="center">
   <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
