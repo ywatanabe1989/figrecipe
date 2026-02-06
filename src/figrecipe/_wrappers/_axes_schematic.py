@@ -89,7 +89,7 @@ def schematic_plot(
         (figure, axes) after rendering.
     """
 
-    from .._diagram._schematic import Schematic
+    from .._schematic._schematic import Schematic
 
     # Convert dict to Schematic if needed
     if isinstance(schematic, dict):

@@ -23,6 +23,8 @@
 
 FigRecipe is a framework for creating **reproducible, editable, and publication-ready** scientific figures. Part of [**SciTeX**](https://scitex.ai).
 
+> **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
+
 <p align="center">
   <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>

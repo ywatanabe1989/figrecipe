@@ -15,8 +15,8 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
+from .._diagram._styles_native import get_edge_style, get_emphasis_style
 from .._utils._units import mm_to_pt
-from ._styles_native import get_edge_style, get_emphasis_style
 
 # Anchor point definitions (relative to box: 0-1 range)
 ANCHOR_POINTS = {

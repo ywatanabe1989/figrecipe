@@ -79,8 +79,9 @@ from ._api._public import validate_recipe as validate
 from ._api._style_manager import list_presets, load_style, unload_style
 from ._bundle import load_bundle, reproduce_bundle, save_bundle
 from ._composition import align_panels, align_smart, compose, distribute_panels
-from ._diagram import Diagram, Schematic
+from ._diagram import Diagram
 from ._graph_presets import get_preset as get_graph_preset
+from ._schematic import Schematic
 from ._seaborn import get_seaborn_recorder as _get_sns
 
 

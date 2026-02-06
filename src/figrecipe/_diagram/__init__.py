@@ -54,13 +54,11 @@ from figrecipe._diagram._schema import (
     PaperMode,
     SpacingLevel,
 )
-from figrecipe._diagram._schematic import Schematic
 from figrecipe._diagram._split import SplitConfig, SplitResult, SplitStrategy
 
 __all__ = [
-    # Main classes
+    # Main class
     "Diagram",
-    "Schematic",
     # Schema
     "DiagramSpec",
     "DiagramType",

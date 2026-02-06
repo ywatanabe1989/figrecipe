@@ -83,7 +83,7 @@ def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
     tuple
         (figure, axes) after rendering.
     """
-    from .._diagram._schematic import Schematic
+    from .._schematic._schematic import Schematic
 
     kwargs = call.kwargs.copy()
     schematic_data = kwargs.pop("schematic_data", None)
