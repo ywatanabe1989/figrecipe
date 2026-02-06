@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:11:20
+!-- Timestamp: 2026-02-07 10:14:04
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -39,13 +39,19 @@
 
 ## Style Granularity
 
-FigRecipe provides **millimeter-precise control** over every visual element. The SCITEX style preset is applied by default, producing publication-ready figures with standard matplotlib plotting. For precise adjustments, use the GUI editor.
+FigRecipe provides **millimeter-precise control** over every visual element. The SCITEX style preset is applied by default, producing publication-ready figures with standard matplotlib plotting.
 
 <p align="center">
   <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
 </p>
 
 ## GUI Editor
+
+For precise adjustments, GUI editor is available.
+
+<p align="center">
+  <img src="docs/figrecipe-gui-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
+</p>
 
 ## Three Interfaces
 
@@ -94,10 +100,6 @@ fr.load("fig.png")          # reload from any format
 fig, ax = fr.reproduce("figure.yaml")
 fr.gui(fig)  # Launch visual editor (at http://127.0.0.1:5050 by default)
 ```
-
-<p align="center">
-  <img src="docs/figrecipe-gui-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
-</p>
 
 **Compose** — multi-panel figures:
 
