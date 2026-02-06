@@ -1,10 +1,10 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:08:17
+!-- Timestamp: 2026-02-07 10:11:20
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
 
-FigRecipe (<code>scitex-plt</code>)
+# FigRecipe (<code>scitex-plt</code>)
 
 <p align="center">
   <a href="https://scitex.ai">
@@ -44,6 +44,8 @@ FigRecipe provides **millimeter-precise control** over every visual element. The
 <p align="center">
   <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
 </p>
+
+## GUI Editor
 
 ## Three Interfaces
 
@@ -92,6 +94,10 @@ fr.load("fig.png")          # reload from any format
 fig, ax = fr.reproduce("figure.yaml")
 fr.gui(fig)  # Launch visual editor (at http://127.0.0.1:5050 by default)
 ```
+
+<p align="center">
+  <img src="docs/figrecipe-gui-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
+</p>
 
 **Compose** — multi-panel figures:
 
