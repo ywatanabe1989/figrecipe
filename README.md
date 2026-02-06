@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:39:28
+!-- Timestamp: 2026-02-07 10:40:53
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -83,6 +83,8 @@ For precise adjustments, GUI editor is available.
 
 #### Matplotlib-compatibility
 
+<details>
+
 FigRecipe is a **drop-in replacement** for matplotlib — just change your import:
 
 ```python
@@ -103,6 +105,7 @@ fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 
 [`scitex-linter`](https://github.com/ywatanabe1989/scitex-linter) detects and auto-fixes matplotlib patterns into mm-based FigRecipe equivalents (`check`, `format`, `python`). It also works as a pre-commit hook, ensuring AI agents follow FigRecipe conventions.
 
+</details>
 
 ## Schematic Diagrams
 
