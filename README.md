@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:43:01
+!-- Timestamp: 2026-02-07 10:46:04
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -109,6 +109,10 @@ fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 
 ## Schematic Diagrams
 
+<p align="center">
+  <img src="examples/09_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
+</p>
+
 <details>
 
 Create publication-quality box-and-arrow schematics with mm-based coordinates:
@@ -126,10 +130,6 @@ fig, ax = fr.subplots()
 ax.schematic(s, id="pipeline")
 fr.save(fig, "pipeline.png")
 ```
-
-<p align="center">
-  <img src="examples/09_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
-</p>
 
 </details>
 
