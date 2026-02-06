@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:16:59
+!-- Timestamp: 2026-02-07 10:27:39
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -79,6 +79,8 @@ For precise adjustments, GUI editor is available.
 
 ## Migration from Matplotlib
 
+### Matplotlib-compatibility
+
 FigRecipe is a **drop-in replacement** for matplotlib — just change your import:
 
 ```python
@@ -95,7 +97,9 @@ ax.plot(x, y, id="my_trace")
 fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 ```
 
-Run **`scitex linter check script.py`** to auto-detect matplotlib patterns that can be migrated (45 rules covering I/O, plotting, layout, and statistics).
+### Systematic Migration
+
+[`scitex-linter`](https://github.com/ywatanabe1989/scitex-linter) detects and auto-fixes matplotlib patterns into mm-based FigRecipe equivalents (`check`, `format`, `python`). It also works as a pre-commit hook, ensuring AI agents follow FigRecipe conventions.
 
 ## Three Interfaces
 
