@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 08:17:00
+!-- Timestamp: 2026-02-07 09:40:17
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -21,23 +21,30 @@
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
 </p>
 
-FigRecipe is a framework for creating **reproducible, editable, and publication-ready** scientific figures. Part of [**SciTeX**](https://scitex.ai).
+<p align="center">
+  <a href="https://figrecipe.readthedocs.io/">figrecipe.readthedocs.io</a> · <code>pip install figrecipe</code>
+</p>
+
+---
+
+**Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
 
 > **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
+>
+> **`scitex-linter`** checks your scripts for proper `fr.save()` / `stx.io.save()` usage, mm-based layout, and 45 SciTeX patterns — run `scitex linter check script.py`.
 
 <p align="center">
   <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
 
-## Quick Start
+## Three Interfaces
 
-```bash
-pip install figrecipe
-```
+<details>
+<summary><strong>🐍 Python API</strong></summary>
 
-## Three APIs
+<br>
 
-### Python API
+**Create and save** — standard matplotlib API with auto-recording:
 
 ```python
 import figrecipe as fr
@@ -45,58 +52,90 @@ import numpy as np
 
 fig, ax = fr.subplots()
 ax.plot(np.sin(np.linspace(0, 10, 100)), id="sine")
-
 fr.save(fig, "figure.png")  # → figure.png + figure.yaml + figure_data/
 ```
 
-### CLI
+**Reproduce and edit** — from recipe or bundle:
 
-```bash
-figrecipe reproduce fig.yaml      # Recreate figure from recipe
-figrecipe gui figure.png          # Launch visual editor
-figrecipe validate fig.yaml       # Verify pixel-identical reproduction
-figrecipe extract fig.yaml        # Extract plotted data as CSV
-figrecipe compose a.yaml b.yaml   # Compose multi-panel figure
+```python
+fig, ax = fr.reproduce("figure.yaml")
+fr.gui(fig)  # Launch visual editor
 ```
 
-### MCP Server (for AI agents)
+**Compose** — multi-panel figures:
 
-```bash
-figrecipe mcp install             # Add to Claude Code config
+```python
+fr.compose(
+    sources=["panel_a.yaml", "panel_b.yaml"],
+    output_path="composed.png",
+    layout="horizontal",
+)
 ```
 
-AI agents can create, compose, and reproduce publication-ready figures autonomously via MCP tools.
+**Statistics** — significance brackets:
 
-## Documentation
+```python
+ax.add_stat_annotation(x1=0, x2=1, p_value=0.01, style="stars")
+```
 
-- [Full Documentation](https://figrecipe.readthedocs.io/)
-- [Plot Gallery](https://figrecipe.readthedocs.io/en/latest/gallery.html) — All 47 plot types
-- [CLI Reference](https://figrecipe.readthedocs.io/en/latest/cli_reference.html)
-- [MCP Specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)
-- [Style Reference](https://figrecipe.readthedocs.io/en/latest/style_reference.html)
+> **[Full API documentation](https://figrecipe.readthedocs.io/)**
+
+</details>
 
 <details>
-<summary><b>Core Features</b></summary>
+<summary><strong>🖥️ CLI Commands</strong></summary>
 
-- Drop-in replacement for `matplotlib.pyplot`
-- Fully reproducible figure recipes (`.yaml`)
-- Publication-ready millimeter layout
-- Interactive GUI editor
-- Dark / light themes
-- Works with existing matplotlib code
+<br>
+
+```bash
+figrecipe --help-recursive            # Show all commands
+figrecipe reproduce fig.yaml          # Recreate figure from recipe
+figrecipe gui figure.png              # Launch visual editor
+figrecipe validate fig.yaml           # Verify pixel-identical reproduction
+figrecipe extract fig.yaml            # Extract plotted data as CSV
+figrecipe compose a.yaml b.yaml       # Compose multi-panel figure
+figrecipe crop figure.png             # Auto-crop whitespace
+figrecipe info fig.yaml               # Show recipe metadata
+```
+
+> **[Full CLI reference](https://figrecipe.readthedocs.io/en/latest/cli_reference.html)**
+
 </details>
+
+<details>
+<summary><strong>🔧 MCP Server — for AI Agents</strong></summary>
+
+<br>
+
+AI agents can create, compose, and reproduce publication-ready figures autonomously.
+
+| Tool | Description |
+|------|-------------|
+| `plot` | Create figure from declarative YAML spec |
+| `reproduce` | Recreate figure from recipe |
+| `compose` | Combine panels into multi-panel layout |
+| `crop` | Auto-crop whitespace |
+| `info` | Inspect recipe metadata |
+| `validate` | Verify reproduction fidelity |
+
+```bash
+# Install to Claude Code
+figrecipe mcp install
+```
+
+> **[Full MCP specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)**
+
+</details>
+
+## Features
 
 <details>
 <summary><b>Save / Load Formats</b></summary>
 
 ```python
 fr.save(fig, "fig.png")     # fig.png + fig.yaml
-fr.save(fig, "bundle/")     # directory bundle
-fr.save(fig, "fig.zip")     # zip bundle
-
-fr.load("fig.png")
-fr.load("bundle/")
-fr.load("fig.zip")
+fr.save(fig, "fig.zip")     # self-contained zip bundle
+fr.load("fig.png")          # reload from any format
 ```
 
 | Format | Save | Load |
@@ -104,16 +143,7 @@ fr.load("fig.zip")
 | PNG / PDF / SVG | ✓ | ✓ |
 | YAML | ✓ | ✓ |
 | Directory / ZIP | ✓ | ✓ |
-</details>
 
-<details>
-<summary><b>Style Presets</b></summary>
-
-```python
-fr.list_presets()
-fr.load_style("SCITEX")
-fr.load_style("SCITEX_DARK")
-```
 </details>
 
 <details>
@@ -126,61 +156,18 @@ fig, ax = fr.subplots(
     margin_left_mm=15,
 )
 ```
+
 </details>
 
 <details>
-<summary><b>Figure Captions</b></summary>
+<summary><b>Style Presets</b></summary>
 
 ```python
-fig.set_caption("Main figure description")
-ax.set_caption("Panel A description")
-```
-</details>
-
-<details>
-<summary><b>Figure Composition</b></summary>
-
-Combine multiple figures into publication-ready layouts:
-
-```python
-import figrecipe as fr
-
-# Grid-based layout (auto-arranged)
-fr.compose(
-    sources=["panel_a.png", "panel_b.png", "panel_c.png"],
-    output_path="figure.png",
-    layout="horizontal",  # or "vertical", "grid"
-    gap_mm=5.0,
-)
-
-# Free-form mm-based positioning (precise control)
-fr.compose(
-    canvas_size_mm=(180, 120),
-    sources={
-        "panel_a.yaml": {"xy_mm": (0, 0), "size_mm": (80, 50)},
-        "panel_b.yaml": {"xy_mm": (90, 0), "size_mm": (80, 50)},
-        "panel_c.yaml": {"xy_mm": (0, 60), "size_mm": (170, 50)},
-    },
-    output_path="figure.png",
-)
+fr.load_style("SCITEX")       # Publication defaults
+fr.load_style("SCITEX_DARK")  # Dark theme
 ```
 
-**Key features:**
-- Auto panel labels (A, B, C...)
-- Saves `.compose.yaml` recipe for future re-composition
-- Edit positions later with `fr.recompose()`
-- All layouts internally use mm-based positioning
 </details>
-
-## Who Is This For?
-
-FigRecipe is designed for researchers who:
-- already use matplotlib or seaborn
-- care about reproducibility and traceability
-- want figures that survive revisions and collaboration
-- are tired of re-writing plotting code
-
-It is not meant to replace exploratory notebooks or quick plotting — it is meant to **formalize results**.
 
 ## Style Granularity
 
