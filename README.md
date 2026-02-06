@@ -1,16 +1,16 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 09:40:17
+!-- Timestamp: 2026-02-07 10:08:17
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
+
+FigRecipe (<code>scitex-plt</code>)
 
 <p align="center">
   <a href="https://scitex.ai">
     <img src="docs/scitex-logo-blue-cropped.png" alt="SciTeX" width="400">
   </a>
 </p>
-
-<h1 align="center">FigRecipe (<code>scitex-plt</code>)</h1>
 
 <p align="center"><b>Reproducible scientific figures as first-class objects</b></p>
 
@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <a href="https://figrecipe.readthedocs.io/">figrecipe.readthedocs.io</a> · <code>pip install figrecipe</code>
+  <a href="https://figrecipe.readthedocs.io/">Full Documentation</a> · <code>pip install figrecipe</code>
 </p>
 
 ---
@@ -31,10 +31,18 @@
 
 > **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
 >
-> **`scitex-linter`** checks your scripts for proper `fr.save()` / `stx.io.save()` usage, mm-based layout, and 45 SciTeX patterns — run `scitex linter check script.py`.
+> [**`scitex-linter`**](https://github.com/ywatanabe1989/scitex-linter) checks your scripts for proper `fr.save()` / `stx.io.save()` usage, mm-based layout, and 45 SciTeX patterns — run `scitex linter check script.py`.
 
 <p align="center">
   <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
+</p>
+
+## Style Granularity
+
+FigRecipe provides **millimeter-precise control** over every visual element. The SCITEX style preset is applied by default, producing publication-ready figures with standard matplotlib plotting. For precise adjustments, use the GUI editor.
+
+<p align="center">
+  <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
 </p>
 
 ## Three Interfaces
@@ -52,14 +60,37 @@ import numpy as np
 
 fig, ax = fr.subplots()
 ax.plot(np.sin(np.linspace(0, 10, 100)), id="sine")
-fr.save(fig, "figure.png")  # → figure.png + figure.yaml + figure_data/
+fr.save(fig, "figure.png")  # Saves + validates pixel-identical reproduction
 ```
+
+**Output**:
+```
+figure.png                # Publication-ready image
+figure.yaml               # Reproducible recipe (validated on save)
+figure_data/
+  sine.csv                # Plot data (one CSV per trace)
+```
+
+**Save / Load Formats** — from recipe or bundle:
+
+```python
+fr.save(fig, "fig.png")     # fig.png + fig.yaml
+fr.save(fig, "fig.zip")     # self-contained zip bundle
+fr.load("fig.png")          # reload from any format
+```
+
+| Format | Save | Load |
+|--------|:----:|:----:|
+| PNG / PDF / SVG | ✓ | ✓ |
+| YAML | ✓ | ✓ |
+| Directory / ZIP | ✓ | ✓ |
+
 
 **Reproduce and edit** — from recipe or bundle:
 
 ```python
 fig, ax = fr.reproduce("figure.yaml")
-fr.gui(fig)  # Launch visual editor
+fr.gui(fig)  # Launch visual editor (at http://127.0.0.1:5050 by default)
 ```
 
 **Compose** — multi-panel figures:
@@ -72,13 +103,17 @@ fr.compose(
 )
 ```
 
+<p align="center">
+  <img src="examples/03_composition_out/composed_grid.png" alt="Composed multi-panel figure" width="100%"/>
+</p>
+
 **Statistics** — significance brackets:
 
 ```python
 ax.add_stat_annotation(x1=0, x2=1, p_value=0.01, style="stars")
 ```
 
-> **[Full API documentation](https://figrecipe.readthedocs.io/)**
+> **[Full API reference](https://figrecipe.readthedocs.io/en/latest/)**
 
 </details>
 
@@ -127,24 +162,7 @@ figrecipe mcp install
 
 </details>
 
-## Features
-
-<details>
-<summary><b>Save / Load Formats</b></summary>
-
-```python
-fr.save(fig, "fig.png")     # fig.png + fig.yaml
-fr.save(fig, "fig.zip")     # self-contained zip bundle
-fr.load("fig.png")          # reload from any format
-```
-
-| Format | Save | Load |
-|--------|:----:|:----:|
-| PNG / PDF / SVG | ✓ | ✓ |
-| YAML | ✓ | ✓ |
-| Directory / ZIP | ✓ | ✓ |
-
-</details>
+## Styling
 
 <details>
 <summary><b>Millimeter-based Layout</b></summary>
@@ -165,19 +183,10 @@ fig, ax = fr.subplots(
 ```python
 fr.load_style("SCITEX")       # Publication defaults
 fr.load_style("SCITEX_DARK")  # Dark theme
+fr.load_style("MATPLOTLIB")   # Pure Matplotlib
 ```
 
 </details>
-
-## Style Granularity
-
-FigRecipe provides **millimeter-precise control** over every visual element with the SCITEX style preset:
-
-<p align="center">
-  <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
-</p>
-
-Includes **statistical annotation brackets** with significance stars (*, **, ***) for publication-ready comparisons.
 
 ## Plot Gallery
 
