@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:14:04
+!-- Timestamp: 2026-02-07 10:16:59
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -37,13 +37,37 @@
   <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
 
-## Style Granularity
+## Styling
 
 FigRecipe provides **millimeter-precise control** over every visual element. The SCITEX style preset is applied by default, producing publication-ready figures with standard matplotlib plotting.
 
 <p align="center">
   <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
 </p>
+
+<details>
+<summary><b>Millimeter-based Layout</b></summary>
+
+```python
+fig, ax = fr.subplots(
+    axes_width_mm=60,
+    axes_height_mm=40,
+    margin_left_mm=15,
+)
+```
+
+</details>
+
+<details>
+<summary><b>Style Presets</b></summary>
+
+```python
+fr.load_style("SCITEX")       # Publication defaults
+fr.load_style("SCITEX_DARK")  # Dark theme
+fr.load_style("MATPLOTLIB")   # Pure Matplotlib
+```
+
+</details>
 
 ## GUI Editor
 
@@ -52,6 +76,26 @@ For precise adjustments, GUI editor is available.
 <p align="center">
   <img src="docs/figrecipe-gui-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
 </p>
+
+## Migration from Matplotlib
+
+FigRecipe is a **drop-in replacement** for matplotlib — just change your import:
+
+```python
+# Before
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.plot(x, y)
+plt.savefig("fig.png")
+
+# After
+import figrecipe as fr
+fig, ax = fr.subplots()
+ax.plot(x, y, id="my_trace")
+fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
+```
+
+Run **`scitex linter check script.py`** to auto-detect matplotlib patterns that can be migrated (45 rules covering I/O, plotting, layout, and statistics).
 
 ## Three Interfaces
 
@@ -167,32 +211,6 @@ figrecipe mcp install
 ```
 
 > **[Full MCP specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)**
-
-</details>
-
-## Styling
-
-<details>
-<summary><b>Millimeter-based Layout</b></summary>
-
-```python
-fig, ax = fr.subplots(
-    axes_width_mm=60,
-    axes_height_mm=40,
-    margin_left_mm=15,
-)
-```
-
-</details>
-
-<details>
-<summary><b>Style Presets</b></summary>
-
-```python
-fr.load_style("SCITEX")       # Publication defaults
-fr.load_style("SCITEX_DARK")  # Dark theme
-fr.load_style("MATPLOTLIB")   # Pure Matplotlib
-```
 
 </details>
 
