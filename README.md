@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:31:12
+!-- Timestamp: 2026-02-07 10:39:28
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -31,6 +31,9 @@
 
 > **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
 
+## Overview
+
+FigRecipe treats recipe, data, and style as first-class attributes of every figure. This enables data governance and style editing without losing scientific rigor.
 
 <p align="center">
   <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
@@ -78,7 +81,7 @@ For precise adjustments, GUI editor is available.
 
 ## Migration from Matplotlib
 
-### Matplotlib-compatibility
+#### Matplotlib-compatibility
 
 FigRecipe is a **drop-in replacement** for matplotlib — just change your import:
 
@@ -96,9 +99,36 @@ ax.plot(x, y, id="my_trace")
 fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 ```
 
-### Systematic Migration
+#### Systematic Migration
 
 [`scitex-linter`](https://github.com/ywatanabe1989/scitex-linter) detects and auto-fixes matplotlib patterns into mm-based FigRecipe equivalents (`check`, `format`, `python`). It also works as a pre-commit hook, ensuring AI agents follow FigRecipe conventions.
+
+
+## Schematic Diagrams
+
+<details>
+
+Create publication-quality box-and-arrow schematics with mm-based coordinates:
+
+```python
+s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=350, height_mm=100)
+s.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted")
+s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
+s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
+s.add_arrow("raw", "filter")
+s.add_arrow("filter", "ica")
+s.auto_layout(layout="lr", gap_mm=15)
+
+fig, ax = fr.subplots()
+ax.schematic(s, id="pipeline")
+fr.save(fig, "pipeline.png")
+```
+
+<p align="center">
+  <img src="examples/09_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
+</p>
+
+</details>
 
 ## Three Interfaces
 
@@ -243,32 +273,6 @@ FigRecipe supports **47 matplotlib plot types** with publication-ready SCITEX st
 **Special**: pie, stem, eventplot, loglog, semilogx, semilogy, graph
 
 </details>
-
-## Schematic Diagrams
-
-Create publication-quality box-and-arrow schematics with mm-based coordinates:
-
-```python
-s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=350, height_mm=100)
-s.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted")
-s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
-s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
-s.add_arrow("raw", "filter")
-s.add_arrow("filter", "ica")
-s.auto_layout(layout="lr", gap_mm=15)
-
-fig, ax = fr.subplots()
-ax.schematic(s, id="pipeline")
-fr.save(fig, "pipeline.png")
-```
-
-<p align="center">
-  <img src="examples/09_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="examples/09_schematic_out/schematic_tb.png" alt="Top-to-bottom schematic" width="35%"/>
-</p>
 
 ---
 
