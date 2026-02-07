@@ -30,7 +30,7 @@ def main(
     """Generate FigRecipe concept schematic."""
     out = Path(CONFIG.SDIR_OUT)
 
-    W, H = 170, 175
+    W, H = 170, 130
     s = fr.Schematic(
         title="FigRecipe: Reproducible Scientific Figures",
         width_mm=W,
@@ -115,41 +115,6 @@ def main(
     s.add_arrow("recipe", "style", color="purple")
     s.add_arrow("data", "figure", color="green")
     s.add_arrow("style", "figure", color="purple")
-
-    # --- Row 3: Benefits container ---
-    bbw, bbh = 40, 20
-    row3_cy = 20
-
-    bcw, bch = W - 20, bbh + 18
-    s.add_container(
-        "benefits",
-        title="Benefits for Researchers",
-        children=["repro", "flex", "verify"],
-        position_mm=(W / 2, row3_cy),
-        size_mm=(bcw, bch),
-    )
-    spacing = bcw / 3
-    s.add_box(
-        "repro",
-        "Reproducibility",
-        subtitle="Same recipe = Same figure",
-        position_mm=(W / 2 - spacing, row3_cy - 4),
-        size_mm=(bbw, bbh),
-    )
-    s.add_box(
-        "flex",
-        "Flexibility",
-        subtitle="Change style, keep meaning",
-        position_mm=(W / 2, row3_cy - 4),
-        size_mm=(bbw, bbh),
-    )
-    s.add_box(
-        "verify",
-        "Verification",
-        subtitle="Pixel-level validation",
-        position_mm=(W / 2 + spacing, row3_cy - 4),
-        size_mm=(bbw, bbh),
-    )
 
     # Render
     fig, ax = fr.subplots()
