@@ -95,9 +95,7 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     n = 40
     x_scatter = np.random.randn(n)
     y_scatter = x_scatter * 0.8 + np.random.randn(n) * 0.5
-    ax_scatter.scatter(
-        x_scatter, y_scatter, s=25, color=PALETTE[0], label="Data"
-    )
+    ax_scatter.scatter(x_scatter, y_scatter, s=25, color=PALETTE[0], label="Data")
     ax_scatter.set_xlabel("X value")
     ax_scatter.set_ylabel("Y value")
     ax_scatter.set_title("Scatter Plot")
@@ -120,9 +118,7 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     # === Panel D: Box plot ===
     box_categories = ["Ctrl", "Exp1", "Exp2", "Exp3"]
     data_box = [np.random.randn(30) + i for i in range(4)]
-    bp = ax_box.boxplot(
-        data_box, patch_artist=True, tick_labels=box_categories
-    )
+    bp = ax_box.boxplot(data_box, patch_artist=True, tick_labels=box_categories)
     for i, (patch, color) in enumerate(zip(bp["boxes"], PALETTE[:4])):
         patch.set_facecolor(color)
         patch.set_alpha(0.6)
@@ -130,9 +126,7 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     ax_box.set_ylabel("Value")
     ax_box.set_title("Box Plot")
 
-    draw_stat_annotation(
-        ax_box, 1, 2, text="***", p_value=0.0005, style="stars"
-    )
+    draw_stat_annotation(ax_box, 1, 2, text="***", p_value=0.0005, style="stars")
 
     # === Panel E: Histogram ===
     data_hist = np.random.randn(500)
@@ -164,14 +158,14 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
         "pink",
     ]
     rgbs = [
-        f"({int(c[1:3], 16)},{int(c[3:5], 16)},{int(c[5:7], 16)})"
-        for c in PALETTE[:8]
+        f"({int(c[1:3], 16)},{int(c[3:5], 16)},{int(c[5:7], 16)})" for c in PALETTE[:8]
     ]
     labels = [f"{n}\n{r}" for n, r in zip(names, rgbs)]
     result = ax_pie.pie(
         [1] * 8,
         colors=PALETTE[:8],
         labels=labels,
+        autopct="",
         labeldistance=1.3,
         startangle=90,
         counterclock=False,
@@ -278,9 +272,7 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
         ha="right",
         va="center",
         color=dim_color,
-        bbox=dict(
-            boxstyle="round", facecolor="white", edgecolor=dim_color, alpha=0.9
-        ),
+        bbox=dict(boxstyle="round", facecolor="white", edgecolor=dim_color, alpha=0.9),
     )
 
     out = Path(CONFIG.SDIR_OUT) if CONFIG else OUTPUT_DIR
