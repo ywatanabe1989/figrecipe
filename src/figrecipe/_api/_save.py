@@ -204,8 +204,8 @@ def save_figure(
     Supports multiple output formats:
     - Image file (.png, .pdf, etc.): Saves image + .yaml recipe (if save_recipe=True)
     - YAML file (.yaml): Saves recipe + image
-    - Directory (path/ or no extension): Saves as bundle directory
-    - ZIP file (.zip): Saves as ZIP bundle
+    - ZIP file (.zip): Saves as layered bundle (spec.json + style.json + data.csv)
+    - Directory (path/): Saves as directory bundle with recipe.yaml
 
     Parameters
     ----------
@@ -276,7 +276,20 @@ def save_figure(
         finalize_ticks(ax)
         finalize_special_plots(ax, style_dict)
 
-    # Check if saving as bundle (only with recipe)
+    # Check if saving as ZIP bundle (layered format: spec.json + style.json + data.csv)
+    if path.suffix.lower() == ".zip":
+        from .._bundle import save_bundle
+
+        bundle_path = save_bundle(
+            fig,
+            path,
+            dpi=dpi,
+            save_hitmap=save_hitmap,
+            verbose=verbose,
+        )
+        return bundle_path, None, None
+
+    # Check if saving as directory bundle (legacy recipe.yaml format)
     if save_recipe and _is_bundle_path(path):
         bundle_path, yaml_path = _save_as_bundle(
             fig,
@@ -293,6 +306,11 @@ def save_figure(
 
     # Resolve paths for standard save
     image_path, yaml_path, _ = resolve_save_paths(path, image_format)
+
+    # Check for schematic validation errors (stored by ax.schematic())
+    _schematic_errors = getattr(fig.fig, "_schematic_validation_errors", None)
+    if _schematic_errors:
+        image_path = image_path.with_stem(f"{image_path.stem}_FAILED")
 
     # Check if using constrained_layout - need different save strategy
     use_constrained = fig.fig.get_constrained_layout()
@@ -334,8 +352,9 @@ def save_figure(
                     pad_inches=pad_inches,
                     facecolor=facecolor,
                 )
-            except MemoryError:
+            except (MemoryError, ValueError):
                 # constrained_layout may fail for some plot types (e.g., quiver)
+                # ValueError: image size too large on older matplotlib
                 # Fall back to standard save without bbox_inches
                 import warnings
 
@@ -408,7 +427,15 @@ def save_figure(
     if not save_recipe:
         if verbose:
             print(f"Saved: {image_path}")
+        if _schematic_errors:
+            raise ValueError("\n  ".join(_schematic_errors))
         return image_path, None, None
+
+    # Raise schematic errors after saving image (before recipe)
+    if _schematic_errors:
+        if verbose:
+            print(f"Saved (with errors): {image_path}")
+        raise ValueError("\n  ".join(_schematic_errors))
 
     # Save the recipe
     saved_yaml = fig.save_recipe(

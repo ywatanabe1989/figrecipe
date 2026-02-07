@@ -46,9 +46,9 @@ function drawHitRegions() {
         rect.addEventListener('mousedown', (e) => { if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.altKey && typeof handlePanelDragStart === 'function') handlePanelDragStart(e); });
         overlay.appendChild(rect);
     }}
-    // Drawing z-order: axes lowest (background), panel_label/text highest (foreground)
-    const zOrderPriority = { 'axes': 0, 'fill': 1, 'spine': 2, 'image': 3, 'contour': 3, 'bar': 4, 'pie': 4,
-        'quiver': 4, 'line': 5, 'scatter': 6, 'xticks': 7, 'yticks': 7, 'title': 8, 'xlabel': 8, 'ylabel': 8, 'legend': 9, 'panel_label': 10, 'text': 10 };
+    // Drawing z-order: figure/axes lowest (background), panel_label/text/box highest (foreground)
+    const zOrderPriority = { 'figure': -1, 'axes': 0, 'fill': 1, 'spine': 2, 'image': 3, 'contour': 3, 'bar': 4, 'pie': 4,
+        'quiver': 4, 'line': 5, 'scatter': 6, 'xticks': 7, 'yticks': 7, 'title': 8, 'xlabel': 8, 'ylabel': 8, 'suptitle': 8, 'supxlabel': 8, 'supylabel': 8, 'legend': 9, 'box': 10, 'panel_label': 11, 'text': 11 };
     // Convert to array, filter, and sort by z-order (axes lowest, panel_label highest)
     const sortedEntries = Object.entries(currentBboxes)
         .filter(([key, bbox]) => key !== '_meta' && bbox && typeof bbox.x !== 'undefined')
@@ -94,9 +94,12 @@ function drawHitRegions() {
 
         // Add mousedown for drag (legend, annotation, or panel)
         shape.addEventListener('mousedown', (e) => {
-            if (e.button !== 0 || e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.button !== 0 || e.altKey) return;
+            // Allow Ctrl+click through for annotation multi-select
+            if ((bbox.type === 'panel_label' || bbox.type === 'text' || bbox.type === 'box') && typeof startAnnotationDrag === 'function') { startAnnotationDrag(e, key); return; }
+            // Other drags only without Ctrl
+            if (e.ctrlKey || e.metaKey) return;
             if (bbox.type === 'legend' && typeof startLegendDrag === 'function') { startLegendDrag(e, key); return; }
-            if ((bbox.type === 'panel_label' || bbox.type === 'text') && typeof startAnnotationDrag === 'function') { startAnnotationDrag(e, key); return; }
             if (typeof handlePanelDragStart === 'function') handlePanelDragStart(e);
         });
 

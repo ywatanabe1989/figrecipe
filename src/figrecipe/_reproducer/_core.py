@@ -334,6 +334,10 @@ def _replay_call(
         from ._replay_graph import replay_graph_call
 
         return replay_graph_call(ax, call)
+    if method_name == "schematic":
+        from ._replay_diagram import replay_schematic_call
+
+        return replay_schematic_call(ax, call)
     if method_name == "legend":
         from ._legend import replay_legend_call
 

@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Timestamp: "2026-02-02 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/tests/test_infographic.py
+
+"""Tests for Infographic API."""
+
+import tempfile
+from pathlib import Path
+
+import figrecipe as fr
+
+
+class TestInfographicCreation:
+    """Test Infographic creation."""
+
+    def test_create_empty_infographic(self):
+        """Test creating an empty infographic."""
+        info = fr.Infographic()
+        assert info is not None
+        assert info.title is None
+        assert len(info._boxes) == 0
+
+    def test_create_with_title(self):
+        """Test creating infographic with title."""
+        info = fr.Infographic(title="Test Diagram")
+        assert info.title == "Test Diagram"
+
+    def test_add_box(self):
+        """Test adding boxes."""
+        info = fr.Infographic()
+        info.add_box("a", title="Box A")
+        info.add_box("b", title="Box B", subtitle="With subtitle")
+        assert len(info._boxes) == 2
+        assert info._boxes["a"].title == "Box A"
+        assert info._boxes["b"].subtitle == "With subtitle"
+
+    def test_add_arrow(self):
+        """Test adding arrows."""
+        info = fr.Infographic()
+        info.add_box("a", title="A")
+        info.add_box("b", title="B")
+        info.add_arrow("a", "b", label="connects")
+        assert len(info._arrows) == 1
+        assert info._arrows[0].source == "a"
+        assert info._arrows[0].target == "b"
+
+
+class TestAutoLayout:
+    """Test auto_layout functionality."""
+
+    def test_auto_layout_lr(self):
+        """Test left-to-right layout."""
+        info = fr.Infographic(xlim=(0, 10), ylim=(0, 5))
+        info.add_box("a", title="A")
+        info.add_box("b", title="B")
+        info.add_arrow("a", "b")
+        info.auto_layout("lr")
+        assert "a" in info._positions
+        assert "b" in info._positions
+        assert info._positions["a"].x < info._positions["b"].x
+
+    def test_auto_layout_tb(self):
+        """Test top-to-bottom layout."""
+        info = fr.Infographic(xlim=(0, 10), ylim=(0, 5))
+        info.add_box("a", title="A")
+        info.add_box("b", title="B")
+        info.add_arrow("a", "b")
+        info.auto_layout("tb")
+        assert info._positions["a"].y > info._positions["b"].y
+
+    def test_auto_layout_aliases(self):
+        """Test layout name aliases."""
+        info = fr.Infographic()
+        info.add_box("a", title="A")
+        info.add_box("b", title="B")
+
+        # All these should work
+        for layout in ["lr", "left-to-right", "tb", "top-to-bottom"]:
+            info.auto_layout(layout)
+            assert len(info._positions) == 2
+
+
+class TestRender:
+    """Test rendering."""
+
+    def test_render_returns_fig_ax(self):
+        """Test that render returns figure and axes."""
+        info = fr.Infographic()
+        info.add_box("a", title="A", position=(1, 1), size=(1, 1))
+        fig, ax = info.render()
+        assert fig is not None
+        assert ax is not None
+
+    def test_render_to_file(self):
+        """Test rendering to file."""
+        info = fr.Infographic()
+        info.add_box("a", title="A", position=(1, 1), size=(1, 1))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "test.png"
+            result = info.render_to_file(path)
+            assert result.exists()
+
+
+class TestSerialization:
+    """Test serialization and reproduction."""
+
+    def test_to_dict(self):
+        """Test converting to dictionary."""
+        info = fr.Infographic(title="Test")
+        info.add_box("a", title="A", position=(1, 1), size=(1, 1))
+        data = info.to_dict()
+        assert "title" in data
+        assert "boxes" in data
+        assert data["title"] == "Test"
+
+    def test_from_dict(self):
+        """Test creating from dictionary."""
+        data = {
+            "title": "Test",
+            "figsize": [10, 8],
+            "xlim": [0, 10],
+            "ylim": [0, 8],
+            "boxes": [{"id": "a", "title": "A", "emphasis": "normal"}],
+            "arrows": [],
+            "containers": [],
+            "positions": {"a": {"x": 5, "y": 4, "width": 2, "height": 1}},
+        }
+        info = fr.Infographic.from_dict(data)
+        assert info.title == "Test"
+        assert "a" in info._boxes
+
+
+class TestRecipeIntegration:
+    """Test FigRecipe integration."""
+
+    def test_ax_infographic_method(self):
+        """Test ax.infographic() method."""
+        info = fr.Infographic()
+        info.add_box("a", title="A")
+        info.auto_layout("lr")
+
+        fig, ax = fr.subplots()
+        ax.infographic(info, id="test_info")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "test.png"
+            fr.save(fig, path)
+            assert path.exists()
+            assert path.with_suffix(".yaml").exists()
+
+
+# EOF

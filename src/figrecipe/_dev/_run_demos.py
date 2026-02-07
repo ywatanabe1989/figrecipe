@@ -86,6 +86,7 @@ def run_all_demos(
     pixel_perfect=False,
     tolerance=0,
     save_hitmap=True,
+    representative_only=False,
 ):
     """Run all demo plotters and save outputs using fr.save().
 
@@ -108,6 +109,9 @@ def run_all_demos(
         Maximum allowed pixel difference for pixel_perfect mode (0 for exact).
     save_hitmap : bool
         If True (default), save GUI editor hitmaps alongside each figure.
+    representative_only : bool
+        If True, run only 18 representative plot types for faster testing.
+        If False (default), run all 47 plot types.
 
     Returns
     -------
@@ -116,6 +120,8 @@ def run_all_demos(
     """
     import matplotlib.pyplot as _plt
     import numpy as np
+
+    from ._plotters import list_plotters
 
     rng = np.random.default_rng(42)
     results = {}
@@ -129,7 +135,12 @@ def run_all_demos(
     if pixel_perfect:
         reproduce = True
 
-    total = len(PLOTTERS)
+    # Get plotters to run
+    plotter_names = list_plotters(representative_only=representative_only)
+    plotters_to_run = {
+        name: PLOTTERS[name] for name in plotter_names if name in PLOTTERS
+    }
+    total = len(plotters_to_run)
 
     # Sequential mode: plot -> reproduce -> verify -> next
     if pixel_perfect:
@@ -139,7 +150,7 @@ def run_all_demos(
             print(f"Tolerance: {tolerance} (0 = exact match)")
             print("=" * 60)
 
-        for i, (name, func) in enumerate(sorted(PLOTTERS.items()), 1):
+        for i, (name, func) in enumerate(sorted(plotters_to_run.items()), 1):
             if verbose:
                 print(f"\n[{i}/{total}] Testing: {name}")
                 print("-" * 40)
@@ -234,7 +245,7 @@ def run_all_demos(
         return results
 
     # Original batch mode
-    for i, (name, func) in enumerate(sorted(PLOTTERS.items()), 1):
+    for i, (name, func) in enumerate(sorted(plotters_to_run.items()), 1):
         try:
             fig, ax = func(fr, rng)
             out_path = output_dir / f"plot_{name}.png"

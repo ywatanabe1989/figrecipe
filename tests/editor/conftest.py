@@ -61,7 +61,7 @@ class EditorServer:
 import sys
 sys.path.insert(0, 'src')
 import figrecipe as fr
-fr.edit('{self.recipe_path}', port={self.port}, open_browser=False)
+fr.gui('{self.recipe_path}', port={self.port}, open_browser=False)
 """,
             ],
             stdout=subprocess.PIPE,

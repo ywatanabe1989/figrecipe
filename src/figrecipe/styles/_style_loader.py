@@ -284,6 +284,13 @@ def load_style(
         unload_style()
         return None
 
+    # Handle MATPLOTLIB style - reset to defaults first
+    if isinstance(style, str) and style.upper() == "MATPLOTLIB":
+        # Reset rcParams to matplotlib defaults before loading
+        import matplotlib as mpl
+
+        mpl.rcParams.update(mpl.rcParamsDefault)
+
     # Handle _DARK suffix in style name
     apply_dark = dark
     base_style = style

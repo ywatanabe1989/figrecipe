@@ -1,135 +1,53 @@
 <!-- ---
-!-- Timestamp: 2026-01-16 07:15:25
+!-- Timestamp: 2026-02-07 19:53:56
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
 
-# FigRecipe
-
-**Reproducible scientific figures as first-class objects**
-
-[![PyPI version](https://badge.fury.io/py/figrecipe.svg)](https://badge.fury.io/py/figrecipe)
-[![Tests](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-
-FigRecipe is a framework for creating **reproducible, editable, and publication-ready** scientific figures.
-
-Instead of treating figures as static images, FigRecipe treats them as **structured objects** — with explicit data, layout, and style — that can be reproduced, edited, and shared.
-
-Part of [**SciTeX™**](https://scitex.ai).
+# FigRecipe (<code>scitex-plt</code>)
 
 <p align="center">
-  <img src="docs/FigRecipe-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
+  <a href="https://scitex.ai">
+    <img src="docs/scitex-logo-blue-cropped.png" alt="SciTeX" width="400">
+  </a>
 </p>
 
-### 🤖 MCP Server — AI Agents Can Create Figures
+<p align="center"><b>Reproducible scientific figures as first-class objects</b></p>
 
-FigRecipe includes an **MCP (Model Context Protocol) server**, enabling AI agents like Claude to create, compose, and reproduce publication-ready figures autonomously.
+<p align="center">
+  <a href="https://badge.fury.io/py/figrecipe"><img src="https://badge.fury.io/py/figrecipe.svg" alt="PyPI version"></a>
+  <a href="https://figrecipe.readthedocs.io/"><img src="https://readthedocs.org/projects/figrecipe/badge/?version=latest" alt="Documentation"></a>
+  <a href="https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/figrecipe/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
+</p>
 
-📄 **[Full MCP Demo (PDF)](examples/demo_mcp_out/figrecipe-v0.14.0-demo.pdf)**
+<p align="center">
+  <a href="https://figrecipe.readthedocs.io/">Full Documentation</a> · <code>pip install figrecipe</code>
+</p>
 
-[![Video Demo](examples/demo_mcp_out/figrecipe-v0.14.0-demo-thumbnail.png)](https://scitex.ai/media/videos/figrecipe-v0.14.0-demo.mp4)
-▶️ *Click to watch video demo*
+---
 
-```bash
-# Add to your Claude Code MCP config
-figrecipe mcp install
-```
+**Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
 
-## Why FigRecipe?
+> **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
 
-Most scientific figures are created by code, but cannot be reproduced once the code is lost or modified.
+## Overview
 
-FigRecipe solves this by separating:
-- **What** is plotted (data & semantics)
-- **How** it is styled (layout, colors, typography)
-- **How** it is edited (GUI or code)
+FigRecipe treats recipe, data, and style as first-class attributes of every figure. This enables data governance and style editing without losing scientific rigor.
 
-This makes figures: **reproducible** · **inspectable** · **editable after publication**
+<p align="center">
+  <img src="examples/10b_figrecipe_concept_schematic_fixed_out/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
+</p>
 
-## Quick Start
+<p align="center"><sub>Created with <a href="#schematic-diagrams">Schematic Diagrams</a></sub></p>
 
-```bash
-pip install figrecipe
-```
+## Styling
 
-```python
-import figrecipe as fr
-import numpy as np
+FigRecipe provides **millimeter-precise control** over every visual element. The SCITEX style preset is applied by default, producing publication-ready figures with standard matplotlib plotting.
 
-fig, ax = fr.subplots()
-ax.plot(np.sin(np.linspace(0, 10, 100)), id="sine")
-
-fr.save(fig, "figure.png")  # → figure.png + figure.yaml
-```
-
-Reopen and edit later:
-
-```python
-fig, ax = fr.load("figure.png")
-fr.edit(fig)  # Launch GUI editor
-```
-
-CLI:
-
-```bash
-figrecipe edit figure.png      # Launch GUI editor
-figrecipe reproduce fig.yaml   # Recreate figure
-figrecipe extract fig.yaml     # Extract plotted data
-```
-
-## What Makes FigRecipe Different?
-
-**🔹 Figures are first-class objects** — Figures are not just images — they are structured, versionable artifacts.
-
-**🔹 Declarative, not imperative** — You describe what the figure is, not just how to draw it.
-
-**🔹 GUI + Code coexist** — The GUI is a frontend, not a black box. Everything is backed by a reproducible spec.
-
-**🔹 Millimeter-precise layout** — Designed for journal figures, not dashboards.
-
-**🔹 MCP Server for AI agents** — Let Claude and other AI agents create publication-ready figures autonomously.
-
-<details>
-<summary><b>Core Features</b></summary>
-
-- Drop-in replacement for `matplotlib.pyplot`
-- Fully reproducible figure recipes (`.yaml`)
-- Publication-ready millimeter layout
-- Interactive GUI editor
-- Dark / light themes
-- Works with existing matplotlib code
-</details>
-
-<details>
-<summary><b>Save / Load Formats</b></summary>
-
-```python
-fr.save(fig, "fig.png")     # fig.png + fig.yaml
-fr.save(fig, "bundle/")     # directory bundle
-fr.save(fig, "fig.zip")     # zip bundle
-
-fr.load("fig.png")
-fr.load("bundle/")
-fr.load("fig.zip")
-```
-
-| Format | Save | Load |
-|--------|:----:|:----:|
-| PNG / PDF / SVG | ✓ | ✓ |
-| YAML | ✓ | ✓ |
-| Directory / ZIP | ✓ | ✓ |
-</details>
-
-<details>
-<summary><b>Style Presets</b></summary>
-
-```python
-fr.list_presets()
-fr.load_style("SCITEX")
-fr.load_style("SCITEX_DARK")
-```
-</details>
+<p align="center">
+  <img src="docs/scitex_style_anatomy_out/scitex_style_anatomy.jpg" alt="SCITEX Style Anatomy" width="100%"/>
+</p>
 
 <details>
 <summary><b>Millimeter-based Layout</b></summary>
@@ -141,108 +59,231 @@ fig, ax = fr.subplots(
     margin_left_mm=15,
 )
 ```
+
 </details>
 
 <details>
-<summary><b>Figure Captions</b></summary>
+<summary><b>Style Presets</b></summary>
 
 ```python
-fig.set_caption("Main figure description")
-ax.set_caption("Panel A description")
+fr.load_style("SCITEX")       # Publication defaults
+fr.load_style("SCITEX_DARK")  # Dark theme
+fr.load_style("MATPLOTLIB")   # Pure Matplotlib
 ```
+
 </details>
 
-<details>
-<summary><b>Figure Composition</b></summary>
+## GUI Editor
 
-Combine multiple figures into publication-ready layouts:
+For precise adjustments, GUI editor is available.
+
+<p align="center">
+  <img src="docs/figrecipe-gui-demo.png" alt="FigRecipe GUI Editor" width="100%"/>
+</p>
+
+## Migration from Matplotlib
+
+#### Matplotlib-compatibility
+
+<details>
+
+FigRecipe is a **drop-in replacement** for matplotlib — just change your import:
+
+```python
+# Before
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.plot(x, y)
+plt.savefig("fig.png")
+
+# After
+import figrecipe as fr
+fig, ax = fr.subplots()
+ax.plot(x, y, id="my_trace")
+fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
+```
+
+#### Systematic Migration
+
+[`scitex-linter`](https://github.com/ywatanabe1989/scitex-linter) detects and auto-fixes matplotlib patterns into mm-based FigRecipe equivalents (`check`, `format`, `python`). It also works as a pre-commit hook, ensuring AI agents follow FigRecipe conventions.
+
+</details>
+
+## Schematic Diagrams
+
+Create publication-quality box-and-arrow schematics with mm-based coordinates. See [Overview](#overview) for an example output.
+
+<details>
+<summary><strong>Usage & Validation Rules</strong></summary>
+
+<br>
+
+```python
+s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
+s.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted")
+s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
+s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
+s.add_arrow("raw", "filter")
+s.add_arrow("filter", "ica")
+s.auto_layout(layout="lr", gap_mm=15)
+
+fig, ax = fr.subplots()
+ax.schematic(s, id="pipeline")
+fr.save(fig, "pipeline.png")
+```
+
+All rules are enforced automatically on render. Errors are collected and reported together:
+
+| Rule | Check | Severity |
+|------|-------|----------|
+| W | Width exceeds 185 mm (double-column max) | UserWarning |
+| R1 | Container must enclose all children | ValueError |
+| R2 | No two boxes may overlap | ValueError |
+| R3 | Container title must clear children (5 mm zone) | UserWarning |
+| R4 | Box text must fit within padded inner area | UserWarning |
+| R5 | Text-to-text margin >= 2 mm | ValueError |
+| R6 | Text-to-edge margin >= 2 mm | ValueError |
+| R7 | Arrow visible-length ratio >= 90% | ValueError |
+| R8 | Curved-arrow label on same side as arc | ValueError |
+
+When validation fails, figures are still saved with a `_FAILED` suffix for inspection.
+
+</details>
+
+## Three Interfaces
+
+<details>
+<summary><strong>🐍 Python API</strong></summary>
+
+<br>
+
+**Create and save** — standard matplotlib API with auto-recording:
 
 ```python
 import figrecipe as fr
+import numpy as np
 
-# Grid-based layout (auto-arranged)
-fr.compose(
-    sources=["panel_a.png", "panel_b.png", "panel_c.png"],
-    output_path="figure.png",
-    layout="horizontal",  # or "vertical", "grid"
-    gap_mm=5.0,
-)
+fig, ax = fr.subplots()
+ax.plot(np.sin(np.linspace(0, 10, 100)), id="sine")
+fr.save(fig, "figure.png")  # Saves + validates pixel-identical reproduction
+```
 
-# Free-form mm-based positioning (precise control)
+**Output**:
+```
+figure.png                # Publication-ready image
+figure.yaml               # Reproducible recipe (validated on save)
+figure_data/
+  sine.csv                # Plot data (one CSV per trace)
+```
+
+**Save / Load Formats** — from recipe or bundle:
+
+```python
+fr.save(fig, "fig.png")     # fig.png + fig.yaml
+fr.save(fig, "fig.zip")     # self-contained zip bundle
+fr.load("fig.png")          # reload from any format
+```
+
+| Format | Save | Load |
+|--------|:----:|:----:|
+| PNG / PDF / SVG | ✓ | ✓ |
+| YAML | ✓ | ✓ |
+| Directory / ZIP | ✓ | ✓ |
+
+
+**Reproduce and edit** — from recipe or bundle:
+
+```python
+fig, ax = fr.reproduce("figure.yaml")
+fr.gui(fig)  # Launch visual editor (at http://127.0.0.1:5050 by default)
+```
+
+**Compose** — multi-panel figures:
+
+```python
 fr.compose(
-    canvas_size_mm=(180, 120),
-    sources={
-        "panel_a.yaml": {"xy_mm": (0, 0), "size_mm": (80, 50)},
-        "panel_b.yaml": {"xy_mm": (90, 0), "size_mm": (80, 50)},
-        "panel_c.yaml": {"xy_mm": (0, 60), "size_mm": (170, 50)},
-    },
-    output_path="figure.png",
+    sources=["panel_a.yaml", "panel_b.yaml"],
+    output_path="composed.png",
+    layout="horizontal",
 )
 ```
 
-**Key features:**
-- Auto panel labels (A, B, C...)
-- Saves `.compose.yaml` recipe for future re-composition
-- Edit positions later with `fr.recompose()`
-- All layouts internally use mm-based positioning
+<p align="center">
+  <img src="examples/03_composition_out/composed_grid.png" alt="Composed multi-panel figure" width="100%"/>
+</p>
+
+**Statistics** — significance brackets:
+
+```python
+ax.add_stat_annotation(x1=0, x2=1, p_value=0.01, style="stars")
+```
+
+> **[Full API reference](https://figrecipe.readthedocs.io/en/latest/)**
+
 </details>
-
-## Who Is This For?
-
-FigRecipe is designed for researchers who:
-- already use matplotlib or seaborn
-- care about reproducibility and traceability
-- want figures that survive revisions and collaboration
-- are tired of re-writing plotting code
-
-It is not meant to replace exploratory notebooks or quick plotting — it is meant to **formalize results**.
-
-## Style Granularity
-
-FigRecipe provides **millimeter-precise control** over every visual element with the SCITEX style preset:
-
-<p align="center">
-  <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
-</p>
-
-Includes **statistical annotation brackets** with significance stars (*, **, ***) for publication-ready comparisons.
-
-## Plot Gallery
-
-FigRecipe supports **47 matplotlib plot types** with publication-ready SCITEX styling:
-
-<p align="center">
-  <img src="examples/02_composition_out/gallery.jpg" alt="FigRecipe Plot Gallery" width="100%"/>
-</p>
 
 <details>
-<summary><b>Supported Plot Types</b></summary>
+<summary><strong>🖥️ CLI Commands</strong></summary>
 
-**Line & Curve**: plot, step, fill, fill_between, fill_betweenx, errorbar, stackplot, stairs
+<br>
 
-**Scatter & Points**: scatter
+```bash
+figrecipe --help-recursive            # Show all commands
+figrecipe reproduce fig.yaml          # Recreate figure from recipe
+figrecipe gui figure.png              # Launch visual editor
+figrecipe validate fig.yaml           # Verify pixel-identical reproduction
+figrecipe extract fig.yaml            # Extract plotted data as CSV
+figrecipe compose a.yaml b.yaml       # Compose multi-panel figure
+figrecipe crop figure.png             # Auto-crop whitespace
+figrecipe info fig.yaml               # Show recipe metadata
+```
 
-**Bar & Categorical**: bar, barh
-
-**Distribution**: hist, hist2d, boxplot, violinplot, ecdf
-
-**2D Image & Matrix**: imshow, matshow, pcolor, pcolormesh, hexbin, spy
-
-**Contour & Surface**: contour, contourf, tricontour, tricontourf, tripcolor, triplot
-
-**Spectral & Signal**: specgram, psd, csd, cohere, angle_spectrum, magnitude_spectrum, phase_spectrum, acorr, xcorr
-
-**Vector & Flow**: quiver, barbs, streamplot
-
-**Special**: pie, stem, eventplot, loglog, semilogx, semilogy, graph
+> **[Full CLI reference](https://figrecipe.readthedocs.io/en/latest/cli_reference.html)**
 
 </details>
 
-## Philosophy
+<details>
+<summary><strong>🔧 MCP Server — for AI Agents</strong></summary>
 
-> *A scientific figure is not an image. It is a structured representation of knowledge.*
+<br>
 
-FigRecipe treats figures as **first-class scientific objects**.
+AI agents can create, compose, and reproduce publication-ready figures autonomously.
+
+| Tool | Description |
+|------|-------------|
+| `plot` | Create figure from declarative YAML spec |
+| `reproduce` | Recreate figure from recipe |
+| `compose` | Combine panels into multi-panel layout |
+| `crop` | Auto-crop whitespace |
+| `info` | Inspect recipe metadata |
+| `validate` | Verify reproduction fidelity |
+
+```bash
+# Install to Claude Code
+figrecipe mcp install
+```
+
+> **[Full MCP specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)**
+
+</details>
+
+## 47 matplotlib plot types supported
+
+<details>
+
+| Category | Plot Types |
+|----------|------------|
+| Line & Curve | plot, step, fill, fill_between, fill_betweenx, errorbar, stackplot, stairs |
+| Scatter & Points | scatter |
+| Bar & Categorical | bar, barh |
+| Distribution | hist, hist2d, boxplot, violinplot, ecdf |
+| 2D Image & Matrix | imshow, matshow, pcolor, pcolormesh, hexbin, spy |
+| Contour & Surface | contour, contourf, tricontour, tricontourf, tripcolor, triplot |
+| Spectral & Signal | specgram, psd, csd, cohere, angle_spectrum, magnitude_spectrum, phase_spectrum, acorr, xcorr |
+| Vector & Flow | quiver, barbs, streamplot |
+| Special | pie, stem, eventplot, loglog, semilogx, semilogy, graph |
+
+</details>
 
 ---
 
