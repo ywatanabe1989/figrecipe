@@ -44,7 +44,9 @@ Key Features
 - **CSV Column Input**: Reference CSV columns in declarative specs
 - **Statistical Annotations**: Add significance brackets with p-values
 - **Multi-Panel Composition**: Combine figures with fr.compose()
+- **Schematic Diagrams**: Box-and-arrow schematics with mm-based coordinates and 8 validation rules (R1–R8)
 - **MCP Integration**: AI agents can create figures via MCP server
+- **47 Plot Types**: All standard matplotlib plot types supported
 
 Quick Example
 -------------

@@ -8,12 +8,12 @@ Style Anatomy
 
 The following diagram shows all configurable style parameters on a figure:
 
-.. figure:: /_static/style_anatomy.png
-   :alt: Anatomy of a FigRecipe figure
+.. figure:: /_static/scitex_style_anatomy.jpg
+   :alt: SciTeX Style Anatomy
    :width: 100%
    :align: center
 
-   Anatomy of a FigRecipe figure showing all configurable style parameters.
+   SciTeX style anatomy — all configurable parameters annotated on six plot types.
 
 Style Parameters
 ----------------

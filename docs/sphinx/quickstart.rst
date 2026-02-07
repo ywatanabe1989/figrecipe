@@ -235,7 +235,7 @@ Create publication-quality schematic diagrams with mm-based coordinates:
 
     import figrecipe as fr
 
-    s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=350, height_mm=100)
+    s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
     s.add_box("raw", "Raw EEG", subtitle="64 channels", emphasis="muted")
     s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
     s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
@@ -268,3 +268,43 @@ Top-to-bottom layouts work the same way:
    :width: 40%
    :align: center
    :alt: Top-to-bottom schematic architecture
+
+Schematic Validation Rules
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+All rules are enforced automatically on render. When validation fails, figures are saved with a ``_FAILED`` suffix for inspection.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 50 20
+
+   * - Rule
+     - Check
+     - Severity
+   * - W
+     - Width exceeds 185 mm (double-column max)
+     - UserWarning
+   * - R1
+     - Container must enclose all children
+     - ValueError
+   * - R2
+     - No two boxes may overlap
+     - ValueError
+   * - R3
+     - Container title must clear children (5 mm zone)
+     - UserWarning
+   * - R4
+     - Box text must fit within padded inner area
+     - UserWarning
+   * - R5
+     - Text-to-text margin >= 2 mm
+     - ValueError
+   * - R6
+     - Text-to-edge margin >= 2 mm
+     - ValueError
+   * - R7
+     - Arrow visible-length ratio >= 90%
+     - ValueError
+   * - R8
+     - Curved-arrow label on same side as arc
+     - ValueError
