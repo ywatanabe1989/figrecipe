@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 19:29:21
+!-- Timestamp: 2026-02-07 19:53:56
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -46,7 +46,7 @@ FigRecipe treats recipe, data, and style as first-class attributes of every figu
 FigRecipe provides **millimeter-precise control** over every visual element. The SCITEX style preset is applied by default, producing publication-ready figures with standard matplotlib plotting.
 
 <p align="center">
-  <img src="docs/style_granularity.jpg" alt="SCITEX Style Anatomy" width="100%"/>
+  <img src="docs/scitex_style_anatomy_out/scitex_style_anatomy.jpg" alt="SCITEX Style Anatomy" width="100%"/>
 </p>
 
 <details>
