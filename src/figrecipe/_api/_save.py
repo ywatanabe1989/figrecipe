@@ -347,8 +347,9 @@ def save_figure(
                     pad_inches=pad_inches,
                     facecolor=facecolor,
                 )
-            except MemoryError:
+            except (MemoryError, ValueError):
                 # constrained_layout may fail for some plot types (e.g., quiver)
+                # ValueError: image size too large on older matplotlib
                 # Fall back to standard save without bbox_inches
                 import warnings
 

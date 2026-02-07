@@ -143,9 +143,15 @@ class TestRoundtripAllPlotters:
 
         # Save reproduced image
         reproduced_path = tmpdir / f"{plot_type}_reproduced.png"
-        fig2.fig.savefig(
-            reproduced_path, dpi=100, bbox_inches="tight", facecolor="white"
-        )
+        try:
+            fig2.fig.savefig(
+                reproduced_path, dpi=100, bbox_inches="tight", facecolor="white"
+            )
+        except (ValueError, MemoryError) as e:
+            plt.close(fig2.fig)
+            if "too large" in str(e):
+                pytest.skip(f"{plot_type}: {e}")
+            raise
         plt.close(fig2.fig)
 
         # Compare images
