@@ -238,28 +238,37 @@ Contour Plot
    fig.fig.colorbar(cs, ax=ax._ax)
    fr.save(fig, "contour.png")
 
-Supported Plot Types
---------------------
+Supported Plot Types (47)
+-------------------------
 
 FigRecipe supports all standard matplotlib axes methods:
 
-**Line/Curve:**
-``plot``, ``step``, ``fill``, ``fill_between``, ``errorbar``
+**Line & Curve:**
+``plot``, ``step``, ``fill``, ``fill_between``, ``fill_betweenx``, ``errorbar``, ``stackplot``, ``stairs``
 
-**Points:**
+**Scatter & Points:**
 ``scatter``
 
-**Bars:**
+**Bar & Categorical:**
 ``bar``, ``barh``
 
 **Distribution:**
-``hist``, ``hist2d``, ``boxplot``, ``violinplot``
+``hist``, ``hist2d``, ``boxplot``, ``violinplot``, ``ecdf``
 
-**2D/Image:**
-``imshow``, ``matshow``, ``heatmap``, ``pcolormesh``, ``contour``, ``contourf``
+**2D Image & Matrix:**
+``imshow``, ``matshow``, ``pcolor``, ``pcolormesh``, ``hexbin``, ``spy``
+
+**Contour & Surface:**
+``contour``, ``contourf``, ``tricontour``, ``tricontourf``, ``tripcolor``, ``triplot``
+
+**Spectral & Signal:**
+``specgram``, ``psd``, ``csd``, ``cohere``, ``angle_spectrum``, ``magnitude_spectrum``, ``phase_spectrum``, ``acorr``, ``xcorr``
+
+**Vector & Flow:**
+``quiver``, ``barbs``, ``streamplot``
 
 **Special:**
-``pie``, ``stem``, ``eventplot``, ``hexbin``, ``quiver``, ``streamplot``
+``pie``, ``stem``, ``eventplot``, ``loglog``, ``semilogx``, ``semilogy``, ``graph``
 
 CSV Column Workflow
 -------------------
