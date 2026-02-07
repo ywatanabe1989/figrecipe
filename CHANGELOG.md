@@ -5,6 +5,90 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2026-02-08
+
+### Added
+- **Schematic validation pipeline** - R1-R8 validation rules with _FAILED figure saving for inspection
+- **Style anatomy documentation** - Comprehensive style anatomy figure with pie chart
+
+### Changed
+- **Schematic API standardized** - `add_box()` and `add_container()` now use flat `x_mm`, `y_mm`, `width_mm`, `height_mm` params (replaces `position_mm`/`size_mm` tuples)
+
+## [0.22.0] - 2026-02-07
+
+### Added
+- **Box-and-arrow schematics** - New `fr.Schematic` class for publication-quality diagrams with mm-based positioning
+- **Schematic auto-layout** - `auto_layout(layout="lr"|"tb")` for automatic box positioning
+- **Container support** - Group boxes with `add_container()` for hierarchical diagrams
+
+### Changed
+- **README rewritten** - Collapsible sections, three APIs (Python/CLI/MCP), style granularity figure
+- **Examples reorganized** - Converted all to `@stx.session`, numbered prefixes
+
+## [0.21.0] - 2026-02-05
+
+### Added
+- **Read the Docs** - Sphinx documentation with quickstart, gallery, style reference, CLI reference
+- **Bundle format** - Layered ZIP bundles with spec.json, style.json, data.csv, exports/
+
+### Changed
+- **API renamed** - `smart_align` → `align_smart`, `edit` → `gui`
+- **CLI renamed** - `mcp run` → `mcp start`, `edit` → `gui`, separated `diff` and `hitmap` commands
+
+## [0.20.0] - 2026-02-03
+
+### Added
+- **`list-python-apis` CLI command** - Show full API tree with signatures
+- **Enhanced MCP tools** - `plt_` prefix for figure tools, better categorization
+- **CLI UX improvements** - Categorized help, explicit edit command
+
+## [0.19.0] - 2026-02-02
+
+### Changed
+- **API minimized** - Reduced public API surface for cleaner user experience
+- **Reproduction fidelity improved** - Better accuracy in figure reproduction
+
+## [0.18.0] - 2026-01-30
+
+### Added
+- **Concept diagram example** - FigRecipe concept diagram with pure matplotlib
+- **Editor improvements** - Figure element given lowest selection priority
+
+## [0.17.0] - 2026-01-25
+
+### Added
+- **Diagram module** - Mermaid and Graphviz output support via `fr.Diagram`
+
+## [0.16.2] - 2026-01-20
+
+### Fixed
+- **Compose mm-based positioning** - Free-form `canvas_size_mm` and `xy_mm`/`size_mm` placement (#74, #77)
+- **Compose raw images** - Support raw image files as composition sources (#75, #76)
+
+## [0.16.1] - 2026-01-18
+
+### Fixed
+- **Editor boxplot colors** - Show box colors in Element panel (#60)
+- **Pixel-perfect hit detection** - Correct DPI scaling in coordinate transformation (#59, #61)
+
+## [0.16.0] - 2026-01-16
+
+### Added
+- **Specialized plot types** - New plot styling utilities and axis helpers (#69, #70, #72)
+- **Scientific captions** - Caption system for publications (#71)
+- **Configurable branding** - White-label integration via `FIGRECIPE_BRAND` env var
+
+## [0.15.0] - 2026-01-14
+
+### Added
+- **MCP server** - Declarative plot API for AI-assisted figure creation
+- **CSV column support** - Read data directly from CSV files in plot specs
+- **Shell tab completion** - `figrecipe completion` command
+- **`--help-recursive`** - Show all subcommands help at once
+
+### Fixed
+- **YAML parsing** - Switch from pyyaml to ruamel.yaml
+
 ## [0.14.0] - 2026-01-13
 
 ### Added
@@ -350,6 +434,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.23.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.22.0...v0.23.0
+[0.22.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.21.0...v0.22.0
+[0.21.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.20.0...v0.21.0
+[0.20.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.19.0...v0.20.0
+[0.19.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.16.2...v0.17.0
+[0.16.2]: https://github.com/ywatanabe1989/figrecipe/compare/v0.16.1...v0.16.2
+[0.16.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.16.0...v0.16.1
+[0.16.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.15.0...v0.16.0
+[0.15.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.11.0...v0.12.0

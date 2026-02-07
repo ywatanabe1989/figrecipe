@@ -95,7 +95,7 @@ class TestRender:
     def test_render_returns_fig_ax(self):
         """Test that render returns figure and axes."""
         s = fr.Schematic()
-        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         fig, ax = s.render()
         assert fig is not None
         assert ax is not None
@@ -103,7 +103,7 @@ class TestRender:
     def test_render_to_file(self):
         """Test rendering to file."""
         s = fr.Schematic()
-        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "test.png"
@@ -117,7 +117,7 @@ class TestSerialization:
     def test_to_dict(self):
         """Test converting to dictionary."""
         s = fr.Schematic(title="Test")
-        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         data = s.to_dict()
         assert "title" in data
         assert "boxes" in data
@@ -146,8 +146,8 @@ class TestSerialization:
     def test_roundtrip(self):
         """Test serialization roundtrip."""
         s = fr.Schematic(title="Roundtrip", width_mm=250.0, height_mm=150.0)
-        s.add_box("a", title="A", position_mm=(100, 75), size_mm=(40, 25))
-        s.add_box("b", title="B", position_mm=(200, 75), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=100, y_mm=75, width_mm=40, height_mm=25)
+        s.add_box("b", title="B", x_mm=200, y_mm=75, width_mm=40, height_mm=25)
         s.add_arrow("a", "b")
 
         data = s.to_dict()
@@ -168,10 +168,12 @@ class TestContainerValidation:
             "c",
             title="Container",
             children=["a"],
-            position_mm=(100, 50),
-            size_mm=(100, 60),
+            x_mm=100,
+            y_mm=50,
+            width_mm=100,
+            height_mm=60,
         )
-        s.add_box("a", title="A", position_mm=(100, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=100, y_mm=50, width_mm=40, height_mm=25)
         s.validate_containers()  # Should not raise
 
     def test_child_outside_container_raises(self):
@@ -183,10 +185,12 @@ class TestContainerValidation:
             "c",
             title="Container",
             children=["a"],
-            position_mm=(100, 50),
-            size_mm=(40, 30),
+            x_mm=100,
+            y_mm=50,
+            width_mm=40,
+            height_mm=30,
         )
-        s.add_box("a", title="A", position_mm=(200, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=200, y_mm=50, width_mm=40, height_mm=25)
         with pytest.raises(ValueError, match="extends outside container"):
             s.validate_containers()
 
@@ -199,10 +203,12 @@ class TestContainerValidation:
             "c",
             title="Container",
             children=["a"],
-            position_mm=(100, 50),
-            size_mm=(40, 30),
+            x_mm=100,
+            y_mm=50,
+            width_mm=40,
+            height_mm=30,
         )
-        s.add_box("a", title="A", position_mm=(200, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=200, y_mm=50, width_mm=40, height_mm=25)
         with pytest.raises(ValueError, match="extends outside container"):
             s.render()
 
@@ -213,8 +219,8 @@ class TestBoxOverlapValidation:
     def test_non_overlapping_boxes_pass(self):
         """Test that separated boxes pass validation."""
         s = fr.Schematic(width_mm=180, height_mm=100)
-        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
-        s.add_box("b", title="B", position_mm=(150, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
+        s.add_box("b", title="B", x_mm=150, y_mm=50, width_mm=40, height_mm=25)
         s.validate_no_overlap()  # Should not raise
 
     def test_overlapping_boxes_raises(self):
@@ -222,8 +228,8 @@ class TestBoxOverlapValidation:
         import pytest
 
         s = fr.Schematic(width_mm=180, height_mm=100)
-        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
-        s.add_box("b", title="B", position_mm=(55, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
+        s.add_box("b", title="B", x_mm=55, y_mm=50, width_mm=40, height_mm=25)
         with pytest.raises(ValueError, match="overlap"):
             s.validate_no_overlap()
 
@@ -232,8 +238,8 @@ class TestBoxOverlapValidation:
         import pytest
 
         s = fr.Schematic(width_mm=180, height_mm=100)
-        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
-        s.add_box("b", title="B", position_mm=(55, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
+        s.add_box("b", title="B", x_mm=55, y_mm=50, width_mm=40, height_mm=25)
         with pytest.raises(ValueError, match="overlap"):
             s.render()
 
@@ -246,8 +252,8 @@ class TestTextOverlapValidation:
         import warnings
 
         s = fr.Schematic(width_mm=180, height_mm=100)
-        s.add_box("a", title="A", position_mm=(40, 50), size_mm=(40, 25))
-        s.add_box("b", title="B", position_mm=(140, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=40, y_mm=50, width_mm=40, height_mm=25)
+        s.add_box("b", title="B", x_mm=140, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b", label="arrow")
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -260,12 +266,74 @@ class TestTextOverlapValidation:
         import pytest
 
         s = fr.Schematic(width_mm=180, height_mm=100)
-        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
-        s.add_box("b", title="B", position_mm=(150, 50), size_mm=(40, 25))
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
+        s.add_box("b", title="B", x_mm=150, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b", label="forward")
         s.add_arrow("b", "a", label="backward")
         with pytest.raises(ValueError, match="Text margin violation"):
             s.render()
+
+
+class TestArrowBoxOcclusion:
+    """Test R7: arrow-through-box occlusion detection."""
+
+    def test_arrow_through_intermediate_box_raises(self):
+        """Arrow passing through an intermediate box triggers R7."""
+        import pytest
+
+        s = fr.Schematic(width_mm=100, height_mm=80)
+        s.add_box("top", "Top", x_mm=50, y_mm=65, width_mm=20, height_mm=10)
+        s.add_box("mid", "Mid", x_mm=50, y_mm=40, width_mm=20, height_mm=10)
+        s.add_box("bot", "Bot", x_mm=50, y_mm=15, width_mm=20, height_mm=10)
+        s.add_arrow("top", "bot")
+        with pytest.raises(ValueError, match="visibility"):
+            s.render()
+
+    def test_no_intermediate_box_passes(self):
+        """Arrow between two boxes with nothing between passes R7."""
+        s = fr.Schematic(width_mm=100, height_mm=80)
+        s.add_box("a", "A", x_mm=25, y_mm=40, width_mm=20, height_mm=10)
+        s.add_box("b", "B", x_mm=75, y_mm=40, width_mm=20, height_mm=10)
+        s.add_arrow("a", "b")
+        s.render()  # Should not raise
+
+    def test_source_target_boxes_not_counted(self):
+        """Arrow's own source/target boxes are excluded from occlusion."""
+        s = fr.Schematic(width_mm=100, height_mm=60)
+        s.add_box("a", "A", x_mm=25, y_mm=30, width_mm=20, height_mm=15)
+        s.add_box("b", "B", x_mm=75, y_mm=30, width_mm=20, height_mm=15)
+        s.add_arrow("a", "b")
+        s.render()  # Should not raise — source/target excluded
+
+
+class TestGeomHelpers:
+    """Test geometry helper functions."""
+
+    def test_seg_rect_clip_len_through(self):
+        """Segment fully inside rect returns correct clipped length."""
+        from figrecipe._schematic._schematic_geom import seg_rect_clip_len
+
+        # Horizontal segment y=5, from x=0 to x=10, box [2,0,8,10]
+        clip = seg_rect_clip_len(0, 5, 10, 5, 2, 0, 8, 10)
+        assert abs(clip - 6.0) < 0.01  # clipped from x=2 to x=8
+
+    def test_seg_rect_clip_len_miss(self):
+        """Segment missing rect returns 0."""
+        from figrecipe._schematic._schematic_geom import seg_rect_clip_len
+
+        clip = seg_rect_clip_len(0, 20, 10, 20, 0, 0, 10, 10)
+        assert clip == 0.0  # segment at y=20, box only up to y=10
+
+    def test_seg_rect_clip_len_diagonal(self):
+        """Diagonal segment partially inside rect."""
+        import math
+
+        from figrecipe._schematic._schematic_geom import seg_rect_clip_len
+
+        # Diagonal from (0,0) to (10,10), box [3,3,7,7]
+        clip = seg_rect_clip_len(0, 0, 10, 10, 3, 3, 7, 7)
+        expected = math.hypot(4, 4)  # from (3,3) to (7,7)
+        assert abs(clip - expected) < 0.01
 
 
 class TestRecipeIntegration:

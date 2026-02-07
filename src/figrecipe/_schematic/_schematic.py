@@ -9,10 +9,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
-
-from .._diagram._styles_native import get_edge_style, get_emphasis_style
-from .._utils._units import mm_to_pt
 
 # Anchor point definitions (relative to box: 0-1 range)
 ANCHOR_POINTS = {
@@ -60,6 +56,9 @@ class ArrowSpec:
     curve: float = 0.0  # Dimensionless curve parameter
     linewidth_mm: float = 0.5  # Line width in mm
     label_offset_mm: Optional[Tuple[float, float]] = None  # Manual (dx, dy) nudge
+    margin_mm: Optional[float] = (
+        None  # Override default arrow-to-box gap (visual gap from box edge)
+    )
 
 
 @dataclass
@@ -111,8 +110,10 @@ class Schematic:
         content: Optional[List] = None,
         emphasis: str = "normal",
         shape: str = "rounded",
-        position_mm: Optional[Tuple[float, float]] = None,
-        size_mm: Optional[Tuple[float, float]] = None,
+        x_mm: Optional[float] = None,
+        y_mm: Optional[float] = None,
+        width_mm: Optional[float] = None,
+        height_mm: Optional[float] = None,
         fill_color: Optional[str] = None,
         border_color: Optional[str] = None,
         title_color: Optional[str] = None,
@@ -133,12 +134,12 @@ class Schematic:
             padding_mm=padding_mm,
             margin_mm=margin_mm,
         )
-        if position_mm and size_mm:
+        if None not in (x_mm, y_mm, width_mm, height_mm):
             self._positions[id] = PositionSpec(
-                x_mm=position_mm[0],
-                y_mm=position_mm[1],
-                width_mm=size_mm[0],
-                height_mm=size_mm[1],
+                x_mm=x_mm,
+                y_mm=y_mm,
+                width_mm=width_mm,
+                height_mm=height_mm,
             )
         return self
 
@@ -148,25 +149,29 @@ class Schematic:
         title: Optional[str] = None,
         children: Optional[List[str]] = None,
         emphasis: str = "muted",
-        position_mm: Optional[Tuple[float, float]] = None,
-        size_mm: Optional[Tuple[float, float]] = None,
+        x_mm: Optional[float] = None,
+        y_mm: Optional[float] = None,
+        width_mm: Optional[float] = None,
+        height_mm: Optional[float] = None,
         fill_color: Optional[str] = None,
         border_color: Optional[str] = None,
+        title_loc: str = "upper center",
     ) -> "Schematic":
-        """Add a container that groups other boxes."""
+        """Add a container. title_loc: 'upper/lower left/center/right'."""
         self._containers[id] = {
             "title": title,
             "children": children or [],
             "emphasis": emphasis,
             "fill_color": fill_color,
             "border_color": border_color,
+            "title_loc": title_loc,
         }
-        if position_mm and size_mm:
+        if None not in (x_mm, y_mm, width_mm, height_mm):
             self._positions[id] = PositionSpec(
-                x_mm=position_mm[0],
-                y_mm=position_mm[1],
-                width_mm=size_mm[0],
-                height_mm=size_mm[1],
+                x_mm=x_mm,
+                y_mm=y_mm,
+                width_mm=width_mm,
+                height_mm=height_mm,
             )
         return self
 
@@ -182,6 +187,7 @@ class Schematic:
         curve: float = 0.0,
         linewidth_mm: float = 0.5,
         label_offset_mm: Optional[Tuple[float, float]] = None,
+        margin_mm: Optional[float] = None,
     ) -> "Schematic":
         """Add an arrow connecting two boxes."""
         auto_id = f"arrow:{source}->{target}"
@@ -198,6 +204,7 @@ class Schematic:
                 curve=curve,
                 linewidth_mm=linewidth_mm,
                 label_offset_mm=label_offset_mm,
+                margin_mm=margin_mm,
             )
         )
         return self
@@ -257,6 +264,9 @@ class Schematic:
 
     def render(self, ax: Optional[Axes] = None) -> Tuple[Figure, Axes]:
         """Render the schematic."""
+        from . import _schematic_render as _sr
+        from . import _schematic_validate as _sv
+
         figsize = (
             (self.xlim[1] - self.xlim[0]) / 25.4,
             (self.ylim[1] - self.ylim[0]) / 25.4,
@@ -272,17 +282,15 @@ class Schematic:
         ax.set_aspect("equal")
         ax.axis("off")
 
-        from . import _schematic_validate as _sv
-
         # Render everything first (so errored figures can be inspected)
         for cid, container in self._containers.items():
             if cid in self._positions:
-                self._render_container(ax, cid, container)
+                _sr.render_container(self, ax, cid, container)
         for bid, box in self._boxes.items():
             if bid in self._positions:
-                self._render_box(ax, bid, box)
+                _sr.render_box(self, ax, bid, box)
         for arrow in self._arrows:
-            self._render_arrow(ax, arrow)
+            _sr.render_arrow(self, ax, arrow)
         if self.title:
             ax.text(
                 (self.xlim[0] + self.xlim[1]) / 2,
@@ -300,176 +308,6 @@ class Schematic:
             _sv.validate_all(self, fig=fig, ax=ax)
 
         return fig, ax
-
-    def _render_container(self, ax: Axes, cid: str, container: Dict) -> None:
-        """Render a container box."""
-        pos = self._positions[cid]
-        colors = get_emphasis_style(container["emphasis"])
-        fill = container.get("fill_color") or colors["fill"]
-        border = container.get("border_color") or colors["stroke"]
-
-        box = FancyBboxPatch(
-            (pos.x_mm - pos.width_mm / 2, pos.y_mm - pos.height_mm / 2),
-            pos.width_mm,
-            pos.height_mm,
-            boxstyle="round,pad=1.0,rounding_size=3.0",
-            facecolor=fill,
-            edgecolor=border,
-            linewidth=2.5,
-            zorder=1,
-        )
-        ax.add_patch(box)
-
-        if container.get("title"):
-            _ct_bg = dict(facecolor=fill, edgecolor="none", pad=1.0, alpha=0.85)
-            ax.text(
-                pos.x_mm,
-                pos.y_mm + pos.height_mm / 2 - 1.5,
-                container["title"],
-                ha="center",
-                va="top",
-                fontsize=11,
-                fontweight="bold",
-                color=colors["text"],
-                zorder=7,
-                bbox=_ct_bg,
-            )
-
-        self._render_info[cid] = {"pos": pos}
-
-    # Aesthetic pad for FancyBboxPatch rounding (does NOT affect layout) - now 1mm
-    _aesthetic_pad = 1.0
-
-    def _render_box(self, ax: Axes, bid: str, box: BoxSpec) -> None:
-        """Render a rich text box."""
-        pos = self._positions[bid]
-        colors = get_emphasis_style(box.emphasis)
-        fill = box.fill_color or colors["fill"]
-        border = box.border_color or colors["stroke"]
-        title_color = box.title_color or colors["text"]
-        pad = self._aesthetic_pad
-
-        shape_styles = {
-            "box": f"square,pad={pad}",
-            "rounded": f"round,pad={pad},rounding_size=2.0",
-            "stadium": f"round,pad={pad},rounding_size=5.0",
-        }
-        boxstyle = shape_styles.get(box.shape, shape_styles["rounded"])
-
-        patch = FancyBboxPatch(
-            (pos.x_mm - pos.width_mm / 2, pos.y_mm - pos.height_mm / 2),
-            pos.width_mm,
-            pos.height_mm,
-            boxstyle=boxstyle,
-            facecolor=fill,
-            edgecolor=border,
-            linewidth=2,
-            zorder=2,
-        )
-        ax.add_patch(patch)
-
-        # Build text items: list of (text, fontsize, fontweight, color)
-        items = [(box.title, 11, "bold", title_color)]
-        if box.subtitle:
-            items.append((box.subtitle, 9, "normal", colors["text"]))
-        for line in box.content:
-            if isinstance(line, dict):
-                items.append(
-                    (
-                        line.get("text", ""),
-                        line.get("fontsize", 8),
-                        line.get("fontweight", "normal"),
-                        line.get("color", colors["text"]),
-                    )
-                )
-            else:
-                items.append((str(line), 8, "normal", colors["text"]))
-
-        # Text area = PositionSpec minus padding on all sides
-        inner_h = pos.height_mm - 2 * box.padding_mm
-        n = len(items)
-        gap = min(inner_h / max(n, 1) * 0.85, 6.0) if n > 1 else 0
-        block_h = gap * (n - 1)
-        top_y = pos.y_mm + block_h / 2
-
-        _txt_bg = dict(facecolor=fill, edgecolor="none", pad=0.5, alpha=0.85)
-        for i, (text, fsize, fweight, fcolor) in enumerate(items):
-            ax.text(
-                pos.x_mm,
-                top_y - i * gap,
-                text,
-                ha="center",
-                va="center",
-                fontsize=fsize,
-                fontweight=fweight,
-                color=fcolor,
-                fontstyle="normal",
-                zorder=7,
-                bbox=_txt_bg,
-            )
-
-        self._render_info[bid] = {"pos": pos}
-
-    def _render_arrow(self, ax: Axes, arrow: ArrowSpec) -> None:
-        """Render an arrow."""
-        if arrow.source not in self._positions or arrow.target not in self._positions:
-            return
-
-        src_pos = self._positions[arrow.source]
-        tgt_pos = self._positions[arrow.target]
-
-        # Determine anchors
-        if arrow.source_anchor == "auto" or arrow.target_anchor == "auto":
-            auto_src, auto_tgt = self._auto_anchor(src_pos, tgt_pos)
-            src_anc = auto_src if arrow.source_anchor == "auto" else arrow.source_anchor
-            tgt_anc = auto_tgt if arrow.target_anchor == "auto" else arrow.target_anchor
-        else:
-            src_anc, tgt_anc = arrow.source_anchor, arrow.target_anchor
-
-        start = self._get_anchor(src_pos, src_anc)
-        end = self._get_anchor(tgt_pos, tgt_anc)
-
-        style = get_edge_style(arrow.style)
-        from .._diagram._styles_native import COLORS as _COLORS
-
-        color = _COLORS.get(arrow.color, arrow.color) if arrow.color else style["color"]
-        conn = f"arc3,rad={arrow.curve}" if arrow.curve else "arc3,rad=0"
-
-        # Convert linewidth from mm to pt
-        linewidth_pt = mm_to_pt(arrow.linewidth_mm)
-
-        patch = FancyArrowPatch(
-            posA=start,
-            posB=end,
-            arrowstyle="-|>",
-            color=color,
-            linestyle=style["linestyle"],
-            linewidth=linewidth_pt,
-            connectionstyle=conn,
-            mutation_scale=15,
-            zorder=5,
-        )
-        ax.add_patch(patch)
-
-        if arrow.label:
-            from ._schematic_validate import compute_arrow_label_position
-
-            lx, ly = compute_arrow_label_position(
-                start, end, arrow.curve, arrow.label_offset_mm
-            )
-            _label_bg = dict(facecolor="white", edgecolor="none", pad=1.0, alpha=0.85)
-            ax.text(
-                lx,
-                ly,
-                arrow.label,
-                ha="center",
-                va="bottom",
-                fontsize=8,
-                color=color,
-                fontstyle="italic",
-                zorder=6,
-                bbox=_label_bg,
-            )
 
     def render_to_file(self, path: Union[str, Path], dpi: int = 200) -> Path:
         """Render and save. On validation failure, saves as *_FAILED.png."""
