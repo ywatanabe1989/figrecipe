@@ -59,7 +59,7 @@ class TestAutoLayout:
 
     def test_auto_layout_lr(self):
         """Test left-to-right layout."""
-        s = fr.Schematic(width_mm=200, height_mm=100)
+        s = fr.Schematic(width_mm=180, height_mm=100)
         s.add_box("a", title="A")
         s.add_box("b", title="B")
         s.add_arrow("a", "b")
@@ -70,7 +70,7 @@ class TestAutoLayout:
 
     def test_auto_layout_tb(self):
         """Test top-to-bottom layout."""
-        s = fr.Schematic(width_mm=200, height_mm=100)
+        s = fr.Schematic(width_mm=180, height_mm=100)
         s.add_box("a", title="A")
         s.add_box("b", title="B")
         s.add_arrow("a", "b")
@@ -156,6 +156,116 @@ class TestSerialization:
         assert s2.height_mm == 150.0
         assert s2._positions["a"].x_mm == 100
         assert s2._positions["b"].x_mm == 200
+
+
+class TestContainerValidation:
+    """Test container validation."""
+
+    def test_valid_container_passes(self):
+        """Test that properly contained children pass validation."""
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_container(
+            "c",
+            title="Container",
+            children=["a"],
+            position_mm=(100, 50),
+            size_mm=(100, 60),
+        )
+        s.add_box("a", title="A", position_mm=(100, 50), size_mm=(40, 25))
+        s.validate_containers()  # Should not raise
+
+    def test_child_outside_container_raises(self):
+        """Test that child outside container raises ValueError."""
+        import pytest
+
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_container(
+            "c",
+            title="Container",
+            children=["a"],
+            position_mm=(100, 50),
+            size_mm=(40, 30),
+        )
+        s.add_box("a", title="A", position_mm=(200, 50), size_mm=(40, 25))
+        with pytest.raises(ValueError, match="extends outside container"):
+            s.validate_containers()
+
+    def test_render_validates_containers(self):
+        """Test that render() calls validation automatically."""
+        import pytest
+
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_container(
+            "c",
+            title="Container",
+            children=["a"],
+            position_mm=(100, 50),
+            size_mm=(40, 30),
+        )
+        s.add_box("a", title="A", position_mm=(200, 50), size_mm=(40, 25))
+        with pytest.raises(ValueError, match="extends outside container"):
+            s.render()
+
+
+class TestBoxOverlapValidation:
+    """Test box overlap detection."""
+
+    def test_non_overlapping_boxes_pass(self):
+        """Test that separated boxes pass validation."""
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
+        s.add_box("b", title="B", position_mm=(150, 50), size_mm=(40, 25))
+        s.validate_no_overlap()  # Should not raise
+
+    def test_overlapping_boxes_raises(self):
+        """Test that overlapping boxes raise ValueError."""
+        import pytest
+
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
+        s.add_box("b", title="B", position_mm=(55, 50), size_mm=(40, 25))
+        with pytest.raises(ValueError, match="overlap"):
+            s.validate_no_overlap()
+
+    def test_render_detects_overlap(self):
+        """Test that render() catches box overlap."""
+        import pytest
+
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
+        s.add_box("b", title="B", position_mm=(55, 50), size_mm=(40, 25))
+        with pytest.raises(ValueError, match="overlap"):
+            s.render()
+
+
+class TestTextOverlapValidation:
+    """Test text bounding box overlap detection."""
+
+    def test_non_overlapping_text_no_warning(self):
+        """Test that separated text produces no warning."""
+        import warnings
+
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_box("a", title="A", position_mm=(40, 50), size_mm=(40, 25))
+        s.add_box("b", title="B", position_mm=(140, 50), size_mm=(40, 25))
+        s.add_arrow("a", "b", label="arrow")
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            s.render()  # owns_fig=True, text validation runs
+        overlap_warns = [x for x in w if "Text overlap" in str(x.message)]
+        assert len(overlap_warns) == 0
+
+    def test_overlapping_text_raises(self):
+        """Test that overlapping arrow labels raise ValueError."""
+        import pytest
+
+        s = fr.Schematic(width_mm=180, height_mm=100)
+        s.add_box("a", title="A", position_mm=(50, 50), size_mm=(40, 25))
+        s.add_box("b", title="B", position_mm=(150, 50), size_mm=(40, 25))
+        s.add_arrow("a", "b", label="forward")
+        s.add_arrow("b", "a", label="backward")
+        with pytest.raises(ValueError, match="Text margin violation"):
+            s.render()
 
 
 class TestRecipeIntegration:

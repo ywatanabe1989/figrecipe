@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 10:47:28
+!-- Timestamp: 2026-02-07 19:04:37
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -36,7 +36,7 @@
 FigRecipe treats recipe, data, and style as first-class attributes of every figure. This enables data governance and style editing without losing scientific rigor.
 
 <p align="center">
-  <img src="docs/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
+  <img src="examples/10b_figrecipe_concept_schematic_fixed_out/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
 
 ## Styling
@@ -110,15 +110,18 @@ fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 ## Schematic Diagrams
 
 <p align="center">
-  <img src="examples/09_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
+  <img src="examples/09a_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
 </p>
 
 <details>
+<summary><strong>Usage & Validation Rules</strong></summary>
+
+<br>
 
 Create publication-quality box-and-arrow schematics with mm-based coordinates:
 
 ```python
-s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=350, height_mm=100)
+s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
 s.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted")
 s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
 s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
@@ -130,6 +133,22 @@ fig, ax = fr.subplots()
 ax.schematic(s, id="pipeline")
 fr.save(fig, "pipeline.png")
 ```
+
+All rules are enforced automatically on render. Errors are collected and reported together:
+
+| Rule | Check | Severity |
+|------|-------|----------|
+| W | Width exceeds 185 mm (double-column max) | UserWarning |
+| R1 | Container must enclose all children | ValueError |
+| R2 | No two boxes may overlap | ValueError |
+| R3 | Container title must clear children (5 mm zone) | UserWarning |
+| R4 | Box text must fit within padded inner area | UserWarning |
+| R5 | Text-to-text margin >= 2 mm | ValueError |
+| R6 | Text-to-edge margin >= 2 mm | ValueError |
+| R7 | Arrow visible-length ratio >= 90% | ValueError |
+| R8 | Curved-arrow label on same side as arc | ValueError |
+
+When validation fails, figures are still saved with a `_FAILED` suffix for inspection.
 
 </details>
 

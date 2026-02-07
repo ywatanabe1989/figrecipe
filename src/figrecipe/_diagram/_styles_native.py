@@ -1,79 +1,90 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Native matplotlib diagram styling with Material Design colors."""
+"""Native matplotlib diagram styling using figrecipe SCITEX colors.
 
-from typing import Dict, Tuple
+Derives all colors from the SCITEX preset palette defined in
+``styles/presets/SCITEX.yaml`` rather than hardcoding hex values.
+"""
 
-# Material Design 500-level colors
-MATERIAL_COLORS = {
-    "blue": "#2196F3",
-    "red": "#F44336",
-    "green": "#4CAF50",
-    "amber": "#FFC107",
-    "purple": "#9C27B0",
-    "teal": "#009688",
-    "orange": "#FF9800",
-    "pink": "#E91E63",
-    "indigo": "#3F51B5",
-    "cyan": "#00BCD4",
-    "lime": "#CDDC39",
-    "brown": "#795548",
-    "grey": "#9E9E9E",
-    "blue_grey": "#607D8B",
+from typing import Dict, List, Tuple
+
+# ---------------------------------------------------------------------------
+# SCITEX palette (source of truth: styles/presets/SCITEX.yaml colors.rgb)
+# Kept as constants so diagram/schematic code works without load_style().
+# ---------------------------------------------------------------------------
+_SCITEX_RGB = {
+    "blue": (0, 128, 192),
+    "red": (255, 70, 50),
+    "green": (20, 180, 20),
+    "yellow": (230, 160, 20),
+    "purple": (200, 50, 255),
+    "lightblue": (20, 200, 200),
+    "orange": (228, 94, 50),
+    "pink": (255, 150, 200),
+    "gray": (128, 128, 128),
+    "brown": (128, 0, 0),
+    "navy": (0, 0, 100),
+    "black": (0, 0, 0),
+    "white": (255, 255, 255),
 }
 
-# Lighter variants (100-level) for fills
-MATERIAL_COLORS_LIGHT = {
-    "blue": "#BBDEFB",
-    "red": "#FFCDD2",
-    "green": "#C8E6C9",
-    "amber": "#FFECB3",
-    "purple": "#E1BEE7",
-    "teal": "#B2DFDB",
-    "orange": "#FFE0B2",
-    "pink": "#F8BBD0",
-    "indigo": "#C5CAE9",
-    "cyan": "#B2EBF2",
-    "lime": "#F0F4C3",
-    "brown": "#D7CCC8",
-    "grey": "#F5F5F5",
-    "blue_grey": "#CFD8DC",
-}
 
-# Emphasis level to color mapping
+def _rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
+    """Convert (r, g, b) 0-255 to hex string."""
+    return f"#{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
+
+
+def _lighten(rgb: Tuple[int, int, int], factor: float = 0.75) -> str:
+    """Blend color toward white. factor=1.0 → white, 0.0 → original."""
+    r = int(rgb[0] + (255 - rgb[0]) * factor)
+    g = int(rgb[1] + (255 - rgb[1]) * factor)
+    b = int(rgb[2] + (255 - rgb[2]) * factor)
+    return _rgb_to_hex((r, g, b))
+
+
+def _darken(rgb: Tuple[int, int, int], factor: float = 0.4) -> str:
+    """Blend color toward black. factor=1.0 → black, 0.0 → original."""
+    r = int(rgb[0] * (1 - factor))
+    g = int(rgb[1] * (1 - factor))
+    b = int(rgb[2] * (1 - factor))
+    return _rgb_to_hex((r, g, b))
+
+
+# ---------------------------------------------------------------------------
+# Color derivation: base color → fill / stroke / text
+# ---------------------------------------------------------------------------
+_FILL_FACTOR = 0.75  # lighten base → fill background
+_TEXT_FACTOR = 0.4  # darken base → text foreground
+
+
+def _build_emphasis(
+    base_name: str,
+    fill_factor: float = _FILL_FACTOR,
+    text_factor: float = _TEXT_FACTOR,
+) -> Dict[str, str]:
+    """Derive fill/stroke/text from a SCITEX base color."""
+    rgb = _SCITEX_RGB[base_name]
+    return {
+        "fill": _lighten(rgb, fill_factor),
+        "stroke": _rgb_to_hex(rgb),
+        "text": _darken(rgb, text_factor),
+    }
+
+
+# Semantic emphasis styles — all derived from SCITEX base colors
 EMPHASIS_COLORS: Dict[str, Dict[str, str]] = {
-    "normal": {
-        "fill": MATERIAL_COLORS_LIGHT["grey"],
-        "stroke": MATERIAL_COLORS["grey"],
-        "text": "#212121",
-    },
-    "primary": {
-        "fill": MATERIAL_COLORS_LIGHT["blue"],
-        "stroke": MATERIAL_COLORS["blue"],
-        "text": "#0D47A1",  # Blue 900
-    },
-    "success": {
-        "fill": MATERIAL_COLORS_LIGHT["green"],
-        "stroke": MATERIAL_COLORS["green"],
-        "text": "#1B5E20",  # Green 900
-    },
-    "warning": {
-        "fill": MATERIAL_COLORS_LIGHT["amber"],
-        "stroke": MATERIAL_COLORS["amber"],
-        "text": "#F57F17",  # Amber 900
-    },
-    "muted": {
-        "fill": "#FAFAFA",
-        "stroke": "#BDBDBD",
-        "text": "#757575",
-    },
+    "normal": _build_emphasis("gray", fill_factor=0.85),
+    "primary": _build_emphasis("blue"),
+    "success": _build_emphasis("green"),
+    "warning": _build_emphasis("yellow"),
+    "muted": _build_emphasis("gray", fill_factor=0.88, text_factor=0.3),
 }
 
-# Default edge colors
+# Edge styles (neutral gray tones from SCITEX gray)
 EDGE_STYLES = {
-    "solid": {"linestyle": "-", "color": "#616161"},
-    "dashed": {"linestyle": "--", "color": "#757575"},
-    "dotted": {"linestyle": ":", "color": "#9E9E9E"},
+    "solid": {"linestyle": "-", "color": _darken(_SCITEX_RGB["gray"], 0.25)},
+    "dashed": {"linestyle": "--", "color": _rgb_to_hex(_SCITEX_RGB["gray"])},
+    "dotted": {"linestyle": ":", "color": _lighten(_SCITEX_RGB["gray"], 0.25)},
 }
 
 # Font configuration
@@ -85,21 +96,31 @@ FONT_CONFIG = {
     "weight": "normal",
 }
 
+# Named colors (hex) for direct access
+COLORS = {name: _rgb_to_hex(rgb) for name, rgb in _SCITEX_RGB.items()}
+COLORS_LIGHT = {name: _lighten(rgb, _FILL_FACTOR) for name, rgb in _SCITEX_RGB.items()}
+
 
 def get_emphasis_style(emphasis: str) -> Dict[str, str]:
-    """Get fill, stroke, text colors for an emphasis level.
+    """Get fill, stroke, text colors for an emphasis level or color name.
 
     Parameters
     ----------
     emphasis : str
-        One of: normal, primary, success, warning, muted
+        Semantic: "normal", "primary", "success", "warning", "muted"
+        Color name: "blue", "red", "green", "yellow", "purple", etc.
 
     Returns
     -------
     dict
         Dictionary with 'fill', 'stroke', 'text' color values.
     """
-    return EMPHASIS_COLORS.get(emphasis, EMPHASIS_COLORS["normal"])
+    if emphasis in EMPHASIS_COLORS:
+        return EMPHASIS_COLORS[emphasis]
+    # Allow direct SCITEX color names (e.g., emphasis="blue", "red")
+    if emphasis in _SCITEX_RGB:
+        return _build_emphasis(emphasis)
+    return EMPHASIS_COLORS["normal"]
 
 
 def get_edge_style(style: str) -> Dict[str, str]:
@@ -108,14 +129,21 @@ def get_edge_style(style: str) -> Dict[str, str]:
     Parameters
     ----------
     style : str
-        One of: solid, dashed, dotted
+        Named: "solid", "dashed", "dotted"
+        Matplotlib: "-", "--", ":", "-."
 
     Returns
     -------
     dict
         Dictionary with 'linestyle' and 'color' values.
     """
-    return EDGE_STYLES.get(style, EDGE_STYLES["solid"])
+    if style in EDGE_STYLES:
+        return EDGE_STYLES[style]
+    # Accept matplotlib linestyle strings directly
+    _MPL_ALIASES = {"--": "dashed", ":": "dotted", "-.": "dashed", "-": "solid"}
+    if style in _MPL_ALIASES:
+        return EDGE_STYLES[_MPL_ALIASES[style]]
+    return EDGE_STYLES["solid"]
 
 
 def hex_to_rgb(hex_color: str) -> Tuple[float, float, float]:
@@ -124,8 +152,8 @@ def hex_to_rgb(hex_color: str) -> Tuple[float, float, float]:
     return tuple(int(hex_color[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
 
 
-def get_auto_colors(n: int) -> list:
-    """Generate n distinct colors from Material palette.
+def get_auto_colors(n: int) -> List[str]:
+    """Generate n distinct colors from SCITEX palette.
 
     Parameters
     ----------
@@ -137,28 +165,24 @@ def get_auto_colors(n: int) -> list:
     list
         List of hex color strings.
     """
-    color_order = [
+    order = [
         "blue",
-        "green",
-        "amber",
         "red",
+        "green",
+        "yellow",
         "purple",
-        "teal",
+        "lightblue",
         "orange",
         "pink",
-        "indigo",
-        "cyan",
+        "navy",
+        "brown",
     ]
-    colors = []
-    for i in range(n):
-        color_name = color_order[i % len(color_order)]
-        colors.append(MATERIAL_COLORS[color_name])
-    return colors
+    return [COLORS[order[i % len(order)]] for i in range(n)]
 
 
 __all__ = [
-    "MATERIAL_COLORS",
-    "MATERIAL_COLORS_LIGHT",
+    "COLORS",
+    "COLORS_LIGHT",
     "EMPHASIS_COLORS",
     "EDGE_STYLES",
     "FONT_CONFIG",
@@ -167,3 +191,5 @@ __all__ = [
     "hex_to_rgb",
     "get_auto_colors",
 ]
+
+# EOF

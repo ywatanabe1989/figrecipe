@@ -307,6 +307,11 @@ def save_figure(
     # Resolve paths for standard save
     image_path, yaml_path, _ = resolve_save_paths(path, image_format)
 
+    # Check for schematic validation errors (stored by ax.schematic())
+    _schematic_errors = getattr(fig.fig, "_schematic_validation_errors", None)
+    if _schematic_errors:
+        image_path = image_path.with_stem(f"{image_path.stem}_FAILED")
+
     # Check if using constrained_layout - need different save strategy
     use_constrained = fig.fig.get_constrained_layout()
 
@@ -422,7 +427,15 @@ def save_figure(
     if not save_recipe:
         if verbose:
             print(f"Saved: {image_path}")
+        if _schematic_errors:
+            raise ValueError("\n  ".join(_schematic_errors))
         return image_path, None, None
+
+    # Raise schematic errors after saving image (before recipe)
+    if _schematic_errors:
+        if verbose:
+            print(f"Saved (with errors): {image_path}")
+        raise ValueError("\n  ".join(_schematic_errors))
 
     # Save the recipe
     saved_yaml = fig.save_recipe(

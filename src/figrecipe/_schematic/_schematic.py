@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Schematic diagram builder for rich scientific diagrams.
-
-Provides a high-level API for creating publication-quality schematics
-with multi-line text boxes, containers, and flexible arrow connections.
-"""
+"""Schematic diagram builder for rich scientific diagrams."""
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -53,8 +49,9 @@ class BoxSpec:
 class ArrowSpec:
     """Specification for an arrow."""
 
-    source: str
-    target: str
+    id: Optional[str] = None
+    source: str = ""
+    target: str = ""
     source_anchor: str = "auto"
     target_anchor: str = "auto"
     label: Optional[str] = None
@@ -62,6 +59,7 @@ class ArrowSpec:
     color: Optional[str] = None
     curve: float = 0.0  # Dimensionless curve parameter
     linewidth_mm: float = 0.5  # Line width in mm
+    label_offset_mm: Optional[Tuple[float, float]] = None  # Manual (dx, dy) nudge
 
 
 @dataclass
@@ -80,9 +78,16 @@ class Schematic:
     def __init__(
         self,
         title: Optional[str] = None,
-        width_mm: float = 200.0,
+        width_mm: float = 170.0,
         height_mm: float = 120.0,
     ):
+        import warnings
+
+        if width_mm > 185.0:
+            warnings.warn(
+                f"Schematic width {width_mm}mm exceeds 185mm (double-column max).",
+                stacklevel=2,
+            )
         self.title = title
         self.width_mm = width_mm
         self.height_mm = height_mm
@@ -114,15 +119,7 @@ class Schematic:
         padding_mm: float = 5.0,
         margin_mm: float = 0.0,
     ) -> "Schematic":
-        """Add a rich text box.
-
-        Parameters
-        ----------
-        padding_mm : float
-            Inner spacing from box edge to text (mm, CSS-like).
-        margin_mm : float
-            Outer spacing for collision detection with other boxes (mm).
-        """
+        """Add a rich text box."""
         self._boxes[id] = BoxSpec(
             id=id,
             title=title,
@@ -184,10 +181,13 @@ class Schematic:
         color: Optional[str] = None,
         curve: float = 0.0,
         linewidth_mm: float = 0.5,
+        label_offset_mm: Optional[Tuple[float, float]] = None,
     ) -> "Schematic":
         """Add an arrow connecting two boxes."""
+        auto_id = f"arrow:{source}->{target}"
         self._arrows.append(
             ArrowSpec(
+                id=auto_id,
                 source=source,
                 target=target,
                 source_anchor=source_anchor,
@@ -197,9 +197,22 @@ class Schematic:
                 color=color,
                 curve=curve,
                 linewidth_mm=linewidth_mm,
+                label_offset_mm=label_offset_mm,
             )
         )
         return self
+
+    def validate_containers(self) -> None:
+        """Check every container fully encloses its declared children."""
+        from ._schematic_validate import validate_containers
+
+        validate_containers(self)
+
+    def validate_no_overlap(self) -> None:
+        """Check that no two boxes overlap each other."""
+        from ._schematic_validate import validate_no_overlap
+
+        validate_no_overlap(self)
 
     def auto_layout(
         self,
@@ -211,44 +224,7 @@ class Schematic:
         justify: str = "space-between",
         align_items: str = "center",
     ) -> "Schematic":
-        """Automatically position boxes based on graph structure.
-
-        Parameters
-        ----------
-        layout : str
-            Layout direction:
-            - "lr" / "row": Left-to-right flow (default)
-            - "rl": Right-to-left flow
-            - "tb" / "column": Top-to-bottom flow
-            - "bt": Bottom-to-top flow
-            - "spring": Force-directed (requires networkx)
-            - "circular": Circular arrangement
-        margin_mm : float
-            Margin from edges in mm (default 15.0).
-        box_size_mm : tuple, optional
-            Default (width, height) in mm for boxes without size.
-        gap_mm : float
-            Minimum spacing between boxes in mm (default 10.0).
-        avoid_overlap : bool
-            If True, apply collision resolution to prevent overlapping boxes.
-        justify : str
-            Main axis distribution (CSS-like):
-            - "start": Pack at start
-            - "center": Center all
-            - "end": Pack at end
-            - "space-between": Even spacing, edges flush (default)
-            - "space-around": Even spacing with half-space at edges
-        align_items : str
-            Cross axis alignment (CSS-like):
-            - "start": Align to start
-            - "center": Center (default)
-            - "end": Align to end
-
-        Returns
-        -------
-        Schematic
-            Self for method chaining.
-        """
+        """Automatically position boxes. See _schematic_layout for details."""
         from ._schematic_layout import auto_layout
 
         auto_layout(
@@ -274,8 +250,7 @@ class Schematic:
 
     def _auto_anchor(self, src: PositionSpec, tgt: PositionSpec) -> Tuple[str, str]:
         """Determine best anchor points automatically."""
-        dx = tgt.x_mm - src.x_mm
-        dy = tgt.y_mm - src.y_mm
+        dx, dy = tgt.x_mm - src.x_mm, tgt.y_mm - src.y_mm
         if abs(dx) > abs(dy):
             return ("right", "left") if dx > 0 else ("left", "right")
         return ("top", "bottom") if dy > 0 else ("bottom", "top")
@@ -286,7 +261,8 @@ class Schematic:
             (self.xlim[1] - self.xlim[0]) / 25.4,
             (self.ylim[1] - self.ylim[0]) / 25.4,
         )
-        if ax is None:
+        owns_fig = ax is None
+        if owns_fig:
             fig, ax = plt.subplots(figsize=figsize)
         else:
             fig = ax.figure
@@ -296,23 +272,17 @@ class Schematic:
         ax.set_aspect("equal")
         ax.axis("off")
 
-        # Render containers first (background)
+        from . import _schematic_validate as _sv
+
+        # Render everything first (so errored figures can be inspected)
         for cid, container in self._containers.items():
-            if cid not in self._positions:
-                continue
-            self._render_container(ax, cid, container)
-
-        # Render boxes
+            if cid in self._positions:
+                self._render_container(ax, cid, container)
         for bid, box in self._boxes.items():
-            if bid not in self._positions:
-                continue
-            self._render_box(ax, bid, box)
-
-        # Render arrows
+            if bid in self._positions:
+                self._render_box(ax, bid, box)
         for arrow in self._arrows:
             self._render_arrow(ax, arrow)
-
-        # Title
         if self.title:
             ax.text(
                 (self.xlim[0] + self.xlim[1]) / 2,
@@ -323,6 +293,11 @@ class Schematic:
                 fontsize=16,
                 fontweight="bold",
             )
+
+        # Validate when we own the figure; when ax is external,
+        # the caller (schematic_plot) handles validation with error capture
+        if owns_fig:
+            _sv.validate_all(self, fig=fig, ax=ax)
 
         return fig, ax
 
@@ -346,16 +321,18 @@ class Schematic:
         ax.add_patch(box)
 
         if container.get("title"):
+            _ct_bg = dict(facecolor=fill, edgecolor="none", pad=1.0, alpha=0.85)
             ax.text(
                 pos.x_mm,
-                pos.y_mm + pos.height_mm / 2 - 3.0,
+                pos.y_mm + pos.height_mm / 2 - 1.5,
                 container["title"],
                 ha="center",
                 va="top",
                 fontsize=11,
                 fontweight="bold",
-                color=border,
-                zorder=3,
+                color=colors["text"],
+                zorder=7,
+                bbox=_ct_bg,
             )
 
         self._render_info[cid] = {"pos": pos}
@@ -364,17 +341,12 @@ class Schematic:
     _aesthetic_pad = 1.0
 
     def _render_box(self, ax: Axes, bid: str, box: BoxSpec) -> None:
-        """Render a rich text box using CSS-like box model.
-
-        PositionSpec defines the visual boundary (border edge) in mm.
-        BoxSpec.padding_mm defines the inner margin for text.
-        Arrows connect to PositionSpec edges naturally.
-        """
+        """Render a rich text box."""
         pos = self._positions[bid]
         colors = get_emphasis_style(box.emphasis)
         fill = box.fill_color or colors["fill"]
         border = box.border_color or colors["stroke"]
-        title_color = box.title_color or border
+        title_color = box.title_color or colors["text"]
         pad = self._aesthetic_pad
 
         shape_styles = {
@@ -420,6 +392,7 @@ class Schematic:
         block_h = gap * (n - 1)
         top_y = pos.y_mm + block_h / 2
 
+        _txt_bg = dict(facecolor=fill, edgecolor="none", pad=0.5, alpha=0.85)
         for i, (text, fsize, fweight, fcolor) in enumerate(items):
             ax.text(
                 pos.x_mm,
@@ -431,7 +404,8 @@ class Schematic:
                 fontweight=fweight,
                 color=fcolor,
                 fontstyle="normal",
-                zorder=3,
+                zorder=7,
+                bbox=_txt_bg,
             )
 
         self._render_info[bid] = {"pos": pos}
@@ -456,7 +430,9 @@ class Schematic:
         end = self._get_anchor(tgt_pos, tgt_anc)
 
         style = get_edge_style(arrow.style)
-        color = arrow.color or style["color"]
+        from .._diagram._styles_native import COLORS as _COLORS
+
+        color = _COLORS.get(arrow.color, arrow.color) if arrow.color else style["color"]
         conn = f"arc3,rad={arrow.curve}" if arrow.curve else "arc3,rad=0"
 
         # Convert linewidth from mm to pt
@@ -476,11 +452,15 @@ class Schematic:
         ax.add_patch(patch)
 
         if arrow.label:
-            mx = (start[0] + end[0]) / 2
-            my = (start[1] + end[1]) / 2 + 2.0
+            from ._schematic_validate import compute_arrow_label_position
+
+            lx, ly = compute_arrow_label_position(
+                start, end, arrow.curve, arrow.label_offset_mm
+            )
+            _label_bg = dict(facecolor="white", edgecolor="none", pad=1.0, alpha=0.85)
             ax.text(
-                mx,
-                my,
+                lx,
+                ly,
                 arrow.label,
                 ha="center",
                 va="bottom",
@@ -488,12 +468,20 @@ class Schematic:
                 color=color,
                 fontstyle="italic",
                 zorder=6,
+                bbox=_label_bg,
             )
 
     def render_to_file(self, path: Union[str, Path], dpi: int = 200) -> Path:
-        """Render and save to file."""
+        """Render and save. On validation failure, saves as *_FAILED.png."""
         path = Path(path)
-        fig, ax = self.render()
+        try:
+            fig, ax = self.render()
+        except ValueError:
+            fig = plt.gcf()
+            failed = path.with_stem(f"{path.stem}_FAILED")
+            fig.savefig(failed, dpi=dpi, bbox_inches="tight", facecolor="white")
+            plt.close(fig)
+            raise
         fig.savefig(path, dpi=dpi, bbox_inches="tight", facecolor="white")
         plt.close(fig)
         return path

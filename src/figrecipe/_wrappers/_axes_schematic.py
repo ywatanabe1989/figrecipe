@@ -99,13 +99,25 @@ def schematic_plot(
     else:
         raise TypeError(f"schematic must be Schematic or dict, got {type(schematic)}")
 
-    # Render to the provided axes
-    fig, rendered_ax = info.render(ax=ax)
-
-    # Resize figure to match schematic's coordinate space
+    # Resize figure to match schematic's coordinate space BEFORE rendering
+    fig = ax.figure
     x_range = info.xlim[1] - info.xlim[0]
     y_range = info.ylim[1] - info.ylim[0]
     fig.set_size_inches(x_range / 25.4, y_range / 25.4)
+
+    # Render to the provided axes
+    fig, rendered_ax = info.render(ax=ax)
+
+    # Post-render validations (skipped inside render() when ax is provided)
+    # Errors are stored on the figure so fr.save() can save _FAILED figures
+    from .._schematic import _schematic_validate as _sv
+
+    try:
+        _sv.validate_all(info, fig=fig, ax=rendered_ax)
+    except ValueError as e:
+        if not hasattr(fig, "_schematic_validation_errors"):
+            fig._schematic_validation_errors = []
+        fig._schematic_validation_errors.append(str(e))
 
     # Record for reproducibility
     if track:
