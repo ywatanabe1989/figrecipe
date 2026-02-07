@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 19:04:37
+!-- Timestamp: 2026-02-07 19:29:21
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -38,6 +38,8 @@ FigRecipe treats recipe, data, and style as first-class attributes of every figu
 <p align="center">
   <img src="examples/10b_figrecipe_concept_schematic_fixed_out/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
+
+<p align="center"><sub>Created with <a href="#schematic-diagrams">Schematic Diagrams</a></sub></p>
 
 ## Styling
 
@@ -109,16 +111,12 @@ fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 
 ## Schematic Diagrams
 
-<p align="center">
-  <img src="examples/09a_schematic_out/schematic_lr.png" alt="Left-to-right schematic" width="100%"/>
-</p>
+Create publication-quality box-and-arrow schematics with mm-based coordinates. See [Overview](#overview) for an example output.
 
 <details>
 <summary><strong>Usage & Validation Rules</strong></summary>
 
 <br>
-
-Create publication-quality box-and-arrow schematics with mm-based coordinates:
 
 ```python
 s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
