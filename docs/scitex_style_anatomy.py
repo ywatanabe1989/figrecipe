@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2026-02-07 19:53:04 (ywatanabe)"
+# Timestamp: "2026-02-07 20:03:24 (ywatanabe)"
 # File: /home/ywatanabe/proj/figrecipe/docs/scitex_style_anatomy.py
 
 
@@ -95,7 +95,9 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     n = 40
     x_scatter = np.random.randn(n)
     y_scatter = x_scatter * 0.8 + np.random.randn(n) * 0.5
-    ax_scatter.scatter(x_scatter, y_scatter, s=25, color=PALETTE[0], label="Data")
+    ax_scatter.scatter(
+        x_scatter, y_scatter, s=25, color=PALETTE[0], label="Data"
+    )
     ax_scatter.set_xlabel("X value")
     ax_scatter.set_ylabel("Y value")
     ax_scatter.set_title("Scatter Plot")
@@ -118,7 +120,9 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     # === Panel D: Box plot ===
     box_categories = ["Ctrl", "Exp1", "Exp2", "Exp3"]
     data_box = [np.random.randn(30) + i for i in range(4)]
-    bp = ax_box.boxplot(data_box, patch_artist=True, tick_labels=box_categories)
+    bp = ax_box.boxplot(
+        data_box, patch_artist=True, tick_labels=box_categories
+    )
     for i, (patch, color) in enumerate(zip(bp["boxes"], PALETTE[:4])):
         patch.set_facecolor(color)
         patch.set_alpha(0.6)
@@ -126,39 +130,11 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     ax_box.set_ylabel("Value")
     ax_box.set_title("Box Plot")
 
-    draw_stat_annotation(ax_box, 1, 2, text="***", p_value=0.0005, style="stars")
-
-    # === Panel E: Pie chart (SCITEX color palette) ===
-    names = [
-        "blue",
-        "red",
-        "green",
-        "yellow",
-        "purple",
-        "cyan",
-        "orange",
-        "pink",
-    ]
-    rgbs = [
-        f"({int(c[1:3], 16)},{int(c[3:5], 16)},{int(c[5:7], 16)})" for c in PALETTE[:8]
-    ]
-    labels = [f"{n}\n{r}" for n, r in zip(names, rgbs)]
-    result = ax_pie.pie(
-        [1] * 8,
-        colors=PALETTE[:8],
-        labels=labels,
-        labeldistance=1.3,
-        startangle=90,
-        counterclock=False,
-        textprops={"fontsize": 4.5},
+    draw_stat_annotation(
+        ax_box, 1, 2, text="***", p_value=0.0005, style="stars"
     )
-    texts = result[1]
-    for txt, c in zip(texts, PALETTE[:8]):
-        txt.set_color(c)
-        txt.set_fontweight("bold")
-    ax_pie.set_title("SCITEX Colors")
 
-    # === Panel F: Histogram ===
+    # === Panel E: Histogram ===
     data_hist = np.random.randn(500)
     ax_hist.hist(
         data_hist,
@@ -174,7 +150,38 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     ax_hist.set_title("Histogram")
     ax_hist.legend(loc="upper right", fontsize=5)
 
-    fig.suptitle("SCITEX Style Anatomy", fontsize=10, fontweight="bold")
+    fig.suptitle("SciTeX Style Anatomy", fontsize=10, fontweight="bold")
+
+    # === Panel F: Pie chart (SCITEX color palette) ===
+    names = [
+        "blue",
+        "red",
+        "green",
+        "yellow",
+        "purple",
+        "cyan",
+        "orange",
+        "pink",
+    ]
+    rgbs = [
+        f"({int(c[1:3], 16)},{int(c[3:5], 16)},{int(c[5:7], 16)})"
+        for c in PALETTE[:8]
+    ]
+    labels = [f"{n}\n{r}" for n, r in zip(names, rgbs)]
+    result = ax_pie.pie(
+        [1] * 8,
+        colors=PALETTE[:8],
+        labels=labels,
+        labeldistance=1.3,
+        startangle=90,
+        counterclock=False,
+        textprops={"fontsize": 4.5},
+    )
+    texts = result[1]
+    for txt, c in zip(texts, PALETTE[:8]):
+        txt.set_color(c)
+        txt.set_fontweight("bold")
+    ax_pie.set_title("SciTeX Colors")
 
     # === Annotation overlay ===
     fig_ax = fig.add_axes([0, 0, 1, 1], facecolor="none")
@@ -251,8 +258,8 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
     add_annotation(
         fig_ax,
         "histogram.edge_mm: 0.2",
-        xy=(0.82, 0.30),
-        xytext=(0.92, 0.18),
+        xy=(0.55, 0.30),
+        xytext=(0.55, 0.18),
         color=ann_color,
     )
     add_annotation(
@@ -271,7 +278,9 @@ def main(CONFIG=stx.session.INJECTED, logger=stx.session.INJECTED):
         ha="right",
         va="center",
         color=dim_color,
-        bbox=dict(boxstyle="round", facecolor="white", edgecolor=dim_color, alpha=0.9),
+        bbox=dict(
+            boxstyle="round", facecolor="white", edgecolor=dim_color, alpha=0.9
+        ),
     )
 
     out = Path(CONFIG.SDIR_OUT) if CONFIG else OUTPUT_DIR
