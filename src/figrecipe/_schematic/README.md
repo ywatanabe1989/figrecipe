@@ -14,8 +14,8 @@ Publication-quality box-and-arrow diagrams with programmatic layout validation.
 import figrecipe as fr
 
 s = fr.Schematic(width_mm=170, height_mm=120)
-s.add_box("a", "Input", position_mm=(30, 60), size_mm=(40, 25))
-s.add_box("b", "Output", position_mm=(130, 60), size_mm=(40, 25))
+s.add_box("a", "Input", x_mm=30, y_mm=60, width_mm=40, height_mm=25)
+s.add_box("b", "Output", x_mm=130, y_mm=60, width_mm=40, height_mm=25)
 s.add_arrow("a", "b", label="process")
 s.render_to_file("diagram.png")
 ```

@@ -8,7 +8,7 @@
 
 Demonstrates iterative layout adjustment guided by Schematic validation
 errors. Compare with 10a (intentionally failing) to see the difference.
-NOTE: position_mm is the CENTER of the box, not bottom-left.
+NOTE: x_mm/y_mm is the CENTER of the box, not bottom-left.
 """
 
 import matplotlib
@@ -45,24 +45,30 @@ def main(
         "python",
         "Python Code",
         content=["import figrecipe as fr", "ax.plot(x, y)"],
-        position_mm=(24, row1_cy),
-        size_mm=(bw, bh),
+        x_mm=24,
+        y_mm=row1_cy,
+        width_mm=bw,
+        height_mm=bh,
     )
     s.add_box(
         "recipe",
         "Recipe (YAML)",
         subtitle="Structure + Plot Calls",
         emphasis="warning",
-        position_mm=(W / 2, row1_cy),
-        size_mm=(bw, bh),
+        x_mm=W / 2,
+        y_mm=row1_cy,
+        width_mm=bw,
+        height_mm=bh,
     )
     s.add_box(
         "figure",
         "Figure",
         subtitle="PNG / PDF / SVG",
         emphasis="red",
-        position_mm=(W - 24, row1_cy),
-        size_mm=(bw, bh),
+        x_mm=W - 24,
+        y_mm=row1_cy,
+        width_mm=bw,
+        height_mm=bh,
     )
 
     # Arrows: Python -> Recipe -> Figure
@@ -88,8 +94,10 @@ def main(
         "concerns",
         title="Separation of Concerns",
         children=["data", "style"],
-        position_mm=(W / 2, row2_cy),
-        size_mm=(cw, ch),
+        x_mm=W / 2,
+        y_mm=row2_cy,
+        width_mm=cw,
+        height_mm=ch,
     )
     s.add_box(
         "data",
@@ -97,8 +105,10 @@ def main(
         subtitle="CSV / NPZ files",
         content=["WHAT to show"],
         emphasis="success",
-        position_mm=(W / 2 - iw / 2 - 8, row2_cy - 2),
-        size_mm=(iw, ih),
+        x_mm=W / 2 - iw / 2 - 8,
+        y_mm=row2_cy - 2,
+        width_mm=iw,
+        height_mm=ih,
     )
     s.add_box(
         "style",
@@ -106,8 +116,10 @@ def main(
         subtitle="Presets / GUI editing",
         content=["HOW to show"],
         emphasis="purple",
-        position_mm=(W / 2 + iw / 2 + 8, row2_cy - 2),
-        size_mm=(iw, ih),
+        x_mm=W / 2 + iw / 2 + 8,
+        y_mm=row2_cy - 2,
+        width_mm=iw,
+        height_mm=ih,
     )
 
     # Arrows from Recipe/Figure down to DATA/STYLE

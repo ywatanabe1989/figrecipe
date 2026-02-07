@@ -11,9 +11,12 @@ Rules (all enforced programmatically):
   R6  Text-to-edge margin >= MIN_MARGIN_MM          → ValueError
   R7  Arrow visible-length ratio >= MIN_VISIBLE     → ValueError
   R8  Curved-arrow label on same side as arc        → ValueError
+  R9  All elements within canvas bounds              → ValueError
 """
 
 from typing import TYPE_CHECKING
+
+from ._schematic_geom import bbox_gap, box_rect, rects_overlap, seg_rect_clip_len
 
 # Centralised thresholds
 MIN_MARGIN_MM = 2.0  # R5, R6
@@ -79,38 +82,18 @@ def validate_containers(schematic: "Schematic") -> None:
                 )
 
 
-def _box_rect(pos):
-    """Return (left, bottom, right, top) from a PositionSpec."""
-    return (
-        pos.x_mm - pos.width_mm / 2,
-        pos.y_mm - pos.height_mm / 2,
-        pos.x_mm + pos.width_mm / 2,
-        pos.y_mm + pos.height_mm / 2,
-    )
-
-
-def _rects_overlap(r1, r2):
-    """Check if two (left, bottom, right, top) rectangles overlap."""
-    return r1[0] < r2[2] and r2[0] < r1[2] and r1[1] < r2[3] and r2[1] < r1[3]
-
-
 def validate_no_overlap(schematic: "Schematic") -> None:
     """Check that no two boxes overlap each other.
 
     Containers are excluded — only boxes are checked.
-
-    Raises
-    ------
-    ValueError
-        If any two boxes overlap.
     """
     from itertools import combinations
 
     box_ids = [bid for bid in schematic._boxes if bid in schematic._positions]
     for id_a, id_b in combinations(box_ids, 2):
-        r_a = _box_rect(schematic._positions[id_a])
-        r_b = _box_rect(schematic._positions[id_b])
-        if _rects_overlap(r_a, r_b):
+        r_a = box_rect(schematic._positions[id_a])
+        r_b = box_rect(schematic._positions[id_b])
+        if rects_overlap(r_a, r_b):
             raise ValueError(
                 f"Boxes '{id_a}' and '{id_b}' overlap: "
                 f"'{id_a}' rect=({r_a[0]:.1f},{r_a[1]:.1f})-"
@@ -118,20 +101,6 @@ def validate_no_overlap(schematic: "Schematic") -> None:
                 f"'{id_b}' rect=({r_b[0]:.1f},{r_b[1]:.1f})-"
                 f"({r_b[2]:.1f},{r_b[3]:.1f})"
             )
-
-
-def _overlap_area(bb_a, bb_b):
-    """Compute overlap area of two Bbox objects. Returns 0 if no overlap."""
-    x_overlap = max(0, min(bb_a.x1, bb_b.x1) - max(bb_a.x0, bb_b.x0))
-    y_overlap = max(0, min(bb_a.y1, bb_b.y1) - max(bb_a.y0, bb_b.y0))
-    return x_overlap * y_overlap
-
-
-def _bbox_gap(bb_a, bb_b):
-    """Minimum gap (mm) between two Bbox objects. Negative = overlap."""
-    x_gap = max(bb_a.x0 - bb_b.x1, bb_b.x0 - bb_a.x1)
-    y_gap = max(bb_a.y0 - bb_b.y1, bb_b.y0 - bb_a.y1)
-    return max(x_gap, y_gap)
 
 
 def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> None:
@@ -154,7 +123,7 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
     box_rects = {}
     for eid in list(schematic._boxes) + list(schematic._containers):
         if eid in schematic._positions:
-            box_rects[eid] = _box_rect(schematic._positions[eid])
+            box_rects[eid] = box_rect(schematic._positions[eid])
 
     def _owner(bb):
         """Return the box/container ID whose rect contains bb center."""
@@ -173,7 +142,7 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
     for (txt_a, bb_a, own_a), (txt_b, bb_b, own_b) in combinations(entries, 2):
         if own_a is not None and own_a == own_b:
             continue
-        gap = _bbox_gap(bb_a, bb_b)
+        gap = bbox_gap(bb_a, bb_b)
         if gap < min_margin_mm:
             raise ValueError(
                 f"Text margin violation: '{txt_a}' and '{txt_b}' "
@@ -184,7 +153,7 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
     edges = []
     for eid in list(schematic._boxes) + list(schematic._containers):
         if eid in schematic._positions:
-            edges.append((eid, _box_rect(schematic._positions[eid])))
+            edges.append((eid, box_rect(schematic._positions[eid])))
 
     for txt, bb, _own in entries:
         for eid, (el, eb, er, et) in edges:
@@ -197,7 +166,7 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
             from matplotlib.transforms import Bbox
 
             edge_bb = Bbox([[el, eb], [er, et]])
-            gap = _bbox_gap(bb, edge_bb)
+            gap = bbox_gap(bb, edge_bb)
             if gap < min_margin_mm:
                 raise ValueError(
                     f"Text '{txt}' too close to '{eid}' edge: "
@@ -206,7 +175,6 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
 
 
 def validate_text_no_overlap(fig, ax, min_overlap_ratio=0.05) -> None:
-    """Legacy wrapper — kept for backward compatibility."""
     pass  # Superseded by validate_text_margins
 
 
@@ -281,7 +249,8 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
     """Raise if arrow visible-length ratio drops below min_visible.
 
     Flattens each arrow's Bezier curve into line segments, measures
-    total arc length, and subtracts the length occluded by text bboxes.
+    total arc length, and subtracts the length occluded by text bboxes
+    AND intermediate box rectangles (excluding source/target boxes).
     """
     import math
 
@@ -293,20 +262,36 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
 
     texts = [t for t in ax.texts if t.get_text().strip()]
     arrows = [p for p in ax.patches if isinstance(p, FancyArrowPatch)]
-    if not texts or not arrows:
+    if not arrows:
         return
 
-    arrow_ids = []
+    arrow_specs = []
     if schematic is not None:
-        arrow_ids = [a.id or f"arrow#{i}" for i, a in enumerate(schematic._arrows)]
+        arrow_specs = list(schematic._arrows)
 
     text_bbs = []
     for t in texts:
         bb = t.get_window_extent(renderer).transformed(inv)
         text_bbs.append((t.get_text(), bb))
 
+    # Build box rects in data coords for intermediate-box occlusion
+    box_rects = {}
+    if schematic is not None:
+        for bid in schematic._boxes:
+            if bid in schematic._positions:
+                box_rects[bid] = box_rect(schematic._positions[bid])
+
     for i, arrow in enumerate(arrows):
-        aid = arrow_ids[i] if i < len(arrow_ids) else f"arrow#{i}"
+        aspec = arrow_specs[i] if i < len(arrow_specs) else None
+        aid = (
+            aspec.id
+            if aspec and aspec.id
+            else f"{aspec.source}->{aspec.target}"
+            if aspec
+            else f"arrow#{i}"
+        )
+        src_id = aspec.source if aspec else None
+        tgt_id = aspec.target if aspec else None
         # Flatten Bezier curves into dense polygon points
         disp_path = arrow.get_path().transformed(arrow.get_transform())
         polys = disp_path.to_polygons(closed_only=False)
@@ -327,16 +312,29 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
             seg_len = math.hypot(x1 - x0, y1 - y0)
             total_len += seg_len
             mx, my = (x0 + x1) / 2, (y0 + y1) / 2
+            occluded = False
+            # Check text bboxes
             for txt, bb in text_bbs:
                 if bb.x0 <= mx <= bb.x1 and bb.y0 <= my <= bb.y1:
                     occluded_len += seg_len
-                    occluders.add(txt)
+                    occluders.add(f"text:'{txt}'")
+                    occluded = True
                     break
+            if occluded:
+                continue
+            # Check intermediate box rectangles (line-rect clipping)
+            for bid, (bl, bb_, br, bt) in box_rects.items():
+                if bid == src_id or bid == tgt_id:
+                    continue
+                clip = seg_rect_clip_len(x0, y0, x1, y1, bl, bb_, br, bt)
+                if clip > 0:
+                    occluded_len += clip
+                    occluders.add(f"box:'{bid}'")
         if total_len < 1e-6:
             continue
         visible_ratio = 1.0 - occluded_len / total_len
         if visible_ratio < min_visible:
-            occ_str = ", ".join(f"'{t}'" for t in sorted(occluders))
+            occ_str = ", ".join(sorted(occluders))
             raise ValueError(
                 f"'{aid}' visibility {visible_ratio:.0%} < {min_visible:.0%}. "
                 f"Occluded by: {occ_str}"
@@ -425,6 +423,30 @@ def compute_arrow_label_position(start, end, curve, label_offset_mm=None):
     return mx, my
 
 
+def validate_canvas_bounds(schematic: "Schematic") -> None:
+    """R9: Check that all boxes and containers are within canvas bounds.
+
+    Raises ValueError if any element extends outside (0,0)-(width_mm, height_mm).
+    """
+    W, H = schematic.width_mm, schematic.height_mm
+    all_ids = list(schematic._boxes) + list(schematic._containers)
+    for eid in all_ids:
+        if eid not in schematic._positions:
+            continue
+        left, bottom, right, top = box_rect(schematic._positions[eid])
+        violations = []
+        if left < 0:
+            violations.append(f"left={left:.1f}mm")
+        if bottom < 0:
+            violations.append(f"bottom={bottom:.1f}mm")
+        if right > W:
+            violations.append(f"right={right:.1f}mm > width={W:.1f}mm")
+        if top > H:
+            violations.append(f"top={top:.1f}mm > height={H:.1f}mm")
+        if violations:
+            raise ValueError(f"'{eid}' extends outside canvas: {'; '.join(violations)}")
+
+
 def validate_all(schematic, fig=None, ax=None):
     """Run all validation rules, collect errors, raise combined summary.
 
@@ -438,6 +460,7 @@ def validate_all(schematic, fig=None, ax=None):
         ("R1", validate_containers),
         ("R2", validate_no_overlap),
         ("R8", validate_arrow_label_side),
+        ("R9", validate_canvas_bounds),
     ]
     for tag, fn in pre_checks:
         try:

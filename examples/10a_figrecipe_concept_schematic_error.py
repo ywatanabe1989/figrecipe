@@ -8,7 +8,7 @@
 
 Recreates the FigRecipe architecture concept diagram using the
 Schematic API with manual mm-based positioning.
-NOTE: position_mm is the CENTER of the box, not bottom-left.
+NOTE: x_mm/y_mm is the CENTER of the box, not bottom-left.
 
 Outputs:
     ./10_figrecipe_concept_schematic_out/figrecipe_concept.{png,yaml}
@@ -48,24 +48,30 @@ def main(
         "python",
         "Python Code",
         content=["import figrecipe as fr", "ax.plot(x, y)"],
-        position_mm=(28, row1_cy),
-        size_mm=(bw, bh),
+        x_mm=28,
+        y_mm=row1_cy,
+        width_mm=bw,
+        height_mm=bh,
     )
     s.add_box(
         "recipe",
         "Recipe (YAML)",
         subtitle="Structure + Plot Calls",
         emphasis="warning",
-        position_mm=(W / 2, row1_cy),
-        size_mm=(bw, bh),
+        x_mm=W / 2,
+        y_mm=row1_cy,
+        width_mm=bw,
+        height_mm=bh,
     )
     s.add_box(
         "figure",
         "Figure",
         subtitle="PNG / PDF / SVG",
         emphasis="red",
-        position_mm=(W - 28, row1_cy),
-        size_mm=(bw, bh),
+        x_mm=W - 28,
+        y_mm=row1_cy,
+        width_mm=bw,
+        height_mm=bh,
     )
 
     # Arrows: Python -> Recipe -> Figure
@@ -89,8 +95,10 @@ def main(
         "concerns",
         title="Separation of Concerns",
         children=["data", "style"],
-        position_mm=(W / 2, row2_cy),
-        size_mm=(cw, ch),
+        x_mm=W / 2,
+        y_mm=row2_cy,
+        width_mm=cw,
+        height_mm=ch,
     )
     s.add_box(
         "data",
@@ -98,8 +106,10 @@ def main(
         subtitle="CSV / NPZ files",
         content=["WHAT to show"],
         emphasis="success",
-        position_mm=(W / 2 - iw / 2 - 8, row2_cy - 2),
-        size_mm=(iw, ih),
+        x_mm=W / 2 - iw / 2 - 8,
+        y_mm=row2_cy - 2,
+        width_mm=iw,
+        height_mm=ih,
     )
     s.add_box(
         "style",
@@ -107,8 +117,10 @@ def main(
         subtitle="Presets / GUI editing",
         content=["HOW to show"],
         emphasis="purple",
-        position_mm=(W / 2 + iw / 2 + 8, row2_cy - 2),
-        size_mm=(iw, ih),
+        x_mm=W / 2 + iw / 2 + 8,
+        y_mm=row2_cy - 2,
+        width_mm=iw,
+        height_mm=ih,
     )
 
     # Arrows from Recipe/Figure down to DATA/STYLE
@@ -126,30 +138,38 @@ def main(
         "benefits",
         title="Benefits for Researchers",
         children=["repro", "flex", "verify"],
-        position_mm=(W / 2, row3_cy),
-        size_mm=(bcw, bch),
+        x_mm=W / 2,
+        y_mm=row3_cy,
+        width_mm=bcw,
+        height_mm=bch,
     )
     spacing = bcw / 3
     s.add_box(
         "repro",
         "Reproducibility",
         subtitle="Same recipe = Same figure",
-        position_mm=(W / 2 - spacing, row3_cy - 3),
-        size_mm=(bbw, bbh),
+        x_mm=W / 2 - spacing,
+        y_mm=row3_cy - 3,
+        width_mm=bbw,
+        height_mm=bbh,
     )
     s.add_box(
         "flex",
         "Flexibility",
         subtitle="Change style, keep meaning",
-        position_mm=(W / 2, row3_cy - 3),
-        size_mm=(bbw, bbh),
+        x_mm=W / 2,
+        y_mm=row3_cy - 3,
+        width_mm=bbw,
+        height_mm=bbh,
     )
     s.add_box(
         "verify",
         "Verification",
         subtitle="Pixel-level validation",
-        position_mm=(W / 2 + spacing, row3_cy - 3),
-        size_mm=(bbw, bbh),
+        x_mm=W / 2 + spacing,
+        y_mm=row3_cy - 3,
+        width_mm=bbw,
+        height_mm=bbh,
     )
 
     # Render

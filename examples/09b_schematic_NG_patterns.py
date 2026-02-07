@@ -35,26 +35,28 @@ def ng_r1_child_outside_container(out):
         "c",
         title="Container",
         children=["a"],
-        position_mm=(85, 40),
-        size_mm=(40, 30),
+        x_mm=85,
+        y_mm=40,
+        width_mm=40,
+        height_mm=30,
     )
-    s.add_box("a", "Box A", position_mm=(130, 40), size_mm=(30, 20))
+    s.add_box("a", "Box A", x_mm=130, y_mm=40, width_mm=30, height_mm=20)
     s.render_to_file(out / "ng_r1_child_outside.png")
 
 
 def ng_r2_box_overlap(out):
     """R2: Two boxes overlap."""
     s = fr.Schematic(width_mm=170, height_mm=80)
-    s.add_box("a", "Box A", position_mm=(60, 40), size_mm=(40, 25))
-    s.add_box("b", "Box B", position_mm=(70, 40), size_mm=(40, 25))
+    s.add_box("a", "Box A", x_mm=60, y_mm=40, width_mm=40, height_mm=25)
+    s.add_box("b", "Box B", x_mm=70, y_mm=40, width_mm=40, height_mm=25)
     s.render_to_file(out / "ng_r2_box_overlap.png")
 
 
 def ng_r5_text_too_close(out):
     """R5: Arrow labels too close to each other."""
     s = fr.Schematic(width_mm=170, height_mm=80)
-    s.add_box("a", "A", position_mm=(30, 40), size_mm=(30, 20))
-    s.add_box("b", "B", position_mm=(140, 40), size_mm=(30, 20))
+    s.add_box("a", "A", x_mm=30, y_mm=40, width_mm=30, height_mm=20)
+    s.add_box("b", "B", x_mm=140, y_mm=40, width_mm=30, height_mm=20)
     s.add_arrow("a", "b", label="forward")
     s.add_arrow("b", "a", label="backward")
     s.render_to_file(out / "ng_r5_text_too_close.png")
@@ -63,8 +65,8 @@ def ng_r5_text_too_close(out):
 def ng_r7_arrow_occluded(out):
     """R7: Arrow occluded by text (< 90% visible)."""
     s = fr.Schematic(width_mm=170, height_mm=80)
-    s.add_box("a", "Long Title", position_mm=(50, 40), size_mm=(50, 25))
-    s.add_box("b", "Long Title", position_mm=(120, 40), size_mm=(50, 25))
+    s.add_box("a", "Long Title", x_mm=50, y_mm=40, width_mm=50, height_mm=25)
+    s.add_box("b", "Long Title", x_mm=120, y_mm=40, width_mm=50, height_mm=25)
     s.add_arrow("a", "b", label="occluded-label")
     s.render_to_file(out / "ng_r7_arrow_occluded.png")
 
@@ -72,8 +74,8 @@ def ng_r7_arrow_occluded(out):
 def ng_r8_label_wrong_side(out):
     """R8: Curved-arrow label on wrong side of arc."""
     s = fr.Schematic(width_mm=170, height_mm=80)
-    s.add_box("a", "A", position_mm=(40, 40), size_mm=(30, 20))
-    s.add_box("b", "B", position_mm=(130, 40), size_mm=(30, 20))
+    s.add_box("a", "A", x_mm=40, y_mm=40, width_mm=30, height_mm=20)
+    s.add_box("b", "B", x_mm=130, y_mm=40, width_mm=30, height_mm=20)
     s.add_arrow(
         "a",
         "b",
