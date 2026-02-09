@@ -18,7 +18,11 @@ def gen_interpolate(color_start, color_end, num_points, round=3):
 
 
 def interpolate(color_start, color_end, num_points, round=3):
-    warnings.warn("Use gen_interpolate instead", DeprecationWarning, stacklevel=2)
+    warnings.warn(
+        "interpolate is deprecated. Use gen_interpolate instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return gen_interpolate(color_start, color_end, num_points, round=round)
 
 
