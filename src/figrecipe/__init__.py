@@ -65,6 +65,7 @@ except Exception:
 # =============================================================================
 # CORE PUBLIC API - Minimal, essential functions only
 # =============================================================================
+from . import colors
 from ._api._public import (
     crop,
     extract_data,
@@ -135,6 +136,8 @@ __all__ = [
     # Diagram
     "Diagram",
     "Schematic",
+    # Color utilities
+    "colors",
     # Seaborn integration
     "sns",
     # Version
