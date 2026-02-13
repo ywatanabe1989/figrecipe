@@ -78,7 +78,7 @@ violinplot:
   showmeans: false       # Show mean line
   showmedians: true      # Show median line
   showextrema: false     # Hide min/max lines for cleaner look
-  kde_extend: false      # When true, KDE tails extend beyond data to converge to 0
+  kde_extend: true       # KDE tails extend beyond data to converge to 0 (publication standard)
   kde_half_width: 0.15   # Half-width of violin body in data coords (kde_extend mode)
   swarm_size_mm: 0.6     # Swarm scatter point size
   swarm_alpha: 0.6       # Swarm scatter transparency
