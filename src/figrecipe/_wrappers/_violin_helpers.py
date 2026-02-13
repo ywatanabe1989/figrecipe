@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Violin plot helper functions for RecordingAxes."""
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -93,6 +93,7 @@ def add_violin_inner_swarm(
     dataset: List,
     positions: List,
     style: Dict[str, Any],
+    colors: Optional[List] = None,
 ) -> None:
     """Add swarm points inside violin.
 
@@ -106,20 +107,33 @@ def add_violin_inner_swarm(
         X positions of violins.
     style : dict
         Violin style configuration.
+    colors : list, optional
+        Per-group colors. Falls back to palette or black.
     """
+    import matplotlib.pyplot as mpl_plt
+
     from ..styles._style_applier import mm_to_pt
 
-    point_size = mm_to_pt(style.get("median_mm", 0.8))
+    point_size = mm_to_pt(style.get("swarm_size_mm", 0.6))
+    swarm_alpha = style.get("swarm_alpha", 0.6)
+    jitter_spread = style.get("swarm_jitter", 0.04)
 
-    for data, pos in zip(dataset, positions):
+    if colors is None:
+        colors = mpl_plt.rcParams["axes.prop_cycle"].by_key()["color"]
+
+    rng = np.random.default_rng(42)
+    for i, (data, pos) in enumerate(zip(dataset, positions)):
         data = np.asarray(data)
-        n = len(data)
-
-        # Simple swarm: jitter x positions
-        jitter = np.random.default_rng(42).uniform(-0.15, 0.15, n)
-        x_positions = pos + jitter
-
-        ax.scatter(x_positions, data, s=point_size**2, c="black", alpha=0.5, zorder=3)
+        x_jitter = rng.normal(pos, jitter_spread, size=len(data))
+        color = colors[i % len(colors)]
+        ax.scatter(
+            x_jitter,
+            data,
+            s=point_size**2,
+            color=color,
+            alpha=swarm_alpha,
+            zorder=10,
+        )
 
 
 def add_violin_inner_stick(

@@ -68,14 +68,21 @@ boxplot:
 
 violinplot:
   line_mm: 0.2           # Violin outline thickness
-  inner: "box"           # Inner display: "box", "quartile", "point", "stick", or "swarm"
+  inner: "box"           # Inner display: "box", "swarm", "stick", "point", or combos like "box+swarm"
   box_width_mm: 1.5      # Inner box width
   whisker_mm: 0.2        # Whisker line thickness
   median_mm: 0.8         # Median marker size
-  alpha: 0.7             # Violin fill transparency (modern: semi-transparent)
+  median_line_mm: 0.3    # Median line thickness (for inner box)
+  box_edge_mm: 0.2       # Box edge line thickness (for inner box)
+  alpha: 0.7             # Violin fill transparency (standard mode)
   showmeans: false       # Show mean line
   showmedians: true      # Show median line
   showextrema: false     # Hide min/max lines for cleaner look
+  kde_extend: false      # When true, KDE tails extend beyond data to converge to 0
+  kde_half_width: 0.15   # Half-width of violin body in data coords (kde_extend mode)
+  swarm_size_mm: 0.6     # Swarm scatter point size
+  swarm_alpha: 0.6       # Swarm scatter transparency
+  swarm_jitter: 0.04     # Swarm jitter std deviation
 
 barplot:
   edge_mm: 0.2           # Bar edge/border thickness

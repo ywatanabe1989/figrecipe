@@ -132,6 +132,9 @@ ax.schematic(s, id="pipeline")
 fr.save(fig, "pipeline.png")
 ```
 
+**Available shapes**: `rounded` (default), `box`, `stadium`, `cylinder` (database), `document` (paper), `file` (folder), `codeblock` (terminal window).
+Use `node_class` for semantic defaults: `"code"` → codeblock, `"input"` → cylinder, `"claim"` → document.
+
 All rules are enforced automatically on render. Errors are collected and reported together:
 
 | Rule | Check | Severity |
@@ -290,7 +293,7 @@ figrecipe mcp install
 <p align="center">
   <a href="https://scitex.ai" target="_blank"><img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
   <br>
-  AGPL-3.0 · ywatanabe@scitex.ai
+  AGPL-3.0
 </p>
 
 <!-- EOF -->

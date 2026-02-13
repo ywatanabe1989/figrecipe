@@ -16,6 +16,7 @@ SHAPE_STYLES = {
     "stadium": "round,pad=0.003,rounding_size=0.02",  # Pill-like but controlled
     "diamond": "square,pad=0.003",
     "circle": "circle,pad=0.003",
+    "codeblock": "square,pad=0.003",  # Code block (sharp corners like a terminal)
 }
 
 # Default node dimensions in axes coordinates (0-1 range)
