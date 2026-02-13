@@ -15,6 +15,7 @@ from ._save import (
     get_save_transparency,
     resolve_save_paths,
 )
+from ._signature import caption_with_signature, signature
 from ._subplots import (
     _apply_mm_layout_to_figure,
     _apply_style_to_axes,
@@ -43,6 +44,9 @@ __all__ = [
     # Panel helpers
     "get_panel_label_fontsize",
     "calculate_panel_position",
+    # Signature helpers
+    "signature",
+    "caption_with_signature",
 ]
 
 # EOF

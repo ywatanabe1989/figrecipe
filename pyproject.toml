@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "figrecipe"
-version = "0.23.1"
+version = "0.24.0"
 description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
@@ -22,6 +22,8 @@ keywords = [
     "recipe",
     "yaml",
     "millimeter",
+    "scitex",
+    "figrecipe",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

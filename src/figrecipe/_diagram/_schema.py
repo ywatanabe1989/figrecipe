@@ -88,7 +88,9 @@ class NodeSpec:
 
     id: str
     label: str
-    shape: Literal["box", "rounded", "diamond", "circle", "stadium"] = "box"
+    shape: Literal["box", "rounded", "diamond", "circle", "stadium", "codeblock"] = (
+        "box"
+    )
     emphasis: Literal["normal", "primary", "success", "warning", "muted"] = "normal"
 
     def short_label(self, max_chars: int = 20) -> str:

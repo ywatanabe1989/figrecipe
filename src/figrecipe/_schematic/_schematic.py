@@ -23,6 +23,24 @@ ANCHOR_POINTS = {
     "bottom-right": (1.0, 0.0),
 }
 
+# Semantic node classes → default shape
+NODE_CLASSES = {
+    "source": "rounded",  # acquisition scripts
+    "input": "cylinder",  # raw data, configuration
+    "processing": "rounded",  # transform/analysis scripts
+    "output": "cylinder",  # intermediate/final data
+    "claim": "document",  # paper assertions (figures, statistics)
+    "code": "codeblock",  # code snippets, scripts, commands
+}
+
+# Verification states → default (fill_color, border_color)
+VERIFICATION_STATES = {
+    "verified": ("#90EE90", "#228B22"),  # green
+    "tampered": ("#FFB6C1", "#DC143C"),  # red
+    "invalidated": ("#FFD580", "#E67E00"),  # orange
+    "ignored": ("#D3D3D3", "#808080"),  # gray
+}
+
 
 @dataclass
 class BoxSpec:
@@ -39,6 +57,9 @@ class BoxSpec:
     title_color: Optional[str] = None
     padding_mm: float = 5.0  # Inner spacing from box edge to text (mm)
     margin_mm: float = 0.0  # Outer spacing for collision detection (mm)
+    node_class: Optional[str] = None  # source/input/processing/output/claim
+    state: Optional[str] = None  # verified/tampered/invalidated/ignored
+    language: Optional[str] = None  # syntax highlighting language (e.g. "python")
 
 
 @dataclass
@@ -59,6 +80,16 @@ class ArrowSpec:
     margin_mm: Optional[float] = (
         None  # Override default arrow-to-box gap (visual gap from box edge)
     )
+
+
+@dataclass
+class IconSpec:
+    """Specification for an icon (SVG/PNG file or built-in name)."""
+
+    id: str
+    source: str  # file path or built-in name ("warning", "check", "cross", "info")
+    color: Optional[str] = None
+    opacity: float = 1.0
 
 
 @dataclass
@@ -99,6 +130,7 @@ class Schematic:
         self._boxes: Dict[str, BoxSpec] = {}
         self._containers: Dict[str, Dict] = {}
         self._arrows: List[ArrowSpec] = []
+        self._icons: Dict[str, IconSpec] = {}
         self._positions: Dict[str, PositionSpec] = {}
         self._render_info: Dict[str, Dict[str, Any]] = {}
 
@@ -119,8 +151,27 @@ class Schematic:
         title_color: Optional[str] = None,
         padding_mm: float = 5.0,
         margin_mm: float = 0.0,
+        node_class: Optional[str] = None,
+        state: Optional[str] = None,
+        language: Optional[str] = None,
     ) -> "Schematic":
-        """Add a rich text box."""
+        """Add a rich text box.
+
+        node_class: semantic role (source/input/processing/output/claim/code).
+            Sets default shape if shape not explicitly given.
+        state: verification state (verified/tampered/invalidated/ignored).
+            Sets default fill_color/border_color if not explicitly given.
+        language: code language for syntax highlighting (e.g. "python", "bash").
+            Only used when shape="codeblock". Requires pygments.
+        """
+        # Resolve node_class → default shape (explicit shape wins)
+        if node_class and shape == "rounded" and node_class in NODE_CLASSES:
+            shape = NODE_CLASSES[node_class]
+        # Resolve state → default colors (explicit colors win)
+        if state and state in VERIFICATION_STATES:
+            s_fill, s_border = VERIFICATION_STATES[state]
+            fill_color = fill_color or s_fill
+            border_color = border_color or s_border
         self._boxes[id] = BoxSpec(
             id=id,
             title=title,
@@ -133,6 +184,9 @@ class Schematic:
             title_color=title_color,
             padding_mm=padding_mm,
             margin_mm=margin_mm,
+            node_class=node_class,
+            state=state,
+            language=language,
         )
         if None not in (x_mm, y_mm, width_mm, height_mm):
             self._positions[id] = PositionSpec(
@@ -206,6 +260,35 @@ class Schematic:
                 label_offset_mm=label_offset_mm,
                 margin_mm=margin_mm,
             )
+        )
+        return self
+
+    def add_icon(
+        self,
+        id: str,
+        source: str,
+        x_mm: float,
+        y_mm: float,
+        width_mm: float = 8.0,
+        height_mm: float = 8.0,
+        color: Optional[str] = None,
+        opacity: float = 1.0,
+    ) -> "Schematic":
+        """Add an icon (SVG/PNG file path or built-in name).
+
+        Built-in icons: 'warning', 'check', 'cross', 'info', 'lock'.
+        """
+        self._icons[id] = IconSpec(
+            id=id,
+            source=source,
+            color=color,
+            opacity=opacity,
+        )
+        self._positions[id] = PositionSpec(
+            x_mm=x_mm,
+            y_mm=y_mm,
+            width_mm=width_mm,
+            height_mm=height_mm,
         )
         return self
 
@@ -291,6 +374,9 @@ class Schematic:
                 _sr.render_box(self, ax, bid, box)
         for arrow in self._arrows:
             _sr.render_arrow(self, ax, arrow)
+        for iid, icon in self._icons.items():
+            if iid in self._positions:
+                _sr.render_icon(self, ax, iid, icon)
         if self.title:
             ax.text(
                 (self.xlim[0] + self.xlim[1]) / 2,
@@ -338,4 +424,11 @@ class Schematic:
         return schematic_from_dict(data)
 
 
-__all__ = ["Schematic", "ArrowSpec", "BoxSpec", "PositionSpec"]
+__all__ = [
+    "Schematic",
+    "ArrowSpec",
+    "BoxSpec",
+    "PositionSpec",
+    "NODE_CLASSES",
+    "VERIFICATION_STATES",
+]

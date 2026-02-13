@@ -118,93 +118,90 @@ def violinplot_plot(
     call_id: Optional[str],
     inner: Optional[str],
     colors: Optional[List] = None,
+    kde_extend: Optional[bool] = None,
     **kwargs,
 ) -> dict:
-    """Violin plot with support for inner display options.
+    """Violin plot with inner display options and optional KDE extension.
 
     Parameters
     ----------
     colors : list, optional
-        Colors for each violin body. If provided, these colors will be
-        applied to the bodies for consistent coloring and recording.
+        Colors for each violin body.
+    kde_extend : bool, optional
+        When True, compute KDE with extended range so tails converge
+        smoothly to zero.  Default from style or False.
     """
     import matplotlib.pyplot as mpl_plt
 
     from ..styles._internal import get_style
 
-    # Get style settings
     style = get_style()
     violin_style = style.get("violinplot", {}) if style else {}
 
-    # Determine inner type
     if inner is None:
         inner = violin_style.get("inner", "box")
-
-    # Get violin display options from style
-    showmeans = kwargs.pop("showmeans", violin_style.get("showmeans", False))
-    showmedians = kwargs.pop("showmedians", violin_style.get("showmedians", True))
-    showextrema = kwargs.pop("showextrema", violin_style.get("showextrema", False))
-
-    # Call matplotlib's violinplot
-    result = ax.violinplot(
-        dataset,
-        positions=positions,
-        showmeans=showmeans,
-        showmedians=showmedians if inner not in ("box", "swarm") else False,
-        showextrema=showextrema if inner not in ("box", "swarm") else False,
-        **kwargs,
-    )
-
-    # Apply alpha and colors to violin bodies
-    alpha = violin_style.get("alpha", 0.7)
-    if "bodies" in result:
-        # Get colors from parameter or style's color palette
-        if colors is None:
-            colors = mpl_plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
-        for i, body in enumerate(result["bodies"]):
-            body.set_facecolor(colors[i % len(colors)])
-            body.set_alpha(alpha)
-
-    # Overlay inner elements
+    if kde_extend is None:
+        kde_extend = violin_style.get("kde_extend", False)
     if positions is None:
         positions = list(range(1, len(dataset) + 1))
 
+    # --- Draw violin bodies ---
+    if kde_extend:
+        from ._violin_kde import draw_kde_violins
+
+        result = draw_kde_violins(ax, dataset, positions, colors, violin_style)
+    else:
+        showmeans = kwargs.pop("showmeans", False)
+        showmedians = kwargs.pop("showmedians", False)
+        showextrema = kwargs.pop("showextrema", False)
+        result = ax.violinplot(
+            dataset,
+            positions=positions,
+            showmeans=showmeans,
+            showmedians=showmedians,
+            showextrema=showextrema,
+            **kwargs,
+        )
+        alpha = violin_style.get("alpha", 0.7)
+        if "bodies" in result:
+            if colors is None:
+                colors = mpl_plt.rcParams["axes.prop_cycle"].by_key()["color"]
+            for i, body in enumerate(result["bodies"]):
+                body.set_facecolor(colors[i % len(colors)])
+                body.set_alpha(alpha)
+
+    # --- Inner elements ---
     _add_violin_inner_elements(ax, dataset, positions, inner, violin_style)
 
-    # Record the call if tracking is enabled
-    # Note: We defer recording to save_recipe time via _capture_violin_colors
-    # This allows capturing colors that are set AFTER violinplot() returns
-    if track:
-        recorded_kwargs = kwargs.copy()
-        recorded_kwargs["inner"] = inner
-        recorded_kwargs["showmeans"] = showmeans
-        # Record what was ACTUALLY passed to matplotlib, not the style values
-        recorded_kwargs["showmedians"] = (
-            showmedians if inner not in ("box", "swarm") else False
-        )
-        recorded_kwargs["showextrema"] = (
-            showextrema if inner not in ("box", "swarm") else False
-        )
+    # Tighten x-axis around positions
+    x_pad = 0.5
+    ax.set_xlim(min(positions) - x_pad, max(positions) + x_pad)
 
-        # Capture body colors and alphas from the result
-        if "bodies" in result:
-            body_colors = []
-            body_alphas = []
+    # --- Record ---
+    if track:
+        rec_kw = kwargs.copy()
+        rec_kw.update(
+            inner=inner,
+            kde_extend=kde_extend,
+            showmeans=False,
+            showmedians=False,
+            showextrema=False,
+        )
+        if not kde_extend and "bodies" in result:
+            body_colors, body_alphas = [], []
             for body in result["bodies"]:
                 fc = body.get_facecolor()
                 if hasattr(fc, "tolist"):
                     fc = fc.tolist()
                 body_colors.append(fc[0] if fc and len(fc) == 1 else fc)
                 body_alphas.append(body.get_alpha())
-            recorded_kwargs["_body_colors"] = body_colors
-            recorded_kwargs["_body_alphas"] = body_alphas
-
+            rec_kw["_body_colors"] = body_colors
+            rec_kw["_body_alphas"] = body_alphas
         recorder.record_call(
             ax_position=position,
             method_name="violinplot",
             args=(dataset,),
-            kwargs=recorded_kwargs,
+            kwargs=rec_kw,
             call_id=call_id,
         )
 
@@ -222,14 +219,16 @@ def _add_violin_inner_elements(
         add_violin_inner_swarm,
     )
 
-    if inner == "box":
-        add_violin_inner_box(ax, dataset, positions, violin_style)
-    elif inner == "swarm":
-        add_violin_inner_swarm(ax, dataset, positions, violin_style)
-    elif inner == "stick":
-        add_violin_inner_stick(ax, dataset, positions, violin_style)
-    elif inner == "point":
-        add_violin_inner_point(ax, dataset, positions, violin_style)
+    parts = [p.strip() for p in inner.split("+")] if "+" in inner else [inner]
+    for part in parts:
+        if part == "box":
+            add_violin_inner_box(ax, dataset, positions, violin_style)
+        elif part == "swarm":
+            add_violin_inner_swarm(ax, dataset, positions, violin_style)
+        elif part == "stick":
+            add_violin_inner_stick(ax, dataset, positions, violin_style)
+        elif part == "point":
+            add_violin_inner_point(ax, dataset, positions, violin_style)
 
 
 def joyplot_plot(

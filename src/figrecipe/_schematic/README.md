@@ -60,6 +60,37 @@ When validation fails, `render_to_file()` still saves the figure with a
 diagram_FAILED.png   # errored figure for inspection
 ```
 
+## Shapes
+
+| Shape | Description | Visual |
+|-------|-------------|--------|
+| `rounded` | Rounded rectangle (default) | General-purpose nodes |
+| `box` | Sharp-cornered rectangle | Structural elements |
+| `stadium` | Pill-shaped (highly rounded) | Status/badge nodes |
+| `cylinder` | Database cylinder | Data stores, files |
+| `document` | Paper with folded corner | Reports, manuscripts |
+| `file` | Folder with tab | Directories, file groups |
+| `codeblock` | Terminal window with title bar | Scripts, code snippets |
+
+### Semantic Node Classes
+
+Use `node_class` to auto-select shapes:
+
+```python
+s.add_box("script", "run_analysis.py", node_class="code")       # → codeblock
+s.add_box("data", "results.csv", node_class="input")            # → cylinder
+s.add_box("report", "Figure 1", node_class="claim")             # → document
+```
+
+| Class | Default Shape | Meaning |
+|-------|---------------|---------|
+| `source` | rounded | Acquisition scripts |
+| `input` | cylinder | Raw data, configuration |
+| `processing` | rounded | Transform/analysis |
+| `output` | cylinder | Intermediate/final data |
+| `claim` | document | Paper assertions |
+| `code` | codeblock | Scripts, commands |
+
 ## Element IDs
 
 Every element has an ID for precise error reporting:

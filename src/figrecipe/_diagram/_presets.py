@@ -62,6 +62,7 @@ WORKFLOW_PRESET = DiagramPreset(
         "diamond": '{"__LABEL__"}',
         "circle": '(("__LABEL__"))',
         "stadium": '(["__LABEL__"])',
+        "codeblock": '["__LABEL__"]',
     },
     graphviz_shapes={
         "box": "box",
@@ -69,6 +70,7 @@ WORKFLOW_PRESET = DiagramPreset(
         "diamond": "diamond",
         "circle": "circle",
         "stadium": "box",  # with style=rounded
+        "codeblock": "box",
     },
     emphasis_styles={
         "primary": {"fill": "#0d4a6b", "stroke": "#5a9fcf", "stroke-width": "2px"},
@@ -103,6 +105,7 @@ DECISION_PRESET = DiagramPreset(
         "diamond": '{"__LABEL__"}',
         "circle": '(("__LABEL__"))',
         "stadium": '(["__LABEL__"])',
+        "codeblock": '["__LABEL__"]',
     },
     graphviz_shapes={
         "box": "box",
@@ -110,6 +113,7 @@ DECISION_PRESET = DiagramPreset(
         "diamond": "diamond",
         "circle": "circle",
         "stadium": "box",
+        "codeblock": "box",
     },
     emphasis_styles={
         "primary": {"fill": "#e6f3ff", "stroke": "#0066cc", "stroke-width": "2px"},
@@ -144,6 +148,7 @@ PIPELINE_PRESET = DiagramPreset(
         "diamond": '{"__LABEL__"}',
         "circle": '(("__LABEL__"))',
         "stadium": '(["__LABEL__"])',
+        "codeblock": '["__LABEL__"]',
     },
     graphviz_shapes={
         "box": "box",
@@ -151,6 +156,7 @@ PIPELINE_PRESET = DiagramPreset(
         "diamond": "diamond",
         "circle": "circle",
         "stadium": "box",
+        "codeblock": "box",
     },
     emphasis_styles={
         "primary": {"fill": "#e6f0ff", "stroke": "#0044aa", "stroke-width": "2px"},
@@ -188,6 +194,7 @@ SCIENTIFIC_PRESET = DiagramPreset(
         "diamond": '{"__LABEL__"}',
         "circle": '(("__LABEL__"))',
         "stadium": '(["__LABEL__"])',
+        "codeblock": '["__LABEL__"]',
     },
     graphviz_shapes={
         "box": "box",
@@ -195,6 +202,7 @@ SCIENTIFIC_PRESET = DiagramPreset(
         "diamond": "diamond",
         "circle": "circle",
         "stadium": "box",
+        "codeblock": "box",
     },
     emphasis_styles={
         # SCITEX color palette
