@@ -22,6 +22,8 @@ keywords = [
     "recipe",
     "yaml",
     "millimeter",
+    "scitex",
+    "figrecipe",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

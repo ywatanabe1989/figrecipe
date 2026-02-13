@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-arial test demo-notebook pdf clean clean-outputs clean-old-legacy lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition run-examples
+.PHONY: help install install-dev install-arial test test-hpc demo-notebook pdf clean clean-outputs clean-old-legacy lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition run-examples
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
@@ -8,6 +8,7 @@ help:
 	@echo "  make install-dev        Install package with dev dependencies"
 	@echo "  make install-arial      Install Arial font for matplotlib"
 	@echo "  make test               Run tests"
+	@echo "  make test-hpc           Run tests on Spartan HPC via srun"
 	@echo "  make demo-notebook      Execute demo notebook"
 	@echo "  make pdf                Generate PDF from notebook"
 	@echo "  make clean              Clean build artifacts and outputs"
@@ -36,6 +37,9 @@ install-arial:
 
 test:
 	@./scripts/maintenance/test.sh
+
+test-hpc:
+	@./scripts/maintenance/test-hpc.sh
 
 demo-notebook:
 	@./scripts/maintenance/notebook.sh
