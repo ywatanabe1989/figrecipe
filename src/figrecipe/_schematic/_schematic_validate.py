@@ -115,7 +115,11 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
 
-    texts = [t for t in ax.texts if t.get_text().strip()]
+    texts = [
+        t
+        for t in ax.texts
+        if t.get_text().strip() and t.get_label() != "__codeblock_internal__"
+    ]
     if not texts:
         return
 

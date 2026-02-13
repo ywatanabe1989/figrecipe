@@ -72,37 +72,39 @@ def _render_cylinder(ax, pos, fill, border, zorder=2):
 
 
 def _render_codeblock(ax, pos, fill, border, zorder=2):
-    """Draw a code block shape (rectangle with a colored title bar at top)."""
-    from matplotlib.patches import Rectangle
-
+    """Draw a code block shape (rounded rectangle with a colored title bar)."""
     x = pos.x_mm - pos.width_mm / 2
     y = pos.y_mm - pos.height_mm / 2
     w = pos.width_mm
     h = pos.height_mm
-    bar_h = min(h * 0.18, 4.5)  # Title bar height
+    bar_h = min(h * 0.18, 4.5)
 
-    # Main body (code area)
-    body = Rectangle(
+    # Full rounded box (body + bar as one shape)
+    outer = FancyBboxPatch(
         (x, y),
         w,
-        h - bar_h,
+        h,
+        boxstyle="round,pad=0,rounding_size=2.0",
         facecolor=fill,
         edgecolor=border,
         linewidth=2,
         zorder=zorder,
     )
-    ax.add_patch(body)
+    ax.add_patch(outer)
 
-    # Title bar (darker strip at top)
+    # Title bar overlay — plain Rectangle clipped to the outer rounded box
+    # so it has rounded top corners but a flat bottom (no seam artifacts)
+    from matplotlib.patches import Rectangle
+
     bar = Rectangle(
         (x, y + h - bar_h),
         w,
-        bar_h,
+        bar_h + 10,
         facecolor=border,
-        edgecolor=border,
-        linewidth=2,
-        zorder=zorder + 0.1,
+        edgecolor="none",
+        zorder=zorder + 0.05,
     )
+    bar.set_clip_path(outer)
     ax.add_patch(bar)
 
     # Window dots (three small circles in the title bar)
@@ -264,6 +266,17 @@ def render_box(schematic: "Schematic", ax: Axes, bid: str, box: "BoxSpec") -> No
     border = box.border_color or colors["stroke"]
     title_color = box.title_color or colors["text"]
     pad = _AESTHETIC_PAD
+
+    # Codeblock with language: override colors from Emacs theme unless explicit
+    if box.shape == "codeblock" and box.language and not box.fill_color:
+        from ._schematic_codeblock import _find_default_theme, parse_emacs_theme
+
+        theme_path = _find_default_theme()
+        if theme_path:
+            faces = parse_emacs_theme(theme_path)
+            fill = faces.get("_bg", fill)
+            if not box.border_color:
+                border = faces.get("_bg_dark", border)
 
     if box.shape == "cylinder":
         _render_cylinder(ax, pos, fill, border)

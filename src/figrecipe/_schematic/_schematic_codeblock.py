@@ -97,15 +97,22 @@ def parse_emacs_theme(el_path: str) -> Dict[str, Dict]:
             color = palette.get(var_name)
         faces[face_name] = {"color": color, "bold": bold, "italic": italic}
 
-    # Store bg/fg
-    faces["_bg"] = palette.get("zenburn-bg", "#3F3F3F")
-    faces["_fg"] = palette.get("zenburn-fg", "#DCDCCC")
-    # Generic fallback: scan for any theme bg/fg pattern
-    for key, val in palette.items():
-        if key.endswith("-bg") and "_bg" not in faces:
-            faces["_bg"] = val
-        if key.endswith("-fg") and "_fg" not in faces:
-            faces["_fg"] = val
+    # Store bg/fg/bg_dark from palette
+    # Try theme-specific names first, then generic -bg/-fg suffix patterns
+    bg_candidates = [k for k in palette if k.endswith("-bg")]
+    fg_candidates = [k for k in palette if k.endswith("-fg")]
+    bg_dark_candidates = [k for k in palette if k.endswith("-bg-1")]
+    faces["_bg"] = (
+        palette.get(bg_candidates[0], "#3F3F3F") if bg_candidates else "#3F3F3F"
+    )
+    faces["_fg"] = (
+        palette.get(fg_candidates[0], "#DCDCCC") if fg_candidates else "#DCDCCC"
+    )
+    faces["_bg_dark"] = (
+        palette.get(bg_dark_candidates[0], faces["_bg"])
+        if bg_dark_candidates
+        else faces["_bg"]
+    )
 
     _THEME_CACHE[el_path] = faces
     return faces
@@ -229,7 +236,7 @@ def render_codeblock_text(
                 cur_col = 0
             if not part:
                 continue
-            ax.text(
+            t = ax.text(
                 left_x + cur_col * char_width_mm,
                 code_top - cur_line * line_gap,
                 part,
@@ -242,6 +249,7 @@ def render_codeblock_text(
                 color=color,
                 zorder=7,
             )
+            t.set_label("__codeblock_internal__")
             cur_col += len(part)
 
 
@@ -249,7 +257,7 @@ def _render_plain(ax, pos, box, fill, left_x, code_top, fontsize, line_gap):
     """Fallback: plain monospace rendering without highlighting."""
     _bg = dict(facecolor=fill, edgecolor="none", pad=0.3, alpha=0.85)
     for i, line in enumerate(box.content):
-        ax.text(
+        t = ax.text(
             left_x,
             code_top - i * line_gap,
             str(line),
@@ -261,6 +269,7 @@ def _render_plain(ax, pos, box, fill, left_x, code_top, fontsize, line_gap):
             zorder=7,
             bbox=_bg,
         )
+        t.set_label("__codeblock_internal__")
 
 
 # EOF
