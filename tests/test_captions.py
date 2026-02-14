@@ -7,7 +7,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from figrecipe.captions import (
+from figrecipe._captions import (
     ScientificCaption,
     add_figure_caption,
     add_panel_captions,
@@ -416,7 +416,7 @@ class TestImports:
 
     def test_import_from_captions(self):
         """Test imports from captions module."""
-        from figrecipe.captions import (
+        from figrecipe._captions import (
             ScientificCaption,
             add_figure_caption,
             add_panel_captions,
