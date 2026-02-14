@@ -207,11 +207,14 @@ class DiagramEditor:
             with open(self._save_path) as f:
                 recipe = yaml.safe_load(f)
 
-            # Update schematic_data positions
+            # Update diagram_data positions
             for ax_key, ax_data in recipe.get("axes", {}).items():
                 for call in ax_data.get("calls", []):
-                    if call.get("function") == "schematic":
-                        info_data = call.get("kwargs", {}).get("schematic_data", {})
+                    if call.get("function") in ("diagram", "schematic"):
+                        info_data = call.get("kwargs", {}).get(
+                            "diagram_data",
+                            call.get("kwargs", {}).get("schematic_data", {}),
+                        )
                         positions = {}
                         for box_id, pos in self.info._positions.items():
                             positions[box_id] = {
@@ -272,8 +275,10 @@ def edit_schematic(
         # Find schematic data in recipe
         for ax_data in recipe.get("axes", {}).values():
             for call in ax_data.get("calls", []):
-                if call.get("function") == "schematic":
-                    info_data = call.get("kwargs", {}).get("schematic_data", {})
+                if call.get("function") in ("diagram", "schematic"):
+                    info_data = call.get("kwargs", {}).get(
+                        "diagram_data", call.get("kwargs", {}).get("schematic_data", {})
+                    )
                     info = Diagram.from_dict(info_data)
                     break
             else:

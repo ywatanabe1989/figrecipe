@@ -86,16 +86,18 @@ def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
     from .._schematic._schematic import Diagram
 
     kwargs = call.kwargs.copy()
-    schematic_data = kwargs.pop("schematic_data", None)
+    diagram_data = kwargs.pop("diagram_data", None) or kwargs.pop(
+        "schematic_data", None
+    )
 
-    if schematic_data is None:
+    if diagram_data is None:
         import warnings
 
-        warnings.warn("Diagram call missing schematic_data")
+        warnings.warn("Diagram call missing diagram_data")
         return None
 
-    # Reconstruct schematic from serialized data
-    info = Diagram.from_dict(schematic_data)
+    # Reconstruct diagram from serialized data
+    info = Diagram.from_dict(diagram_data)
 
     # Render to provided axes
     fig, rendered_ax = info.render(ax=ax)

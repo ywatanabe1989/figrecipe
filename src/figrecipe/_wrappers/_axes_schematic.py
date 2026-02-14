@@ -152,13 +152,13 @@ def _record_schematic_call(
     final_id = call_id if call_id else recorder._generate_call_id("diagram")
 
     # Serialize diagram data for recipe
-    schematic_data = info.to_dict()
+    diagram_data = info.to_dict()
 
     record = CallRecord(
         id=final_id,
         function="diagram",
         args=[],
-        kwargs={"schematic_data": schematic_data},
+        kwargs={"diagram_data": diagram_data},
         ax_position=position,
     )
     ax_record = recorder.figure_record.get_or_create_axes(*position)
