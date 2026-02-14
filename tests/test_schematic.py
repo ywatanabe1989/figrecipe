@@ -11,24 +11,24 @@ from pathlib import Path
 import figrecipe as fr
 
 
-class TestSchematicCreation:
-    """Test Schematic creation."""
+class TestDiagramCreation:
+    """Test Diagram creation."""
 
-    def test_create_empty_schematic(self):
-        """Test creating an empty schematic."""
-        s = fr.Schematic()
+    def test_create_empty_diagram(self):
+        """Test creating an empty diagram."""
+        s = fr.Diagram()
         assert s is not None
         assert s.title is None
         assert len(s._boxes) == 0
 
     def test_create_with_title(self):
         """Test creating schematic with title."""
-        s = fr.Schematic(title="Test Diagram")
+        s = fr.Diagram(title="Test Diagram")
         assert s.title == "Test Diagram"
 
     def test_create_with_mm_dimensions(self):
         """Test creating schematic with mm dimensions."""
-        s = fr.Schematic(width_mm=300.0, height_mm=200.0)
+        s = fr.Diagram(width_mm=300.0, height_mm=200.0)
         assert s.width_mm == 300.0
         assert s.height_mm == 200.0
         assert s.xlim == (0, 300.0)
@@ -36,7 +36,7 @@ class TestSchematicCreation:
 
     def test_add_box(self):
         """Test adding boxes."""
-        s = fr.Schematic()
+        s = fr.Diagram()
         s.add_box("a", title="Box A")
         s.add_box("b", title="Box B", subtitle="With subtitle")
         assert len(s._boxes) == 2
@@ -45,7 +45,7 @@ class TestSchematicCreation:
 
     def test_add_arrow(self):
         """Test adding arrows."""
-        s = fr.Schematic()
+        s = fr.Diagram()
         s.add_box("a", title="A")
         s.add_box("b", title="B")
         s.add_arrow("a", "b", label="connects")
@@ -59,7 +59,7 @@ class TestAutoLayout:
 
     def test_auto_layout_lr(self):
         """Test left-to-right layout."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A")
         s.add_box("b", title="B")
         s.add_arrow("a", "b")
@@ -70,7 +70,7 @@ class TestAutoLayout:
 
     def test_auto_layout_tb(self):
         """Test top-to-bottom layout."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A")
         s.add_box("b", title="B")
         s.add_arrow("a", "b")
@@ -79,7 +79,7 @@ class TestAutoLayout:
 
     def test_auto_layout_aliases(self):
         """Test layout name aliases."""
-        s = fr.Schematic()
+        s = fr.Diagram()
         s.add_box("a", title="A")
         s.add_box("b", title="B")
 
@@ -94,7 +94,7 @@ class TestRender:
 
     def test_render_returns_fig_ax(self):
         """Test that render returns figure and axes."""
-        s = fr.Schematic()
+        s = fr.Diagram()
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         fig, ax = s.render()
         assert fig is not None
@@ -102,7 +102,7 @@ class TestRender:
 
     def test_render_to_file(self):
         """Test rendering to file."""
-        s = fr.Schematic()
+        s = fr.Diagram()
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -116,7 +116,7 @@ class TestSerialization:
 
     def test_to_dict(self):
         """Test converting to dictionary."""
-        s = fr.Schematic(title="Test")
+        s = fr.Diagram(title="Test")
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         data = s.to_dict()
         assert "title" in data
@@ -145,7 +145,7 @@ class TestSerialization:
 
     def test_roundtrip(self):
         """Test serialization roundtrip."""
-        s = fr.Schematic(title="Roundtrip", width_mm=250.0, height_mm=150.0)
+        s = fr.Diagram(title="Roundtrip", width_mm=250.0, height_mm=150.0)
         s.add_box("a", title="A", x_mm=100, y_mm=75, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=200, y_mm=75, width_mm=40, height_mm=25)
         s.add_arrow("a", "b")
@@ -163,7 +163,7 @@ class TestContainerValidation:
 
     def test_valid_container_passes(self):
         """Test that properly contained children pass validation."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_container(
             "c",
             title="Container",
@@ -180,7 +180,7 @@ class TestContainerValidation:
         """Test that child outside container raises ValueError."""
         import pytest
 
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_container(
             "c",
             title="Container",
@@ -198,7 +198,7 @@ class TestContainerValidation:
         """Test that render() calls validation automatically."""
         import pytest
 
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_container(
             "c",
             title="Container",
@@ -218,7 +218,7 @@ class TestBoxOverlapValidation:
 
     def test_non_overlapping_boxes_pass(self):
         """Test that separated boxes pass validation."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=150, y_mm=50, width_mm=40, height_mm=25)
         s.validate_no_overlap()  # Should not raise
@@ -227,7 +227,7 @@ class TestBoxOverlapValidation:
         """Test that overlapping boxes raise ValueError."""
         import pytest
 
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=55, y_mm=50, width_mm=40, height_mm=25)
         with pytest.raises(ValueError, match="overlap"):
@@ -237,7 +237,7 @@ class TestBoxOverlapValidation:
         """Test that render() catches box overlap."""
         import pytest
 
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=55, y_mm=50, width_mm=40, height_mm=25)
         with pytest.raises(ValueError, match="overlap"):
@@ -251,7 +251,7 @@ class TestTextOverlapValidation:
         """Test that separated text produces no warning."""
         import warnings
 
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=40, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=140, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b")
@@ -265,7 +265,7 @@ class TestTextOverlapValidation:
         """Test that overlapping arrow labels raise ValueError."""
         import pytest
 
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=150, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b", label="forward")
@@ -281,7 +281,7 @@ class TestArrowBoxOcclusion:
         """Arrow passing through an intermediate box triggers R7."""
         import pytest
 
-        s = fr.Schematic(width_mm=100, height_mm=80)
+        s = fr.Diagram(width_mm=100, height_mm=80)
         s.add_box("top", "Top", x_mm=50, y_mm=65, width_mm=20, height_mm=10)
         s.add_box("mid", "Mid", x_mm=50, y_mm=40, width_mm=20, height_mm=10)
         s.add_box("bot", "Bot", x_mm=50, y_mm=15, width_mm=20, height_mm=10)
@@ -291,7 +291,7 @@ class TestArrowBoxOcclusion:
 
     def test_no_intermediate_box_passes(self):
         """Arrow between two boxes with nothing between passes R7."""
-        s = fr.Schematic(width_mm=100, height_mm=80)
+        s = fr.Diagram(width_mm=100, height_mm=80)
         s.add_box("a", "A", x_mm=25, y_mm=40, width_mm=20, height_mm=10)
         s.add_box("b", "B", x_mm=75, y_mm=40, width_mm=20, height_mm=10)
         s.add_arrow("a", "b")
@@ -299,7 +299,7 @@ class TestArrowBoxOcclusion:
 
     def test_source_target_boxes_not_counted(self):
         """Arrow's own source/target boxes are excluded from occlusion."""
-        s = fr.Schematic(width_mm=100, height_mm=60)
+        s = fr.Diagram(width_mm=100, height_mm=60)
         s.add_box("a", "A", x_mm=25, y_mm=30, width_mm=20, height_mm=15)
         s.add_box("b", "B", x_mm=75, y_mm=30, width_mm=20, height_mm=15)
         s.add_arrow("a", "b")
@@ -339,14 +339,14 @@ class TestGeomHelpers:
 class TestRecipeIntegration:
     """Test FigRecipe integration."""
 
-    def test_ax_schematic_method(self):
-        """Test ax.schematic() method."""
-        s = fr.Schematic()
+    def test_ax_diagram_method(self):
+        """Test ax.diagram() method."""
+        s = fr.Diagram()
         s.add_box("a", title="A")
         s.auto_layout("lr")
 
         fig, ax = fr.subplots()
-        ax.schematic(s, id="test_schematic")
+        ax.diagram(s, id="test_diagram")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "test.png"
@@ -360,7 +360,7 @@ class TestAutoHeight:
 
     def test_auto_box_height_rounded(self):
         """Test auto-height for rounded box with title+subtitle+content."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box(
             "a",
             title="A",
@@ -377,7 +377,7 @@ class TestAutoHeight:
 
     def test_auto_box_height_codeblock(self):
         """Test auto-height for codeblock shape."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box(
             "code",
             title="script.py",
@@ -394,7 +394,7 @@ class TestAutoHeight:
 
     def test_auto_box_height_minimum(self):
         """Test auto-height minimum of 18mm for small boxes."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("tiny", title="T", x_mm=90, y_mm=50, width_mm=40)
         pos = s._positions["tiny"]
         # title(6) + 0 content + 2*padding(10) = 16 → clamped to 18
@@ -402,7 +402,7 @@ class TestAutoHeight:
 
     def test_auto_canvas_height(self):
         """Test Schematic(height_mm=None) computes canvas from elements."""
-        s = fr.Schematic(title="Auto", width_mm=100, height_mm=None)
+        s = fr.Diagram(title="Auto", width_mm=100, height_mm=None)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=20)
         s.add_box("b", title="B", x_mm=50, y_mm=20, width_mm=40, height_mm=20)
         s._finalize_canvas_size()
@@ -414,7 +414,7 @@ class TestAutoHeight:
 
     def test_auto_canvas_height_no_title(self):
         """Test auto-canvas without title."""
-        s = fr.Schematic(width_mm=100, height_mm=None)
+        s = fr.Diagram(width_mm=100, height_mm=None)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=20)
         s._finalize_canvas_size()
         # span: 40-60 = 20mm; no title; + 2*margin(16) = 36mm
@@ -422,7 +422,7 @@ class TestAutoHeight:
 
     def test_auto_canvas_renders(self):
         """Test that auto-canvas can render without error."""
-        s = fr.Schematic(title="Auto Render", width_mm=100, height_mm=None)
+        s = fr.Diagram(title="Auto Render", width_mm=100, height_mm=None)
         s.add_box("a", title="A", x_mm=30, y_mm=50, width_mm=30, height_mm=20)
         s.add_box("b", title="B", x_mm=70, y_mm=50, width_mm=30, height_mm=20)
         s.add_arrow("a", "b")
@@ -432,7 +432,7 @@ class TestAutoHeight:
 
     def test_explicit_height_unchanged(self):
         """Test that explicit height_mm is not modified."""
-        s = fr.Schematic(width_mm=100, height_mm=200)
+        s = fr.Diagram(width_mm=100, height_mm=200)
         s.add_box("a", title="A", x_mm=50, y_mm=100, width_mm=40, height_mm=25)
         s._finalize_canvas_size()
         assert s.height_mm == 200
@@ -440,7 +440,7 @@ class TestAutoHeight:
 
     def test_explicit_box_height_unchanged(self):
         """Test that explicit box height_mm is not overridden."""
-        s = fr.Schematic(width_mm=180, height_mm=100)
+        s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=90, y_mm=50, width_mm=40, height_mm=30)
         assert s._positions["a"].height_mm == 30
 
@@ -450,7 +450,7 @@ class TestFlexLayout:
 
     def test_flex_basic_stacking(self):
         """Three boxes stacked vertically with gap_mm=10."""
-        s = fr.Schematic(width_mm=100, gap_mm=10, padding_mm=5)
+        s = fr.Diagram(width_mm=100, gap_mm=10, padding_mm=5)
         s.add_box("a", "A", width_mm=40)
         s.add_box("b", "B", width_mm=40)
         s.add_box("c", "C", width_mm=40)
@@ -468,7 +468,7 @@ class TestFlexLayout:
 
     def test_flex_container_row(self):
         """Container with direction='row' places children horizontally."""
-        s = fr.Schematic(width_mm=120, gap_mm=15)
+        s = fr.Diagram(width_mm=120, gap_mm=15)
         s.add_container(
             "c",
             title="Group",
@@ -488,7 +488,7 @@ class TestFlexLayout:
 
     def test_flex_container_column(self):
         """Container with direction='column' stacks children vertically."""
-        s = fr.Schematic(width_mm=120, gap_mm=15)
+        s = fr.Diagram(width_mm=120, gap_mm=15)
         s.add_container(
             "c",
             title="Stack",
@@ -508,7 +508,7 @@ class TestFlexLayout:
 
     def test_flex_auto_container_size(self):
         """Container size computed from children."""
-        s = fr.Schematic(width_mm=120, gap_mm=15)
+        s = fr.Diagram(width_mm=120, gap_mm=15)
         s.add_container(
             "c",
             children=["a", "b"],
@@ -528,7 +528,7 @@ class TestFlexLayout:
 
     def test_flex_renders(self):
         """Full flex diagram renders without error."""
-        s = fr.Schematic(title="Flex Test", width_mm=120, gap_mm=18, padding_mm=10)
+        s = fr.Diagram(title="Flex Test", width_mm=120, gap_mm=18, padding_mm=10)
         s.add_box("top", "Top Box", width_mm=80)
         s.add_container(
             "mid",
@@ -548,7 +548,7 @@ class TestFlexLayout:
 
     def test_flex_explicit_width_override(self):
         """Container explicit width_mm overrides auto-computed width."""
-        s = fr.Schematic(width_mm=120, gap_mm=10)
+        s = fr.Diagram(width_mm=120, gap_mm=10)
         s.add_container("c", children=["a"], width_mm=100, container_padding_mm=5)
         s.add_box("a", "A", width_mm=30)
         s._finalize_canvas_size()
@@ -556,12 +556,12 @@ class TestFlexLayout:
 
     def test_flex_forces_auto_height(self):
         """gap_mm forces auto-height even if height_mm was given."""
-        s = fr.Schematic(width_mm=100, height_mm=200, gap_mm=10)
+        s = fr.Diagram(width_mm=100, height_mm=200, gap_mm=10)
         assert s._auto_height is True
 
     def test_flex_nested_containers_3x2_grid(self):
         """Nested containers: 2 row containers forming a 3x2 grid."""
-        s = fr.Schematic(width_mm=120, gap_mm=10, padding_mm=5)
+        s = fr.Diagram(width_mm=120, gap_mm=10, padding_mm=5)
         s.add_container(
             "row1",
             direction="row",
@@ -591,7 +591,7 @@ class TestFlexLayout:
 
     def test_flex_deeply_nested_container(self):
         """Container within container: outer column contains inner row."""
-        s = fr.Schematic(width_mm=120, gap_mm=10, padding_mm=5)
+        s = fr.Diagram(width_mm=120, gap_mm=10, padding_mm=5)
         s.add_container(
             "outer",
             direction="column",
@@ -617,6 +617,23 @@ class TestFlexLayout:
         assert s._positions["header"].y_mm > s._positions["inner"].y_mm
         # x left of y within inner
         assert s._positions["x"].x_mm < s._positions["y"].x_mm
+
+
+class TestBackwardCompat:
+    """Test backward compatibility aliases."""
+
+    def test_schematic_alias_is_diagram(self):
+        """fr.Schematic is an alias for fr.Diagram."""
+        assert fr.Schematic is fr.Diagram
+
+    def test_ax_schematic_alias(self):
+        """ax.schematic() works as alias for ax.diagram()."""
+        s = fr.Diagram()
+        s.add_box("a", title="A")
+        s.auto_layout("lr")
+        fig, ax = fr.subplots()
+        ax.schematic(s, id="compat_test")
+        assert fig is not None
 
 
 # EOF

@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from .._recorder import Recorder
 
 
-class SchematicMixin:
-    """Mixin providing schematic method for RecordingAxes."""
+class DiagramMixin:
+    """Mixin providing diagram method for RecordingAxes."""
 
     # These will be set by the main class
     _ax: "Axes"
@@ -21,21 +21,21 @@ class SchematicMixin:
     _position: tuple
     _track: bool
 
-    def schematic(
+    def diagram(
         self,
-        schematic,
+        diagram,
         *,
         id: Optional[str] = None,
         track: bool = True,
     ):
-        """Draw a FigRecipe Schematic with native matplotlib rendering.
+        """Draw a box-and-arrow diagram with native matplotlib rendering.
 
         Parameters
         ----------
-        schematic : Schematic or dict
-            The schematic to render. Can be:
-            - Schematic instance
-            - Dictionary with schematic specification
+        diagram : Diagram or dict
+            The diagram to render. Can be:
+            - Diagram instance (or legacy Schematic)
+            - Dictionary with diagram specification
         id : str, optional
             Custom ID for this call.
         track : bool
@@ -48,12 +48,15 @@ class SchematicMixin:
         """
         return schematic_plot(
             self._ax,
-            schematic,
+            diagram,
             self._recorder,
             self._position,
             self._track and track,
             id,
         )
+
+    # Backward compatibility alias
+    schematic = diagram
 
 
 def schematic_plot(
@@ -143,14 +146,14 @@ def _record_schematic_call(
     """Record schematic call for reproducibility."""
     from .._recorder import CallRecord
 
-    final_id = call_id if call_id else recorder._generate_call_id("schematic")
+    final_id = call_id if call_id else recorder._generate_call_id("diagram")
 
-    # Serialize schematic data for recipe
+    # Serialize diagram data for recipe
     schematic_data = info.to_dict()
 
     record = CallRecord(
         id=final_id,
-        function="schematic",
+        function="diagram",
         args=[],
         kwargs={"schematic_data": schematic_data},
         ax_position=position,
@@ -159,4 +162,7 @@ def _record_schematic_call(
     ax_record.add_call(record)
 
 
-__all__ = ["SchematicMixin", "schematic_plot"]
+__all__ = ["DiagramMixin", "SchematicMixin", "schematic_plot"]
+
+# Backward compatibility alias
+SchematicMixin = DiagramMixin

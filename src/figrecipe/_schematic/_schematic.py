@@ -102,8 +102,8 @@ class PositionSpec:
     height_mm: float
 
 
-class Schematic:
-    """Builder for rich schematic diagrams."""
+class Diagram:
+    """Builder for rich box-and-arrow diagrams with mm-based coordinates."""
 
     def __init__(
         self,
@@ -498,7 +498,11 @@ class Schematic:
         return schematic_from_dict(data)
 
 
+# Backward compatibility alias
+Schematic = Diagram
+
 __all__ = [
+    "Diagram",
     "Schematic",
     "ArrowSpec",
     "BoxSpec",
