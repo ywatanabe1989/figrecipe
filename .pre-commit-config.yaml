@@ -17,9 +17,9 @@ repos:
 
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
-        entry: ./scripts/maintenance/test-dispatch.sh
+      - id: pytest-testmon
+        name: pytest-testmon
+        entry: python -m pytest --testmon -x -q --tb=short
         language: system
         types: [python]
         pass_filenames: false

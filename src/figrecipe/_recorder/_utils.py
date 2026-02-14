@@ -31,7 +31,7 @@ def process_args(
     list
         Processed args with name and data.
     """
-    from ._utils._numpy_io import should_store_inline, to_serializable
+    from .._utils._numpy_io import should_store_inline, to_serializable
 
     processed = []
     arg_names = get_arg_names_func(method_name, len(args))

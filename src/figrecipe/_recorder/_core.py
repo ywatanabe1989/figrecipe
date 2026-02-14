@@ -258,7 +258,7 @@ class FigureRecord:
 class Recorder:
     """Central recorder for tracking matplotlib calls."""
 
-    from ._params import DECORATION_METHODS, PLOTTING_METHODS
+    from .._params import DECORATION_METHODS, PLOTTING_METHODS
 
     def __init__(self):
         self._figure_record: Optional[FigureRecord] = None
@@ -354,7 +354,7 @@ class Recorder:
         method_name: str,
     ) -> List[Dict[str, Any]]:
         """Process positional arguments for storage."""
-        from ._recorder_utils import process_args
+        from ._utils import process_args
 
         return process_args(
             args, method_name, self._get_arg_names, self._is_serializable
@@ -376,7 +376,7 @@ class Recorder:
             List of argument names.
         """
         try:
-            from ._signatures import get_signature
+            from .._signatures import get_signature
 
             sig = get_signature(method_name)
             names = [arg["name"] for arg in sig["args"][:n_args]]
@@ -412,7 +412,7 @@ class Recorder:
         # Get defaults from signature
         defaults = {}
         try:
-            from ._signatures import get_defaults
+            from .._signatures import get_defaults
 
             defaults = get_defaults(method_name)
         except Exception:
