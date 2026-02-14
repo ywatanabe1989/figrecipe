@@ -1,7 +1,7 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 18:37:02
+!-- Timestamp: 2026-02-15 01:00:00
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/figrecipe/src/figrecipe/_schematic/README.md
+!-- File: /home/ywatanabe/proj/figrecipe/src/figrecipe/_diagram/_diagram/README.md
 !-- --- -->
 
 # Diagram Module
@@ -36,7 +36,7 @@ reported together** so you see the full picture before fixing.
 | R7 | Arrow visible-length ratio >= 90% | ValueError |
 | R8 | Curved-arrow label on same side as arc | ValueError |
 
-### Thresholds (centralised in `_schematic_validate.py`)
+### Thresholds (centralised in `_validate.py`)
 
 ```python
 MIN_MARGIN_MM = 2.0  # R5, R6
@@ -77,9 +77,9 @@ diagram_FAILED.png   # errored figure for inspection
 Use `node_class` to auto-select shapes:
 
 ```python
-s.add_box("script", "run_analysis.py", node_class="code")       # → codeblock
-s.add_box("data", "results.csv", node_class="input")            # → cylinder
-s.add_box("report", "Figure 1", node_class="claim")             # → document
+s.add_box("script", "run_analysis.py", node_class="code")       # -> codeblock
+s.add_box("data", "results.csv", node_class="input")            # -> cylinder
+s.add_box("report", "Figure 1", node_class="claim")             # -> document
 ```
 
 | Class | Default Shape | Meaning |
@@ -103,21 +103,29 @@ Every element has an ID for precise error reporting:
 
 | File | Purpose |
 |------|---------|
-| `09b_schematic_NG_patterns.py` | Triggers each rule -- NG pattern reference |
-| `10a_figrecipe_concept_schematic_error.py` | Intentionally failing layout |
-| `10b_figrecipe_concept_schematic_fixed.py` | Corrected layout passing all rules |
+| `09b_diagram_NG_patterns.py` | Triggers each rule -- NG pattern reference |
+| `10a_figrecipe_concept_diagram_error.py` | Intentionally failing layout |
+| `10b_figrecipe_concept_diagram_fixed.py` | Corrected layout passing all rules |
 
 ## Architecture
 
 ```
-_schematic/
-  __init__.py              # Exports: Diagram
-  _schematic.py            # Builder, render, ArrowSpec, BoxSpec
-  _schematic_validate.py   # All validation rules (R1-R8)
-  _schematic_layout.py     # auto_layout() algorithms
-  _schematic_io.py         # to_dict / from_dict serialization
-  _schematic_editor.py     # GUI editing support
-  README.md                # This file
+_diagram/_diagram/
+  __init__.py          # Exports: Diagram
+  _core.py             # Builder, render, ArrowSpec, BoxSpec
+  _validate.py         # All validation rules (R1-R8)
+  _layout.py           # auto_layout() algorithms
+  _io.py               # to_dict / from_dict serialization
+  _editor.py           # GUI editing support
+  _autofix.py          # Auto-fix validation failures
+  _overlap.py          # Overlap resolution logic
+  _flex.py             # CSS flexbox-like layout
+  _render.py           # Matplotlib rendering
+  _geom.py             # Geometry helpers
+  _icons.py            # Icon support
+  _codeblock.py        # Codeblock shape renderer
+  _constants.py        # Shared constants
+  README.md            # This file
 ```
 
 <!-- EOF -->

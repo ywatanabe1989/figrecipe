@@ -90,19 +90,20 @@ pytest tests/ -v
 ```
 figrecipe/
 ├── src/figrecipe/       # Main package source
+│   ├── _api/            # Public API functions
+│   ├── _composition/    # Multi-panel composition
+│   ├── _diagram/        # Box-and-arrow diagrams
 │   ├── _editor/         # GUI editor components
-│   ├── _signatures/     # Function signature definitions
+│   ├── _graph/          # NetworkX graph visualization
+│   ├── _recorder/       # Recording infrastructure
+│   ├── _reproducer/     # Recipe reproduction engine
 │   ├── _utils/          # Utility functions
 │   ├── _wrappers/       # Matplotlib wrappers
 │   ├── styles/          # Style presets
-│   ├── _recorder.py     # Recording functionality
-│   ├── _reproducer.py   # Reproduction functionality
-│   ├── _seaborn.py      # Seaborn integration
-│   ├── _serializer.py   # YAML serialization
-│   └── pyplot.py        # Drop-in pyplot replacement
+│   └── _serializer.py   # YAML serialization
 ├── tests/               # Test suite
-├── examples/            # Example notebooks
-└── docs/                # Documentation
+├── examples/            # Example scripts
+└── docs/                # Documentation (Sphinx + RTD)
 ```
 
 ## Making Changes

@@ -36,7 +36,7 @@
 FigRecipe treats recipe, data, and style as first-class attributes of every figure. This enables data governance and style editing without losing scientific rigor.
 
 <p align="center">
-  <img src="examples/10b_figrecipe_concept_schematic_fixed_out/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
+  <img src="examples/10b_figrecipe_concept_diagram_fixed_out/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
 
 <p align="center"><sub>Created with <a href="#diagrams">Diagrams</a></sub></p>
