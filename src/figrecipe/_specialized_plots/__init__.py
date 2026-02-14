@@ -17,7 +17,7 @@ Usage
 >>> # Create a heatmap
 >>> ax, im, cbar = fr.heatmap(ax, data, x_labels=x_labels, y_labels=y_labels)
 >>> # Or use module directly
->>> from figrecipe.specialized_plots import heatmap, ecdf, raster
+>>> from figrecipe._specialized_plots import heatmap, ecdf, raster
 """
 
 from ._annotation import fillh, fillv, hline, rectangle, vline

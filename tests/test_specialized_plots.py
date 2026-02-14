@@ -14,7 +14,7 @@ class TestSpecializedPlotsImports:
 
     def test_import_from_submodule(self):
         """Test importing from specialized_plots submodule."""
-        from figrecipe.specialized_plots import (
+        from figrecipe._specialized_plots import (
             conf_mat,
             ecdf,
             fillh,
@@ -50,7 +50,7 @@ class TestHeatmap:
 
     def test_basic_heatmap(self):
         """Test basic heatmap creation."""
-        from figrecipe.specialized_plots import heatmap
+        from figrecipe._specialized_plots import heatmap
 
         fig, ax = fr.subplots()
         data = np.random.rand(5, 10)
@@ -63,7 +63,7 @@ class TestHeatmap:
 
     def test_heatmap_with_labels(self):
         """Test heatmap with custom labels."""
-        from figrecipe.specialized_plots import heatmap
+        from figrecipe._specialized_plots import heatmap
 
         fig, ax = fr.subplots()
         data = np.random.rand(3, 4)
@@ -77,7 +77,7 @@ class TestHeatmap:
 
     def test_heatmap_no_annotation(self):
         """Test heatmap without annotations."""
-        from figrecipe.specialized_plots import heatmap
+        from figrecipe._specialized_plots import heatmap
 
         fig, ax = fr.subplots()
         data = np.random.rand(4, 4)
@@ -89,7 +89,7 @@ class TestHeatmap:
 
     def test_heatmap_custom_cmap(self):
         """Test heatmap with custom colormap."""
-        from figrecipe.specialized_plots import heatmap
+        from figrecipe._specialized_plots import heatmap
 
         fig, ax = fr.subplots()
         data = np.random.rand(3, 3)
@@ -105,7 +105,7 @@ class TestConfMat:
 
     def test_basic_conf_mat(self):
         """Test basic confusion matrix."""
-        from figrecipe.specialized_plots import conf_mat
+        from figrecipe._specialized_plots import conf_mat
 
         fig, ax = fr.subplots()
         data = np.array([[45, 5, 2], [3, 42, 8], [1, 6, 48]])
@@ -120,7 +120,7 @@ class TestConfMat:
 
     def test_conf_mat_with_labels(self):
         """Test confusion matrix with labels."""
-        from figrecipe.specialized_plots import conf_mat
+        from figrecipe._specialized_plots import conf_mat
 
         fig, ax = fr.subplots()
         data = np.array([[10, 2], [3, 15]])
@@ -134,7 +134,7 @@ class TestConfMat:
 
     def test_conf_mat_no_bacc(self):
         """Test confusion matrix without balanced accuracy."""
-        from figrecipe.specialized_plots import conf_mat
+        from figrecipe._specialized_plots import conf_mat
 
         fig, ax = fr.subplots()
         data = np.array([[10, 2], [3, 15]])
@@ -151,7 +151,7 @@ class TestECDF:
 
     def test_basic_ecdf(self):
         """Test basic ECDF plot."""
-        from figrecipe.specialized_plots import ecdf
+        from figrecipe._specialized_plots import ecdf
 
         fig, ax = fr.subplots()
         data = np.random.randn(100)
@@ -167,7 +167,7 @@ class TestECDF:
 
     def test_ecdf_with_nan(self):
         """Test ECDF handles NaN values."""
-        from figrecipe.specialized_plots import ecdf
+        from figrecipe._specialized_plots import ecdf
 
         fig, ax = fr.subplots()
         data = np.array([1.0, 2.0, np.nan, 4.0, 5.0])
@@ -180,7 +180,7 @@ class TestECDF:
 
     def test_ecdf_empty(self):
         """Test ECDF with empty data after NaN removal."""
-        from figrecipe.specialized_plots import ecdf
+        from figrecipe._specialized_plots import ecdf
 
         fig, ax = fr.subplots()
         data = np.array([np.nan, np.nan])
@@ -197,7 +197,7 @@ class TestShadedLine:
 
     def test_basic_shaded_line(self):
         """Test basic shaded line plot."""
-        from figrecipe.specialized_plots import shaded_line
+        from figrecipe._specialized_plots import shaded_line
 
         fig, ax = fr.subplots()
         x = np.linspace(0, 10, 50)
@@ -215,7 +215,7 @@ class TestShadedLine:
 
     def test_mean_std_line(self):
         """Test mean with std bands."""
-        from figrecipe.specialized_plots import mean_std_line
+        from figrecipe._specialized_plots import mean_std_line
 
         fig, ax = fr.subplots()
         x = np.linspace(0, 10, 50)
@@ -230,7 +230,7 @@ class TestShadedLine:
 
     def test_mean_ci_line(self):
         """Test mean with CI bands."""
-        from figrecipe.specialized_plots import mean_ci_line
+        from figrecipe._specialized_plots import mean_ci_line
 
         fig, ax = fr.subplots()
         x = np.linspace(0, 10, 50)
@@ -245,7 +245,7 @@ class TestShadedLine:
 
     def test_median_iqr_line(self):
         """Test median with IQR bands."""
-        from figrecipe.specialized_plots import median_iqr_line
+        from figrecipe._specialized_plots import median_iqr_line
 
         fig, ax = fr.subplots()
         x = np.linspace(0, 10, 50)
@@ -263,7 +263,7 @@ class TestRaster:
 
     def test_basic_raster(self):
         """Test basic raster plot."""
-        from figrecipe.specialized_plots import raster
+        from figrecipe._specialized_plots import raster
 
         fig, ax = fr.subplots()
         np.random.seed(42)
@@ -283,7 +283,7 @@ class TestRaster:
 
     def test_raster_with_colors(self):
         """Test raster with custom colors."""
-        from figrecipe.specialized_plots import raster
+        from figrecipe._specialized_plots import raster
 
         fig, ax = fr.subplots()
         spike_times = [[1, 5, 10], [2, 8, 15], [3, 7, 12]]
@@ -300,7 +300,7 @@ class TestAnnotationHelpers:
 
     def test_fillv(self):
         """Test vertical fill regions."""
-        from figrecipe.specialized_plots import fillv
+        from figrecipe._specialized_plots import fillv
 
         fig, ax = fr.subplots()
         t = np.linspace(0, 10, 100)
@@ -313,7 +313,7 @@ class TestAnnotationHelpers:
 
     def test_fillh(self):
         """Test horizontal fill regions."""
-        from figrecipe.specialized_plots import fillh
+        from figrecipe._specialized_plots import fillh
 
         fig, ax = fr.subplots()
         t = np.linspace(0, 10, 100)
@@ -326,7 +326,7 @@ class TestAnnotationHelpers:
 
     def test_rectangle(self):
         """Test rectangle annotation."""
-        from figrecipe.specialized_plots import rectangle
+        from figrecipe._specialized_plots import rectangle
 
         fig, ax = fr.subplots()
         t = np.linspace(0, 10, 100)
@@ -340,7 +340,7 @@ class TestAnnotationHelpers:
 
     def test_vline(self):
         """Test vertical lines."""
-        from figrecipe.specialized_plots import vline
+        from figrecipe._specialized_plots import vline
 
         fig, ax = fr.subplots()
         t = np.linspace(0, 10, 100)
@@ -353,7 +353,7 @@ class TestAnnotationHelpers:
 
     def test_hline(self):
         """Test horizontal lines."""
-        from figrecipe.specialized_plots import hline
+        from figrecipe._specialized_plots import hline
 
         fig, ax = fr.subplots()
         t = np.linspace(0, 10, 100)
@@ -366,7 +366,7 @@ class TestAnnotationHelpers:
 
     def test_fillv_on_array(self):
         """Test fillv on array of axes."""
-        from figrecipe.specialized_plots import fillv
+        from figrecipe._specialized_plots import fillv
 
         fig, axes = fr.subplots(1, 3)
         for ax in axes.flatten():
