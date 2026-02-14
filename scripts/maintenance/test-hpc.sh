@@ -37,10 +37,10 @@ echo_header() { echo_info "=== $1 ==="; }
 
 # Configurable
 HPC_HOST="${HPC_HOST:-spartan}"
-HPC_CPUS="${HPC_CPUS:-8}"
+HPC_CPUS="${HPC_CPUS:-4}"
 HPC_PARTITION="${HPC_PARTITION:-sapphire}"
-HPC_TIME="${HPC_TIME:-00:10:00}"
-# Total memory for job
+HPC_TIME="${HPC_TIME:-00:20:00}"
+# Total memory for job (4 workers × ~12G each + overhead)
 HPC_MEM="${HPC_MEM:-64G}"
 REMOTE_BASE="${REMOTE_BASE:-~/proj}"
 REMOTE_OUT="${REMOTE_BASE}/${PROJECT}/.pytest-hpc-output"

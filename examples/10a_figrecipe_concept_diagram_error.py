@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-07 17:18:19 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/10_figrecipe_concept_schematic.py
+# File: /home/ywatanabe/proj/figrecipe/examples/10a_figrecipe_concept_diagram_error.py
 
 
 """FigRecipe concept diagram using fr.Diagram.
@@ -11,7 +11,7 @@ Diagram API with manual mm-based positioning.
 NOTE: x_mm/y_mm is the CENTER of the box, not bottom-left.
 
 Outputs:
-    ./10_figrecipe_concept_schematic_out/figrecipe_concept.{png,yaml}
+    ./10a_figrecipe_concept_diagram_error_out/figrecipe_concept.{png,yaml}
 """
 
 import matplotlib

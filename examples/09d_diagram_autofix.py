@@ -13,11 +13,11 @@ automatically and saves both PNG and YAML recipe for reproducibility:
 5. Combined violations          -> all resolved in one call
 
 Outputs:
-    ./09d_schematic_autofix_out/fix_overlap.png  (+.yaml recipe)
-    ./09d_schematic_autofix_out/fix_container.png
-    ./09d_schematic_autofix_out/fix_arrow_label.png
-    ./09d_schematic_autofix_out/fix_canvas.png
-    ./09d_schematic_autofix_out/fix_combined.png
+    ./09d_diagram_autofix_out/fix_overlap.png  (+.yaml recipe)
+    ./09d_diagram_autofix_out/fix_container.png
+    ./09d_diagram_autofix_out/fix_arrow_label.png
+    ./09d_diagram_autofix_out/fix_canvas.png
+    ./09d_diagram_autofix_out/fix_combined.png
 """
 
 import matplotlib

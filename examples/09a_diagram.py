@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 """Diagram diagrams with fr.Diagram().
 
-Demonstrates box-and-arrow schematics with mm-based coordinates:
+Demonstrates box-and-arrow diagrams with mm-based coordinates:
 1. Left-to-right pipeline layout
 2. Top-to-bottom architecture layout
 3. Serialization roundtrip (to_dict / from_dict)
 4. Reproduction validation (fr.save + fr.reproduce pixel match)
 
 Outputs:
-    ./09_schematic_out/schematic_lr.{png,yaml}
-    ./09_schematic_out/schematic_tb.{png,yaml}
-    ./09_schematic_out/roundtrip.{png,yaml}
-    ./09_schematic_out/reproduced.{png,yaml}
+    ./09a_diagram_out/diagram_lr.{png,yaml}
+    ./09a_diagram_out/diagram_tb.{png,yaml}
+    ./09a_diagram_out/roundtrip.{png,yaml}
+    ./09a_diagram_out/reproduced.{png,yaml}
 """
 
 import matplotlib
@@ -49,7 +49,7 @@ def main(
     s.auto_layout(layout="lr", gap_mm=15)
     fig1, ax1 = fr.subplots()
     ax1.diagram(s, id="eeg_pipeline")
-    fr.save(fig1, OUT / "schematic_lr.png", validate=False)
+    fr.save(fig1, OUT / "diagram_lr.png", validate=False)
 
     # --- 2. Top-to-Bottom architecture ---
     logger.info("Demo 2: Top-to-Bottom architecture")
@@ -66,7 +66,7 @@ def main(
     s2.auto_layout(layout="tb", gap_mm=10)
     fig2, ax2 = fr.subplots()
     ax2.diagram(s2, id="neural_net")
-    fr.save(fig2, OUT / "schematic_tb.png", validate=False)
+    fr.save(fig2, OUT / "diagram_tb.png", validate=False)
 
     # --- 3. Serialization roundtrip ---
     logger.info("Demo 3: Serialization roundtrip")
@@ -85,7 +85,7 @@ def main(
     s4.add_box("b", "Step B", emphasis="success")
     s4.add_arrow("a", "b")
     s4.auto_layout(layout="lr")
-    ax4.diagram(s4, id="my_schematic")
+    ax4.diagram(s4, id="my_diagram")
     fr.save(fig4, OUT / "recipe.yaml", validate=False)
 
     fig5, axes5 = fr.reproduce(OUT / "recipe.yaml")

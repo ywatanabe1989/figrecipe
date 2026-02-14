@@ -244,7 +244,7 @@ def generate_quickstart_images(out):
     s.auto_layout(layout="lr", gap_mm=15)
     fig, ax = fr.subplots()
     ax.diagram(s, id="pipeline")
-    fr.save(fig, out / "quickstart_schematic_lr.png", validate=False)
+    fr.save(fig, out / "quickstart_diagram_lr.png", validate=False)
 
     # Diagram TB
     s = fr.Diagram(title="Neural Network", width_mm=150, height_mm=250)
@@ -256,7 +256,7 @@ def generate_quickstart_images(out):
     s.auto_layout(layout="tb", gap_mm=10)
     fig, ax = fr.subplots()
     ax.diagram(s, id="nn")
-    fr.save(fig, out / "quickstart_schematic_tb.png", validate=False)
+    fr.save(fig, out / "quickstart_diagram_tb.png", validate=False)
 
 
 # ── Symlinking ───────────────────────────────────────────────────────────

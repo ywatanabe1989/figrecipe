@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Diagram visualization method implementation for RecordingAxes."""
+"""Diagram visualization mixin for RecordingAxes."""
 
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Optional, Tuple
+
+from matplotlib.figure import Figure
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -10,28 +12,73 @@ if TYPE_CHECKING:
     from .._recorder import Recorder
 
 
+class DiagramMixin:
+    """Mixin providing diagram method for RecordingAxes."""
+
+    # These will be set by the main class
+    _ax: "Axes"
+    _recorder: "Recorder"
+    _position: tuple
+    _track: bool
+
+    def diagram(
+        self,
+        diagram,
+        *,
+        id: Optional[str] = None,
+        track: bool = True,
+        auto_fix: bool = False,
+    ):
+        """Draw a box-and-arrow diagram with native matplotlib rendering.
+
+        Parameters
+        ----------
+        diagram : Diagram or dict
+            The diagram to render. Can be:
+            - Diagram instance (or legacy Diagram)
+            - Dictionary with diagram specification
+        id : str, optional
+            Custom ID for this call.
+        track : bool
+            Whether to record this call for reproducibility.
+        auto_fix : bool
+            Auto-resolve layout violations before rendering.
+
+        Returns
+        -------
+        tuple
+            (figure, axes) after rendering.
+        """
+        return diagram_plot(
+            self._ax,
+            diagram,
+            self._recorder,
+            self._position,
+            self._track and track,
+            id,
+            auto_fix=auto_fix,
+        )
+
+
 def diagram_plot(
     ax: "Axes",
     diagram,
     recorder: "Recorder",
-    position: tuple,
+    position: Tuple[int, int],
     track: bool,
     call_id: Optional[str],
     *,
-    layout: str = "layered",
-    direction: Optional[str] = None,
-    positions: Optional[Dict[str, tuple]] = None,
-) -> Dict[str, Any]:
+    auto_fix: bool = False,
+) -> Tuple[Figure, "Axes"]:
     """Draw a FigRecipe Diagram with native matplotlib rendering.
 
     Parameters
     ----------
     ax : Axes
         The matplotlib axes to draw on.
-    diagram : Diagram or DiagramSpec or dict
+    diagram : Diagram or dict
         The diagram to render. Can be:
         - Diagram instance
-        - DiagramSpec instance
         - Dictionary with diagram specification
     recorder : Recorder
         The recorder instance for tracking calls.
@@ -41,73 +88,45 @@ def diagram_plot(
         Whether to record this call.
     call_id : str, optional
         Custom ID for this call.
-    layout : str
-        Layout algorithm: layered, grid, spring, kamada_kawai
-    direction : str, optional
-        Layout direction: LR, TB, RL, BT.
-    positions : dict, optional
-        Manual node positions {node_id: (x, y)}.
 
     Returns
     -------
-    dict
-        Dictionary with 'renderer', 'positions', and 'artists'.
+    tuple
+        (figure, axes) after rendering.
     """
-    from .._diagram._shared._native_render import DiagramRenderer
-    from .._diagram._shared._schema import DiagramSpec
 
-    # Convert input to DiagramSpec
-    if hasattr(diagram, "spec"):
-        # Diagram instance
-        spec = diagram.spec
-    elif isinstance(diagram, DiagramSpec):
-        spec = diagram
-    elif isinstance(diagram, dict):
-        spec = DiagramSpec.from_dict(diagram)
+    from .._diagram._diagram._core import Diagram
+
+    # Convert dict to Diagram if needed
+    if isinstance(diagram, dict):
+        info = Diagram.from_dict(diagram)
+    elif isinstance(diagram, Diagram):
+        info = diagram
     else:
-        raise TypeError(
-            f"diagram must be Diagram, DiagramSpec, or dict, got {type(diagram)}"
-        )
+        raise TypeError(f"diagram must be Diagram or dict, got {type(diagram)}")
 
-    # Create renderer
-    renderer = DiagramRenderer(spec, layout=layout, direction=direction)
+    # Resolve auto-height before sizing the figure
+    info._finalize_canvas_size()
 
-    # Use manual positions if provided
-    if positions:
-        renderer._positions = {k: tuple(v) for k, v in positions.items()}
-        # Compute node sizes
-        from .._diagram._shared._shapes import estimate_node_bounds
+    # Resize figure to match diagram's coordinate space BEFORE rendering
+    fig = ax.figure
+    x_range = info.xlim[1] - info.xlim[0]
+    y_range = info.ylim[1] - info.ylim[0]
+    fig.set_size_inches(x_range / 25.4, y_range / 25.4)
 
-        for node in spec.nodes:
-            w, h = estimate_node_bounds(node.label, node.shape)
-            renderer._node_sizes[node.id] = (w, h)
-    else:
-        renderer.compute_positions()
+    # Render to the provided axes
+    fig, rendered_ax = info.render(ax=ax, auto_fix=auto_fix)
 
-    # Render to axes (passing existing ax)
-    renderer._render_edges(ax)
-    renderer._render_nodes(ax)
+    # Post-render validations (skipped inside render() when ax is provided)
+    # Errors are stored on the figure so fr.save() can save _FAILED figures
+    from .._diagram._diagram import _validate as _sv
 
-    # Configure axes for diagram display
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.set_aspect("equal")
-    ax.axis("off")
-
-    # Add title if specified
-    if spec.title:
-        from .._diagram._shared._styles_native import FONT_CONFIG
-
-        ax.set_title(
-            spec.title,
-            fontsize=FONT_CONFIG["title_size"],
-            fontweight="bold",
-        )
-
-    result = {
-        "renderer": renderer,
-        "positions": renderer._positions,
-    }
+    try:
+        _sv.validate_all(info, fig=fig, ax=rendered_ax)
+    except ValueError as e:
+        if not hasattr(fig, "_diagram_validation_errors"):
+            fig._diagram_validation_errors = []
+        fig._diagram_validation_errors.append(str(e))
 
     # Record for reproducibility
     if track:
@@ -115,21 +134,17 @@ def diagram_plot(
             recorder,
             position,
             call_id,
-            renderer,
-            layout,
-            direction,
+            info,
         )
 
-    return result
+    return fig, rendered_ax
 
 
 def _record_diagram_call(
     recorder: "Recorder",
-    position: tuple,
+    position: Tuple[int, int],
     call_id: Optional[str],
-    renderer,
-    layout: str,
-    direction: Optional[str],
+    info,
 ) -> None:
     """Record diagram call for reproducibility."""
     from .._recorder import CallRecord
@@ -137,7 +152,7 @@ def _record_diagram_call(
     final_id = call_id if call_id else recorder._generate_call_id("diagram")
 
     # Serialize diagram data for recipe
-    diagram_data = renderer.to_dict()
+    diagram_data = info.to_dict()
 
     record = CallRecord(
         id=final_id,
@@ -150,4 +165,4 @@ def _record_diagram_call(
     ax_record.add_call(record)
 
 
-__all__ = ["diagram_plot"]
+__all__ = ["DiagramMixin", "diagram_plot"]

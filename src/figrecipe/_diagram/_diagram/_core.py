@@ -453,7 +453,7 @@ class Diagram:
                 _draw_all()
 
         # Validate when we own the figure; when ax is external,
-        # the caller (schematic_plot) handles validation with error capture
+        # the caller (diagram_plot) handles validation with error capture
         if owns_fig:
             _sv.validate_all(self, fig=fig, ax=ax)
 

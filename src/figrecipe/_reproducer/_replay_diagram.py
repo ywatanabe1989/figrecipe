@@ -68,15 +68,17 @@ def replay_diagram_call(ax: Axes, call: CallRecord) -> Any:
     }
 
 
-def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
-    """Replay a schematic call from a recipe.
+def replay_diagram_native_call(ax: Axes, call: CallRecord) -> Any:
+    """Replay a diagram call from a recipe (Diagram class renderer).
+
+    Handles both current ``diagram_data`` and legacy ``schematic_data`` keys.
 
     Parameters
     ----------
     ax : Axes
         The matplotlib axes to draw on.
     call : CallRecord
-        The schematic call record containing serialized data.
+        The diagram call record containing serialized data.
 
     Returns
     -------
@@ -102,7 +104,7 @@ def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
     # Render to provided axes
     fig, rendered_ax = info.render(ax=ax)
 
-    # Resize figure to match schematic's coordinate space
+    # Resize figure to match diagram's coordinate space
     x_range = info.xlim[1] - info.xlim[0]
     y_range = info.ylim[1] - info.ylim[0]
     fig.set_size_inches(x_range / 25.4, y_range / 25.4)
@@ -110,4 +112,4 @@ def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
     return fig, rendered_ax
 
 
-__all__ = ["replay_diagram_call", "replay_schematic_call"]
+__all__ = ["replay_diagram_call", "replay_diagram_native_call"]

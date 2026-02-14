@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-14 14:30:00 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/10b_figrecipe_concept_schematic_fixed.py
+# File: /home/ywatanabe/proj/figrecipe/examples/10b_figrecipe_concept_diagram_fixed.py
 
 
 """FigRecipe concept diagram — flex layout with auto-height.
