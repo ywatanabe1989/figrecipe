@@ -14,7 +14,7 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.patches import FancyBboxPatch, Rectangle
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram
+    from ._core import Diagram
 
 
 class DiagramEditor:
@@ -157,7 +157,7 @@ class DiagramEditor:
 
     def _apply_position(self, mouse_x: float, mouse_y: float) -> None:
         """Apply new position from mouse coordinates."""
-        from ._schematic import PositionSpec
+        from ._core import PositionSpec
 
         pos = self.info._positions[self._selected_box]
         new_x = mouse_x - self._drag_offset[0]

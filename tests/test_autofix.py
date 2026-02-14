@@ -14,7 +14,7 @@ matplotlib.use("Agg")
 import pytest
 
 import figrecipe as fr
-from figrecipe._schematic._schematic_autofix import (
+from figrecipe._diagram._diagram._autofix import (
     _collect_canvas_violations,
     _collect_container_violations,
     _collect_overlap_violations,

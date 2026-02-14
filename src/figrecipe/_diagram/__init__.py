@@ -1,39 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: 2025-01-24
-# File: figrecipe/_diagram/__init__.py
+"""FigRecipe Diagram module.
 
-"""
-FigRecipe Diagram module.
-
-Create paper-optimized diagrams that compile to Mermaid or Graphviz
-with publication-ready layout constraints.
-
-Examples
---------
->>> import figrecipe as fr
-
->>> # Programmatic creation
->>> d = fr.Diagram(type="pipeline")
->>> d.add_node("input", "Raw Data")
->>> d.add_node("process", "Transform", emphasis="primary")
->>> d.add_node("output", "Results")
->>> d.add_edge("input", "process")
->>> d.add_edge("process", "output")
->>> print(d.to_mermaid())
-
->>> # From YAML specification
->>> d = fr.Diagram.from_yaml("workflow.yaml")
->>> d.to_mermaid("workflow.mmd")
->>> d.to_graphviz("workflow.dot")
-
->>> # From existing Mermaid file
->>> d = fr.Diagram.from_mermaid("existing.mmd", diagram_type="workflow")
->>> d.to_yaml("spec.yaml")
+Unified diagram package with four sub-packages:
+- _diagram/   : Box-and-arrow diagram builder (fr.Diagram)
+- _shared/    : Graph-spec schema, presets, split, native rendering
+- _mermaid/   : Mermaid compilation and rendering backend
+- _graphviz/  : Graphviz compilation and rendering backend
 """
 
-from figrecipe._diagram._diagram import Diagram
-from figrecipe._diagram._presets import (
+# Box-and-arrow Diagram builder (the primary public API: fr.Diagram)
+from ._diagram._core import Diagram
+
+# Graph compilation Diagram (for Mermaid/Graphviz workflows)
+from ._shared._graph import Diagram as GraphDiagram
+
+# Schema and presets (re-exported for external consumers)
+from ._shared._presets import (
     DECISION_PRESET,
     PIPELINE_PRESET,
     SCIENTIFIC_PRESET,
@@ -42,8 +25,8 @@ from figrecipe._diagram._presets import (
     get_preset,
     list_presets,
 )
-from figrecipe._diagram._render import get_available_backends
-from figrecipe._diagram._schema import (
+from ._shared._render import get_available_backends
+from ._shared._schema import (
     ColumnLayout,
     DiagramSpec,
     DiagramType,
@@ -54,11 +37,13 @@ from figrecipe._diagram._schema import (
     PaperMode,
     SpacingLevel,
 )
-from figrecipe._diagram._split import SplitConfig, SplitResult, SplitStrategy
+from ._shared._split import SplitConfig, SplitResult, SplitStrategy
 
 __all__ = [
-    # Main class
+    # Box-and-arrow builder (public fr.Diagram)
     "Diagram",
+    # Graph compilation
+    "GraphDiagram",
     # Schema
     "DiagramSpec",
     "DiagramType",
@@ -84,3 +69,5 @@ __all__ = [
     # Render
     "get_available_backends",
 ]
+
+# EOF

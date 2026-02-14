@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram, IconSpec
+    from ._core import Diagram, IconSpec
 
 
 # ── Built-in icon renderers ──────────────────────────────────────────

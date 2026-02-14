@@ -95,7 +95,7 @@ def schematic_plot(
         (figure, axes) after rendering.
     """
 
-    from .._schematic._schematic import Diagram
+    from .._diagram._diagram._core import Diagram
 
     # Convert dict to Diagram if needed
     if isinstance(schematic, dict):
@@ -119,14 +119,14 @@ def schematic_plot(
 
     # Post-render validations (skipped inside render() when ax is provided)
     # Errors are stored on the figure so fr.save() can save _FAILED figures
-    from .._schematic import _schematic_validate as _sv
+    from .._diagram._diagram import _validate as _sv
 
     try:
         _sv.validate_all(info, fig=fig, ax=rendered_ax)
     except ValueError as e:
-        if not hasattr(fig, "_schematic_validation_errors"):
-            fig._schematic_validation_errors = []
-        fig._schematic_validation_errors.append(str(e))
+        if not hasattr(fig, "_diagram_validation_errors"):
+            fig._diagram_validation_errors = []
+        fig._diagram_validation_errors.append(str(e))
 
     # Record for reproducibility
     if track:

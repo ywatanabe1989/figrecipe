@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from ._schematic_constants import ANCHOR_POINTS, NODE_CLASSES, VERIFICATION_STATES
+from ._constants import ANCHOR_POINTS, NODE_CLASSES, VERIFICATION_STATES
 
 
 @dataclass
@@ -176,7 +176,7 @@ class Diagram:
         if self._gap_mm is not None and x_mm is None and y_mm is None:
             if height_mm is None:
                 height_mm = self._auto_box_height(box)
-            from ._schematic_flex import auto_box_width
+            from ._flex import auto_box_width
 
             w = width_mm if width_mm is not None else auto_box_width(box)
             self._positions[id] = PositionSpec(
@@ -302,13 +302,13 @@ class Diagram:
 
     def validate_containers(self) -> None:
         """Check every container fully encloses its declared children."""
-        from ._schematic_validate import validate_containers
+        from ._validate import validate_containers
 
         validate_containers(self)
 
     def validate_no_overlap(self) -> None:
         """Check that no two boxes overlap each other."""
-        from ._schematic_validate import validate_no_overlap
+        from ._validate import validate_no_overlap
 
         validate_no_overlap(self)
 
@@ -322,8 +322,8 @@ class Diagram:
         justify: str = "space-between",
         align_items: str = "center",
     ) -> "Diagram":
-        """Automatically position boxes. See _schematic_layout for details."""
-        from ._schematic_layout import auto_layout
+        """Automatically position boxes. See _layout for details."""
+        from ._layout import auto_layout
 
         auto_layout(
             self,
@@ -353,7 +353,7 @@ class Diagram:
 
     def _finalize_canvas_size(self) -> None:
         """Compute canvas height from element positions when height_mm=None."""
-        from ._schematic_flex import resolve_flex_layout
+        from ._flex import resolve_flex_layout
 
         resolve_flex_layout(self)
         if not self._auto_height:
@@ -394,12 +394,12 @@ class Diagram:
         self, ax: Optional[Axes] = None, auto_fix: bool = False
     ) -> Tuple[Figure, Axes]:
         """Render the schematic. Set auto_fix=True to auto-resolve layout violations."""
-        from . import _schematic_render as _sr
-        from . import _schematic_validate as _sv
+        from . import _render as _sr
+        from . import _validate as _sv
 
         self._finalize_canvas_size()
         if auto_fix:
-            from ._schematic_autofix import auto_fix as _af
+            from ._autofix import auto_fix as _af
 
             _af(self)
 
@@ -445,7 +445,7 @@ class Diagram:
 
         # Phase 2: post-render auto-fix for text collisions (R5/R6/R7)
         if auto_fix:
-            from ._schematic_autofix import fix_post_render
+            from ._autofix import fix_post_render
 
             for _ in range(3):
                 if fix_post_render(self, fig, ax) == 0:
@@ -476,14 +476,14 @@ class Diagram:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert schematic to dictionary for serialization."""
-        from ._schematic_io import schematic_to_dict
+        from ._io import schematic_to_dict
 
         return schematic_to_dict(self)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Diagram":
         """Create Diagram from dictionary (recipe reproduction)."""
-        from ._schematic_io import schematic_from_dict
+        from ._io import schematic_from_dict
 
         return schematic_from_dict(data)
 

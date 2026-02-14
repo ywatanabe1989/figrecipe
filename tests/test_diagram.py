@@ -7,10 +7,12 @@ from pathlib import Path
 
 import figrecipe as fr
 from figrecipe._diagram import (
-    Diagram,
     DiagramType,
     get_preset,
     list_presets,
+)
+from figrecipe._diagram import (
+    GraphDiagram as Diagram,
 )
 
 
@@ -242,10 +244,10 @@ class TestDiagramImport:
         assert d is not None
 
     def test_mermaid_diagram_accessible(self):
-        """Test mermaid Diagram is accessible from submodule."""
-        from figrecipe._diagram import Diagram as MermaidDiagram
+        """Test graph-spec Diagram is accessible from submodule."""
+        from figrecipe._diagram import GraphDiagram
 
-        d = MermaidDiagram(type="workflow")
+        d = GraphDiagram(type="workflow")
         assert d is not None
 
 
@@ -254,7 +256,7 @@ class TestDiagramRender:
 
     def test_get_available_backends(self):
         """Test getting available backends."""
-        from figrecipe._diagram._render import get_available_backends
+        from figrecipe._diagram._shared._render import get_available_backends
 
         backends = get_available_backends()
         assert "mermaid-cli" in backends

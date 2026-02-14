@@ -5,7 +5,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram
+    from ._core import Diagram
 
 
 def resolve_overlaps(

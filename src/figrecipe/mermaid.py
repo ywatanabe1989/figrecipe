@@ -6,7 +6,7 @@
 import warnings
 from pathlib import Path
 
-from ._diagram._render import (
+from ._diagram._mermaid._render import (
     _check_mermaid_cli,
     _render_with_mermaid_cli,
     _render_with_mermaid_ink,

@@ -13,14 +13,15 @@ from typing import List, Optional, Union
 
 import yaml
 
-from figrecipe._diagram._compile import compile_to_graphviz, compile_to_mermaid
-from figrecipe._diagram._schema import (
+from .._graphviz._compile import compile_to_graphviz
+from .._mermaid._compile import compile_to_mermaid
+from ._schema import (
     DiagramSpec,
     DiagramType,
     EdgeSpec,
     NodeSpec,
 )
-from figrecipe._diagram._split import SplitConfig, SplitStrategy, split_diagram
+from ._split import SplitConfig, SplitStrategy, split_diagram
 
 
 class Diagram:

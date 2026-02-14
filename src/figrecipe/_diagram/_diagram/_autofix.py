@@ -11,10 +11,10 @@ import math
 from itertools import combinations
 from typing import TYPE_CHECKING, Dict, List
 
-from ._schematic_geom import box_rect, rects_overlap
+from ._geom import box_rect, rects_overlap
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram
+    from ._core import Diagram
 
 # Margin added beyond the exact fix to prevent borderline re-violations.
 _FIX_MARGIN_MM = 3.0
@@ -100,7 +100,7 @@ def _collect_canvas_violations(schematic: "Diagram") -> List[Dict]:
 
 def _collect_label_side_violations(schematic: "Diagram") -> List[Dict]:
     """Collect all R8 arrow-label-side violations."""
-    from ._schematic_validate import compute_arrow_label_position
+    from ._validate import compute_arrow_label_position
 
     results = []
     for arrow in schematic._arrows:
@@ -195,7 +195,7 @@ def fix_overlaps(schematic: "Diagram") -> int:
     violations = _collect_overlap_violations(schematic)
     if not violations:
         return 0
-    from ._schematic_overlap import resolve_overlaps
+    from ._overlap import resolve_overlaps
 
     x_lo, x_hi = schematic.xlim
     y_lo, y_hi = schematic.ylim
@@ -216,7 +216,7 @@ def fix_arrow_lengths(schematic: "Diagram") -> int:
     """
     from matplotlib.transforms import Bbox
 
-    from ._schematic_geom import bbox_gap
+    from ._geom import bbox_gap
 
     fixed = 0
     for arrow in schematic._arrows:
@@ -307,7 +307,7 @@ def fix_post_render(schematic, fig, ax, min_margin=2.0) -> int:
     Offsets affected labels perpendicular to the arrow direction.
     Returns number of arrow labels adjusted.
     """
-    from ._schematic_geom import bbox_gap, box_rect, seg_rect_clip_len
+    from ._geom import bbox_gap, box_rect, seg_rect_clip_len
 
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()

@@ -81,8 +81,8 @@ from ._api._signature import caption_with_signature, signature
 from ._api._style_manager import list_presets, load_style, unload_style
 from ._bundle import load_bundle, reproduce_bundle, save_bundle
 from ._composition import align_panels, align_smart, compose, distribute_panels
+from ._diagram import Diagram
 from ._graph_presets import get_preset as get_graph_preset
-from ._schematic import Diagram
 from .graphviz import Graphviz
 from .mermaid import Mermaid
 

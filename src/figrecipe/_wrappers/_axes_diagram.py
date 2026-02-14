@@ -53,8 +53,8 @@ def diagram_plot(
     dict
         Dictionary with 'renderer', 'positions', and 'artists'.
     """
-    from .._diagram._native_render import DiagramRenderer
-    from .._diagram._schema import DiagramSpec
+    from .._diagram._shared._native_render import DiagramRenderer
+    from .._diagram._shared._schema import DiagramSpec
 
     # Convert input to DiagramSpec
     if hasattr(diagram, "spec"):
@@ -76,7 +76,7 @@ def diagram_plot(
     if positions:
         renderer._positions = {k: tuple(v) for k, v in positions.items()}
         # Compute node sizes
-        from .._diagram._shapes import estimate_node_bounds
+        from .._diagram._shared._shapes import estimate_node_bounds
 
         for node in spec.nodes:
             w, h = estimate_node_bounds(node.label, node.shape)
@@ -96,7 +96,7 @@ def diagram_plot(
 
     # Add title if specified
     if spec.title:
-        from .._diagram._styles_native import FONT_CONFIG
+        from .._diagram._shared._styles_native import FONT_CONFIG
 
         ax.set_title(
             spec.title,

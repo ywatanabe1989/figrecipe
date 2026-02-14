@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from ._diagram._render import _check_graphviz, _render_with_graphviz
+from ._diagram._graphviz._render import _check_graphviz, _render_with_graphviz
 
 
 class Graphviz:
