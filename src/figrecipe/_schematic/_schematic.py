@@ -10,36 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-# Anchor point definitions (relative to box: 0-1 range)
-ANCHOR_POINTS = {
-    "center": (0.5, 0.5),
-    "top": (0.5, 1.0),
-    "bottom": (0.5, 0.0),
-    "left": (0.0, 0.5),
-    "right": (1.0, 0.5),
-    "top-left": (0.0, 1.0),
-    "top-right": (1.0, 1.0),
-    "bottom-left": (0.0, 0.0),
-    "bottom-right": (1.0, 0.0),
-}
-
-# Semantic node classes → default shape
-NODE_CLASSES = {
-    "source": "rounded",  # acquisition scripts
-    "input": "cylinder",  # raw data, configuration
-    "processing": "rounded",  # transform/analysis scripts
-    "output": "cylinder",  # intermediate/final data
-    "claim": "document",  # paper assertions (figures, statistics)
-    "code": "codeblock",  # code snippets, scripts, commands
-}
-
-# Verification states → default (fill_color, border_color)
-VERIFICATION_STATES = {
-    "verified": ("#90EE90", "#228B22"),  # green
-    "tampered": ("#FFB6C1", "#DC143C"),  # red
-    "invalidated": ("#FFD580", "#E67E00"),  # orange
-    "ignored": ("#D3D3D3", "#808080"),  # gray
-}
+from ._schematic_constants import ANCHOR_POINTS, NODE_CLASSES, VERIFICATION_STATES
 
 
 @dataclass
@@ -419,12 +390,18 @@ class Diagram:
             return ("right", "left") if dx > 0 else ("left", "right")
         return ("top", "bottom") if dy > 0 else ("bottom", "top")
 
-    def render(self, ax: Optional[Axes] = None) -> Tuple[Figure, Axes]:
-        """Render the schematic."""
+    def render(
+        self, ax: Optional[Axes] = None, auto_fix: bool = False
+    ) -> Tuple[Figure, Axes]:
+        """Render the schematic. Set auto_fix=True to auto-resolve layout violations."""
         from . import _schematic_render as _sr
         from . import _schematic_validate as _sv
 
         self._finalize_canvas_size()
+        if auto_fix:
+            from ._schematic_autofix import auto_fix as _af
+
+            _af(self)
 
         figsize = (
             (self.xlim[1] - self.xlim[0]) / 25.4,
@@ -436,33 +413,44 @@ class Diagram:
         else:
             fig = ax.figure
 
-        ax.set_xlim(self.xlim)
-        ax.set_ylim(self.ylim)
-        ax.set_aspect("equal")
-        ax.axis("off")
+        def _draw_all():
+            ax.clear()
+            ax.set_xlim(self.xlim)
+            ax.set_ylim(self.ylim)
+            ax.set_aspect("equal")
+            ax.axis("off")
+            for cid, container in self._containers.items():
+                if cid in self._positions:
+                    _sr.render_container(self, ax, cid, container)
+            for bid, box in self._boxes.items():
+                if bid in self._positions:
+                    _sr.render_box(self, ax, bid, box)
+            for arrow in self._arrows:
+                _sr.render_arrow(self, ax, arrow)
+            for iid, icon in self._icons.items():
+                if iid in self._positions:
+                    _sr.render_icon(self, ax, iid, icon)
+            if self.title:
+                ax.text(
+                    (self.xlim[0] + self.xlim[1]) / 2,
+                    self.ylim[1] - 5.0,
+                    self.title,
+                    ha="center",
+                    va="top",
+                    fontsize=12,
+                    fontweight="bold",
+                )
 
-        # Render everything first (so errored figures can be inspected)
-        for cid, container in self._containers.items():
-            if cid in self._positions:
-                _sr.render_container(self, ax, cid, container)
-        for bid, box in self._boxes.items():
-            if bid in self._positions:
-                _sr.render_box(self, ax, bid, box)
-        for arrow in self._arrows:
-            _sr.render_arrow(self, ax, arrow)
-        for iid, icon in self._icons.items():
-            if iid in self._positions:
-                _sr.render_icon(self, ax, iid, icon)
-        if self.title:
-            ax.text(
-                (self.xlim[0] + self.xlim[1]) / 2,
-                self.ylim[1] - 5.0,
-                self.title,
-                ha="center",
-                va="top",
-                fontsize=12,
-                fontweight="bold",
-            )
+        _draw_all()
+
+        # Phase 2: post-render auto-fix for text collisions (R5/R6/R7)
+        if auto_fix and owns_fig:
+            from ._schematic_autofix import fix_post_render
+
+            for _ in range(3):
+                if fix_post_render(self, fig, ax) == 0:
+                    break
+                _draw_all()
 
         # Validate when we own the figure; when ax is external,
         # the caller (schematic_plot) handles validation with error capture
