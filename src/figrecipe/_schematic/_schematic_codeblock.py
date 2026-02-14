@@ -165,17 +165,25 @@ def _get_token_style(faces: Dict, token_type) -> Tuple[str, bool, bool]:
 
 
 def _measure_char_width_mm(ax, fontsize, fontfamily="monospace") -> float:
-    """Measure actual monospace character width in data (mm) coordinates."""
-    n = 40
-    t = ax.text(0, 0, "M" * n, fontsize=fontsize, fontfamily=fontfamily, alpha=0)
+    """Measure actual monospace character width in data (mm) coordinates.
+
+    Uses two-point measurement to eliminate bbox padding bias:
+    width = (bbox(60 chars) - bbox(20 chars)) / 40.
+    """
     fig = ax.get_figure()
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
-    bbox = t.get_window_extent(renderer)
     inv = ax.transData.inverted()
-    p0, p1 = inv.transform((bbox.x0, 0)), inv.transform((bbox.x1, 0))
-    t.remove()
-    return (p1[0] - p0[0]) / n
+
+    widths = []
+    for n in (20, 60):
+        t = ax.text(0, 0, "M" * n, fontsize=fontsize, fontfamily=fontfamily, alpha=0)
+        bbox = t.get_window_extent(renderer)
+        p0, p1 = inv.transform((bbox.x0, 0)), inv.transform((bbox.x1, 0))
+        widths.append(p1[0] - p0[0])
+        t.remove()
+
+    return (widths[1] - widths[0]) / 40
 
 
 def render_codeblock_text(

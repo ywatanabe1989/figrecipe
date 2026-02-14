@@ -99,6 +99,9 @@ def schematic_plot(
     else:
         raise TypeError(f"schematic must be Schematic or dict, got {type(schematic)}")
 
+    # Resolve auto-height before sizing the figure
+    info._finalize_canvas_size()
+
     # Resize figure to match schematic's coordinate space BEFORE rendering
     fig = ax.figure
     x_range = info.xlim[1] - info.xlim[0]

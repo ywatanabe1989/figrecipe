@@ -51,6 +51,9 @@ def schematic_to_dict(info: "Schematic") -> Dict[str, Any]:
                 "emphasis": cont.get("emphasis", "muted"),
                 "fill_color": cont.get("fill_color"),
                 "border_color": cont.get("border_color"),
+                "direction": cont.get("direction", "row"),
+                "gap_mm": cont.get("gap_mm", 8.0),
+                "padding_mm": cont.get("padding_mm", 8.0),
             }
             for cid, cont in info._containers.items()
         ],
@@ -143,6 +146,9 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Schematic":
             "emphasis": cont_data.get("emphasis", "muted"),
             "fill_color": cont_data.get("fill_color"),
             "border_color": cont_data.get("border_color"),
+            "direction": cont_data.get("direction", "row"),
+            "gap_mm": cont_data.get("gap_mm", 8.0),
+            "padding_mm": cont_data.get("padding_mm", 8.0),
         }
 
     # Restore arrows

@@ -416,8 +416,7 @@ def compute_arrow_label_position(start, end, curve, label_offset_mm=None):
             mx += nx * curve * dist * 0.5
             my += ny * curve * dist * 0.5
 
-    # Base offset above the line/curve
-    my += 2.0
+    # No base offset — label centered at arrow midpoint
 
     # Manual override
     if label_offset_mm:
@@ -430,23 +429,25 @@ def compute_arrow_label_position(start, end, curve, label_offset_mm=None):
 def validate_canvas_bounds(schematic: "Schematic") -> None:
     """R9: Check that all boxes and containers are within canvas bounds.
 
-    Raises ValueError if any element extends outside (0,0)-(width_mm, height_mm).
+    Uses xlim/ylim (which may differ from 0..width/height after auto-layout
+    or auto-height).
     """
-    W, H = schematic.width_mm, schematic.height_mm
+    x_lo, x_hi = schematic.xlim
+    y_lo, y_hi = schematic.ylim
     all_ids = list(schematic._boxes) + list(schematic._containers)
     for eid in all_ids:
         if eid not in schematic._positions:
             continue
         left, bottom, right, top = box_rect(schematic._positions[eid])
         violations = []
-        if left < 0:
-            violations.append(f"left={left:.1f}mm")
-        if bottom < 0:
-            violations.append(f"bottom={bottom:.1f}mm")
-        if right > W:
-            violations.append(f"right={right:.1f}mm > width={W:.1f}mm")
-        if top > H:
-            violations.append(f"top={top:.1f}mm > height={H:.1f}mm")
+        if left < x_lo:
+            violations.append(f"left={left:.1f}mm < xlim_lo={x_lo:.1f}mm")
+        if bottom < y_lo:
+            violations.append(f"bottom={bottom:.1f}mm < ylim_lo={y_lo:.1f}mm")
+        if right > x_hi:
+            violations.append(f"right={right:.1f}mm > xlim_hi={x_hi:.1f}mm")
+        if top > y_hi:
+            violations.append(f"top={top:.1f}mm > ylim_hi={y_hi:.1f}mm")
         if violations:
             raise ValueError(f"'{eid}' extends outside canvas: {'; '.join(violations)}")
 

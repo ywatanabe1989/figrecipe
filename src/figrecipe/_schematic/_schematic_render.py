@@ -455,7 +455,7 @@ def render_arrow(schematic: "Schematic", ax: Axes, arrow: "ArrowSpec") -> None:
             ly,
             arrow.label,
             ha="center",
-            va="bottom",
+            va="center",
             fontsize=8,
             color=color,
             fontstyle="italic",

@@ -109,7 +109,9 @@ class Schematic:
         self,
         title: Optional[str] = None,
         width_mm: float = 170.0,
-        height_mm: float = 120.0,
+        height_mm: Optional[float] = 120.0,
+        padding_mm: float = 10.0,
+        gap_mm: Optional[float] = None,
     ):
         import warnings
 
@@ -120,12 +122,21 @@ class Schematic:
             )
         self.title = title
         self.width_mm = width_mm
-        self.height_mm = height_mm
+
+        # Flex layout: gap_mm triggers auto-height
+        self._padding_mm = padding_mm
+        self._gap_mm = gap_mm
+        self._flow_items: List[str] = []
+        if gap_mm is not None:
+            height_mm = None  # force auto-height in flex mode
+
+        self._auto_height = height_mm is None
+        self.height_mm = height_mm if height_mm is not None else 0
 
         # Compute figsize and limits (1 data unit = 1 mm)
-        self.figsize = (width_mm / 25.4, height_mm / 25.4)
+        self.figsize = (width_mm / 25.4, self.height_mm / 25.4)
         self.xlim = (0, width_mm)
-        self.ylim = (0, height_mm)
+        self.ylim = (0, self.height_mm)
 
         self._boxes: Dict[str, BoxSpec] = {}
         self._containers: Dict[str, Dict] = {}
@@ -172,7 +183,7 @@ class Schematic:
             s_fill, s_border = VERIFICATION_STATES[state]
             fill_color = fill_color or s_fill
             border_color = border_color or s_border
-        self._boxes[id] = BoxSpec(
+        box = BoxSpec(
             id=id,
             title=title,
             subtitle=subtitle,
@@ -188,6 +199,25 @@ class Schematic:
             state=state,
             language=language,
         )
+        self._boxes[id] = box
+
+        # Flex mode: auto-size and defer positioning
+        if self._gap_mm is not None and x_mm is None and y_mm is None:
+            if height_mm is None:
+                height_mm = self._auto_box_height(box)
+            w = width_mm if width_mm is not None else self.width_mm * 0.5
+            self._positions[id] = PositionSpec(
+                x_mm=0,
+                y_mm=0,
+                width_mm=w,
+                height_mm=height_mm,
+            )
+            self._flow_items.append(id)
+            return self
+
+        # Auto-compute height when x/y/width given but height is None
+        if height_mm is None and None not in (x_mm, y_mm, width_mm):
+            height_mm = self._auto_box_height(box)
         if None not in (x_mm, y_mm, width_mm, height_mm):
             self._positions[id] = PositionSpec(
                 x_mm=x_mm,
@@ -210,8 +240,11 @@ class Schematic:
         fill_color: Optional[str] = None,
         border_color: Optional[str] = None,
         title_loc: str = "upper center",
+        direction: str = "row",
+        container_gap_mm: float = 8.0,
+        container_padding_mm: float = 8.0,
     ) -> "Schematic":
-        """Add a container. title_loc: 'upper/lower left/center/right'."""
+        """Add a container (direction/container_gap_mm/container_padding_mm for flex)."""
         self._containers[id] = {
             "title": title,
             "children": children or [],
@@ -219,14 +252,16 @@ class Schematic:
             "fill_color": fill_color,
             "border_color": border_color,
             "title_loc": title_loc,
+            "direction": direction,
+            "gap_mm": container_gap_mm,
+            "padding_mm": container_padding_mm,
         }
+        if self._gap_mm is not None and x_mm is None and y_mm is None:
+            self._positions[id] = PositionSpec(0, 0, width_mm or 0, height_mm or 0)
+            self._flow_items.append(id)
+            return self
         if None not in (x_mm, y_mm, width_mm, height_mm):
-            self._positions[id] = PositionSpec(
-                x_mm=x_mm,
-                y_mm=y_mm,
-                width_mm=width_mm,
-                height_mm=height_mm,
-            )
+            self._positions[id] = PositionSpec(x_mm, y_mm, width_mm, height_mm)
         return self
 
     def add_arrow(
@@ -329,6 +364,43 @@ class Schematic:
         )
         return self
 
+    def _auto_box_height(self, box: BoxSpec) -> float:
+        """Compute box height from content when height_mm is not specified."""
+        pad = box.padding_mm
+        if box.shape == "codeblock":
+            title_bar = 6.0
+            n_lines = len(box.content)
+            return title_bar + n_lines * 3.5 + 2 * pad
+        h = 6.0  # title (bold, 11pt)
+        if box.subtitle:
+            h += 5.0  # subtitle (9pt + gap)
+        h += len(box.content) * 5.0  # content lines (8pt + gap)
+        h += 2 * pad
+        return max(h, 18.0)
+
+    def _finalize_canvas_size(self) -> None:
+        """Compute canvas height from element positions when height_mm=None."""
+        from ._schematic_flex import resolve_flex_layout
+
+        resolve_flex_layout(self)
+        if not self._auto_height:
+            return
+        if not self._positions:
+            self.height_mm = 120.0  # fallback
+            self.ylim = (0, 120.0)
+            self.figsize = (self.width_mm / 25.4, 120.0 / 25.4)
+            return
+
+        max_top = max(p.y_mm + p.height_mm / 2 for p in self._positions.values())
+        min_bottom = min(p.y_mm - p.height_mm / 2 for p in self._positions.values())
+
+        title_space = 12.0 if self.title else 0.0
+        margin = 8.0
+
+        self.height_mm = max_top - min_bottom + title_space + 2 * margin
+        self.ylim = (min_bottom - margin, max_top + title_space + margin)
+        self.figsize = (self.width_mm / 25.4, self.height_mm / 25.4)
+
     def _get_anchor(self, pos: PositionSpec, anchor: str) -> Tuple[float, float]:
         """Get absolute position of an anchor point on the visual box edge."""
         if anchor not in ANCHOR_POINTS:
@@ -349,6 +421,8 @@ class Schematic:
         """Render the schematic."""
         from . import _schematic_render as _sr
         from . import _schematic_validate as _sv
+
+        self._finalize_canvas_size()
 
         figsize = (
             (self.xlim[1] - self.xlim[0]) / 25.4,
@@ -384,7 +458,7 @@ class Schematic:
                 self.title,
                 ha="center",
                 va="top",
-                fontsize=16,
+                fontsize=12,
                 fontweight="bold",
             )
 
