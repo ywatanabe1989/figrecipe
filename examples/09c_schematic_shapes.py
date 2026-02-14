@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Schematic shapes showcase with fr.Schematic().
+"""Diagram shapes showcase with fr.Diagram().
 
-Demonstrates all available schematic shapes:
+Demonstrates all available diagram shapes:
 1. Shape gallery — all 7 shapes side by side
 2. Data pipeline — mixing shapes by semantic role (node_class)
 3. Software architecture — codeblock + cylinder + document
@@ -29,12 +29,12 @@ def main(
     CONFIG=stx.session.INJECTED,
     logger=stx.session.INJECTED,
 ):
-    """Run schematic shape demos."""
+    """Run diagram shape demos."""
     OUT = Path(CONFIG.SDIR_OUT)
 
     # --- 1. Shape gallery ---
     logger.info("Demo 1: Shape gallery (all 7 shapes)")
-    s1 = fr.Schematic(width_mm=170, height_mm=55)
+    s1 = fr.Diagram(width_mm=170, height_mm=55)
     shapes = [
         ("rounded", "rounded"),
         ("box", "box"),
@@ -57,12 +57,12 @@ def main(
         )
         x += 24
     fig1, ax1 = fr.subplots()
-    ax1.schematic(s1, id="gallery")
+    ax1.diagram(s1, id="gallery")
     fr.save(fig1, OUT / "shape_gallery.png", validate=False)
 
     # --- 2. Data pipeline with semantic node classes ---
     logger.info("Demo 2: Data pipeline with node_class")
-    s2 = fr.Schematic(
+    s2 = fr.Diagram(
         title="Reproducible Analysis Pipeline",
         width_mm=170,
         height_mm=60,
@@ -76,12 +76,12 @@ def main(
     s2.add_arrow("process", "report")
     s2.auto_layout(layout="lr", gap_mm=6, box_size_mm=(32, 22))
     fig2, ax2 = fr.subplots()
-    ax2.schematic(s2, id="pipeline")
+    ax2.diagram(s2, id="pipeline")
     fr.save(fig2, OUT / "data_pipeline.png", validate=False)
 
     # --- 3. Software architecture with codeblock ---
     logger.info("Demo 3: Software architecture")
-    s3 = fr.Schematic(
+    s3 = fr.Diagram(
         title="SciTeX Verification Architecture",
         width_mm=170,
         height_mm=110,
@@ -150,7 +150,7 @@ def main(
     s3.add_arrow("db", "dag")
     s3.add_arrow("hashes", "dag")
     fig3, ax3 = fr.subplots()
-    ax3.schematic(s3, id="architecture")
+    ax3.diagram(s3, id="architecture")
     fr.save(fig3, OUT / "software_arch.png", validate=False)
 
     logger.info(f"All outputs saved to: {OUT}/")

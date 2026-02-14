@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Serialization and deserialization for Schematic diagrams."""
+"""Serialization and deserialization for Diagram diagrams."""
 
 from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
-    from ._schematic import Schematic
+    from ._schematic import Diagram
 
 
-def schematic_to_dict(info: "Schematic") -> Dict[str, Any]:
+def schematic_to_dict(info: "Diagram") -> Dict[str, Any]:
     """Convert schematic specification to dictionary for serialization.
 
     Parameters
     ----------
-    info : Schematic
+    info : Diagram
         The schematic to serialize.
 
     Returns
@@ -51,6 +51,9 @@ def schematic_to_dict(info: "Schematic") -> Dict[str, Any]:
                 "emphasis": cont.get("emphasis", "muted"),
                 "fill_color": cont.get("fill_color"),
                 "border_color": cont.get("border_color"),
+                "direction": cont.get("direction", "row"),
+                "gap_mm": cont.get("gap_mm", 8.0),
+                "padding_mm": cont.get("padding_mm", 8.0),
             }
             for cid, cont in info._containers.items()
         ],
@@ -80,8 +83,8 @@ def schematic_to_dict(info: "Schematic") -> Dict[str, Any]:
     }
 
 
-def schematic_from_dict(data: Dict[str, Any]) -> "Schematic":
-    """Create Schematic from dictionary (recipe reproduction).
+def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
+    """Create Diagram from dictionary (recipe reproduction).
 
     Parameters
     ----------
@@ -90,15 +93,15 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Schematic":
 
     Returns
     -------
-    Schematic
+    Diagram
         Reconstructed schematic.
     """
-    from ._schematic import ArrowSpec, BoxSpec, PositionSpec, Schematic
+    from ._schematic import ArrowSpec, BoxSpec, Diagram, PositionSpec
 
     width_mm = data.get("width_mm", 200.0)
     height_mm = data.get("height_mm", 120.0)
 
-    schematic = Schematic(
+    schematic = Diagram(
         title=data.get("title"),
         width_mm=width_mm,
         height_mm=height_mm,
@@ -143,6 +146,9 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Schematic":
             "emphasis": cont_data.get("emphasis", "muted"),
             "fill_color": cont_data.get("fill_color"),
             "border_color": cont_data.get("border_color"),
+            "direction": cont_data.get("direction", "row"),
+            "gap_mm": cont_data.get("gap_mm", 8.0),
+            "padding_mm": cont_data.get("padding_mm", 8.0),
         }
 
     # Restore arrows

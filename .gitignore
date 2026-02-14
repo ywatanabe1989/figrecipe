@@ -207,6 +207,7 @@ data/*
 !examples/02_composition_out/gallery.jpg
 !docs/style_granularity.jpg
 !docs/sphinx/_static/*.png
+!docs/sphinx/generate_images_out/*.png
 **/*.pth
 **/*.pt
 **/*.chk

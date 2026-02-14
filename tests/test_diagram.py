@@ -237,7 +237,15 @@ class TestDiagramImport:
     def test_diagram_in_figrecipe_namespace(self):
         """Test Diagram is accessible from main figrecipe import."""
         assert hasattr(fr, "Diagram")
-        d = fr.Diagram(type="workflow")
+        # fr.Diagram is the box-and-arrow Diagram
+        d = fr.Diagram()
+        assert d is not None
+
+    def test_mermaid_diagram_accessible(self):
+        """Test mermaid Diagram is accessible from submodule."""
+        from figrecipe._diagram import Diagram as MermaidDiagram
+
+        d = MermaidDiagram(type="workflow")
         assert d is not None
 
 

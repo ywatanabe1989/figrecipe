@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Layout validation for Schematic diagrams.
+"""Layout validation for Diagram diagrams.
 
 Rules (all enforced programmatically):
   R1  Container must enclose all children          → ValueError
@@ -23,15 +23,15 @@ MIN_MARGIN_MM = 2.0  # R5, R6
 MIN_VISIBLE = 0.9  # R7
 
 if TYPE_CHECKING:
-    from ._schematic import Schematic
+    from ._schematic import Diagram
 
 
-def validate_containers(schematic: "Schematic") -> None:
+def validate_containers(schematic: "Diagram") -> None:
     """Check that every container fully encloses its declared children.
 
     Parameters
     ----------
-    schematic : Schematic
+    schematic : Diagram
         The schematic to validate.
 
     Raises
@@ -82,7 +82,7 @@ def validate_containers(schematic: "Schematic") -> None:
                 )
 
 
-def validate_no_overlap(schematic: "Schematic") -> None:
+def validate_no_overlap(schematic: "Diagram") -> None:
     """Check that no two boxes overlap each other.
 
     Containers are excluded — only boxes are checked.
@@ -183,7 +183,7 @@ def validate_text_no_overlap(fig, ax, min_overlap_ratio=0.05) -> None:
 
 
 def validate_container_title_clearance(
-    schematic: "Schematic", min_gap_mm: float = 3.0
+    schematic: "Diagram", min_gap_mm: float = 3.0
 ) -> None:
     """Warn if container title area overlaps with children.
 
@@ -217,7 +217,7 @@ def validate_container_title_clearance(
                 )
 
 
-def validate_text_fits_boxes(schematic: "Schematic") -> None:
+def validate_text_fits_boxes(schematic: "Diagram") -> None:
     """Warn if a box has more text lines than fit within its padded area.
 
     Estimates text height from font sizes (1pt ≈ 0.35mm) and checks
@@ -345,7 +345,7 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
             )
 
 
-def validate_arrow_label_side(schematic: "Schematic") -> None:
+def validate_arrow_label_side(schematic: "Diagram") -> None:
     """R8: Curved-arrow label must be on same side as arc bulge.
 
     For each arrow with curve != 0 and a label, checks that the final
@@ -416,8 +416,7 @@ def compute_arrow_label_position(start, end, curve, label_offset_mm=None):
             mx += nx * curve * dist * 0.5
             my += ny * curve * dist * 0.5
 
-    # Base offset above the line/curve
-    my += 2.0
+    # No base offset — label centered at arrow midpoint
 
     # Manual override
     if label_offset_mm:
@@ -427,26 +426,28 @@ def compute_arrow_label_position(start, end, curve, label_offset_mm=None):
     return mx, my
 
 
-def validate_canvas_bounds(schematic: "Schematic") -> None:
+def validate_canvas_bounds(schematic: "Diagram") -> None:
     """R9: Check that all boxes and containers are within canvas bounds.
 
-    Raises ValueError if any element extends outside (0,0)-(width_mm, height_mm).
+    Uses xlim/ylim (which may differ from 0..width/height after auto-layout
+    or auto-height).
     """
-    W, H = schematic.width_mm, schematic.height_mm
+    x_lo, x_hi = schematic.xlim
+    y_lo, y_hi = schematic.ylim
     all_ids = list(schematic._boxes) + list(schematic._containers)
     for eid in all_ids:
         if eid not in schematic._positions:
             continue
         left, bottom, right, top = box_rect(schematic._positions[eid])
         violations = []
-        if left < 0:
-            violations.append(f"left={left:.1f}mm")
-        if bottom < 0:
-            violations.append(f"bottom={bottom:.1f}mm")
-        if right > W:
-            violations.append(f"right={right:.1f}mm > width={W:.1f}mm")
-        if top > H:
-            violations.append(f"top={top:.1f}mm > height={H:.1f}mm")
+        if left < x_lo:
+            violations.append(f"left={left:.1f}mm < xlim_lo={x_lo:.1f}mm")
+        if bottom < y_lo:
+            violations.append(f"bottom={bottom:.1f}mm < ylim_lo={y_lo:.1f}mm")
+        if right > x_hi:
+            violations.append(f"right={right:.1f}mm > xlim_hi={x_hi:.1f}mm")
+        if top > y_hi:
+            violations.append(f"top={top:.1f}mm > ylim_hi={y_hi:.1f}mm")
         if violations:
             raise ValueError(f"'{eid}' extends outside canvas: {'; '.join(violations)}")
 

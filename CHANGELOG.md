@@ -8,17 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.23.0] - 2026-02-08
 
 ### Added
-- **Schematic validation pipeline** - R1-R8 validation rules with _FAILED figure saving for inspection
+- **Diagram validation pipeline** - R1-R8 validation rules with _FAILED figure saving for inspection
 - **Style anatomy documentation** - Comprehensive style anatomy figure with pie chart
 
 ### Changed
-- **Schematic API standardized** - `add_box()` and `add_container()` now use flat `x_mm`, `y_mm`, `width_mm`, `height_mm` params (replaces `position_mm`/`size_mm` tuples)
+- **Diagram API standardized** - `add_box()` and `add_container()` now use flat `x_mm`, `y_mm`, `width_mm`, `height_mm` params (replaces `position_mm`/`size_mm` tuples)
 
 ## [0.22.0] - 2026-02-07
 
 ### Added
-- **Box-and-arrow schematics** - New `fr.Schematic` class for publication-quality diagrams with mm-based positioning
-- **Schematic auto-layout** - `auto_layout(layout="lr"|"tb")` for automatic box positioning
+- **Box-and-arrow diagrams** - New `fr.Diagram` class for publication-quality diagrams with mm-based positioning
+- **Diagram auto-layout** - `auto_layout(layout="lr"|"tb")` for automatic box positioning
 - **Container support** - Group boxes with `add_container()` for hierarchical diagrams
 
 ### Changed

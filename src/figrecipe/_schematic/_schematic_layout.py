@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Auto-layout algorithms for schematic diagrams.
+"""Auto-layout algorithms for diagram positioning.
 
 Provides automatic positioning of boxes based on graph structure.
 Uses networkx for layout computation with graceful fallback.
@@ -9,7 +9,7 @@ Uses networkx for layout computation with graceful fallback.
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
-    from ._schematic import Schematic
+    from ._schematic import Diagram
 
 # Default box sizes in mm (must fit text + padding comfortably)
 DEFAULT_WIDTH_MM = 40.0
@@ -17,7 +17,7 @@ DEFAULT_HEIGHT_MM = 25.0
 
 
 def auto_layout(
-    info: "Schematic",
+    info: "Diagram",
     layout: str = "lr",
     margin_mm: float = 15.0,
     box_size_mm: Optional[Tuple[float, float]] = None,
@@ -26,7 +26,7 @@ def auto_layout(
     justify: str = "space-between",
     align_items: str = "center",
 ) -> None:
-    """Automatically position boxes. See Schematic.auto_layout for full docs."""
+    """Automatically position boxes. See Diagram.auto_layout for full docs."""
     from ._schematic import PositionSpec
 
     # Default box size
@@ -161,7 +161,9 @@ def auto_layout(
 
     # Apply collision avoidance if requested
     if avoid_overlap:
-        _resolve_overlaps(info, gap_mm, x_min, x_max, y_min, y_max)
+        from ._schematic_overlap import resolve_overlaps
+
+        resolve_overlaps(info, gap_mm, x_min, x_max, y_min, y_max)
 
 
 def _flow_layout(
@@ -427,99 +429,6 @@ def _scale_positions(
         scaled[bid] = (new_x, new_y)
 
     return scaled
-
-
-def _resolve_overlaps(
-    info: "Schematic",
-    gap: float,
-    x_min: float,
-    x_max: float,
-    y_min: float,
-    y_max: float,
-    max_iterations: int = 50,
-) -> None:
-    """Resolve overlapping boxes by pushing them apart.
-
-    Uses iterative collision detection and resolution.
-    """
-
-    box_ids = list(info._positions.keys())
-    if len(box_ids) < 2:
-        return
-
-    for _ in range(max_iterations):
-        moved = False
-
-        for i, id1 in enumerate(box_ids):
-            pos1 = info._positions[id1]
-            box1 = info._boxes.get(id1)
-            margin1 = box1.margin_mm if box1 else 0.0
-
-            for id2 in box_ids[i + 1 :]:
-                pos2 = info._positions[id2]
-                box2 = info._boxes.get(id2)
-                margin2 = box2.margin_mm if box2 else 0.0
-
-                # Calculate overlap with gap and margins
-                total_gap = gap + margin1 + margin2
-                half_w1 = pos1.width_mm / 2 + total_gap / 2
-                half_h1 = pos1.height_mm / 2 + total_gap / 2
-                half_w2 = pos2.width_mm / 2 + total_gap / 2
-                half_h2 = pos2.height_mm / 2 + total_gap / 2
-
-                dx = pos2.x_mm - pos1.x_mm
-                dy = pos2.y_mm - pos1.y_mm
-
-                overlap_x = half_w1 + half_w2 - abs(dx)
-                overlap_y = half_h1 + half_h2 - abs(dy)
-
-                # Check if overlapping
-                if overlap_x > 0 and overlap_y > 0:
-                    moved = True
-
-                    # Push apart along axis with smaller overlap
-                    if overlap_x < overlap_y:
-                        # Push horizontally
-                        push = overlap_x / 2 + 0.1
-                        if dx >= 0:
-                            pos1.x_mm -= push
-                            pos2.x_mm += push
-                        else:
-                            pos1.x_mm += push
-                            pos2.x_mm -= push
-                    else:
-                        # Push vertically
-                        push = overlap_y / 2 + 0.1
-                        if dy >= 0:
-                            pos1.y_mm -= push
-                            pos2.y_mm += push
-                        else:
-                            pos1.y_mm += push
-                            pos2.y_mm -= push
-
-                    # Clamp to bounds
-                    pos1.x_mm = max(
-                        x_min + pos1.width_mm / 2,
-                        min(x_max - pos1.width_mm / 2, pos1.x_mm),
-                    )
-                    pos1.y_mm = max(
-                        y_min + pos1.height_mm / 2,
-                        min(y_max - pos1.height_mm / 2, pos1.y_mm),
-                    )
-                    pos2.x_mm = max(
-                        x_min + pos2.width_mm / 2,
-                        min(x_max - pos2.width_mm / 2, pos2.x_mm),
-                    )
-                    pos2.y_mm = max(
-                        y_min + pos2.height_mm / 2,
-                        min(y_max - pos2.height_mm / 2, pos2.y_mm),
-                    )
-
-                    info._positions[id1] = pos1
-                    info._positions[id2] = pos2
-
-        if not moved:
-            break
 
 
 __all__ = ["auto_layout"]

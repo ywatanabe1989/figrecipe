@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from ._schematic import IconSpec, Schematic
+    from ._schematic import Diagram, IconSpec
 
 
 # ── Built-in icon renderers ──────────────────────────────────────────
@@ -177,14 +177,13 @@ _BUILTINS = {
 
 
 def render_icon(
-    schematic: "Schematic",
+    schematic: "Diagram",
     ax: Axes,
     iid: str,
     icon: "IconSpec",
 ) -> None:
     """Render an icon (built-in path or image file)."""
     from pathlib import Path as _Path
-
 
     pos = schematic._positions[iid]
     color = icon.color or "#333333"
@@ -237,7 +236,16 @@ def _render_svg_icon(ax, fpath, cx, cy, w, alpha):
         renderPM.drawToFile(drawing, bio, fmt="PNG", dpi=300)
         bio.seek(0)
         img = mpimg.imread(bio, format="png")
-        _render_image_icon(ax, None, cx, cy, w, alpha)
+        dpi = ax.figure.dpi
+        fig_w_inch = ax.figure.get_figwidth()
+        data_w = ax.get_xlim()[1] - ax.get_xlim()[0]
+        px_per_mm = (fig_w_inch * dpi) / data_w
+        target_px = w * px_per_mm
+        img_px = img.shape[1]
+        zoom = target_px / img_px if img_px > 0 else 1.0
+        im = OffsetImage(img, zoom=zoom, alpha=alpha)
+        ab = AnnotationBbox(im, (cx, cy), frameon=False, zorder=6)
+        ax.add_artist(ab)
     except ImportError:
         ax.text(
             cx,

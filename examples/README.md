@@ -21,23 +21,23 @@ Demonstration scripts showcasing FigRecipe's capabilities for reproducible scien
 | 06 | `06_style_switching.py` | Style switching (SCITEX vs matplotlib) |
 | 07 | `07_csv_workflow.py` | CSV-first data workflow |
 | 08 | `08_diagram.py` | Scientific diagrams (Mermaid, Graphviz, YAML) |
-| 09 | `09_schematic.py` | Box-and-arrow schematics (mm-based, see below) |
+| 09 | `09_schematic.py` | Box-and-arrow diagrams (mm-based, see below) |
 | 10 | `10_mcp.py` | MCP integration for AI agents |
 | 11 | `11_cli_commands.sh` | CLI: info, reproduce, validate, crop, extract |
 | 99 | `99_gui_editor.py` | Interactive Flask-based visual editor |
 
-## Schematic Diagrams (Example 09)
+## Diagrams (Example 09)
 
 Left-to-right pipeline:
 
 <p align="center">
-  <img src="09_schematic_out/schematic_lr.png" alt="LR Schematic" width="100%"/>
+  <img src="09_schematic_out/schematic_lr.png" alt="LR Diagram" width="100%"/>
 </p>
 
 Top-to-bottom architecture:
 
 <p align="center">
-  <img src="09_schematic_out/schematic_tb.png" alt="TB Schematic" width="40%"/>
+  <img src="09_schematic_out/schematic_tb.png" alt="TB Diagram" width="40%"/>
 </p>
 
 ## Output Directories

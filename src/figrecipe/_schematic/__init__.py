@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Schematic diagrams — box-and-arrow schematics with mm-based coordinates."""
+"""Box-and-arrow diagrams with mm-based coordinates."""
 
-from ._schematic import Schematic
+from ._schematic import Diagram
 
-__all__ = ["Schematic"]
+__all__ = ["Diagram"]
 
 # EOF

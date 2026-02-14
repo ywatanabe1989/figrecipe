@@ -83,7 +83,7 @@ def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
     tuple
         (figure, axes) after rendering.
     """
-    from .._schematic._schematic import Schematic
+    from .._schematic._schematic import Diagram
 
     kwargs = call.kwargs.copy()
     schematic_data = kwargs.pop("schematic_data", None)
@@ -91,11 +91,11 @@ def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
     if schematic_data is None:
         import warnings
 
-        warnings.warn("Schematic call missing schematic_data")
+        warnings.warn("Diagram call missing schematic_data")
         return None
 
     # Reconstruct schematic from serialized data
-    info = Schematic.from_dict(schematic_data)
+    info = Diagram.from_dict(schematic_data)
 
     # Render to provided axes
     fig, rendered_ax = info.render(ax=ax)

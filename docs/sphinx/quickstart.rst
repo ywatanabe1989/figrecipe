@@ -226,16 +226,16 @@ Compose multiple figures:
         panel_labels=True
     )
 
-Box-and-Arrow Schematics
--------------------------
+Box-and-Arrow Diagrams
+-----------------------
 
-Create publication-quality schematic diagrams with mm-based coordinates:
+Create publication-quality diagrams with mm-based coordinates:
 
 .. code-block:: python
 
     import figrecipe as fr
 
-    s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
+    s = fr.Diagram(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
     s.add_box("raw", "Raw EEG", subtitle="64 channels", emphasis="muted")
     s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
     s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
@@ -244,7 +244,7 @@ Create publication-quality schematic diagrams with mm-based coordinates:
     s.auto_layout(layout="lr", gap_mm=15)
 
     fig, ax = fr.subplots()
-    ax.schematic(s, id="pipeline")
+    ax.diagram(s, id="pipeline")
     fr.save(fig, "pipeline.png")
 
 .. image:: _static/quickstart_schematic_lr.png
@@ -256,7 +256,7 @@ Top-to-bottom layouts work the same way:
 
 .. code-block:: python
 
-    s = fr.Schematic(title="Neural Network", width_mm=150, height_mm=250)
+    s = fr.Diagram(title="Neural Network", width_mm=150, height_mm=250)
     s.add_box("input", "Input Layer", subtitle="784 neurons", emphasis="muted")
     s.add_box("conv", "Conv2D", subtitle="32 filters", emphasis="primary")
     s.add_box("out", "Output", subtitle="10 classes", emphasis="warning")
@@ -269,8 +269,8 @@ Top-to-bottom layouts work the same way:
    :align: center
    :alt: Top-to-bottom schematic architecture
 
-Schematic Validation Rules
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Diagram Validation Rules
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 All rules are enforced automatically on render. When validation fails, figures are saved with a ``_FAILED`` suffix for inspection.
 
