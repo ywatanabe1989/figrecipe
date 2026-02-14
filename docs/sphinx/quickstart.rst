@@ -247,10 +247,10 @@ Create publication-quality diagrams with mm-based coordinates:
     ax.diagram(s, id="pipeline")
     fr.save(fig, "pipeline.png")
 
-.. image:: _static/quickstart_schematic_lr.png
+.. image:: _static/quickstart_diagram_lr.png
    :width: 100%
    :align: center
-   :alt: Left-to-right schematic pipeline
+   :alt: Left-to-right diagram pipeline
 
 Top-to-bottom layouts work the same way:
 
@@ -264,10 +264,10 @@ Top-to-bottom layouts work the same way:
     s.add_arrow("conv", "out")
     s.auto_layout(layout="tb", gap_mm=10)
 
-.. image:: _static/quickstart_schematic_tb.png
+.. image:: _static/quickstart_diagram_tb.png
    :width: 40%
    :align: center
-   :alt: Top-to-bottom schematic architecture
+   :alt: Top-to-bottom diagram architecture
 
 Diagram Validation Rules
 ^^^^^^^^^^^^^^^^^^^^^^^^

@@ -85,9 +85,6 @@ from ._diagram import Diagram
 from ._diagram._graphviz.graphviz import Graphviz
 from ._diagram._mermaid.mermaid import Mermaid
 from ._graph._presets import get_preset as get_graph_preset
-
-# Deprecated alias for downstream compatibility (scitex.plt)
-Schematic = Diagram
 from ._seaborn import get_seaborn_recorder as _get_sns
 
 

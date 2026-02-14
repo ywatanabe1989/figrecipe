@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-07 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/examples/09b_schematic_NG_patterns.py
+# File: /home/ywatanabe/proj/figrecipe/examples/09b_diagram_NG_patterns.py
 
 
 """Demonstrates all Diagram validation rules via NG (failing) figures.

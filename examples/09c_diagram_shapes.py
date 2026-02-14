@@ -8,9 +8,9 @@ Demonstrates all available diagram shapes:
 3. Software architecture — codeblock + cylinder + document
 
 Outputs:
-    ./09c_schematic_shapes_out/shape_gallery.png
-    ./09c_schematic_shapes_out/data_pipeline.png
-    ./09c_schematic_shapes_out/software_arch.png
+    ./09c_diagram_shapes_out/shape_gallery.png
+    ./09c_diagram_shapes_out/data_pipeline.png
+    ./09c_diagram_shapes_out/software_arch.png
 """
 
 import matplotlib

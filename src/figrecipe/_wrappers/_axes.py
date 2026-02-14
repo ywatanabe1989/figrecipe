@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 import numpy as np
 from matplotlib.axes import Axes
 
+from ._axes_diagram import DiagramMixin
 from ._axes_methods import RecordingAxesMethods
-from ._axes_schematic import DiagramMixin
 from ._axes_style_mixin import AxesStyleMixin
 
 if TYPE_CHECKING:
