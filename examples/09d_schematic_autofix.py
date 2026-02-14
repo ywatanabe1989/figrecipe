@@ -3,7 +3,8 @@
 """Demonstrates auto_fix=True for Diagram validation violations.
 
 Each case intentionally creates a layout violation that would fail
-with render(). Using render(auto_fix=True) resolves them automatically:
+with render(). Using ax.diagram(s, auto_fix=True) resolves them
+automatically and saves both PNG and YAML recipe for reproducibility:
 
 1. Overlapping boxes      (R2) -> pushed apart
 2. Child outside container (R1) -> container expanded
@@ -12,7 +13,7 @@ with render(). Using render(auto_fix=True) resolves them automatically:
 5. Combined violations          -> all resolved in one call
 
 Outputs:
-    ./09d_schematic_autofix_out/fix_overlap.png
+    ./09d_schematic_autofix_out/fix_overlap.png  (+.yaml recipe)
     ./09d_schematic_autofix_out/fix_container.png
     ./09d_schematic_autofix_out/fix_arrow_label.png
     ./09d_schematic_autofix_out/fix_canvas.png
@@ -31,16 +32,22 @@ import scitex as stx
 import figrecipe as fr
 
 
+def _save(s, out, name):
+    """Render with auto_fix via recipe system and save PNG + YAML."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        fig, axes = fr.subplots()
+        axes.diagram(s, id=name, auto_fix=True)
+        fr.save(fig, out / f"{name}.png", validate=False)
+
+
 def fix_overlap(out):
     """R2: Two overlapping boxes are pushed apart."""
     s = fr.Diagram(width_mm=170, height_mm=80)
     s.add_box("a", "Box A", x_mm=60, y_mm=40, width_mm=40, height_mm=25)
     s.add_box("b", "Box B", x_mm=70, y_mm=40, width_mm=40, height_mm=25)
     s.add_arrow("a", "b")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        fig, ax = s.render(auto_fix=True)
-    fig.savefig(out / "fix_overlap.png", dpi=200, bbox_inches="tight")
+    _save(s, out, "fix_overlap")
 
 
 def fix_container(out):
@@ -56,10 +63,7 @@ def fix_container(out):
         height_mm=30,
     )
     s.add_box("a", "Box A", x_mm=160, y_mm=60, width_mm=30, height_mm=20)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        fig, ax = s.render(auto_fix=True)
-    fig.savefig(out / "fix_container.png", dpi=200, bbox_inches="tight")
+    _save(s, out, "fix_container")
 
 
 def fix_arrow_label(out):
@@ -68,10 +72,7 @@ def fix_arrow_label(out):
     s.add_box("a", "Yusuke", x_mm=40, y_mm=50, width_mm=40, height_mm=25)
     s.add_box("b", "Nandeyanen", x_mm=130, y_mm=50, width_mm=50, height_mm=25)
     s.add_arrow("a", "b", label="Why?!")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        fig, ax = s.render(auto_fix=True)
-    fig.savefig(out / "fix_arrow_label.png", dpi=200, bbox_inches="tight")
+    _save(s, out, "fix_arrow_label")
 
 
 def fix_canvas(out):
@@ -80,10 +81,7 @@ def fix_canvas(out):
     s.add_box("near", "Near", x_mm=50, y_mm=40, width_mm=40, height_mm=25)
     s.add_box("far", "Far Away", x_mm=200, y_mm=40, width_mm=40, height_mm=25)
     s.add_arrow("near", "far")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        fig, ax = s.render(auto_fix=True)
-    fig.savefig(out / "fix_canvas.png", dpi=200, bbox_inches="tight")
+    _save(s, out, "fix_canvas")
 
 
 def fix_combined(out):
@@ -96,10 +94,7 @@ def fix_combined(out):
     s.add_box("c", "Step C", x_mm=200, y_mm=40, width_mm=40, height_mm=25)
     s.add_arrow("a", "b", label="process")
     s.add_arrow("b", "c")
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        fig, ax = s.render(auto_fix=True)
-    fig.savefig(out / "fix_combined.png", dpi=200, bbox_inches="tight")
+    _save(s, out, "fix_combined")
 
 
 @stx.session

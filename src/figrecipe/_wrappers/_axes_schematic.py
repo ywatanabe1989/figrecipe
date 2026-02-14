@@ -27,6 +27,7 @@ class DiagramMixin:
         *,
         id: Optional[str] = None,
         track: bool = True,
+        auto_fix: bool = False,
     ):
         """Draw a box-and-arrow diagram with native matplotlib rendering.
 
@@ -40,6 +41,8 @@ class DiagramMixin:
             Custom ID for this call.
         track : bool
             Whether to record this call for reproducibility.
+        auto_fix : bool
+            Auto-resolve layout violations before rendering.
 
         Returns
         -------
@@ -53,6 +56,7 @@ class DiagramMixin:
             self._position,
             self._track and track,
             id,
+            auto_fix=auto_fix,
         )
 
 
@@ -63,6 +67,8 @@ def schematic_plot(
     position: Tuple[int, int],
     track: bool,
     call_id: Optional[str],
+    *,
+    auto_fix: bool = False,
 ) -> Tuple[Figure, "Axes"]:
     """Draw a FigRecipe Diagram with native matplotlib rendering.
 
@@ -109,7 +115,7 @@ def schematic_plot(
     fig.set_size_inches(x_range / 25.4, y_range / 25.4)
 
     # Render to the provided axes
-    fig, rendered_ax = info.render(ax=ax)
+    fig, rendered_ax = info.render(ax=ax, auto_fix=auto_fix)
 
     # Post-render validations (skipped inside render() when ax is provided)
     # Errors are stored on the figure so fr.save() can save _FAILED figures

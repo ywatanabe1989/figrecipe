@@ -444,7 +444,7 @@ class Diagram:
         _draw_all()
 
         # Phase 2: post-render auto-fix for text collisions (R5/R6/R7)
-        if auto_fix and owns_fig:
+        if auto_fix:
             from ._schematic_autofix import fix_post_render
 
             for _ in range(3):
