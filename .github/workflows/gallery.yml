@@ -39,7 +39,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[all]"
-          pip install scitex
+          pip install scitex joblib
 
       - name: Generate all demo plots
         run: |
