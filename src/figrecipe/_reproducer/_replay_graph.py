@@ -29,7 +29,7 @@ def replay_graph_call(ax: Axes, call: CallRecord) -> Any:
         Result from draw_graph containing positions and collections.
     """
     try:
-        from .._graph import draw_graph, record_to_graph
+        from .._graph._core import draw_graph, record_to_graph
     except ImportError:
         import warnings
 

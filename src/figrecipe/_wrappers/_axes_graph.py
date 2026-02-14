@@ -79,7 +79,7 @@ def graph_plot(
     dict
         Dictionary with 'pos', 'node_collection', 'edge_collection'.
     """
-    from .._graph import draw_graph
+    from .._graph._core import draw_graph
 
     # Build kwargs from defaults -> preset -> explicit args
     kwargs = _build_graph_kwargs(
@@ -140,7 +140,7 @@ def _build_graph_kwargs(
     **explicit_kwargs,
 ) -> Dict[str, Any]:
     """Build graph kwargs from defaults, preset, and explicit overrides."""
-    from .._graph_presets import get_preset
+    from .._graph._presets import get_preset
 
     # Start with defaults
     kwargs = GRAPH_DEFAULTS.copy()
@@ -169,7 +169,7 @@ def _record_graph_call(
     preset: Optional[str],
 ) -> None:
     """Record graph call for reproducibility."""
-    from .._graph import graph_to_record
+    from .._graph._core import graph_to_record
     from .._recorder import CallRecord
 
     final_id = call_id if call_id else recorder._generate_call_id("graph")

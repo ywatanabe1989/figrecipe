@@ -21,7 +21,7 @@ class TestGraphModule:
 
     def test_draw_graph_basic(self):
         """Test basic graph drawing."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.karate_club_graph()
         fig, ax = plt.subplots()
@@ -35,7 +35,7 @@ class TestGraphModule:
 
     def test_draw_graph_with_labels(self):
         """Test graph drawing with labels."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_edges_from([("A", "B"), ("B", "C"), ("C", "A")])
@@ -48,7 +48,7 @@ class TestGraphModule:
 
     def test_draw_graph_directed(self):
         """Test directed graph with arrows."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         DG = networkx.DiGraph()
         DG.add_edges_from([("A", "B"), ("B", "C"), ("C", "D")])
@@ -65,7 +65,7 @@ class TestGraphModule:
     )
     def test_layouts(self, layout):
         """Test all supported layout algorithms."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.karate_club_graph()
         fig, ax = plt.subplots()
@@ -76,7 +76,7 @@ class TestGraphModule:
 
     def test_hierarchical_layout_dag(self):
         """Test hierarchical layout with a DAG."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         DAG = networkx.DiGraph()
         DAG.add_edges_from([("root", "a"), ("root", "b"), ("a", "c"), ("b", "d")])
@@ -89,7 +89,7 @@ class TestGraphModule:
 
     def test_node_size_from_attribute(self):
         """Test node sizing from attribute."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_node("A", size=100)
@@ -105,7 +105,7 @@ class TestGraphModule:
 
     def test_node_color_from_attribute(self):
         """Test node coloring from attribute."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.karate_club_graph()
         for n in G.nodes():
@@ -119,7 +119,7 @@ class TestGraphModule:
 
     def test_edge_width_from_attribute(self):
         """Test edge width from attribute."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_edge("A", "B", weight=1.0)
@@ -134,7 +134,7 @@ class TestGraphModule:
 
     def test_callable_node_size(self):
         """Test node sizing with callable."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.karate_club_graph()
 
@@ -150,7 +150,7 @@ class TestGraphPresets:
 
     def test_get_preset_default(self):
         """Test getting default preset."""
-        from figrecipe._graph_presets import get_preset
+        from figrecipe._graph._presets import get_preset
 
         preset = get_preset("default")
         assert "layout" in preset
@@ -159,7 +159,7 @@ class TestGraphPresets:
 
     def test_get_preset_all_builtin(self):
         """Test all built-in presets can be retrieved."""
-        from figrecipe._graph_presets import get_preset, list_presets
+        from figrecipe._graph._presets import get_preset, list_presets
 
         presets = list_presets()
         assert len(presets) >= 7  # At least 7 built-in presets
@@ -170,14 +170,14 @@ class TestGraphPresets:
 
     def test_get_preset_invalid(self):
         """Test error on invalid preset name."""
-        from figrecipe._graph_presets import get_preset
+        from figrecipe._graph._presets import get_preset
 
         with pytest.raises(ValueError, match="Unknown preset"):
             get_preset("nonexistent_preset")
 
     def test_register_custom_preset(self):
         """Test registering a custom preset."""
-        from figrecipe._graph_presets import (
+        from figrecipe._graph._presets import (
             get_preset,
             register_preset,
             unregister_preset,
@@ -197,7 +197,7 @@ class TestGraphPresets:
 
     def test_register_preset_override(self):
         """Test overriding existing preset requires flag."""
-        from figrecipe._graph_presets import register_preset, unregister_preset
+        from figrecipe._graph._presets import register_preset, unregister_preset
 
         register_preset("test_override", {"layout": "spring"})
 
@@ -212,7 +212,7 @@ class TestGraphPresets:
 
     def test_unregister_builtin_fails(self):
         """Test cannot unregister built-in preset."""
-        from figrecipe._graph_presets import unregister_preset
+        from figrecipe._graph._presets import unregister_preset
 
         with pytest.raises(ValueError, match="Cannot unregister built-in"):
             unregister_preset("default")
@@ -223,7 +223,7 @@ class TestGraphSerialization:
 
     def test_graph_to_record(self):
         """Test graph serialization."""
-        from figrecipe._graph import graph_to_record
+        from figrecipe._graph._core import graph_to_record
 
         G = networkx.Graph()
         G.add_node("A", label="Node A", size=100)
@@ -241,7 +241,7 @@ class TestGraphSerialization:
 
     def test_record_to_graph(self):
         """Test graph deserialization."""
-        from figrecipe._graph import record_to_graph
+        from figrecipe._graph._core import record_to_graph
 
         record = {
             "type": "graph",
@@ -264,7 +264,7 @@ class TestGraphSerialization:
 
     def test_roundtrip_serialization(self):
         """Test graph survives serialization roundtrip."""
-        from figrecipe._graph import graph_to_record, record_to_graph
+        from figrecipe._graph._core import graph_to_record, record_to_graph
 
         G = networkx.karate_club_graph()
         for n in G.nodes():
@@ -280,7 +280,7 @@ class TestGraphSerialization:
 
     def test_record_to_graph_no_mutation(self):
         """Test record_to_graph doesn't mutate input."""
-        from figrecipe._graph import graph_to_record, record_to_graph
+        from figrecipe._graph._core import graph_to_record, record_to_graph
 
         G = networkx.Graph()
         G.add_node("A", label="Node A")
@@ -454,7 +454,7 @@ class TestGraphExports:
     def test_register_graph_preset_export(self):
         """Test register_graph_preset is exported."""
         import figrecipe as fr
-        from figrecipe._graph_presets import unregister_preset
+        from figrecipe._graph._presets import unregister_preset
 
         fr.register_graph_preset("test_export", {"layout": "circular"})
         preset = fr.get_graph_preset("test_export")
@@ -469,7 +469,7 @@ class TestGraphValidation:
 
     def test_multigraph_raises_error(self):
         """Test that MultiGraph raises clear error."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.MultiGraph()
         G.add_edge("A", "B", weight=1)
@@ -482,7 +482,7 @@ class TestGraphValidation:
 
     def test_multidigraph_raises_error(self):
         """Test that MultiDiGraph raises clear error."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.MultiDiGraph()
         G.add_edge("A", "B", weight=1)
@@ -495,7 +495,7 @@ class TestGraphValidation:
 
     def test_tuple_node_id_raises_error(self):
         """Test that tuple node IDs raise clear error."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_node((0, 0))
@@ -509,7 +509,7 @@ class TestGraphValidation:
 
     def test_empty_graph(self):
         """Test empty graph handling."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         fig, ax = plt.subplots()
@@ -519,7 +519,7 @@ class TestGraphValidation:
 
     def test_single_node(self):
         """Test single node graph."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_node("A")
@@ -530,7 +530,7 @@ class TestGraphValidation:
 
     def test_disconnected_components(self):
         """Test graph with disconnected components."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_edges_from([("A", "B"), ("C", "D")])
@@ -541,7 +541,7 @@ class TestGraphValidation:
 
     def test_self_loop(self):
         """Test graph with self-loop."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_edge("A", "A")
@@ -552,7 +552,7 @@ class TestGraphValidation:
 
     def test_integer_node_ids(self):
         """Test integer node IDs work correctly."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_edges_from([(1, 2), (2, 3)])
@@ -563,7 +563,7 @@ class TestGraphValidation:
 
     def test_float_node_ids(self):
         """Test float node IDs work correctly."""
-        from figrecipe._graph import draw_graph
+        from figrecipe._graph._core import draw_graph
 
         G = networkx.Graph()
         G.add_edges_from([(1.0, 2.0), (2.0, 3.0)])

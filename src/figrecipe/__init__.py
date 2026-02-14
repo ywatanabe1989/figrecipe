@@ -84,7 +84,7 @@ from ._composition import align_panels, align_smart, compose, distribute_panels
 from ._diagram import Diagram
 from ._diagram._graphviz.graphviz import Graphviz
 from ._diagram._mermaid.mermaid import Mermaid
-from ._graph_presets import get_preset as get_graph_preset
+from ._graph._presets import get_preset as get_graph_preset
 
 # Deprecated alias for downstream compatibility (scitex.plt)
 Schematic = Diagram
@@ -104,8 +104,8 @@ class _SnsModule:
 
 
 sns = _SnsModule()
-from ._graph_presets import list_presets as list_graph_presets
-from ._graph_presets import register_preset as register_graph_preset
+from ._graph._presets import list_presets as list_graph_presets
+from ._graph._presets import register_preset as register_graph_preset
 
 # =============================================================================
 # PUBLIC API (__all__ controls tab-completion - keep minimal)
