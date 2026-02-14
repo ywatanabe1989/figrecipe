@@ -59,13 +59,13 @@ echo_success "Sync complete"
 echo_header "Running pytest on ${HPC_HOST} (srun: ${HPC_CPUS} CPUs, ${HPC_PARTITION})"
 
 # shellcheck disable=SC2029  # Intentional client-side expansion
-ssh "${HPC_HOST}" "srun \
+ssh "${HPC_HOST}" "bash -lc 'srun \
     --partition=${HPC_PARTITION} \
     --cpus-per-task=${HPC_CPUS} \
     --time=${HPC_TIME} \
     --mem=${HPC_MEM} \
     --job-name=pytest-${PROJECT} \
-    bash -lc 'cd ${REMOTE_BASE}/${PROJECT} && pip install -e . -q 2>/dev/null && python -m pytest tests/ -n ${HPC_CPUS} --dist loadfile -x -q --tb=short'" 2>&1 | tee -a "$LOG_PATH"
+    bash -lc \"cd ${REMOTE_BASE}/${PROJECT} && pip install -e . -q 2>/dev/null && python -m pytest tests/ -n ${HPC_CPUS} --dist loadfile -x -q --tb=short\"'" 2>&1 | tee -a "$LOG_PATH"
 
 EXIT_CODE=${PIPESTATUS[0]}
 

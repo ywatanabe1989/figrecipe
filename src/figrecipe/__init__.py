@@ -82,9 +82,9 @@ from ._api._style_manager import list_presets, load_style, unload_style
 from ._bundle import load_bundle, reproduce_bundle, save_bundle
 from ._composition import align_panels, align_smart, compose, distribute_panels
 from ._diagram import Diagram
+from ._diagram._graphviz.graphviz import Graphviz
+from ._diagram._mermaid.mermaid import Mermaid
 from ._graph_presets import get_preset as get_graph_preset
-from .graphviz import Graphviz
-from .mermaid import Mermaid
 
 # Deprecated alias for downstream compatibility (scitex.plt)
 Schematic = Diagram
