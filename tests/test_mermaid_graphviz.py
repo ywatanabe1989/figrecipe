@@ -66,13 +66,13 @@ class TestMermaidClass:
         with pytest.raises(ValueError, match="PDF"):
             m.render("/tmp/test.pdf", format="pdf", backend="mermaid.ink")
 
-    @patch("figrecipe.mermaid._check_mermaid_cli", return_value=False)
+    @patch("figrecipe._diagram._mermaid.mermaid._check_mermaid_cli", return_value=False)
     def test_render_mermaid_cli_not_found(self, _mock):
         m = Mermaid("graph TD; A-->B;")
         with pytest.raises(RuntimeError, match="mmdc"):
             m.render("/tmp/test.png", backend="mermaid-cli")
 
-    @patch("figrecipe.mermaid._check_mermaid_cli", return_value=False)
+    @patch("figrecipe._diagram._mermaid.mermaid._check_mermaid_cli", return_value=False)
     def test_auto_fallback_warns(self, _mock):
         """Auto backend warns when falling back to mermaid.ink."""
         import urllib.error
@@ -130,7 +130,7 @@ class TestGraphvizClass:
             content = result.read_text()
             assert "<svg" in content
 
-    @patch("figrecipe.graphviz._check_graphviz", return_value=False)
+    @patch("figrecipe._diagram._graphviz.graphviz._check_graphviz", return_value=False)
     def test_render_not_found(self, _mock):
         g = Graphviz("digraph { A -> B }")
         with pytest.raises(RuntimeError, match="dot"):
