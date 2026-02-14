@@ -205,7 +205,9 @@ class Diagram:
         if self._gap_mm is not None and x_mm is None and y_mm is None:
             if height_mm is None:
                 height_mm = self._auto_box_height(box)
-            w = width_mm if width_mm is not None else self.width_mm * 0.5
+            from ._schematic_flex import auto_box_width
+
+            w = width_mm if width_mm is not None else auto_box_width(box)
             self._positions[id] = PositionSpec(
                 x_mm=0,
                 y_mm=0,
