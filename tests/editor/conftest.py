@@ -19,15 +19,24 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 
 def check_playwright_available() -> bool:
-    """Check if playwright is available."""
+    """Check if playwright and its browser binaries are available."""
     import importlib.util
 
-    return importlib.util.find_spec("playwright") is not None
+    if importlib.util.find_spec("playwright") is None:
+        return False
+    try:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as p:
+            path = p.chromium.executable_path
+            return Path(path).exists()
+    except Exception:
+        return False
 
 
 requires_playwright = pytest.mark.skipif(
     not check_playwright_available(),
-    reason="Playwright not installed. Install with: pip install playwright && playwright install chromium",
+    reason="Playwright or Chromium browser not available",
 )
 
 

@@ -1,5 +1,7 @@
 """Root conftest for figrecipe tests."""
 
+import gc
+
 import matplotlib.pyplot as plt
 import pytest
 
@@ -9,3 +11,4 @@ def _close_figures():
     """Close all matplotlib figures after each test to prevent memory leaks."""
     yield
     plt.close("all")
+    gc.collect()
