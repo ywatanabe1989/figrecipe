@@ -83,6 +83,9 @@ from ._bundle import load_bundle, reproduce_bundle, save_bundle
 from ._composition import align_panels, align_smart, compose, distribute_panels
 from ._graph_presets import get_preset as get_graph_preset
 from ._schematic import Diagram
+
+# Deprecated alias for downstream compatibility (scitex.plt)
+Schematic = Diagram
 from ._seaborn import get_seaborn_recorder as _get_sns
 
 
