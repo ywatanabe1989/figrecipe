@@ -271,7 +271,7 @@ def render(
 @diagram.command("backends")
 def backends():
     """Show available rendering backends and their status."""
-    from .._diagram._render import get_available_backends
+    from .._diagram._shared._render import get_available_backends
 
     backend_info = get_available_backends()
 

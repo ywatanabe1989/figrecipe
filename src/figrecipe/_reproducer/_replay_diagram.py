@@ -28,7 +28,7 @@ def replay_diagram_call(ax: Axes, call: CallRecord) -> Any:
     dict
         Result containing renderer and positions.
     """
-    from .._diagram._native_render import DiagramRenderer
+    from .._diagram._shared._native_render import DiagramRenderer
 
     kwargs = call.kwargs.copy()
     diagram_data = kwargs.pop("diagram_data", None)
@@ -54,7 +54,7 @@ def replay_diagram_call(ax: Axes, call: CallRecord) -> Any:
 
     # Add title if specified
     if renderer.spec.title:
-        from .._diagram._styles_native import FONT_CONFIG
+        from .._diagram._shared._styles_native import FONT_CONFIG
 
         ax.set_title(
             renderer.spec.title,
@@ -83,19 +83,21 @@ def replay_schematic_call(ax: Axes, call: CallRecord) -> Any:
     tuple
         (figure, axes) after rendering.
     """
-    from .._schematic._schematic import Diagram
+    from .._diagram._diagram._core import Diagram
 
     kwargs = call.kwargs.copy()
-    schematic_data = kwargs.pop("schematic_data", None)
+    diagram_data = kwargs.pop("diagram_data", None) or kwargs.pop(
+        "schematic_data", None
+    )
 
-    if schematic_data is None:
+    if diagram_data is None:
         import warnings
 
-        warnings.warn("Diagram call missing schematic_data")
+        warnings.warn("Diagram call missing diagram_data")
         return None
 
-    # Reconstruct schematic from serialized data
-    info = Diagram.from_dict(schematic_data)
+    # Reconstruct diagram from serialized data
+    info = Diagram.from_dict(diagram_data)
 
     # Render to provided axes
     fig, rendered_ax = info.render(ax=ax)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2026-02-02 (ywatanabe)"
-# File: /home/ywatanabe/proj/figrecipe/tests/test_schematic.py
+# File: /home/ywatanabe/proj/figrecipe/tests/test_diagram.py
 
 """Tests for Diagram API."""
 
@@ -311,7 +311,7 @@ class TestGeomHelpers:
 
     def test_seg_rect_clip_len_through(self):
         """Segment fully inside rect returns correct clipped length."""
-        from figrecipe._schematic._schematic_geom import seg_rect_clip_len
+        from figrecipe._diagram._diagram._geom import seg_rect_clip_len
 
         # Horizontal segment y=5, from x=0 to x=10, box [2,0,8,10]
         clip = seg_rect_clip_len(0, 5, 10, 5, 2, 0, 8, 10)
@@ -319,7 +319,7 @@ class TestGeomHelpers:
 
     def test_seg_rect_clip_len_miss(self):
         """Segment missing rect returns 0."""
-        from figrecipe._schematic._schematic_geom import seg_rect_clip_len
+        from figrecipe._diagram._diagram._geom import seg_rect_clip_len
 
         clip = seg_rect_clip_len(0, 20, 10, 20, 0, 0, 10, 10)
         assert clip == 0.0  # segment at y=20, box only up to y=10
@@ -328,7 +328,7 @@ class TestGeomHelpers:
         """Diagonal segment partially inside rect."""
         import math
 
-        from figrecipe._schematic._schematic_geom import seg_rect_clip_len
+        from figrecipe._diagram._diagram._geom import seg_rect_clip_len
 
         # Diagonal from (0,0) to (10,10), box [3,3,7,7]
         clip = seg_rect_clip_len(0, 0, 10, 10, 3, 3, 7, 7)

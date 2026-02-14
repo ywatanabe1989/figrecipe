@@ -27,6 +27,7 @@ class DiagramMixin:
         *,
         id: Optional[str] = None,
         track: bool = True,
+        auto_fix: bool = False,
     ):
         """Draw a box-and-arrow diagram with native matplotlib rendering.
 
@@ -40,6 +41,8 @@ class DiagramMixin:
             Custom ID for this call.
         track : bool
             Whether to record this call for reproducibility.
+        auto_fix : bool
+            Auto-resolve layout violations before rendering.
 
         Returns
         -------
@@ -53,6 +56,7 @@ class DiagramMixin:
             self._position,
             self._track and track,
             id,
+            auto_fix=auto_fix,
         )
 
 
@@ -63,6 +67,8 @@ def schematic_plot(
     position: Tuple[int, int],
     track: bool,
     call_id: Optional[str],
+    *,
+    auto_fix: bool = False,
 ) -> Tuple[Figure, "Axes"]:
     """Draw a FigRecipe Diagram with native matplotlib rendering.
 
@@ -89,7 +95,7 @@ def schematic_plot(
         (figure, axes) after rendering.
     """
 
-    from .._schematic._schematic import Diagram
+    from .._diagram._diagram._core import Diagram
 
     # Convert dict to Diagram if needed
     if isinstance(schematic, dict):
@@ -109,18 +115,18 @@ def schematic_plot(
     fig.set_size_inches(x_range / 25.4, y_range / 25.4)
 
     # Render to the provided axes
-    fig, rendered_ax = info.render(ax=ax)
+    fig, rendered_ax = info.render(ax=ax, auto_fix=auto_fix)
 
     # Post-render validations (skipped inside render() when ax is provided)
     # Errors are stored on the figure so fr.save() can save _FAILED figures
-    from .._schematic import _schematic_validate as _sv
+    from .._diagram._diagram import _validate as _sv
 
     try:
         _sv.validate_all(info, fig=fig, ax=rendered_ax)
     except ValueError as e:
-        if not hasattr(fig, "_schematic_validation_errors"):
-            fig._schematic_validation_errors = []
-        fig._schematic_validation_errors.append(str(e))
+        if not hasattr(fig, "_diagram_validation_errors"):
+            fig._diagram_validation_errors = []
+        fig._diagram_validation_errors.append(str(e))
 
     # Record for reproducibility
     if track:
@@ -146,13 +152,13 @@ def _record_schematic_call(
     final_id = call_id if call_id else recorder._generate_call_id("diagram")
 
     # Serialize diagram data for recipe
-    schematic_data = info.to_dict()
+    diagram_data = info.to_dict()
 
     record = CallRecord(
         id=final_id,
         function="diagram",
         args=[],
-        kwargs={"schematic_data": schematic_data},
+        kwargs={"diagram_data": diagram_data},
         ax_position=position,
     )
     ax_record = recorder.figure_record.get_or_create_axes(*position)

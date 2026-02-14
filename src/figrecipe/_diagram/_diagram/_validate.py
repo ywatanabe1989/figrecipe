@@ -16,14 +16,14 @@ Rules (all enforced programmatically):
 
 from typing import TYPE_CHECKING
 
-from ._schematic_geom import bbox_gap, box_rect, rects_overlap, seg_rect_clip_len
+from ._geom import bbox_gap, box_rect, rects_overlap, seg_rect_clip_len
 
 # Centralised thresholds
 MIN_MARGIN_MM = 2.0  # R5, R6
 MIN_VISIBLE = 0.9  # R7
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram
+    from ._core import Diagram
 
 
 def validate_containers(schematic: "Diagram") -> None:

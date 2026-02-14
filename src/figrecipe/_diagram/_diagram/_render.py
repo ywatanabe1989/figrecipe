@@ -10,12 +10,12 @@ from matplotlib.patches import (
     FancyBboxPatch,
 )
 
-from .._diagram._styles_native import COLORS as _COLORS
-from .._diagram._styles_native import get_edge_style, get_emphasis_style
-from .._utils._units import mm_to_pt
+from ..._utils._units import mm_to_pt
+from .._shared._styles_native import COLORS as _COLORS
+from .._shared._styles_native import get_edge_style, get_emphasis_style
 
 if TYPE_CHECKING:
-    from ._schematic import ArrowSpec, BoxSpec, Diagram
+    from ._core import ArrowSpec, BoxSpec, Diagram
 
 
 def _render_cylinder(ax, pos, fill, border, zorder=2):
@@ -267,7 +267,7 @@ def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None
 
     # Codeblock with language: override colors from Emacs theme unless explicit
     if box.shape == "codeblock" and box.language and not box.fill_color:
-        from ._schematic_codeblock import _find_default_theme, parse_emacs_theme
+        from ._codeblock import _find_default_theme, parse_emacs_theme
 
         theme_path = _find_default_theme()
         if theme_path:
@@ -306,7 +306,7 @@ def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None
 
     # Codeblock with syntax highlighting gets special text rendering
     if box.shape == "codeblock" and box.content and box.language:
-        from ._schematic_codeblock import render_codeblock_text
+        from ._codeblock import render_codeblock_text
 
         render_codeblock_text(ax, pos, box, fill, title_color, colors)
         schematic._render_info[bid] = {"pos": pos}
@@ -361,7 +361,7 @@ def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None
 
 def render_icon(schematic, ax, iid, icon):
     """Delegate to icons module."""
-    from ._schematic_icons import render_icon as _ri
+    from ._icons import render_icon as _ri
 
     _ri(schematic, ax, iid, icon)
 
@@ -442,7 +442,7 @@ def render_arrow(schematic: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
     ax.add_patch(patch)
 
     if arrow.label:
-        from ._schematic_validate import compute_arrow_label_position
+        from ._validate import compute_arrow_label_position
 
         lx, ly = compute_arrow_label_position(
             start, end, arrow.curve, arrow.label_offset_mm

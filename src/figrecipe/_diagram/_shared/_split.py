@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
 
-from figrecipe._diagram._schema import DiagramSpec
+from ._schema import DiagramSpec
 
 
 class SplitStrategy(Enum):

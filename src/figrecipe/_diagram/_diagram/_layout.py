@@ -9,7 +9,7 @@ Uses networkx for layout computation with graceful fallback.
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram
+    from ._core import Diagram
 
 # Default box sizes in mm (must fit text + padding comfortably)
 DEFAULT_WIDTH_MM = 40.0
@@ -27,7 +27,7 @@ def auto_layout(
     align_items: str = "center",
 ) -> None:
     """Automatically position boxes. See Diagram.auto_layout for full docs."""
-    from ._schematic import PositionSpec
+    from ._core import PositionSpec
 
     # Default box size
     w, h = box_size_mm or (DEFAULT_WIDTH_MM, DEFAULT_HEIGHT_MM)
@@ -161,7 +161,7 @@ def auto_layout(
 
     # Apply collision avoidance if requested
     if avoid_overlap:
-        from ._schematic_overlap import resolve_overlaps
+        from ._overlap import resolve_overlaps
 
         resolve_overlaps(info, gap_mm, x_min, x_max, y_min, y_max)
 

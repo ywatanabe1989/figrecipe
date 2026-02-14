@@ -1,112 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: 2025-01-24
-# File: figrecipe/_diagram/_render.py
+"""Shared render dispatch for diagrams."""
 
-"""
-Render diagrams to image files (PNG, SVG, PDF).
-
-Supports multiple backends:
-- mermaid-cli (mmdc): Best quality, requires Node.js
-- graphviz (dot): Good for DOT format, requires graphviz
-- mermaid.ink: Online API, no installation needed
-"""
-
-import base64
-import shutil
-import subprocess
-import tempfile
-import urllib.parse
-import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ._diagram import Diagram
-
-
-def _check_mermaid_cli() -> bool:
-    """Check if mermaid-cli (mmdc) is available."""
-    return shutil.which("mmdc") is not None
-
-
-def _check_graphviz() -> bool:
-    """Check if graphviz (dot) is available."""
-    return shutil.which("dot") is not None
-
-
-def _render_with_mermaid_cli(
-    mermaid_content: str,
-    output_path: Path,
-    format: str,
-    scale: float,
-) -> Path:
-    """Render using mermaid-cli (mmdc)."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".mmd", delete=False) as f:
-        f.write(mermaid_content)
-        mmd_path = f.name
-
-    try:
-        cmd = [
-            "mmdc",
-            "-i",
-            mmd_path,
-            "-o",
-            str(output_path),
-            "-s",
-            str(scale),
-            "-b",
-            "transparent",
-        ]
-        if format == "pdf":
-            cmd.extend(["-e", "pdf"])
-
-        subprocess.run(cmd, check=True, capture_output=True)
-        return output_path
-    finally:
-        Path(mmd_path).unlink(missing_ok=True)
-
-
-def _render_with_graphviz(
-    dot_content: str,
-    output_path: Path,
-    format: str,
-) -> Path:
-    """Render using graphviz (dot)."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".dot", delete=False) as f:
-        f.write(dot_content)
-        dot_path = f.name
-
-    try:
-        format_arg = format if format != "png" else "png"
-        cmd = ["dot", f"-T{format_arg}", dot_path, "-o", str(output_path)]
-        subprocess.run(cmd, check=True, capture_output=True)
-        return output_path
-    finally:
-        Path(dot_path).unlink(missing_ok=True)
-
-
-def _render_with_mermaid_ink(
-    mermaid_content: str,
-    output_path: Path,
-    format: str,
-) -> Path:
-    """Render using mermaid.ink online API."""
-    # Encode the Mermaid content
-    encoded = base64.urlsafe_b64encode(mermaid_content.encode()).decode()
-
-    # Build URL
-    if format == "svg":
-        url = f"https://mermaid.ink/svg/{encoded}"
-    else:
-        url = f"https://mermaid.ink/img/{encoded}"
-
-    # Download the image
-    with urllib.request.urlopen(url, timeout=30) as response:
-        content = response.read()
-
-    output_path.write_bytes(content)
-    return output_path
+    from ._graph import Diagram
 
 
 def render_diagram(
@@ -137,6 +37,13 @@ def render_diagram(
     Path
         Path to the rendered file.
     """
+    from .._graphviz._render import _check_graphviz, _render_with_graphviz
+    from .._mermaid._render import (
+        _check_mermaid_cli,
+        _render_with_mermaid_cli,
+        _render_with_mermaid_ink,
+    )
+
     output_path = Path(path)
     format = format.lower()
 
@@ -178,6 +85,9 @@ def render_diagram(
 
 def get_available_backends() -> dict:
     """Get available rendering backends and their status."""
+    from .._graphviz._render import _check_graphviz
+    from .._mermaid._render import _check_mermaid_cli
+
     return {
         "mermaid-cli": {
             "available": _check_mermaid_cli(),
@@ -195,3 +105,6 @@ def get_available_backends() -> dict:
             "formats": ["png", "svg"],
         },
     }
+
+
+__all__ = ["render_diagram", "get_available_backends"]

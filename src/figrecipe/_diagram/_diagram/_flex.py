@@ -11,7 +11,7 @@ or vertically (direction="column").
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram
+    from ._core import Diagram
 
 # Minimum gap between elements connected by an arrow (mm).
 # Ensures the arrow shaft is visible beyond the arrowhead.
@@ -88,7 +88,7 @@ def _pairwise_gaps(base_gap: float, items: list, connected: set) -> list:
 
 def _compute_container_size(info: "Diagram", cid: str, connected: set) -> None:
     """Compute container intrinsic size from its children (recursive)."""
-    from ._schematic import PositionSpec
+    from ._core import PositionSpec
 
     container = info._containers[cid]
     children = container["children"]

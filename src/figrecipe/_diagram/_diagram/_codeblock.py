@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
-    from ._schematic import BoxSpec, PositionSpec
+    from ._core import BoxSpec, PositionSpec
 
 # Pygments token type → Emacs font-lock face name
 _TOKEN_TO_FACE: Dict = {}

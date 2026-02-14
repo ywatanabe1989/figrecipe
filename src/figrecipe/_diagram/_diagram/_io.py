@@ -5,7 +5,7 @@
 from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
-    from ._schematic import Diagram
+    from ._core import Diagram
 
 
 def schematic_to_dict(info: "Diagram") -> Dict[str, Any]:
@@ -96,7 +96,7 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
     Diagram
         Reconstructed schematic.
     """
-    from ._schematic import ArrowSpec, BoxSpec, Diagram, PositionSpec
+    from ._core import ArrowSpec, BoxSpec, Diagram, PositionSpec
 
     width_mm = data.get("width_mm", 200.0)
     height_mm = data.get("height_mm", 120.0)
