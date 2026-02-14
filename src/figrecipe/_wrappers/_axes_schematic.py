@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Schematic visualization mixin for RecordingAxes."""
+"""Diagram visualization mixin for RecordingAxes."""
 
 from typing import TYPE_CHECKING, Optional, Tuple
 
@@ -34,7 +34,7 @@ class DiagramMixin:
         ----------
         diagram : Diagram or dict
             The diagram to render. Can be:
-            - Diagram instance (or legacy Schematic)
+            - Diagram instance (or legacy Diagram)
             - Dictionary with diagram specification
         id : str, optional
             Custom ID for this call.
@@ -55,9 +55,6 @@ class DiagramMixin:
             id,
         )
 
-    # Backward compatibility alias
-    schematic = diagram
-
 
 def schematic_plot(
     ax: "Axes",
@@ -67,15 +64,15 @@ def schematic_plot(
     track: bool,
     call_id: Optional[str],
 ) -> Tuple[Figure, "Axes"]:
-    """Draw a FigRecipe Schematic with native matplotlib rendering.
+    """Draw a FigRecipe Diagram with native matplotlib rendering.
 
     Parameters
     ----------
     ax : Axes
         The matplotlib axes to draw on.
-    schematic : Schematic or dict
+    schematic : Diagram or dict
         The schematic to render. Can be:
-        - Schematic instance
+        - Diagram instance
         - Dictionary with schematic specification
     recorder : Recorder
         The recorder instance for tracking calls.
@@ -92,15 +89,15 @@ def schematic_plot(
         (figure, axes) after rendering.
     """
 
-    from .._schematic._schematic import Schematic
+    from .._schematic._schematic import Diagram
 
-    # Convert dict to Schematic if needed
+    # Convert dict to Diagram if needed
     if isinstance(schematic, dict):
-        info = Schematic.from_dict(schematic)
-    elif isinstance(schematic, Schematic):
+        info = Diagram.from_dict(schematic)
+    elif isinstance(schematic, Diagram):
         info = schematic
     else:
-        raise TypeError(f"schematic must be Schematic or dict, got {type(schematic)}")
+        raise TypeError(f"schematic must be Diagram or dict, got {type(schematic)}")
 
     # Resolve auto-height before sizing the figure
     info._finalize_canvas_size()
@@ -162,7 +159,4 @@ def _record_schematic_call(
     ax_record.add_call(record)
 
 
-__all__ = ["DiagramMixin", "SchematicMixin", "schematic_plot"]
-
-# Backward compatibility alias
-SchematicMixin = DiagramMixin
+__all__ = ["DiagramMixin", "schematic_plot"]

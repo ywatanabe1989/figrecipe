@@ -4,7 +4,7 @@
 !-- File: /home/ywatanabe/proj/figrecipe/src/figrecipe/_schematic/README.md
 !-- --- -->
 
-# Schematic Module
+# Diagram Module
 
 Publication-quality box-and-arrow diagrams with programmatic layout validation.
 
@@ -13,7 +13,7 @@ Publication-quality box-and-arrow diagrams with programmatic layout validation.
 ```python
 import figrecipe as fr
 
-s = fr.Schematic(width_mm=170, height_mm=120)
+s = fr.Diagram(width_mm=170, height_mm=120)
 s.add_box("a", "Input", x_mm=30, y_mm=60, width_mm=40, height_mm=25)
 s.add_box("b", "Output", x_mm=130, y_mm=60, width_mm=40, height_mm=25)
 s.add_arrow("a", "b", label="process")
@@ -111,7 +111,7 @@ Every element has an ID for precise error reporting:
 
 ```
 _schematic/
-  __init__.py              # Exports: Schematic
+  __init__.py              # Exports: Diagram
   _schematic.py            # Builder, render, ArrowSpec, BoxSpec
   _schematic_validate.py   # All validation rules (R1-R8)
   _schematic_layout.py     # auto_layout() algorithms

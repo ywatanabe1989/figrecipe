@@ -3,7 +3,7 @@
 # Timestamp: "2026-02-02 (ywatanabe)"
 # File: /home/ywatanabe/proj/figrecipe/tests/test_schematic.py
 
-"""Tests for Schematic API."""
+"""Tests for Diagram API."""
 
 import tempfile
 from pathlib import Path
@@ -138,7 +138,7 @@ class TestSerialization:
                 "a": {"x_mm": 100, "y_mm": 60, "width_mm": 40, "height_mm": 25}
             },
         }
-        s = fr.Schematic.from_dict(data)
+        s = fr.Diagram.from_dict(data)
         assert s.title == "Test"
         assert "a" in s._boxes
         assert s._positions["a"].x_mm == 100
@@ -151,7 +151,7 @@ class TestSerialization:
         s.add_arrow("a", "b")
 
         data = s.to_dict()
-        s2 = fr.Schematic.from_dict(data)
+        s2 = fr.Diagram.from_dict(data)
         assert s2.width_mm == 250.0
         assert s2.height_mm == 150.0
         assert s2._positions["a"].x_mm == 100
@@ -401,7 +401,7 @@ class TestAutoHeight:
         assert pos.height_mm == 18.0
 
     def test_auto_canvas_height(self):
-        """Test Schematic(height_mm=None) computes canvas from elements."""
+        """Test Diagram(height_mm=None) computes canvas from elements."""
         s = fr.Diagram(title="Auto", width_mm=100, height_mm=None)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=20)
         s.add_box("b", title="B", x_mm=50, y_mm=20, width_mm=40, height_mm=20)
@@ -446,7 +446,7 @@ class TestAutoHeight:
 
 
 class TestFlexLayout:
-    """Tests for CSS flexbox-like layout (gap_mm on Schematic)."""
+    """Tests for CSS flexbox-like layout (gap_mm on Diagram)."""
 
     def test_flex_basic_stacking(self):
         """Three boxes stacked vertically with gap_mm=10."""
@@ -617,23 +617,6 @@ class TestFlexLayout:
         assert s._positions["header"].y_mm > s._positions["inner"].y_mm
         # x left of y within inner
         assert s._positions["x"].x_mm < s._positions["y"].x_mm
-
-
-class TestBackwardCompat:
-    """Test backward compatibility aliases."""
-
-    def test_schematic_alias_is_diagram(self):
-        """fr.Schematic is an alias for fr.Diagram."""
-        assert fr.Schematic is fr.Diagram
-
-    def test_ax_schematic_alias(self):
-        """ax.schematic() works as alias for ax.diagram()."""
-        s = fr.Diagram()
-        s.add_box("a", title="A")
-        s.auto_layout("lr")
-        fig, ax = fr.subplots()
-        ax.schematic(s, id="compat_test")
-        assert fig is not None
 
 
 # EOF

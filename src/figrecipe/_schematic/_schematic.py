@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Schematic diagram builder for rich scientific diagrams."""
+"""Diagram builder for rich scientific diagrams."""
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -117,7 +117,7 @@ class Diagram:
 
         if width_mm > 185.0:
             warnings.warn(
-                f"Schematic width {width_mm}mm exceeds 185mm (double-column max).",
+                f"Diagram width {width_mm}mm exceeds 185mm (double-column max).",
                 stacklevel=2,
             )
         self.title = title
@@ -165,7 +165,7 @@ class Diagram:
         node_class: Optional[str] = None,
         state: Optional[str] = None,
         language: Optional[str] = None,
-    ) -> "Schematic":
+    ) -> "Diagram":
         """Add a rich text box.
 
         node_class: semantic role (source/input/processing/output/claim/code).
@@ -243,7 +243,7 @@ class Diagram:
         direction: str = "row",
         container_gap_mm: float = 8.0,
         container_padding_mm: float = 8.0,
-    ) -> "Schematic":
+    ) -> "Diagram":
         """Add a container (direction/container_gap_mm/container_padding_mm for flex)."""
         self._containers[id] = {
             "title": title,
@@ -277,7 +277,7 @@ class Diagram:
         linewidth_mm: float = 0.5,
         label_offset_mm: Optional[Tuple[float, float]] = None,
         margin_mm: Optional[float] = None,
-    ) -> "Schematic":
+    ) -> "Diagram":
         """Add an arrow connecting two boxes."""
         auto_id = f"arrow:{source}->{target}"
         self._arrows.append(
@@ -308,7 +308,7 @@ class Diagram:
         height_mm: float = 8.0,
         color: Optional[str] = None,
         opacity: float = 1.0,
-    ) -> "Schematic":
+    ) -> "Diagram":
         """Add an icon (SVG/PNG file path or built-in name).
 
         Built-in icons: 'warning', 'check', 'cross', 'info', 'lock'.
@@ -348,7 +348,7 @@ class Diagram:
         avoid_overlap: bool = True,
         justify: str = "space-between",
         align_items: str = "center",
-    ) -> "Schematic":
+    ) -> "Diagram":
         """Automatically position boxes. See _schematic_layout for details."""
         from ._schematic_layout import auto_layout
 
@@ -491,19 +491,15 @@ class Diagram:
         return schematic_to_dict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Schematic":
-        """Create Schematic from dictionary (recipe reproduction)."""
+    def from_dict(cls, data: Dict[str, Any]) -> "Diagram":
+        """Create Diagram from dictionary (recipe reproduction)."""
         from ._schematic_io import schematic_from_dict
 
         return schematic_from_dict(data)
 
 
-# Backward compatibility alias
-Schematic = Diagram
-
 __all__ = [
     "Diagram",
-    "Schematic",
     "ArrowSpec",
     "BoxSpec",
     "PositionSpec",

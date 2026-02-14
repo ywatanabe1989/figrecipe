@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Layout validation for Schematic diagrams.
+"""Layout validation for Diagram diagrams.
 
 Rules (all enforced programmatically):
   R1  Container must enclose all children          → ValueError
@@ -23,15 +23,15 @@ MIN_MARGIN_MM = 2.0  # R5, R6
 MIN_VISIBLE = 0.9  # R7
 
 if TYPE_CHECKING:
-    from ._schematic import Schematic
+    from ._schematic import Diagram
 
 
-def validate_containers(schematic: "Schematic") -> None:
+def validate_containers(schematic: "Diagram") -> None:
     """Check that every container fully encloses its declared children.
 
     Parameters
     ----------
-    schematic : Schematic
+    schematic : Diagram
         The schematic to validate.
 
     Raises
@@ -82,7 +82,7 @@ def validate_containers(schematic: "Schematic") -> None:
                 )
 
 
-def validate_no_overlap(schematic: "Schematic") -> None:
+def validate_no_overlap(schematic: "Diagram") -> None:
     """Check that no two boxes overlap each other.
 
     Containers are excluded — only boxes are checked.
@@ -183,7 +183,7 @@ def validate_text_no_overlap(fig, ax, min_overlap_ratio=0.05) -> None:
 
 
 def validate_container_title_clearance(
-    schematic: "Schematic", min_gap_mm: float = 3.0
+    schematic: "Diagram", min_gap_mm: float = 3.0
 ) -> None:
     """Warn if container title area overlaps with children.
 
@@ -217,7 +217,7 @@ def validate_container_title_clearance(
                 )
 
 
-def validate_text_fits_boxes(schematic: "Schematic") -> None:
+def validate_text_fits_boxes(schematic: "Diagram") -> None:
     """Warn if a box has more text lines than fit within its padded area.
 
     Estimates text height from font sizes (1pt ≈ 0.35mm) and checks
@@ -345,7 +345,7 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
             )
 
 
-def validate_arrow_label_side(schematic: "Schematic") -> None:
+def validate_arrow_label_side(schematic: "Diagram") -> None:
     """R8: Curved-arrow label must be on same side as arc bulge.
 
     For each arrow with curve != 0 and a label, checks that the final
@@ -426,7 +426,7 @@ def compute_arrow_label_position(start, end, curve, label_offset_mm=None):
     return mx, my
 
 
-def validate_canvas_bounds(schematic: "Schematic") -> None:
+def validate_canvas_bounds(schematic: "Diagram") -> None:
     """R9: Check that all boxes and containers are within canvas bounds.
 
     Uses xlim/ylim (which may differ from 0..width/height after auto-layout

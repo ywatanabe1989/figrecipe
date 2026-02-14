@@ -4,10 +4,10 @@
 # File: /home/ywatanabe/proj/figrecipe/examples/10_figrecipe_concept_schematic.py
 
 
-"""FigRecipe concept diagram using fr.Schematic.
+"""FigRecipe concept diagram using fr.Diagram.
 
 Recreates the FigRecipe architecture concept diagram using the
-Schematic API with manual mm-based positioning.
+Diagram API with manual mm-based positioning.
 NOTE: x_mm/y_mm is the CENTER of the box, not bottom-left.
 
 Outputs:
@@ -30,11 +30,11 @@ def main(
     CONFIG=stx.session.INJECTED,
     logger=stx.session.INJECTED,
 ):
-    """Generate FigRecipe concept schematic."""
+    """Generate FigRecipe concept diagram."""
     out = Path(CONFIG.SDIR_OUT)
 
     W, H = 170, 145
-    s = fr.Schematic(
+    s = fr.Diagram(
         title="FigRecipe: Reproducible Scientific Figures",
         width_mm=W,
         height_mm=H,
@@ -174,7 +174,7 @@ def main(
 
     # Render
     fig, ax = fr.subplots()
-    ax.schematic(s, id="figrecipe_concept")
+    ax.diagram(s, id="figrecipe_concept")
     fr.save(fig, out / "figrecipe_concept.png", validate=False)
 
     logger.info(f"Saved to: {out}/figrecipe_concept.png")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Interactive editor for Schematic diagrams.
+"""Interactive editor for Diagram diagrams.
 
 Provides a simple matplotlib-based GUI for dragging boxes to adjust positions.
 Saves updated positions back to recipe YAML.
@@ -14,14 +14,14 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.patches import FancyBboxPatch, Rectangle
 
 if TYPE_CHECKING:
-    from ._schematic import Schematic
+    from ._schematic import Diagram
 
 
-class SchematicEditor:
+class DiagramEditor:
     """Interactive editor for adjusting schematic box positions."""
 
-    def __init__(self, info: "Schematic"):
-        """Initialize editor with a Schematic."""
+    def __init__(self, info: "Diagram"):
+        """Initialize editor with a Diagram."""
         self.info = info
         self._selected_box: Optional[str] = None
         self._drag_offset: Tuple[float, float] = (0.0, 0.0)
@@ -33,11 +33,11 @@ class SchematicEditor:
         self._drag_ghost: Optional[Rectangle] = None
         self._background = None
 
-    def run(self, save_path: Optional[Path] = None) -> "Schematic":
+    def run(self, save_path: Optional[Path] = None) -> "Diagram":
         """Launch interactive editor."""
         self._fig, self._ax = self.info.render()
         self._fig.canvas.manager.set_window_title(
-            "Schematic Editor - Drag boxes to adjust"
+            "Diagram Editor - Drag boxes to adjust"
         )
 
         # Add instructions
@@ -232,27 +232,27 @@ class SchematicEditor:
 
 
 def edit_schematic(
-    source: "Schematic | Path | str",
+    source: "Diagram | Path | str",
     save_path: Optional[Path] = None,
-) -> "Schematic":
+) -> "Diagram":
     """Launch interactive editor for a schematic.
 
     Parameters
     ----------
-    source : Schematic or Path or str
-        Either a Schematic object or path to recipe YAML.
+    source : Diagram or Path or str
+        Either a Diagram object or path to recipe YAML.
     save_path : Path, optional
         Where to save updated recipe. If source is a Path, defaults to same file.
 
     Returns
     -------
-    Schematic
+    Diagram
         The modified schematic.
 
     Examples
     --------
     >>> import figrecipe as fr
-    >>> schematic = fr.Schematic()
+    >>> schematic = fr.Diagram()
     >>> schematic.add_box("a", title="A")
     >>> schematic.add_box("b", title="B")
     >>> schematic.auto_layout("lr")
@@ -274,7 +274,7 @@ def edit_schematic(
             for call in ax_data.get("calls", []):
                 if call.get("function") == "schematic":
                     info_data = call.get("kwargs", {}).get("schematic_data", {})
-                    info = Schematic.from_dict(info_data)
+                    info = Diagram.from_dict(info_data)
                     break
             else:
                 continue
@@ -284,8 +284,8 @@ def edit_schematic(
     else:
         info = source
 
-    editor = SchematicEditor(info)
+    editor = DiagramEditor(info)
     return editor.run(save_path=save_path)
 
 
-__all__ = ["SchematicEditor", "edit_schematic"]
+__all__ = ["DiagramEditor", "edit_schematic"]

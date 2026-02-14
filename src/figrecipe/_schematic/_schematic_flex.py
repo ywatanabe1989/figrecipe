@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """CSS flexbox-like layout resolver for schematic diagrams.
 
-When a Schematic is created with ``gap_mm`` set, elements added without
+When a Diagram is created with ``gap_mm`` set, elements added without
 explicit x_mm/y_mm are stacked vertically (top-to-bottom) with uniform
 spacing.  Containers arrange their children horizontally (direction="row")
 or vertically (direction="column").
@@ -11,14 +11,14 @@ or vertically (direction="column").
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ._schematic import Schematic
+    from ._schematic import Diagram
 
 
-def resolve_flex_layout(info: "Schematic") -> None:
+def resolve_flex_layout(info: "Diagram") -> None:
     """Resolve positions for all flex-layout elements.
 
     Called from ``_finalize_canvas_size()`` before bounding-box computation.
-    No-op when ``gap_mm`` is not set on the Schematic.
+    No-op when ``gap_mm`` is not set on the Diagram.
     """
     if info._gap_mm is None:
         return
@@ -56,7 +56,7 @@ def resolve_flex_layout(info: "Schematic") -> None:
             _position_children(info, eid)
 
 
-def _compute_container_size(info: "Schematic", cid: str) -> None:
+def _compute_container_size(info: "Diagram", cid: str) -> None:
     """Compute container intrinsic size from its children (recursive)."""
     from ._schematic import PositionSpec
 
@@ -104,7 +104,7 @@ def _compute_container_size(info: "Schematic", cid: str) -> None:
     info._positions[cid] = PositionSpec(0, 0, w, h)
 
 
-def _position_children(info: "Schematic", cid: str) -> None:
+def _position_children(info: "Diagram", cid: str) -> None:
     """Position children within a resolved container."""
     container = info._containers[cid]
     pos = info._positions[cid]

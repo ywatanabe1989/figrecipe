@@ -15,7 +15,7 @@ from .._diagram._styles_native import get_edge_style, get_emphasis_style
 from .._utils._units import mm_to_pt
 
 if TYPE_CHECKING:
-    from ._schematic import ArrowSpec, BoxSpec, Schematic
+    from ._schematic import ArrowSpec, BoxSpec, Diagram
 
 
 def _render_cylinder(ax, pos, fill, border, zorder=2):
@@ -211,9 +211,7 @@ def _render_file(ax, pos, fill, border, zorder=2):
 _AESTHETIC_PAD = 1.0
 
 
-def render_container(
-    schematic: "Schematic", ax: Axes, cid: str, container: Dict
-) -> None:
+def render_container(schematic: "Diagram", ax: Axes, cid: str, container: Dict) -> None:
     """Render a container box."""
     pos = schematic._positions[cid]
     colors = get_emphasis_style(container["emphasis"])
@@ -258,7 +256,7 @@ def render_container(
     schematic._render_info[cid] = {"pos": pos}
 
 
-def render_box(schematic: "Schematic", ax: Axes, bid: str, box: "BoxSpec") -> None:
+def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None:
     """Render a rich text box."""
     pos = schematic._positions[bid]
     colors = get_emphasis_style(box.emphasis)
@@ -368,7 +366,7 @@ def render_icon(schematic, ax, iid, icon):
     _ri(schematic, ax, iid, icon)
 
 
-def render_arrow(schematic: "Schematic", ax: Axes, arrow: "ArrowSpec") -> None:
+def render_arrow(schematic: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
     """Render an arrow."""
     if (
         arrow.source not in schematic._positions

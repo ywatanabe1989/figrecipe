@@ -237,7 +237,7 @@ class TestDiagramImport:
     def test_diagram_in_figrecipe_namespace(self):
         """Test Diagram is accessible from main figrecipe import."""
         assert hasattr(fr, "Diagram")
-        # fr.Diagram is now the box-and-arrow Diagram (was Schematic)
+        # fr.Diagram is the box-and-arrow Diagram
         d = fr.Diagram()
         assert d is not None
 

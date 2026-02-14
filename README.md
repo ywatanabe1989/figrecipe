@@ -39,7 +39,7 @@ FigRecipe treats recipe, data, and style as first-class attributes of every figu
   <img src="examples/10b_figrecipe_concept_schematic_fixed_out/figrecipe_concept.png" alt="FigRecipe: Reproducible Scientific Figures" width="100%"/>
 </p>
 
-<p align="center"><sub>Created with <a href="#schematic-diagrams">Schematic Diagrams</a></sub></p>
+<p align="center"><sub>Created with <a href="#diagrams">Diagrams</a></sub></p>
 
 ## Styling
 
@@ -109,9 +109,9 @@ fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 
 </details>
 
-## Schematic Diagrams
+## Diagrams
 
-Create publication-quality box-and-arrow schematics with mm-based coordinates. See [Overview](#overview) for an example output.
+Create publication-quality box-and-arrow diagrams with mm-based coordinates. See [Overview](#overview) for an example output.
 
 <details>
 <summary><strong>Usage & Validation Rules</strong></summary>
@@ -119,7 +119,7 @@ Create publication-quality box-and-arrow schematics with mm-based coordinates. S
 <br>
 
 ```python
-s = fr.Schematic(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
+s = fr.Diagram(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
 s.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted")
 s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
 s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
@@ -128,7 +128,7 @@ s.add_arrow("filter", "ica")
 s.auto_layout(layout="lr", gap_mm=15)
 
 fig, ax = fr.subplots()
-ax.schematic(s, id="pipeline")
+ax.diagram(s, id="pipeline")
 fr.save(fig, "pipeline.png")
 ```
 

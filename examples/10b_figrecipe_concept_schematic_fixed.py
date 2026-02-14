@@ -6,7 +6,7 @@
 
 """FigRecipe concept diagram — fixed layout passing all validations.
 
-Demonstrates iterative layout adjustment guided by Schematic validation
+Demonstrates iterative layout adjustment guided by Diagram validation
 errors. Compare with 10a (intentionally failing) to see the difference.
 NOTE: x_mm/y_mm is the CENTER of the box, not bottom-left.
 """
@@ -27,11 +27,11 @@ def main(
     CONFIG=stx.session.INJECTED,
     logger=stx.session.INJECTED,
 ):
-    """Generate FigRecipe concept schematic."""
+    """Generate FigRecipe concept diagram."""
     out = Path(CONFIG.SDIR_OUT)
 
     W, H = 170, 130
-    s = fr.Schematic(
+    s = fr.Diagram(
         title="FigRecipe: Reproducible Scientific Figures",
         width_mm=W,
         height_mm=H,
@@ -130,7 +130,7 @@ def main(
 
     # Render
     fig, ax = fr.subplots()
-    ax.schematic(s, id="figrecipe_concept")
+    ax.diagram(s, id="figrecipe_concept")
     fr.save(fig, out / "figrecipe_concept.png", validate=False)
 
     logger.info(f"Saved to: {out}/figrecipe_concept.png")

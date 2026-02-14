@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from matplotlib.axes import Axes
 
 if TYPE_CHECKING:
-    from ._schematic import IconSpec, Schematic
+    from ._schematic import Diagram, IconSpec
 
 
 # ── Built-in icon renderers ──────────────────────────────────────────
@@ -177,7 +177,7 @@ _BUILTINS = {
 
 
 def render_icon(
-    schematic: "Schematic",
+    schematic: "Diagram",
     ax: Axes,
     iid: str,
     icon: "IconSpec",

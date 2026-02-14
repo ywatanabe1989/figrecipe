@@ -307,7 +307,7 @@ def save_figure(
     # Resolve paths for standard save
     image_path, yaml_path, _ = resolve_save_paths(path, image_format)
 
-    # Check for schematic validation errors (stored by ax.schematic())
+    # Check for diagram validation errors (stored by ax.diagram())
     _schematic_errors = getattr(fig.fig, "_schematic_validation_errors", None)
     if _schematic_errors:
         image_path = image_path.with_stem(f"{image_path.stem}_FAILED")

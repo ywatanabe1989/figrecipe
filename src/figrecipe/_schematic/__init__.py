@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """Box-and-arrow diagrams with mm-based coordinates."""
 
-from ._schematic import Diagram, Schematic
+from ._schematic import Diagram
 
-__all__ = ["Diagram", "Schematic"]
+__all__ = ["Diagram"]
 
 # EOF
