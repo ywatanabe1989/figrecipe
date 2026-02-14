@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.1] - 2026-02-14
+
+### Changed
+- **Schematic -> Diagram rename** - Complete rename across codebase: examples, docs, wrappers, reproducer
+- **Module reorganization** - `_recorder.py` -> `_recorder/` package, `_graph.py` -> `_graph/` package, graphviz/mermaid backends moved into `_diagram/`
+- **HPC test infrastructure** - Async sbatch support with `--watch`/`--poll`/`--result` modes
+
+### Fixed
+- **OOM in parallel tests** - Added `plt.close('all')` conftest fixture for pytest-xdist workers
+- **Gallery CI** - Added missing joblib dependency
+- **Pre-commit speed** - Use pytest-testmon for incremental testing on commit
+
+## [0.24.0] - 2026-02-13
+
+### Changed
+- **CSS flexbox layout** - `auto_layout()` now supports CSS flexbox-like container nesting with `direction`, `gap_mm`, `padding_mm`
+- **Auto-height containers** - Containers auto-calculate height from children when `height_mm` not specified
+- **Overlap resolution** - Extracted overlap detection to `_overlap.py` module
+
 ## [0.23.0] - 2026-02-08
 
 ### Added
@@ -434,6 +453,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lineplot()` - line plots with confidence intervals
 - Additional functions available but may need further testing
 
+[0.24.1]: https://github.com/ywatanabe1989/figrecipe/compare/v0.24.0...v0.24.1
+[0.24.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/ywatanabe1989/figrecipe/compare/v0.20.0...v0.21.0
