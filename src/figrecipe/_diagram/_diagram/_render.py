@@ -233,7 +233,7 @@ def render_container(diagram: "Diagram", ax: Axes, cid: str, container: Dict) ->
     ax.add_patch(box)
 
     if container.get("title"):
-        _bg = dict(facecolor=fill, edgecolor="none", pad=1.0, alpha=0.85)
+        _bg = dict(facecolor="none", edgecolor="none", pad=1.0)
         loc = container.get("title_loc", "upper center")
         _v, _h = (loc.split() + ["center"])[:2]
         hw = pos.width_mm / 2
@@ -347,7 +347,13 @@ def render_box(diagram: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None:
     block_h = gap * (n - 1)
     top_y = pos.y_mm + block_h / 2
 
-    _txt_bg = dict(facecolor=fill, edgecolor="none", pad=0.5, alpha=0.85)
+    # Only use text background if box has no fill (transparent background)
+    # Otherwise text would be double-highlighted with box fill + text bbox fill
+    _txt_bg = (
+        None
+        if fill and fill != "none"
+        else dict(facecolor="white", edgecolor="none", pad=0.5, alpha=0.85)
+    )
     ha = "left" if is_code else "center"
     x_text = (pos.x_mm - pos.width_mm / 2 + box.padding_mm) if is_code else pos.x_mm
     for i, (text, fsize, fweight, fcolor) in enumerate(items):
@@ -378,10 +384,7 @@ def render_icon(diagram, ax, iid, icon):
 
 def render_arrow(diagram: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
     """Render an arrow."""
-    if (
-        arrow.source not in diagram._positions
-        or arrow.target not in diagram._positions
-    ):
+    if arrow.source not in diagram._positions or arrow.target not in diagram._positions:
         return
 
     src_pos = diagram._positions[arrow.source]
@@ -398,11 +401,9 @@ def render_arrow(diagram: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
     start = diagram._get_anchor(src_pos, src_anc)
     end = diagram._get_anchor(tgt_pos, tgt_anc)
 
-    # Apply angle-aware margin accounting for visual box padding
     import math
 
-    _DEFAULT_CLEARANCE = 1.0  # Perpendicular gap from visual box edge (mm)
-
+    _DEFAULT_CLEARANCE = 1.0
     dx, dy = end[0] - start[0], end[1] - start[1]
     dist = math.hypot(dx, dy)
     if dist > 1e-6:
@@ -410,7 +411,6 @@ def render_arrow(diagram: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
         clearance = (
             arrow.margin_mm if arrow.margin_mm is not None else _DEFAULT_CLEARANCE
         )
-        # Offset from logical anchor = clearance + pad (visual edge extends by pad)
         total_perp = clearance + _AESTHETIC_PAD
 
         def _margin_for_anchor(anc):
@@ -420,19 +420,15 @@ def render_arrow(diagram: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
                 return total_perp / abs(uy) if abs(uy) > 1e-6 else total_perp
             elif anc in ("left", "right"):
                 return total_perp / abs(ux) if abs(ux) > 1e-6 else total_perp
-            else:
-                return total_perp
+            return total_perp
 
-        src_margin = _margin_for_anchor(src_anc)
-        tgt_margin = _margin_for_anchor(tgt_anc)
-        # Use same margin at both ends for visual symmetry
-        margin = max(src_margin, tgt_margin)
-        # Cap at 25% of arrow length to prevent disappearing arrows
+        margin = max(_margin_for_anchor(src_anc), _margin_for_anchor(tgt_anc))
         margin = min(margin, dist * 0.25)
         if dist > margin * 2:
             start = (start[0] + ux * margin, start[1] + uy * margin)
             end = (end[0] - ux * margin, end[1] - uy * margin)
-
+    start = (start[0] + arrow.source_dx, start[1] + arrow.source_dy)
+    end = (end[0] + arrow.target_dx, end[1] + arrow.target_dy)
     style = get_edge_style(arrow.style)
     color = _COLORS.get(arrow.color, arrow.color) if arrow.color else style["color"]
     conn = f"arc3,rad={arrow.curve}" if arrow.curve else "arc3,rad=0"
@@ -479,9 +475,13 @@ def draw_all_elements(diagram, ax):
     ax.set_ylim(diagram.ylim)
     ax.set_aspect("equal")
     ax.axis("off")
-    for cid, container in diagram._containers.items():
-        if cid in diagram._positions:
-            render_container(diagram, ax, cid, container)
+    for cid in sorted(
+        (c for c in diagram._containers if c in diagram._positions),
+        key=lambda c: -(
+            diagram._positions[c].width_mm * diagram._positions[c].height_mm
+        ),
+    ):
+        render_container(diagram, ax, cid, diagram._containers[cid])
     for bid, box in diagram._boxes.items():
         if bid in diagram._positions:
             render_box(diagram, ax, bid, box)
@@ -492,13 +492,15 @@ def draw_all_elements(diagram, ax):
             render_icon(diagram, ax, iid, icon)
     if diagram.title:
         ps = list(diagram._positions.values())
-        if ps:
-            cx = (
+        cx = (
+            (
                 min(p.x_mm - p.width_mm / 2 for p in ps)
                 + max(p.x_mm + p.width_mm / 2 for p in ps)
-            ) / 2
-        else:
-            cx = (diagram.xlim[0] + diagram.xlim[1]) / 2
+            )
+            / 2
+            if ps
+            else (diagram.xlim[0] + diagram.xlim[1]) / 2
+        )
         ax.text(
             cx,
             diagram.ylim[1] - 5.0,

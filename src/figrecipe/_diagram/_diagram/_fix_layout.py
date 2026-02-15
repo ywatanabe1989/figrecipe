@@ -10,6 +10,15 @@ from typing import TYPE_CHECKING, Dict, List
 
 from ._geom import box_rect, rects_overlap
 
+try:
+    from scitex.logging import getLogger
+
+    logger = getLogger(__name__)
+except ImportError:
+    import logging
+
+    logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from ._core import Diagram
 
@@ -116,9 +125,16 @@ def fix_container_enclosure(diagram: "Diagram") -> int:
         grow_h = excess["bottom"] + excess["top"] + 2 * pad
         pos.width_mm += grow_w
         pos.height_mm += grow_h
-        # Shift center to stay balanced.
         pos.x_mm += (excess["right"] - excess["left"]) / 2
         pos.y_mm += (excess["top"] - excess["bottom"]) / 2
+        sides = [s for s, v in excess.items() if v > 0]
+        logger.warning(
+            "  R1 container_enclosure: '%s' expanded +%.1f×%.1fmm (%s)",
+            cid,
+            grow_w,
+            grow_h,
+            ",".join(sides),
+        )
 
     # Center children within their (now-expanded) containers.
     _TITLE_RESERVE_MM = 8.0  # vertical space for container title
@@ -154,6 +170,14 @@ def fix_overlaps(diagram: "Diagram") -> int:
     violations = _collect_overlap_violations(diagram)
     if not violations:
         return 0
+    for v in violations:
+        logger.warning(
+            "  R2 overlap: '%s' × '%s' (%.1f×%.1fmm)",
+            v["id_a"],
+            v["id_b"],
+            v["overlap_x"],
+            v["overlap_y"],
+        )
     from ._overlap import resolve_overlaps
 
     x_lo, x_hi = diagram.xlim
@@ -173,6 +197,14 @@ def fix_canvas_bounds(diagram: "Diagram") -> int:
     y_lo, y_hi = diagram.ylim
     for v in violations:
         excess = v["excess"]
+        sides = [
+            f"{s}={excess[s]:.1f}"
+            for s in ("left", "right", "bottom", "top")
+            if excess[s] > 0
+        ]
+        logger.warning(
+            "  R9 canvas_bounds: '%s' exceeds (%s)", v["id"], ", ".join(sides)
+        )
         x_lo -= excess["left"] + _FIX_MARGIN_MM if excess["left"] > 0 else 0
         x_hi += excess["right"] + _FIX_MARGIN_MM if excess["right"] > 0 else 0
         y_lo -= excess["bottom"] + _FIX_MARGIN_MM if excess["bottom"] > 0 else 0

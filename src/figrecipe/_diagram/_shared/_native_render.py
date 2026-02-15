@@ -266,6 +266,9 @@ class DiagramRenderer:
 
         return path
 
+    # Intuitive alias
+    save = render_to_file
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize renderer state for recipe recording.
 

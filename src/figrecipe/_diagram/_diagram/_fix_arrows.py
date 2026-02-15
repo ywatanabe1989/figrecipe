@@ -9,6 +9,15 @@ bidirectional splitting, and post-render label collisions (R5/R6).
 import math
 from typing import TYPE_CHECKING, Dict, List
 
+try:
+    from scitex.logging import getLogger
+
+    logger = getLogger(__name__)
+except ImportError:
+    import logging
+
+    logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from ._core import Diagram
 
@@ -101,6 +110,15 @@ def fix_arrow_lengths(diagram: "Diagram") -> int:
         nx, ny = dx / dist, dy / dist
         tgt.x_mm += nx * shortfall
         tgt.y_mm += ny * shortfall
+        logger.warning(
+            "  arrow_length: '%s'->'%s' gap=%.1fmm < %.1fmm, pushed '%s' +%.1fmm",
+            arrow.source,
+            arrow.target,
+            gap,
+            _MIN_ARROW_GAP_MM,
+            arrow.target,
+            shortfall,
+        )
         fixed += 1
     return fixed
 
@@ -109,7 +127,16 @@ def fix_arrow_labels(diagram: "Diagram") -> int:
     """R8: Flip curve sign so label is on same side as arc. Returns fix count."""
     violations = _collect_label_side_violations(diagram)
     for v in violations:
-        v["arrow"].curve = -v["current_curve"]
+        a = v["arrow"]
+        a.curve = -v["current_curve"]
+        logger.warning(
+            "  R8 arrow_label: '%s'->'%s' label='%s' curve flipped %.2f->%.2f",
+            a.source,
+            a.target,
+            a.label,
+            v["current_curve"],
+            a.curve,
+        )
     return len(violations)
 
 
@@ -131,7 +158,13 @@ def fix_bidirectional_arrows(diagram: "Diagram", curve: float = 0.4) -> int:
         for a in group:
             if a.curve != 0.0:
                 continue  # User already set curve, respect it
-            a.curve = curve  # Same sign: opposite travel directions → visual split
+            a.curve = curve
+            logger.warning(
+                "  bidirectional: '%s'->'%s' auto-curved %.2f",
+                a.source,
+                a.target,
+                curve,
+            )
             fixed += 1
     return fixed
 
@@ -198,6 +231,14 @@ def fix_arrow_occlusion(diagram: "Diagram", min_visible: float = 0.9) -> int:
                 break
         arrow.curve = best_curve
         if best_curve != 0.0:
+            logger.warning(
+                "  R7 occlusion: '%s'->'%s' vis=%.0f%% -> curved %.2f (%.0f%%)",
+                arrow.source,
+                arrow.target,
+                vis * 100,
+                best_curve,
+                best_vis * 100,
+            )
             fixed += 1
     return fixed
 
@@ -313,6 +354,13 @@ def fix_post_render(diagram, fig, ax, min_margin=2.0) -> int:
             arrow.label_offset_mm = (
                 base_offset[0] + nx * offset_mm,
                 base_offset[1] + ny * offset_mm,
+            )
+            logger.warning(
+                "  R5/R6 post_render: '%s'->'%s' label='%s' offset %+.1fmm",
+                arrow.source,
+                arrow.target,
+                arrow.label,
+                offset_mm,
             )
             fixed += 1
             break  # Apply first offset; re-render will re-check

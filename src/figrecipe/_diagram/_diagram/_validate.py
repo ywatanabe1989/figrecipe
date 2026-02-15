@@ -16,6 +16,15 @@ Rules (all enforced programmatically):
 
 from typing import TYPE_CHECKING
 
+try:
+    from scitex.logging import getLogger
+
+    logger = getLogger(__name__)
+except ImportError:
+    import logging
+
+    logger = logging.getLogger(__name__)
+
 from ._geom import bbox_gap, box_rect, rects_overlap, seg_rect_clip_len
 
 # Centralised thresholds
@@ -190,7 +199,6 @@ def validate_container_title_clearance(
     The title occupies approximately 5mm from the container top edge.
     Children whose top edge is within this zone get a warning.
     """
-    import warnings
 
     _TITLE_ZONE_MM = 5.0  # approximate height of title text region
 
@@ -208,12 +216,10 @@ def validate_container_title_clearance(
             ch_top = chpos.y_mm + chpos.height_mm / 2
             gap = title_bottom - ch_top
             if gap < min_gap_mm:
-                warnings.warn(
+                logger.warning(
                     f"Container '{cid}' title too close to child "
                     f"'{child_id}': gap={gap:.1f}mm (min={min_gap_mm}mm). "
-                    f"Increase container height or lower child.",
-                    UserWarning,
-                    stacklevel=3,
+                    f"Increase container height or lower child."
                 )
 
 
@@ -223,8 +229,6 @@ def validate_text_fits_boxes(diagram: "Diagram") -> None:
     Estimates text height from font sizes (1pt ≈ 0.35mm) and checks
     against the box inner height (height - 2*padding).
     """
-    import warnings
-
     _PT_TO_MM = 0.35  # approximate pt → mm conversion
 
     for bid, box in diagram._boxes.items():
@@ -240,12 +244,10 @@ def validate_text_fits_boxes(diagram: "Diagram") -> None:
         text_h += len(box.content) * 8 * _PT_TO_MM
 
         if text_h > inner_h:
-            warnings.warn(
+            logger.warning(
                 f"Box '{bid}' text (~{text_h:.1f}mm) exceeds "
                 f"inner height ({inner_h:.1f}mm). "
-                f"Increase box height or reduce content.",
-                UserWarning,
-                stacklevel=3,
+                f"Increase box height or reduce content."
             )
 
 
