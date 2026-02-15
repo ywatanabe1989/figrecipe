@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""CSS flexbox-like layout resolver for schematic diagrams.
+"""CSS flexbox-like layout resolver for diagram diagrams.
 
 When a Diagram is created with ``gap_mm`` set, elements added without
 explicit x_mm/y_mm are stacked vertically (top-to-bottom) with uniform

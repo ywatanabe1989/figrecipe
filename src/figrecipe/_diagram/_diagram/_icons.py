@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Icon rendering for schematic diagrams.
+"""Icon rendering for diagram diagrams.
 
 Supports built-in icons (warning, check, cross, info, lock)
 and file-based icons (PNG, JPG, SVG).
@@ -177,7 +177,7 @@ _BUILTINS = {
 
 
 def render_icon(
-    schematic: "Diagram",
+    diagram: "Diagram",
     ax: Axes,
     iid: str,
     icon: "IconSpec",
@@ -185,7 +185,7 @@ def render_icon(
     """Render an icon (built-in path or image file)."""
     from pathlib import Path as _Path
 
-    pos = schematic._positions[iid]
+    pos = diagram._positions[iid]
     color = icon.color or "#333333"
     alpha = icon.opacity
     cx, cy = pos.x_mm, pos.y_mm
@@ -200,7 +200,7 @@ def render_icon(
         elif fpath.exists() and fpath.suffix.lower() == ".svg":
             _render_svg_icon(ax, fpath, cx, cy, w, alpha)
 
-    schematic._render_info[iid] = {"pos": pos}
+    diagram._render_info[iid] = {"pos": pos}
 
 
 def _render_image_icon(ax, fpath, cx, cy, w, alpha):

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class DiagramEditor:
-    """Interactive editor for adjusting schematic box positions."""
+    """Interactive editor for adjusting diagram box positions."""
 
     def __init__(self, info: "Diagram"):
         """Initialize editor with a Diagram."""
@@ -182,7 +182,7 @@ class DiagramEditor:
             plt.close(self._fig)
 
     def _redraw(self) -> None:
-        """Redraw the schematic with updated positions."""
+        """Redraw the diagram with updated positions."""
         self._ax.clear()
         self.info.render(ax=self._ax)
         status = " [MODIFIED]" if self._modified else ""
@@ -234,11 +234,11 @@ class DiagramEditor:
             self._redraw()
 
 
-def edit_schematic(
+def edit_diagram(
     source: "Diagram | Path | str",
     save_path: Optional[Path] = None,
 ) -> "Diagram":
-    """Launch interactive editor for a schematic.
+    """Launch interactive editor for a diagram.
 
     Parameters
     ----------
@@ -250,16 +250,16 @@ def edit_schematic(
     Returns
     -------
     Diagram
-        The modified schematic.
+        The modified diagram.
 
     Examples
     --------
     >>> import figrecipe as fr
-    >>> schematic = fr.Diagram()
-    >>> schematic.add_box("a", title="A")
-    >>> schematic.add_box("b", title="B")
-    >>> schematic.auto_layout("lr")
-    >>> fr.edit_schematic(schematic)  # Opens interactive editor
+    >>> diagram = fr.Diagram()
+    >>> diagram.add_box("a", title="A")
+    >>> diagram.add_box("b", title="B")
+    >>> diagram.auto_layout("lr")
+    >>> fr.edit_diagram(diagram)  # Opens interactive editor
     """
 
     if isinstance(source, (str, Path)):
@@ -272,7 +272,7 @@ def edit_schematic(
         with open(source) as f:
             recipe = yaml.safe_load(f)
 
-        # Find schematic data in recipe
+        # Find diagram data in recipe
         for ax_data in recipe.get("axes", {}).values():
             for call in ax_data.get("calls", []):
                 if call.get("function") in ("diagram", "schematic"):
@@ -285,7 +285,7 @@ def edit_schematic(
                 continue
             break
         else:
-            raise ValueError("No schematic found in recipe")
+            raise ValueError("No diagram found in recipe")
     else:
         info = source
 
@@ -293,4 +293,4 @@ def edit_schematic(
     return editor.run(save_path=save_path)
 
 
-__all__ = ["DiagramEditor", "edit_schematic"]
+__all__ = ["DiagramEditor", "edit_diagram"]

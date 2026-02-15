@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Constants for schematic diagram rendering."""
+"""Constants for diagram diagram rendering."""
 
 # Anchor point definitions (relative to box: 0-1 range)
 ANCHOR_POINTS = {

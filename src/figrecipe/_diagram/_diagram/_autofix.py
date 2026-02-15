@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from ._core import Diagram
 
 
-def auto_fix(schematic: "Diagram", max_passes: int = 3, auto_curve: bool = True) -> int:
+def auto_fix(diagram: "Diagram", max_passes: int = 3, auto_curve: bool = True) -> int:
     """Resolve pre-render layout violations by mutating positions.
 
     Applies fixes in dependency order:
@@ -43,14 +43,14 @@ def auto_fix(schematic: "Diagram", max_passes: int = 3, auto_curve: bool = True)
     total = 0
     for _pass in range(max_passes):
         n = 0
-        n += fix_overlaps(schematic)
-        n += fix_arrow_lengths(schematic)
-        n += fix_bidirectional_arrows(schematic)
+        n += fix_overlaps(diagram)
+        n += fix_arrow_lengths(diagram)
+        n += fix_bidirectional_arrows(diagram)
         if auto_curve:
-            n += fix_arrow_occlusion(schematic)
-        n += fix_container_enclosure(schematic)
-        n += fix_arrow_labels(schematic)
-        n += fix_canvas_bounds(schematic)
+            n += fix_arrow_occlusion(diagram)
+        n += fix_container_enclosure(diagram)
+        n += fix_arrow_labels(diagram)
+        n += fix_canvas_bounds(diagram)
         total += n
         if n == 0:
             break

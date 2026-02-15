@@ -8,13 +8,13 @@ if TYPE_CHECKING:
     from ._core import Diagram
 
 
-def schematic_to_dict(info: "Diagram") -> Dict[str, Any]:
-    """Convert schematic specification to dictionary for serialization.
+def diagram_to_dict(info: "Diagram") -> Dict[str, Any]:
+    """Convert diagram specification to dictionary for serialization.
 
     Parameters
     ----------
     info : Diagram
-        The schematic to serialize.
+        The diagram to serialize.
 
     Returns
     -------
@@ -83,7 +83,7 @@ def schematic_to_dict(info: "Diagram") -> Dict[str, Any]:
     }
 
 
-def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
+def diagram_from_dict(data: Dict[str, Any]) -> "Diagram":
     """Create Diagram from dictionary (recipe reproduction).
 
     Parameters
@@ -94,14 +94,14 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
     Returns
     -------
     Diagram
-        Reconstructed schematic.
+        Reconstructed diagram.
     """
     from ._core import ArrowSpec, BoxSpec, Diagram, PositionSpec
 
     width_mm = data.get("width_mm", 200.0)
     height_mm = data.get("height_mm", 120.0)
 
-    schematic = Diagram(
+    diagram = Diagram(
         title=data.get("title"),
         width_mm=width_mm,
         height_mm=height_mm,
@@ -109,13 +109,13 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
 
     # Restore expanded limits if available (auto_layout may have expanded them)
     if "xlim" in data:
-        schematic.xlim = tuple(data["xlim"])
+        diagram.xlim = tuple(data["xlim"])
     if "ylim" in data:
-        schematic.ylim = tuple(data["ylim"])
+        diagram.ylim = tuple(data["ylim"])
 
     # Restore positions first
     for pid, pos in data.get("positions", {}).items():
-        schematic._positions[pid] = PositionSpec(
+        diagram._positions[pid] = PositionSpec(
             x_mm=pos.get("x_mm", 0.0),
             y_mm=pos.get("y_mm", 0.0),
             width_mm=pos.get("width_mm", 0.0),
@@ -124,7 +124,7 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
 
     # Restore boxes
     for box_data in data.get("boxes", []):
-        schematic._boxes[box_data["id"]] = BoxSpec(
+        diagram._boxes[box_data["id"]] = BoxSpec(
             id=box_data["id"],
             title=box_data["title"],
             subtitle=box_data.get("subtitle"),
@@ -140,7 +140,7 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
 
     # Restore containers
     for cont_data in data.get("containers", []):
-        schematic._containers[cont_data["id"]] = {
+        diagram._containers[cont_data["id"]] = {
             "title": cont_data.get("title"),
             "children": cont_data.get("children", []),
             "emphasis": cont_data.get("emphasis", "muted"),
@@ -153,7 +153,7 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
 
     # Restore arrows
     for arrow_data in data.get("arrows", []):
-        schematic._arrows.append(
+        diagram._arrows.append(
             ArrowSpec(
                 source=arrow_data["source"],
                 target=arrow_data["target"],
@@ -167,7 +167,7 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
             )
         )
 
-    return schematic
+    return diagram
 
 
 def save_diagram_recipe(
@@ -197,7 +197,7 @@ def save_diagram_recipe(
     import yaml
 
     path = Path(path)
-    data = schematic_to_dict(diagram)
+    data = diagram_to_dict(diagram)
 
     recipe = {
         "figrecipe": "1.0",
@@ -242,8 +242,8 @@ def render_to_file(
 
 
 __all__ = [
-    "schematic_to_dict",
-    "schematic_from_dict",
+    "diagram_to_dict",
+    "diagram_from_dict",
     "save_diagram_recipe",
     "render_to_file",
 ]

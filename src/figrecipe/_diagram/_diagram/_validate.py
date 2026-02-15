@@ -26,32 +26,32 @@ if TYPE_CHECKING:
     from ._core import Diagram
 
 
-def validate_containers(schematic: "Diagram") -> None:
+def validate_containers(diagram: "Diagram") -> None:
     """Check that every container fully encloses its declared children.
 
     Parameters
     ----------
-    schematic : Diagram
-        The schematic to validate.
+    diagram : Diagram
+        The diagram to validate.
 
     Raises
     ------
     ValueError
         If any child box extends outside its parent container.
     """
-    for cid, container in schematic._containers.items():
-        if cid not in schematic._positions:
+    for cid, container in diagram._containers.items():
+        if cid not in diagram._positions:
             continue
-        cpos = schematic._positions[cid]
+        cpos = diagram._positions[cid]
         c_left = cpos.x_mm - cpos.width_mm / 2
         c_right = cpos.x_mm + cpos.width_mm / 2
         c_bottom = cpos.y_mm - cpos.height_mm / 2
         c_top = cpos.y_mm + cpos.height_mm / 2
 
         for child_id in container.get("children", []):
-            if child_id not in schematic._positions:
+            if child_id not in diagram._positions:
                 continue
-            chpos = schematic._positions[child_id]
+            chpos = diagram._positions[child_id]
             ch_left = chpos.x_mm - chpos.width_mm / 2
             ch_right = chpos.x_mm + chpos.width_mm / 2
             ch_bottom = chpos.y_mm - chpos.height_mm / 2
@@ -82,17 +82,17 @@ def validate_containers(schematic: "Diagram") -> None:
                 )
 
 
-def validate_no_overlap(schematic: "Diagram") -> None:
+def validate_no_overlap(diagram: "Diagram") -> None:
     """Check that no two boxes overlap each other.
 
     Containers are excluded — only boxes are checked.
     """
     from itertools import combinations
 
-    box_ids = [bid for bid in schematic._boxes if bid in schematic._positions]
+    box_ids = [bid for bid in diagram._boxes if bid in diagram._positions]
     for id_a, id_b in combinations(box_ids, 2):
-        r_a = box_rect(schematic._positions[id_a])
-        r_b = box_rect(schematic._positions[id_b])
+        r_a = box_rect(diagram._positions[id_a])
+        r_b = box_rect(diagram._positions[id_b])
         if rects_overlap(r_a, r_b):
             raise ValueError(
                 f"Boxes '{id_a}' and '{id_b}' overlap: "
@@ -103,7 +103,7 @@ def validate_no_overlap(schematic: "Diagram") -> None:
             )
 
 
-def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> None:
+def validate_text_margins(fig, ax, diagram, min_margin_mm=MIN_MARGIN_MM) -> None:
     """Check all text has minimum margin from other text and box edges.
 
     Raises ValueError if text-to-text or text-to-edge gap < min_margin_mm.
@@ -125,15 +125,15 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
 
     # Build box rects for ownership lookup
     box_rects = {}
-    for eid in list(schematic._boxes) + list(schematic._containers):
-        if eid in schematic._positions:
-            box_rects[eid] = box_rect(schematic._positions[eid])
+    for eid in list(diagram._boxes) + list(diagram._containers):
+        if eid in diagram._positions:
+            box_rects[eid] = box_rect(diagram._positions[eid])
 
     def _owner(bb):
         """Return the box/container ID whose rect contains bb center."""
         cx, cy = (bb.x0 + bb.x1) / 2, (bb.y0 + bb.y1) / 2
         for eid, (el, eb, er, et) in box_rects.items():
-            if el <= cx <= er and eb <= cy <= et and eid in schematic._boxes:
+            if el <= cx <= er and eb <= cy <= et and eid in diagram._boxes:
                 return eid
         return None
 
@@ -155,9 +155,9 @@ def validate_text_margins(fig, ax, schematic, min_margin_mm=MIN_MARGIN_MM) -> No
 
     # 2. Text-to-box/container-edge margin check
     edges = []
-    for eid in list(schematic._boxes) + list(schematic._containers):
-        if eid in schematic._positions:
-            edges.append((eid, box_rect(schematic._positions[eid])))
+    for eid in list(diagram._boxes) + list(diagram._containers):
+        if eid in diagram._positions:
+            edges.append((eid, box_rect(diagram._positions[eid])))
 
     for txt, bb, _own in entries:
         for eid, (el, eb, er, et) in edges:
@@ -183,7 +183,7 @@ def validate_text_no_overlap(fig, ax, min_overlap_ratio=0.05) -> None:
 
 
 def validate_container_title_clearance(
-    schematic: "Diagram", min_gap_mm: float = 3.0
+    diagram: "Diagram", min_gap_mm: float = 3.0
 ) -> None:
     """Warn if container title area overlaps with children.
 
@@ -194,17 +194,17 @@ def validate_container_title_clearance(
 
     _TITLE_ZONE_MM = 5.0  # approximate height of title text region
 
-    for cid, container in schematic._containers.items():
-        if cid not in schematic._positions or not container.get("title"):
+    for cid, container in diagram._containers.items():
+        if cid not in diagram._positions or not container.get("title"):
             continue
-        cpos = schematic._positions[cid]
+        cpos = diagram._positions[cid]
         c_top = cpos.y_mm + cpos.height_mm / 2
         title_bottom = c_top - _TITLE_ZONE_MM
 
         for child_id in container.get("children", []):
-            if child_id not in schematic._positions:
+            if child_id not in diagram._positions:
                 continue
-            chpos = schematic._positions[child_id]
+            chpos = diagram._positions[child_id]
             ch_top = chpos.y_mm + chpos.height_mm / 2
             gap = title_bottom - ch_top
             if gap < min_gap_mm:
@@ -217,7 +217,7 @@ def validate_container_title_clearance(
                 )
 
 
-def validate_text_fits_boxes(schematic: "Diagram") -> None:
+def validate_text_fits_boxes(diagram: "Diagram") -> None:
     """Warn if a box has more text lines than fit within its padded area.
 
     Estimates text height from font sizes (1pt ≈ 0.35mm) and checks
@@ -227,10 +227,10 @@ def validate_text_fits_boxes(schematic: "Diagram") -> None:
 
     _PT_TO_MM = 0.35  # approximate pt → mm conversion
 
-    for bid, box in schematic._boxes.items():
-        if bid not in schematic._positions:
+    for bid, box in diagram._boxes.items():
+        if bid not in diagram._positions:
             continue
-        pos = schematic._positions[bid]
+        pos = diagram._positions[bid]
         inner_h = pos.height_mm - 2 * box.padding_mm
 
         # Estimate total text height
@@ -249,7 +249,7 @@ def validate_text_fits_boxes(schematic: "Diagram") -> None:
             )
 
 
-def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISIBLE):
+def validate_text_arrow_no_overlap(fig, ax, diagram=None, min_visible=MIN_VISIBLE):
     """Raise if arrow visible-length ratio drops below min_visible.
 
     Flattens each arrow's Bezier curve into line segments, measures
@@ -270,8 +270,8 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
         return
 
     arrow_specs = []
-    if schematic is not None:
-        arrow_specs = list(schematic._arrows)
+    if diagram is not None:
+        arrow_specs = list(diagram._arrows)
 
     text_bbs = []
     for t in texts:
@@ -280,10 +280,10 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
 
     # Build box rects in data coords for intermediate-box occlusion
     box_rects = {}
-    if schematic is not None:
-        for bid in schematic._boxes:
-            if bid in schematic._positions:
-                box_rects[bid] = box_rect(schematic._positions[bid])
+    if diagram is not None:
+        for bid in diagram._boxes:
+            if bid in diagram._positions:
+                box_rects[bid] = box_rect(diagram._positions[bid])
 
     for i, arrow in enumerate(arrows):
         aspec = arrow_specs[i] if i < len(arrow_specs) else None
@@ -345,7 +345,7 @@ def validate_text_arrow_no_overlap(fig, ax, schematic=None, min_visible=MIN_VISI
             )
 
 
-def validate_arrow_label_side(schematic: "Diagram") -> None:
+def validate_arrow_label_side(diagram: "Diagram") -> None:
     """R8: Curved-arrow label must be on same side as arc bulge.
 
     For each arrow with curve != 0 and a label, checks that the final
@@ -353,22 +353,22 @@ def validate_arrow_label_side(schematic: "Diagram") -> None:
     """
     import math
 
-    for arrow in schematic._arrows:
+    for arrow in diagram._arrows:
         if not arrow.curve or not arrow.label:
             continue
-        src_pos = schematic._positions.get(arrow.source)
-        tgt_pos = schematic._positions.get(arrow.target)
+        src_pos = diagram._positions.get(arrow.source)
+        tgt_pos = diagram._positions.get(arrow.target)
         if not src_pos or not tgt_pos:
             continue
         # Resolve anchors
         if arrow.source_anchor == "auto" or arrow.target_anchor == "auto":
-            auto_s, auto_t = schematic._auto_anchor(src_pos, tgt_pos)
+            auto_s, auto_t = diagram._auto_anchor(src_pos, tgt_pos)
             sa = auto_s if arrow.source_anchor == "auto" else arrow.source_anchor
             ta = auto_t if arrow.target_anchor == "auto" else arrow.target_anchor
         else:
             sa, ta = arrow.source_anchor, arrow.target_anchor
-        start = schematic._get_anchor(src_pos, sa)
-        end = schematic._get_anchor(tgt_pos, ta)
+        start = diagram._get_anchor(src_pos, sa)
+        end = diagram._get_anchor(tgt_pos, ta)
         lx, ly = compute_arrow_label_position(
             start, end, arrow.curve, arrow.label_offset_mm
         )
@@ -426,19 +426,19 @@ def compute_arrow_label_position(start, end, curve, label_offset_mm=None):
     return mx, my
 
 
-def validate_canvas_bounds(schematic: "Diagram") -> None:
+def validate_canvas_bounds(diagram: "Diagram") -> None:
     """R9: Check that all boxes and containers are within canvas bounds.
 
     Uses xlim/ylim (which may differ from 0..width/height after auto-layout
     or auto-height).
     """
-    x_lo, x_hi = schematic.xlim
-    y_lo, y_hi = schematic.ylim
-    all_ids = list(schematic._boxes) + list(schematic._containers)
+    x_lo, x_hi = diagram.xlim
+    y_lo, y_hi = diagram.ylim
+    all_ids = list(diagram._boxes) + list(diagram._containers)
     for eid in all_ids:
-        if eid not in schematic._positions:
+        if eid not in diagram._positions:
             continue
-        left, bottom, right, top = box_rect(schematic._positions[eid])
+        left, bottom, right, top = box_rect(diagram._positions[eid])
         violations = []
         if left < x_lo:
             violations.append(f"left={left:.1f}mm < xlim_lo={x_lo:.1f}mm")
@@ -452,7 +452,7 @@ def validate_canvas_bounds(schematic: "Diagram") -> None:
             raise ValueError(f"'{eid}' extends outside canvas: {'; '.join(violations)}")
 
 
-def validate_all(schematic, fig=None, ax=None):
+def validate_all(diagram, fig=None, ax=None):
     """Run all validation rules, collect errors, raise combined summary.
 
     Pre-render rules (R1-R4, R8) always run. Post-render rules (R5-R7)
@@ -469,13 +469,13 @@ def validate_all(schematic, fig=None, ax=None):
     ]
     for tag, fn in pre_checks:
         try:
-            fn(schematic)
+            fn(diagram)
         except ValueError as e:
             errors.append(f"{tag}: {e}")
 
     # Warning-level pre-render (R3, R4) — run but don't collect
-    validate_container_title_clearance(schematic)
-    validate_text_fits_boxes(schematic)
+    validate_container_title_clearance(diagram)
+    validate_text_fits_boxes(diagram)
 
     # Post-render rules (need fig/ax with rendered text)
     if fig is not None and ax is not None:
@@ -485,8 +485,8 @@ def validate_all(schematic, fig=None, ax=None):
         ]
         for tag, fn in post_checks:
             try:
-                if "schematic" in fn.__code__.co_varnames:
-                    fn(fig, ax, schematic)
+                if "diagram" in fn.__code__.co_varnames:
+                    fn(fig, ax, diagram)
                 else:
                     fn(fig, ax)
             except ValueError as e:

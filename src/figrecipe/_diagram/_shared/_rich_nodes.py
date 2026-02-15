@@ -3,7 +3,7 @@
 """Rich node rendering for enhanced diagram boxes.
 
 Provides multi-line text boxes with title, subtitle, and content,
-similar to professional schematic elements.
+similar to professional diagram elements.
 """
 
 from dataclasses import dataclass, field

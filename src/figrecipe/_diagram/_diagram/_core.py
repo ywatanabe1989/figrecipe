@@ -460,17 +460,17 @@ class Diagram:
         )
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert schematic to dictionary for serialization."""
-        from ._io import schematic_to_dict
+        """Convert diagram to dictionary for serialization."""
+        from ._io import diagram_to_dict
 
-        return schematic_to_dict(self)
+        return diagram_to_dict(self)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Diagram":
         """Create Diagram from dictionary (recipe reproduction)."""
-        from ._io import schematic_from_dict
+        from ._io import diagram_from_dict
 
-        return schematic_from_dict(data)
+        return diagram_from_dict(data)
 
 
 __all__ = [

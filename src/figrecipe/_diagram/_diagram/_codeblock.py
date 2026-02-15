@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Syntax-highlighted code rendering for codeblock schematic shapes.
+"""Syntax-highlighted code rendering for codeblock diagram shapes.
 
 Parses Emacs theme .el files for accurate colors. Supports any language
 via pygments lexers and any Emacs theme via .el file parsing.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Geometry helpers for schematic validation."""
+"""Geometry helpers for diagram validation."""
 
 import math
 

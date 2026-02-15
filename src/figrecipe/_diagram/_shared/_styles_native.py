@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 # ---------------------------------------------------------------------------
 # SCITEX palette (source of truth: styles/presets/SCITEX.yaml colors.rgb)
-# Kept as constants so diagram/schematic code works without load_style().
+# Kept as constants so diagram/diagram code works without load_style().
 # ---------------------------------------------------------------------------
 _SCITEX_RGB = {
     "blue": (0, 128, 192),
