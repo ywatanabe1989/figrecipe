@@ -6,126 +6,122 @@
 
 # Diagram Module
 
-Publication-quality box-and-arrow diagrams with programmatic layout validation.
+Publication-quality box-and-arrow diagrams with mm-based coordinates, automatic layout, and validation.
 
 ## Quick Start
 
 ```python
-import figrecipe as fr
+from figrecipe._diagram import Diagram
 
-s = fr.Diagram(width_mm=170, height_mm=120)
-s.add_box("a", "Input", x_mm=30, y_mm=60, width_mm=40, height_mm=25)
-s.add_box("b", "Output", x_mm=130, y_mm=60, width_mm=40, height_mm=25)
-s.add_arrow("a", "b", label="process")
-s.render_to_file("diagram.png")
+d = Diagram(title="My Pipeline", gap_mm=10)
+d.add_box("a", "Input", shape="cylinder")
+d.add_box("b", "Process", emphasis="primary")
+d.add_box("c", "Output", shape="document")
+d.add_arrow("a", "b")
+d.add_arrow("b", "c")
+d.save("pipeline.png")
+# Output: pipeline.png, pipeline.yaml, pipeline_hitmap.png, pipeline_debug.png
 ```
+
+## API
+
+### Diagram(title, width_mm, height_mm, gap_mm)
+
+- `gap_mm`: Enables flex layout mode (auto-positions elements, no manual x/y needed)
+- `width_mm`: Canvas width (default: 170mm, warns if > 185mm)
+
+### d.add_box(id, title, ...)
+
+Key parameters: `subtitle`, `content` (list), `emphasis`, `shape`, `fill_color`, `border_color`, `padding_mm`, `bullet` ("circle"/"dash"/"arrow"), `node_class`, `state`.
+
+### d.add_container(id, children, ...)
+
+Groups boxes. Key parameters: `title`, `direction` ("row"/"column"), `emphasis`, `fill_color`, `border_color`, `title_loc`.
+
+### d.add_arrow(source, target, ...)
+
+Key parameters: `source_anchor`, `target_anchor`, `label`, `style` ("solid"/"dashed"), `color`, `curve`, `linewidth_mm`, `label_offset_mm`.
+
+### d.render(auto_fix, auto_curve) -> (fig, ax)
+
+- `auto_fix=True`: Resolves layout violations automatically (R1, R2, R5-R9)
+- `auto_curve=True`: Auto-curves bidirectional arrows (R7)
+
+### d.save(path, dpi, watermark) -> Path
+
+Renders, auto-crops, and saves. Also generates recipe YAML, hitmap, and debug image.
+- `watermark=True`: Stamps "Plotted by FigRecipe" (7pt, alpha=0.85)
 
 ## Validation Rules
 
-All rules are enforced automatically on `render()`. Errors are **collected and
-reported together** so you see the full picture before fixing.
+All rules are enforced on `render()`. Failed figures save with `_FAILED` suffix.
 
 | Rule | Check | Severity |
 |------|-------|----------|
-| R1 | Container must enclose all children | ValueError |
-| R2 | No two boxes may overlap | ValueError |
-| R3 | Container title must clear children (5mm zone) | UserWarning |
-| R4 | Box text must fit within padded inner area | UserWarning |
-| R5 | Text-to-text margin >= 2mm | ValueError |
-| R6 | Text-to-edge margin >= 2mm | ValueError |
-| R7 | Arrow visible-length ratio >= 90% | ValueError |
-| R8 | Curved-arrow label on same side as arc | ValueError |
+| R1 | Container must enclose all children | Error |
+| R2 | No two boxes may overlap | Error |
+| R3 | Container title must clear children (5mm zone) | Warning |
+| R4 | Box text must fit within padded inner area | Warning |
+| R5 | Text-to-text margin >= 2mm | Error |
+| R6 | Text-to-edge margin >= 2mm | Error |
+| R7 | Arrow visible-length ratio >= 90% | Error |
+| R8 | Curved-arrow label on same side as arc | Error |
+| R9 | All elements within canvas bounds | Error |
 
-### Thresholds (centralised in `_validate.py`)
+## Auto-Fix
 
-```python
-MIN_MARGIN_MM = 2.0  # R5, R6
-MIN_VISIBLE = 0.9    # R7
-```
+`auto_fix=True` on `render()` runs multi-pass fixing:
 
-### Error Output Example
+- **Phase 1** (pre-render): Container enclosure (R1), overlap resolution (R2), canvas bounds expansion (R9), arrow length adjustment, bidirectional arrow curving
+- **Phase 2** (post-render): Text collision (R5/R6), arrow label occlusion (R7/R8)
 
-```
-ValueError: 2 validation error(s):
-  R5/R6: Text margin violation: 'reproduce' and 'validate' gap=1.1mm (min=2.0mm)
-  R7: 'arrow:figure->recipe' visibility 28% < 90%. Occluded by: 'reproduce'
-```
-
-### Failed Figure Output
-
-When validation fails, `render_to_file()` still saves the figure with a
-`_FAILED` suffix so you can inspect what went wrong:
-
-```
-diagram_FAILED.png   # errored figure for inspection
-```
+Each fix is logged with per-element detail.
 
 ## Shapes
 
-| Shape | Description | Visual |
-|-------|-------------|--------|
-| `rounded` | Rounded rectangle (default) | General-purpose nodes |
-| `box` | Sharp-cornered rectangle | Structural elements |
-| `stadium` | Pill-shaped (highly rounded) | Status/badge nodes |
-| `cylinder` | Database cylinder | Data stores, files |
-| `document` | Paper with folded corner | Reports, manuscripts |
-| `file` | Folder with tab | Directories, file groups |
-| `codeblock` | Terminal window with title bar | Scripts, code snippets |
+| Shape | Description |
+|-------|-------------|
+| `rounded` | Rounded rectangle (default) |
+| `box` | Sharp-cornered rectangle |
+| `stadium` | Pill-shaped |
+| `cylinder` | Database cylinder |
+| `document` | Paper with folded corner |
+| `file` | Folder with tab |
+| `codeblock` | Terminal window with title bar |
 
-### Semantic Node Classes
+### Anchors
 
-Use `node_class` to auto-select shapes:
+`top`, `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, `center`, `auto`. Aliases (`n`/`s`/`e`/`w`, `tl`/`br`, etc.) are normalized automatically.
 
-```python
-s.add_box("script", "run_analysis.py", node_class="code")       # -> codeblock
-s.add_box("data", "results.csv", node_class="input")            # -> cylinder
-s.add_box("report", "Figure 1", node_class="claim")             # -> document
-```
+### Element IDs
 
-| Class | Default Shape | Meaning |
-|-------|---------------|---------|
-| `source` | rounded | Acquisition scripts |
-| `input` | cylinder | Raw data, configuration |
-| `processing` | rounded | Transform/analysis |
-| `output` | cylinder | Intermediate/final data |
-| `claim` | document | Paper assertions |
-| `code` | codeblock | Scripts, commands |
-
-## Element IDs
-
-Every element has an ID for precise error reporting:
-
-- **Boxes**: user-defined (`"python"`, `"recipe"`, ...)
-- **Containers**: user-defined (`"concerns"`, `"benefits"`, ...)
-- **Arrows**: auto-generated as `"arrow:source->target"`
-
-## Examples
-
-| File | Purpose |
-|------|---------|
-| `09b_diagram_NG_patterns.py` | Triggers each rule -- NG pattern reference |
-| `10a_figrecipe_concept_diagram_error.py` | Intentionally failing layout |
-| `10b_figrecipe_concept_diagram_fixed.py` | Corrected layout passing all rules |
+- **Boxes/Containers**: User-defined. Use `_box`/`_container` suffixes for searchability.
+- **Arrows**: Auto-generated as `"arrow:source->target"`
 
 ## Architecture
 
 ```
 _diagram/_diagram/
-  __init__.py          # Exports: Diagram
-  _core.py             # Builder, render, ArrowSpec, BoxSpec
-  _validate.py         # All validation rules (R1-R8)
-  _layout.py           # auto_layout() algorithms
-  _io.py               # to_dict / from_dict serialization
-  _editor.py           # GUI editing support
-  _autofix.py          # Auto-fix validation failures
-  _overlap.py          # Overlap resolution logic
-  _flex.py             # CSS flexbox-like layout
-  _render.py           # Matplotlib rendering
-  _geom.py             # Geometry helpers
-  _icons.py            # Icon support
-  _codeblock.py        # Codeblock shape renderer
-  _constants.py        # Shared constants
-  README.md            # This file
+  _core.py         # Diagram builder class, render()
+  _specs.py        # BoxSpec, ArrowSpec, IconSpec, PositionSpec dataclasses
+  _validate.py     # Validation rules (R1-R9)
+  _autofix.py      # Multi-pass auto-fix orchestrator
+  _fix_layout.py   # Pre-render fixers (R1, R2, R9)
+  _fix_arrows.py   # Arrow fixers (length, bidirectional, occlusion)
+  _render.py       # Matplotlib rendering
+  _io.py           # Serialization, render_to_file, watermark
+  _debug.py        # Debug overlay image generation
+  _color.py        # Color resolution and normalization
+  _constants.py    # Anchor points, node classes, normalize_anchor()
+  _flex.py         # CSS flexbox-like layout engine
+  _layout.py       # auto_layout() algorithms
+  _layout_graph.py # Graph-based container layout
+  _hitmap.py       # Click-target hitmap generation
+  _geom.py         # Geometry helpers
+  _icons.py        # Icon support
+  _codeblock.py    # Codeblock shape renderer
+  _editor.py       # GUI editing support
+  _overlap.py      # Overlap resolution logic
 ```
 
 <!-- EOF -->

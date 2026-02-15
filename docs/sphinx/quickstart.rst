@@ -229,50 +229,68 @@ Compose multiple figures:
 Box-and-Arrow Diagrams
 -----------------------
 
-Create publication-quality diagrams with mm-based coordinates:
+Create publication-quality diagrams with mm-based coordinates. Use ``gap_mm`` for automatic flex layout:
 
 .. code-block:: python
 
-    import figrecipe as fr
+    from figrecipe._diagram import Diagram
 
-    s = fr.Diagram(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
-    s.add_box("raw", "Raw EEG", subtitle="64 channels", emphasis="muted")
-    s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
-    s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
-    s.add_arrow("raw", "filter")
-    s.add_arrow("filter", "ica")
-    s.auto_layout(layout="lr", gap_mm=15)
+    d = Diagram(title="EEG Pipeline", gap_mm=10)
+    d.add_box("raw", "Raw EEG", subtitle="64 ch", shape="cylinder")
+    d.add_box("filter", "Bandpass", subtitle="0.5-45 Hz", emphasis="primary")
+    d.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
+    d.add_arrow("raw", "filter")
+    d.add_arrow("filter", "ica")
 
-    fig, ax = fr.subplots()
-    ax.diagram(s, id="pipeline")
-    fr.save(fig, "pipeline.png")
+    d.save("pipeline.png")  # auto-crops, generates recipe + hitmap + debug image
 
 .. image:: _static/quickstart_diagram_lr.png
    :width: 100%
    :align: center
    :alt: Left-to-right diagram pipeline
 
-Top-to-bottom layouts work the same way:
+Containers group boxes with automatic layout:
 
 .. code-block:: python
 
-    s = fr.Diagram(title="Neural Network", width_mm=150, height_mm=250)
-    s.add_box("input", "Input Layer", subtitle="784 neurons", emphasis="muted")
-    s.add_box("conv", "Conv2D", subtitle="32 filters", emphasis="primary")
-    s.add_box("out", "Output", subtitle="10 classes", emphasis="warning")
-    s.add_arrow("input", "conv")
-    s.add_arrow("conv", "out")
-    s.auto_layout(layout="tb", gap_mm=10)
+    d = Diagram(title="System", gap_mm=10)
+    d.add_box("a", "Module A", emphasis="primary")
+    d.add_box("b", "Module B", emphasis="primary")
+    d.add_container("core", title="Core", children=["a", "b"], direction="row")
+    d.add_box("out", "Output", shape="document", emphasis="muted")
+    d.add_arrow("core", "out")
+    d.save("system.png")
 
-.. image:: _static/quickstart_diagram_tb.png
-   :width: 40%
-   :align: center
-   :alt: Top-to-bottom diagram architecture
+Auto-Fix & Save Options
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+``auto_fix=True`` resolves layout violations automatically:
+
+.. code-block:: python
+
+    fig, ax = d.render(auto_fix=True)
+
+    # d.save() is the primary API — renders, auto-crops, and saves all artifacts:
+    d.save("out.png", watermark=True)  # stamps "Plotted by FigRecipe"
+
+Output files from ``d.save()``:
+
+- ``out.png`` — Auto-cropped diagram
+- ``out.yaml`` — Recipe for reproduction
+- ``out_hitmap.png`` — Click-target regions for GUI editing
+- ``out_debug.png`` — Debug overlay with positions and anchors
+
+Shapes & Anchors
+^^^^^^^^^^^^^^^^^
+
+**Shapes**: ``rounded`` (default), ``box``, ``stadium``, ``cylinder``, ``document``, ``file``, ``codeblock``.
+
+**Anchors**: ``top``, ``bottom``, ``left``, ``right``, ``top-left``, ``top-right``, ``bottom-left``, ``bottom-right``, ``center``, ``auto``. Aliases (``n``/``s``/``e``/``w``, ``tl``/``br``) are normalized.
 
 Diagram Validation Rules
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-All rules are enforced automatically on render. When validation fails, figures are saved with a ``_FAILED`` suffix for inspection.
+All rules are enforced on render. Failed figures are saved with ``_FAILED`` suffix.
 
 .. list-table::
    :header-rows: 1
@@ -283,28 +301,31 @@ All rules are enforced automatically on render. When validation fails, figures a
      - Severity
    * - W
      - Width exceeds 185 mm (double-column max)
-     - UserWarning
+     - Warning
    * - R1
      - Container must enclose all children
-     - ValueError
+     - Error
    * - R2
      - No two boxes may overlap
-     - ValueError
+     - Error
    * - R3
      - Container title must clear children (5 mm zone)
-     - UserWarning
+     - Warning
    * - R4
      - Box text must fit within padded inner area
-     - UserWarning
+     - Warning
    * - R5
      - Text-to-text margin >= 2 mm
-     - ValueError
+     - Error
    * - R6
      - Text-to-edge margin >= 2 mm
-     - ValueError
+     - Error
    * - R7
      - Arrow visible-length ratio >= 90%
-     - ValueError
+     - Error
    * - R8
      - Curved-arrow label on same side as arc
-     - ValueError
+     - Error
+   * - R9
+     - All elements within canvas bounds
+     - Error
