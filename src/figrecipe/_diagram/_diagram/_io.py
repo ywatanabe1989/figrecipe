@@ -174,7 +174,7 @@ def save_diagram_recipe(
     diagram: "Diagram",
     path,
     dpi: int = 200,
-) -> "Path":
+):
     """Save a standalone YAML recipe for a Diagram.
 
     Parameters
