@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0] - 2026-02-16
+
+### Added
+- **Diagram element editor** - Edit box colors, styles, and titles directly in the GUI editor
+- **Diagram hitmap** - Pixel-perfect click detection for diagram boxes, containers, and arrows
+- **Bullet point support** - BoxSpec now supports bullet styles (circle, dash, arrow)
+
+### Changed
+- **Emphasis resolves to explicit colors** - `add_box()`/`add_container()` now store resolved hex colors instead of deferring to render time
+- **Complete schematic→diagram rename** - All variable names, function names, and docstrings updated (210 occurrences); example output dirs and sphinx docs renamed
+- **Serializer refactored** - `_serializer.py` split into `_serializer/` package
+- **Diagram render/IO extraction** - `render_to_file()` moved to `_io.py`, `draw_all_elements()` to `_render.py`
+
+### Fixed
+- **Editor color picker** - Shows actual box colors instead of #cccccc fallback
+- **Text click in diagram boxes** - Clicking text now activates the Element tab
+- **Ruff lint errors** - Fixed F821, E731, F841 across diagram module
+
 ## [0.24.1] - 2026-02-14
 
 ### Changed

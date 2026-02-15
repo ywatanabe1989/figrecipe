@@ -395,7 +395,7 @@ class Diagram:
         ax: Optional[Axes] = None,
         auto_fix: bool = False,
         auto_curve: bool = True,
-    ) -> Tuple[Figure, Axes]:
+    ) -> Tuple["Figure", Axes]:
         """Render. auto_fix=True resolves violations; auto_curve=False skips R7."""
         import matplotlib.pyplot as plt
 
@@ -419,7 +419,9 @@ class Diagram:
             fig = ax.figure
 
         _sr.draw_all_elements(self, ax)
-        _draw_all = lambda: _sr.draw_all_elements(self, ax)
+
+        def _draw_all():
+            _sr.draw_all_elements(self, ax)
 
         # Phase 2: post-render auto-fix for text collisions (R5/R6/R7)
         if auto_fix:

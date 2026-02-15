@@ -19,7 +19,6 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 from PIL import Image
 
 if TYPE_CHECKING:
-
     from ._core import Diagram
 
 
@@ -177,7 +176,6 @@ def generate_diagram_hitmap(
             zorder=5,
         )
         ax.add_patch(patch)
-        arrow_id = arrow.id or f"arrow:{arrow.source}->{arrow.target}"
         color_map[f"arrow:{arrow.source}->{arrow.target}"] = {
             "id": eid,
             "type": "arrow",

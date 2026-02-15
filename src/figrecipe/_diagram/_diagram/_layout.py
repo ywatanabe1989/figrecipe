@@ -60,7 +60,6 @@ def auto_layout(
     layout_key = layout_map.get(layout.lower(), "lr")
 
     # Compute actual layer assignment for accurate canvas sizing
-    n_boxes = len(box_ids)
     is_horizontal = layout_key in ("lr", "rl")
     is_vertical = layout_key in ("tb", "bt")
     title_space_mm = 12.0 if info.title else 0.0
