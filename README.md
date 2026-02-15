@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-07 19:53:56
+!-- Timestamp: 2026-02-16 10:20:09
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -27,7 +27,16 @@
 
 ---
 
-**Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
+# FigRecipe — **Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
+
+>Four Freedoms for Research
+>
+>0. The freedom to **run** your research anywhere — your machine, your terms.
+>1. The freedom to **study** how every step works — from raw data to final manuscript.
+>2. The freedom to **redistribute** your workflows, not just your papers.
+>3. The freedom to **modify** any module and share improvements with the community.
+>
+>AGPL-3.0 — because research infrastructure deserves the same freedoms as the software it runs on.
 
 > **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
 
@@ -114,42 +123,108 @@ fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
 Create publication-quality box-and-arrow diagrams with mm-based coordinates. See [Overview](#overview) for an example output.
 
 <details>
-<summary><strong>Usage & Validation Rules</strong></summary>
+<summary><strong>Usage</strong></summary>
 
 <br>
 
 ```python
-s = fr.Diagram(title="EEG Analysis Pipeline", width_mm=170, height_mm=100)
-s.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted")
-s.add_box("filter", "Bandpass Filter", subtitle="0.5-45 Hz", emphasis="primary")
-s.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
-s.add_arrow("raw", "filter")
-s.add_arrow("filter", "ica")
-s.auto_layout(layout="lr", gap_mm=15)
+from figrecipe._diagram import Diagram
 
-fig, ax = fr.subplots()
-ax.diagram(s, id="pipeline")
-fr.save(fig, "pipeline.png")
+d = Diagram(title="EEG Pipeline", gap_mm=10)
+
+# Boxes
+d.add_box(
+    "raw", "Raw EEG", subtitle="64 ch", emphasis="muted", shape="cylinder"
+)
+d.add_box("filter", "Bandpass", subtitle="0.5-45 Hz", emphasis="primary")
+d.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
+
+# Arrows
+d.add_arrow("raw", "filter")
+d.add_arrow("filter", "ica")
+
+d.save(
+    "pipeline.png"
+)  # → pipeline.png + pipeline.yaml + pipeline_hitmap.png + pipeline_debug.png
 ```
 
-**Available shapes**: `rounded` (default), `box`, `stadium`, `cylinder` (database), `document` (paper), `file` (folder), `codeblock` (terminal window).
+</details>
+
+<details>
+<summary><strong>Containers & Flex Layout</strong></summary>
+
+<br>
+
+Use `gap_mm` on the Diagram for automatic flex layout (no manual x/y needed):
+
+```python
+d = Diagram(title="System Overview", gap_mm=10)
+
+d.add_box("a", "Module A")
+d.add_box("b", "Module B")
+d.add_container("grp", title="Core", children=["a", "b"], direction="row")
+d.add_box("out", "Output", shape="document")
+d.add_arrow("grp", "out")
+d.save("overview.png")
+```
+
+</details>
+
+<details>
+<summary><strong>Auto-Fix & Save Options</strong></summary>
+
+<br>
+
+`auto_fix=True` automatically resolves layout violations (overlaps, container enclosure, canvas bounds, arrow collisions):
+
+```python
+fig, ax = d.render(auto_fix=True)
+
+# d.save() renders, auto-crops, and optionally watermarks:
+d.save("out.png", watermark=True)  # "Plotted by FigRecipe" stamp
+```
+
+**Output files from `d.save()`**:
+| File | Content |
+|------|---------|
+| `out.png` | Auto-cropped diagram |
+| `out.yaml` | Recipe for reproduction |
+| `out_hitmap.png` | Click-target regions for GUI editing |
+| `out_debug.png` | Debug overlay showing positions and anchors |
+
+</details>
+
+<details>
+<summary><strong>Shapes & Anchors</strong></summary>
+
+<br>
+
+**Shapes**: `rounded` (default), `box`, `stadium`, `cylinder`, `document`, `file`, `codeblock`.
 Use `node_class` for semantic defaults: `"code"` → codeblock, `"input"` → cylinder, `"claim"` → document.
 
-All rules are enforced automatically on render. Errors are collected and reported together:
+**Anchors**: `top`, `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, `center`, or `auto` (default). Aliases like `n`/`s`/`e`/`w`, `tl`/`tr`/`bl`/`br` are normalized automatically.
+
+</details>
+
+<details>
+<summary><strong>Validation Rules</strong></summary>
+
+<br>
+
+All rules are enforced on render. Failed figures are saved with a `_FAILED` suffix for inspection.
 
 | Rule | Check | Severity |
 |------|-------|----------|
-| W | Width exceeds 185 mm (double-column max) | UserWarning |
-| R1 | Container must enclose all children | ValueError |
-| R2 | No two boxes may overlap | ValueError |
-| R3 | Container title must clear children (5 mm zone) | UserWarning |
-| R4 | Box text must fit within padded inner area | UserWarning |
-| R5 | Text-to-text margin >= 2 mm | ValueError |
-| R6 | Text-to-edge margin >= 2 mm | ValueError |
-| R7 | Arrow visible-length ratio >= 90% | ValueError |
-| R8 | Curved-arrow label on same side as arc | ValueError |
-
-When validation fails, figures are still saved with a `_FAILED` suffix for inspection.
+| W | Width exceeds 185 mm (double-column max) | Warning |
+| R1 | Container must enclose all children | Error |
+| R2 | No two boxes may overlap | Error |
+| R3 | Container title must clear children (5 mm zone) | Warning |
+| R4 | Box text must fit within padded inner area | Warning |
+| R5 | Text-to-text margin >= 2 mm | Error |
+| R6 | Text-to-edge margin >= 2 mm | Error |
+| R7 | Arrow visible-length ratio >= 90% | Error |
+| R8 | Curved-arrow label on same side as arc | Error |
+| R9 | All elements within canvas bounds | Error |
 
 </details>
 
@@ -292,8 +367,6 @@ figrecipe mcp install
 
 <p align="center">
   <a href="https://scitex.ai" target="_blank"><img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
-  <br>
-  AGPL-3.0
 </p>
 
 <!-- EOF -->
