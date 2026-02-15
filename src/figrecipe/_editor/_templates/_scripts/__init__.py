@@ -38,6 +38,7 @@ from ._colors import SCRIPTS_COLORS
 from ._core import SCRIPTS_CORE
 from ._datatable import SCRIPTS_DATATABLE
 from ._debug_snapshot import SCRIPTS_DEBUG_SNAPSHOT
+from ._diagram_editor import SCRIPTS_DIAGRAM_EDITOR
 from ._element_editor import SCRIPTS_ELEMENT_EDITOR
 from ._files import SCRIPTS_FILES
 from ._files_context_menu import JS_FILES_CONTEXT_MENU
@@ -75,6 +76,7 @@ SCRIPTS = (
     + SCRIPTS_MULTI_SELECT
     + SCRIPTS_REGION_SELECT
     + SCRIPTS_ELEMENT_EDITOR
+    + SCRIPTS_DIAGRAM_EDITOR
     + SCRIPTS_LABELS
     + SCRIPTS_CAPTIONS
     + SCRIPTS_API
@@ -117,6 +119,7 @@ def get_all_scripts():
         "core": SCRIPTS_CORE,
         "datatable": SCRIPTS_DATATABLE,
         "debug_snapshot": SCRIPTS_DEBUG_SNAPSHOT,
+        "diagram_editor": SCRIPTS_DIAGRAM_EDITOR,
         "element_editor": SCRIPTS_ELEMENT_EDITOR,
         "files": SCRIPTS_FILES,
         "hitmap": SCRIPTS_HITMAP,
@@ -152,6 +155,7 @@ __all__ = [
     "SCRIPTS_CORE",
     "SCRIPTS_DATATABLE",
     "SCRIPTS_DEBUG_SNAPSHOT",
+    "SCRIPTS_DIAGRAM_EDITOR",
     "SCRIPTS_ELEMENT_EDITOR",
     "SCRIPTS_FILES",
     "SCRIPTS_HITMAP",

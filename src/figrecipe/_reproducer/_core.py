@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 
@@ -132,6 +131,8 @@ def reproduce_from_record(
     ncols = max_col + 1
 
     # Create figure
+    import matplotlib.pyplot as plt
+
     fig, mpl_axes = plt.subplots(
         nrows,
         ncols,
@@ -334,7 +335,7 @@ def _replay_call(
         from ._replay_graph import replay_graph_call
 
         return replay_graph_call(ax, call)
-    if method_name == "diagram":
+    if method_name in ("diagram", "schematic"):
         from ._replay_diagram import replay_diagram_native_call
 
         return replay_diagram_native_call(ax, call)

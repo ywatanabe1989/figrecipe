@@ -58,13 +58,25 @@ def restore_axes_properties(
                     if len(props["colors"]) > 0:
                         coll.set_color(props["colors"])
 
-        # Restore patches
+        # Restore patches (check all key patterns used by process_patches)
         for i, patch in enumerate(ax.patches):
-            key = f"ax{ax_idx}_bar{i}"
-            if key in original_props:
-                props = original_props[key]
-                patch.set_facecolor(props["facecolor"])
-                patch.set_edgecolor(props["edgecolor"])
+            for prefix in (
+                "bar",
+                "polygon",
+                "wedge",
+                "stairs",
+                "boxplot_box",
+                "dbox",
+                "darrow",
+            ):
+                key = f"ax{ax_idx}_{prefix}{i}"
+                if key in original_props:
+                    props = original_props[key]
+                    if "facecolor" in props:
+                        patch.set_facecolor(props["facecolor"])
+                    if "edgecolor" in props:
+                        patch.set_edgecolor(props["edgecolor"])
+                    break
 
         # Restore text
         if include_text:
@@ -80,6 +92,12 @@ def restore_axes_properties(
             if key in original_props:
                 ax.yaxis.label.set_color(original_props[key]["color"])
 
+            # Restore arbitrary text elements (diagram labels)
+            for t_idx, text_obj in enumerate(ax.texts):
+                key = f"ax{ax_idx}_text{t_idx}"
+                if key in original_props:
+                    text_obj.set_color(original_props[key]["color"])
+
         # Restore legend
         key = f"ax{ax_idx}_legend"
         if key in original_props:
@@ -89,6 +107,12 @@ def restore_axes_properties(
                 props = original_props[key]
                 frame.set_facecolor(props["facecolor"])
                 frame.set_edgecolor(props["edgecolor"])
+
+        # Restore images
+        for i, img in enumerate(ax.images):
+            key = f"ax{ax_idx}_image{i}"
+            if key in original_props:
+                img.set_data(original_props[key]["data"])
 
         # Restore spines
         for spine in ax.spines.values():

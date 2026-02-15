@@ -75,6 +75,27 @@ def process_text(
         }
         element_id += 1
 
+    # Arbitrary text elements (diagram box titles, arrow labels, etc.)
+    known = {ax.title, ax.xaxis.label, ax.yaxis.label}
+    for t_idx, text_obj in enumerate(ax.texts):
+        if text_obj in known or not text_obj.get_visible():
+            continue
+        text_str = text_obj.get_text()
+        if not text_str:
+            continue
+        key = f"ax{ax_idx}_text{t_idx}"
+        rgb = id_to_rgb(element_id)
+        original_props[key] = {"color": text_obj.get_color()}
+        text_obj.set_color(normalize_color(rgb))
+        color_map[key] = {
+            "id": element_id,
+            "type": "text",
+            "label": text_str[:30],
+            "ax_index": ax_idx,
+            "rgb": list(rgb),
+        }
+        element_id += 1
+
     return element_id
 
 

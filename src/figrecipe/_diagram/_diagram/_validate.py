@@ -493,9 +493,9 @@ def validate_all(schematic, fig=None, ax=None):
                 errors.append(f"{tag}: {e}")
 
     if errors:
-        header = f"{len(errors)} validation error(s):"
+        n = len(errors)
         detail = "\n  ".join(errors)
-        raise ValueError(f"{header}\n  {detail}")
+        raise ValueError(f"{n} validation error(s):\n  {detail}")
 
 
 # EOF

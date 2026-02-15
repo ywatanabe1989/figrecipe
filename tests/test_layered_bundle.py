@@ -124,6 +124,32 @@ class TestSaveBundle:
             has_hitmap = any("exports/figure_hitmap.png" in n for n in names)
             assert has_hitmap, f"exports/figure_hitmap.png not found in {names}"
 
+    def test_save_creates_recipe_yaml_in_zip(self, tmp_path):
+        """Test that recipe.yaml is included inside the ZIP bundle."""
+        fig, ax = fr.subplots()
+        ax.plot([1, 2, 3], [1, 4, 9], id="test")
+
+        bundle_path = fr.save_bundle(fig, tmp_path / "test", verbose=False)
+
+        with zipfile.ZipFile(bundle_path, "r") as zf:
+            names = zf.namelist()
+            has_recipe = any("recipe.yaml" in n for n in names)
+            assert has_recipe, f"recipe.yaml not found in {names}"
+
+    def test_save_zip_via_fr_save_creates_recipe_alongside(self, tmp_path):
+        """Test that fr.save(fig, 'x.zip') creates recipe.yaml alongside ZIP."""
+        fig, ax = fr.subplots()
+        ax.plot([1, 2, 3], [1, 4, 9], id="test")
+
+        result = fr.save(fig, tmp_path / "test.zip", verbose=False)
+        bundle_path = result[0]
+        yaml_path = result[1]
+
+        assert bundle_path.exists()
+        assert yaml_path is not None
+        assert yaml_path.exists()
+        assert yaml_path.suffix == ".yaml"
+
 
 class TestLoadBundle:
     """Test load_bundle functionality."""

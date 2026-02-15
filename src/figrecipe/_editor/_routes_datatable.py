@@ -249,7 +249,10 @@ def register_datatable_routes(app, editor):
             )
 
             # Generate hitmap
-            hitmap_img, color_map = generate_hitmap(recording_fig, dpi=150)
+            editor._main_img_size = img_size
+            hitmap_img, color_map = generate_hitmap(
+                recording_fig, dpi=150, target_size=editor._main_img_size
+            )
             editor._color_map = color_map
             editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
             editor._hitmap_generated = True

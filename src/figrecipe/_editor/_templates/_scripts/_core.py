@@ -310,8 +310,8 @@ function handleKeyboardShortcuts(event) {
         return;
     }
 
-    // Alt+B: Show All Bboxes toggle (DEBUG MODE ONLY)
-    if (DEBUG_MODE && event.altKey && !event.ctrlKey && !event.shiftKey && (event.key === 'b' || event.key === 'B')) {
+    // Alt+B: Show All Bboxes toggle
+    if (event.altKey && !event.ctrlKey && !event.shiftKey && (event.key === 'b' || event.key === 'B')) {
         event.preventDefault();
         event.stopPropagation();
         if (typeof toggleAllBboxes === 'function') {

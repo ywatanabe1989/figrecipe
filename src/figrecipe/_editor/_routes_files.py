@@ -13,7 +13,6 @@ def register_file_routes(app, editor):
     from pathlib import Path
 
     from ._helpers import render_with_overrides
-    from ._hitmap import generate_hitmap, hitmap_to_base64
 
     @app.route("/api/files")
     def list_files():
@@ -63,7 +62,7 @@ def register_file_routes(app, editor):
                     items.append(
                         {
                             "path": rel_path,
-                            "name": entry.stem,
+                            "name": entry.name,
                             "type": "file",
                             "has_image": has_png,
                             "is_current": (
@@ -140,15 +139,16 @@ def register_file_routes(app, editor):
 
             editor._init_style_overrides(None)
 
-            hitmap_img, editor._color_map = generate_hitmap(editor.fig)
-            editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
-            editor._hitmap_generated = True
-
+            # Render FIRST (clean figure state), hitmap deferred to /hitmap
             base64_img, bboxes, img_size = render_with_overrides(
                 editor.fig,
                 editor.get_effective_style(),
                 editor.dark_mode,
             )
+
+            # Defer hitmap generation to lazy /hitmap endpoint
+            editor._hitmap_generated = False
+            editor._color_map = {}
 
             return jsonify(
                 {
@@ -212,15 +212,16 @@ def register_file_routes(app, editor):
 
             editor._init_style_overrides(None)
 
-            hitmap_img, editor._color_map = generate_hitmap(editor.fig)
-            editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
-            editor._hitmap_generated = True
-
+            # Render FIRST (clean figure state), hitmap deferred to /hitmap
             base64_img, bboxes, img_size = render_with_overrides(
                 editor.fig,
                 editor.get_effective_style(),
                 editor.dark_mode,
             )
+
+            # Defer hitmap generation to lazy /hitmap endpoint
+            editor._hitmap_generated = False
+            editor._color_map = {}
 
             return jsonify(
                 {

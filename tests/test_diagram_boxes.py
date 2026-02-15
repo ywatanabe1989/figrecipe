@@ -110,6 +110,38 @@ class TestRender:
             result = s.render_to_file(path)
             assert result.exists()
 
+    def test_render_to_file_creates_recipe(self):
+        """Test that render_to_file creates a YAML recipe alongside the image."""
+        s = fr.Diagram(title="Recipe Test")
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
+        s.add_box("b", title="B", x_mm=120, y_mm=50, width_mm=40, height_mm=25)
+        s.add_arrow("a", "b")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "test.png"
+            s.render_to_file(path)
+            yaml_path = Path(tmpdir) / "test.yaml"
+            assert yaml_path.exists(), "YAML recipe not created"
+
+            import yaml
+
+            with open(yaml_path) as f:
+                recipe = yaml.safe_load(f)
+            assert recipe["figrecipe"] == "1.0"
+            assert recipe["type"] == "diagram"
+            assert "diagram" in recipe
+            assert recipe["diagram"]["title"] == "Recipe Test"
+
+    def test_render_to_file_no_recipe(self):
+        """Test that save_recipe=False skips recipe creation."""
+        s = fr.Diagram()
+        s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "test.png"
+            s.render_to_file(path, save_recipe=False)
+            assert not (Path(tmpdir) / "test.yaml").exists()
+
 
 class TestSerialization:
     """Test serialization and reproduction."""
@@ -195,8 +227,8 @@ class TestContainerValidation:
             s.validate_containers()
 
     def test_render_validates_containers(self):
-        """Test that render() calls validation automatically."""
-        import pytest
+        """Test that render() warns on validation failure and marks figure."""
+        import warnings
 
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_container(
@@ -209,8 +241,11 @@ class TestContainerValidation:
             height_mm=30,
         )
         s.add_box("a", title="A", x_mm=200, y_mm=50, width_mm=40, height_mm=25)
-        with pytest.raises(ValueError, match="extends outside container"):
-            s.render()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
+        assert any("extends outside container" in str(wi.message) for wi in w)
 
 
 class TestBoxOverlapValidation:
@@ -234,14 +269,17 @@ class TestBoxOverlapValidation:
             s.validate_no_overlap()
 
     def test_render_detects_overlap(self):
-        """Test that render() catches box overlap."""
-        import pytest
+        """Test that render() warns on box overlap and marks figure failed."""
+        import warnings
 
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=55, y_mm=50, width_mm=40, height_mm=25)
-        with pytest.raises(ValueError, match="overlap"):
-            s.render()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
+        assert any("overlap" in str(wi.message) for wi in w)
 
 
 class TestTextOverlapValidation:
@@ -261,33 +299,39 @@ class TestTextOverlapValidation:
         overlap_warns = [x for x in w if "Text overlap" in str(x.message)]
         assert len(overlap_warns) == 0
 
-    def test_overlapping_text_raises(self):
-        """Test that overlapping arrow labels raise ValueError."""
-        import pytest
+    def test_overlapping_text_warns(self):
+        """Test that overlapping arrow labels warn and mark figure failed."""
+        import warnings
 
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=150, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b", label="forward")
         s.add_arrow("b", "a", label="backward")
-        with pytest.raises(ValueError, match="Text margin violation"):
-            s.render()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
+        assert any("Text margin" in str(wi.message) for wi in w)
 
 
 class TestArrowBoxOcclusion:
     """Test R7: arrow-through-box occlusion detection."""
 
-    def test_arrow_through_intermediate_box_raises(self):
-        """Arrow passing through an intermediate box triggers R7."""
-        import pytest
+    def test_arrow_through_intermediate_box_warns(self):
+        """Arrow passing through an intermediate box triggers R7 warning."""
+        import warnings
 
         s = fr.Diagram(width_mm=100, height_mm=80)
         s.add_box("top", "Top", x_mm=50, y_mm=65, width_mm=20, height_mm=10)
         s.add_box("mid", "Mid", x_mm=50, y_mm=40, width_mm=20, height_mm=10)
         s.add_box("bot", "Bot", x_mm=50, y_mm=15, width_mm=20, height_mm=10)
         s.add_arrow("top", "bot")
-        with pytest.raises(ValueError, match="visibility"):
-            s.render()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
+        assert any("visibility" in str(wi.message) for wi in w)
 
     def test_no_intermediate_box_passes(self):
         """Arrow between two boxes with nothing between passes R7."""

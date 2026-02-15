@@ -146,16 +146,8 @@ def _make_patches_opaque(fig):
 def _save_hitmap(fig, image_path: Path, dpi: int, verbose: bool) -> Optional[Path]:
     """Save hitmap image for GUI editor element selection.
 
-    Parameters
-    ----------
-    fig : RecordingFigure
-        The figure to generate hitmap for.
-    image_path : Path
-        Path to the main image file (hitmap will be saved alongside).
-    dpi : int
-        DPI for hitmap rendering.
-    verbose : bool
-        Whether to print status.
+    Auto-detects diagram figures and uses diagram-specific hitmap
+    (element IDs → unique colors) instead of the generic artist hitmap.
 
     Returns
     -------
@@ -163,18 +155,22 @@ def _save_hitmap(fig, image_path: Path, dpi: int, verbose: bool) -> Optional[Pat
         Path to saved hitmap, or None if generation failed.
     """
     try:
-        from .._editor._hitmap import generate_hitmap
-
-        # Generate hitmap (uses 150 dpi by default for reasonable file size)
-        hitmap_img, color_map = generate_hitmap(fig, dpi=min(dpi, 150))
-
-        # Save hitmap image
         hitmap_path = image_path.with_stem(image_path.stem + "_hitmap")
-        hitmap_img.save(hitmap_path)
+        mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+        diagram = getattr(mpl_fig, "_figrecipe_diagram", None)
+
+        if diagram is not None:
+            from .._diagram._diagram._hitmap import save_diagram_hitmap
+
+            save_diagram_hitmap(diagram, hitmap_path, dpi=min(dpi, 150))
+        else:
+            from .._editor._hitmap import generate_hitmap
+
+            hitmap_img, _ = generate_hitmap(fig, dpi=min(dpi, 150))
+            hitmap_img.save(hitmap_path)
 
         if verbose:
             print(f"  Hitmap: {hitmap_path}")
-
         return hitmap_path
     except Exception as e:
         if verbose:
@@ -197,7 +193,7 @@ def save_figure(
     image_format: Optional[str] = None,
     crop_margin_mm: Optional[float] = None,
     facecolor: Optional[str] = None,
-    save_hitmap: bool = False,
+    save_hitmap: bool = True,
 ):
     """Core save implementation.
 
@@ -242,9 +238,9 @@ def save_figure(
         Background color for the saved image. When set to an opaque color,
         figure and axes patches are temporarily made opaque before saving.
     save_hitmap : bool
-        If True, save a hitmap image alongside the figure for GUI editor use.
-        The hitmap enables pixel-perfect element selection in the editor.
-        Saved as {basename}_hitmap.png. Default: False.
+        If True (default), save a hitmap image alongside the figure for GUI
+        editor use. For diagrams, generates element-ID-based hitmap with JSON
+        sidecar. Saved as {basename}_hitmap.png.
 
     Returns
     -------
@@ -287,7 +283,19 @@ def save_figure(
             save_hitmap=save_hitmap,
             verbose=verbose,
         )
-        return bundle_path, None, None
+        # Also save recipe alongside ZIP for easy fr.reproduce() access
+        yaml_path = None
+        if save_recipe:
+            yaml_path = path.with_suffix(".yaml")
+            fig.save_recipe(
+                yaml_path,
+                include_data=include_data,
+                data_format=data_format,
+                csv_format=csv_format,
+            )
+            if verbose:
+                print(f"Saved recipe: {yaml_path}")
+        return bundle_path, yaml_path, None
 
     # Check if saving as directory bundle (legacy recipe.yaml format)
     if save_recipe and _is_bundle_path(path):

@@ -19,9 +19,10 @@ PNG, JPG, JPEG, TIFF, BMP, GIF, WEBP, SVG (SVG requires cairosvg)
 """
 
 from ._alignment import AlignmentMode, align_panels, align_smart, distribute_panels
-from ._compose import IMAGE_EXTENSIONS, VECTOR_EXTENSIONS, compose
+from ._compose import compose
 from ._import_axes import import_axes
 from ._layout_solver import solve_layout_to_mm
+from ._source_parser import IMAGE_EXTENSIONS, VECTOR_EXTENSIONS
 from ._visibility import hide_panel, show_panel, toggle_panel
 
 __all__ = [

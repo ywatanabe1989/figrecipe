@@ -104,10 +104,16 @@ def replay_diagram_native_call(ax: Axes, call: CallRecord) -> Any:
     # Render to provided axes
     fig, rendered_ax = info.render(ax=ax)
 
-    # Resize figure to match diagram's coordinate space
-    x_range = info.xlim[1] - info.xlim[0]
-    y_range = info.ylim[1] - info.ylim[0]
-    fig.set_size_inches(x_range / 25.4, y_range / 25.4)
+    # In composed figures (multiple axes), don't resize the figure
+    # and use auto aspect so the diagram fills its grid cell properly.
+    # Also set white background so diagram is visible on transparent renders.
+    if len(fig.get_axes()) > 1:
+        ax.set_aspect("auto")
+        ax.set_facecolor("white")
+    else:
+        x_range = info.xlim[1] - info.xlim[0]
+        y_range = info.ylim[1] - info.ylim[0]
+        fig.set_size_inches(x_range / 25.4, y_range / 25.4)
 
     return fig, rendered_ax
 

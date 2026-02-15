@@ -32,6 +32,7 @@ def register_core_routes(app, editor):
             editor.get_effective_style(),
             editor.dark_mode,
         )
+        editor._main_img_size = img_size
 
         style_name = getattr(editor, "_style_name", "SCITEX")
 
@@ -62,6 +63,7 @@ def register_core_routes(app, editor):
             editor.get_effective_style(),
             editor.dark_mode,
         )
+        editor._main_img_size = img_size
 
         return jsonify(
             {
@@ -96,6 +98,7 @@ def register_core_routes(app, editor):
             editor.get_effective_style(),
             editor.dark_mode,
         )
+        editor._main_img_size = img_size
 
         return jsonify(
             {
@@ -110,7 +113,9 @@ def register_core_routes(app, editor):
         """Get hitmap image and color map (lazy generation on first request)."""
         if not editor._hitmap_generated:
             print("Generating hitmap (first request)...")
-            hitmap_img, editor._color_map = generate_hitmap(editor.fig)
+            hitmap_img, editor._color_map = generate_hitmap(
+                editor.fig, target_size=editor._main_img_size
+            )
             editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
             editor._hitmap_generated = True
             print("Hitmap ready.")

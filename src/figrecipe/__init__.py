@@ -85,19 +85,22 @@ from ._diagram import Diagram
 from ._diagram._graphviz.graphviz import Graphviz
 from ._diagram._mermaid.mermaid import Mermaid
 from ._graph._presets import get_preset as get_graph_preset
-from ._seaborn import get_seaborn_recorder as _get_sns
 
 
 # Lazy seaborn access (avoids import error if seaborn not installed)
 @property
 def _sns_property(self):
+    from ._seaborn import get_seaborn_recorder as _get_sns
+
     return _get_sns()
 
 
 # Module-level property emulation for sns
 class _SnsModule:
     def __getattr__(self, name):
-        return getattr(_get_sns(), name)
+        from ._seaborn import get_seaborn_recorder
+
+        return getattr(get_seaborn_recorder(), name)
 
 
 sns = _SnsModule()

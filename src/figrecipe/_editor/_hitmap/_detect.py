@@ -52,6 +52,13 @@ def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
                         info["call_ids"][func_name] = []
                     info["call_ids"][func_name].append(call_id)
 
+                    # Extract diagram data for element-level identification
+                    if func_name == "diagram":
+                        diagram_data = call.kwargs.get("diagram_data")
+                        if diagram_data:
+                            info["diagram_data"] = diagram_data
+                            info["diagram_call_id"] = call_id
+
             ax_key_to_info[ax_key] = info
 
         # Map ax_keys to current axes positions using position matching

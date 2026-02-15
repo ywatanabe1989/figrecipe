@@ -5,7 +5,6 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 from numpy.typing import NDArray
@@ -365,7 +364,7 @@ class RecordingFigure:
         dpi: Optional[int] = None,
         image_format: Optional[str] = None,
         facecolor: Optional[str] = None,
-        save_hitmap: bool = False,
+        save_hitmap: bool = True,
         **kwargs,
     ):
         """Save figure — equivalent to fr.save(). Same DPI, crop, recipe.
@@ -464,6 +463,8 @@ def create_recording_subplots(
         recorder = Recorder()
 
     # Create matplotlib figure
+    import matplotlib.pyplot as plt
+
     fig, mpl_axes = plt.subplots(nrows, ncols, **kwargs)
 
     # Get figsize and dpi

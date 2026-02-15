@@ -221,6 +221,7 @@ class DiagramRenderer:
         format: Optional[str] = None,
         dpi: int = 300,
         transparent: bool = False,
+        save_recipe: bool = True,
         **kwargs,
     ) -> Path:
         """Render diagram directly to file.
@@ -235,6 +236,8 @@ class DiagramRenderer:
             Output DPI.
         transparent : bool
             Whether to use transparent background.
+        save_recipe : bool
+            If True (default), save a YAML recipe alongside the image.
         **kwargs
             Additional arguments passed to fig.savefig().
 
@@ -257,6 +260,8 @@ class DiagramRenderer:
             bbox_inches="tight",
             **kwargs,
         )
+        if save_recipe:
+            _save_graph_recipe(self, path.with_suffix(".yaml"), dpi=dpi)
         plt.close(fig)
 
         return path
@@ -398,6 +403,24 @@ def render_diagram_native(
         return renderer.render_to_file(path, dpi=dpi, **kwargs)
 
     return renderer.render()
+
+
+def _save_graph_recipe(renderer: DiagramRenderer, path: Path, dpi: int = 300):
+    """Save a standalone YAML recipe for a graph diagram."""
+    import datetime
+
+    import yaml
+
+    recipe = {
+        "figrecipe": "1.0",
+        "type": "graph_diagram",
+        "created": datetime.datetime.now().isoformat(),
+        "dpi": dpi,
+        "diagram": renderer.to_dict(),
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        yaml.dump(recipe, f, default_flow_style=False, sort_keys=False)
 
 
 __all__ = [

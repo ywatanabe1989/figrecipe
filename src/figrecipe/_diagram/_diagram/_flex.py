@@ -147,6 +147,19 @@ def _position_children(info: "Diagram", cid: str, connected: set) -> None:
     content_cy = pos.y_mm - title_h / 2
 
     if direction == "row":
+        # Equalize child heights to the tallest for visual balance
+        if container.get("equalize_heights", True):
+            max_h = max(
+                (
+                    info._positions[c].height_mm
+                    for c in children
+                    if c in info._positions
+                ),
+                default=0,
+            )
+            for child_id in children:
+                if child_id in info._positions:
+                    info._positions[child_id].height_mm = max_h
         child_widths = [info._positions[c].width_mm for c in children]
         total_w = sum(child_widths) + sum(gaps)
         x = pos.x_mm - total_w / 2
@@ -160,6 +173,15 @@ def _position_children(info: "Diagram", cid: str, connected: set) -> None:
             if child_id in info._containers:
                 _position_children(info, child_id, connected)
     else:
+        # Equalize child widths to the widest for visual balance
+        if container.get("equalize_widths", True):
+            max_w = max(
+                (info._positions[c].width_mm for c in children if c in info._positions),
+                default=0,
+            )
+            for child_id in children:
+                if child_id in info._positions:
+                    info._positions[child_id].width_mm = max_w
         y = pos.y_mm + pos.height_mm / 2 - c_pad - title_h
         for i, child_id in enumerate(children):
             cp = info._positions[child_id]
@@ -182,7 +204,11 @@ def auto_box_width(box) -> float:
     texts = [box.title]
     if box.subtitle:
         texts.append(box.subtitle)
-    texts.extend(box.content)
+    for item in box.content:
+        if isinstance(item, dict):
+            texts.append(item.get("text", ""))
+        else:
+            texts.append(str(item))
     max_chars = max((len(t) for t in texts), default=4)
     return max(max_chars * mm_per_char + 2 * box.padding_mm, 24.0)
 

@@ -4,6 +4,7 @@
 
 from typing import Any, Dict
 
+import numpy as np
 from matplotlib.image import AxesImage
 
 from .._colors import id_to_rgb
@@ -15,8 +16,12 @@ def process_images(
     element_id: int,
     color_map: Dict[str, Any],
     ax_info: Dict[str, Any],
+    original_props: Dict[str, Any] = None,
 ) -> int:
     """Process images on an axes.
+
+    Replaces image data with solid hitmap color so pixel-based element
+    detection works for composed figures that embed panels via imshow.
 
     Returns updated element_id.
     """
@@ -50,12 +55,28 @@ def process_images(
 
             image_idx += 1
 
+            rgb = id_to_rgb(element_id)
+
+            # Replace image data with solid hitmap color for pixel detection
+            if original_props is not None:
+                original_data = img.get_array()
+                original_props[key] = {"data": original_data.copy()}
+
+                # Build solid-color array matching original shape
+                shape = original_data.shape
+                solid = np.zeros((*shape[:2], 3), dtype=np.uint8)
+                solid[:, :, 0] = rgb[0]
+                solid[:, :, 1] = rgb[1]
+                solid[:, :, 2] = rgb[2]
+                img.set_data(solid)
+                img.set_clim(0, 255)
+
             color_map[key] = {
                 "id": element_id,
                 "type": "image",
                 "label": label,
                 "ax_index": ax_idx,
-                "rgb": list(id_to_rgb(element_id)),
+                "rgb": list(rgb),
                 "call_id": call_id,
             }
             element_id += 1

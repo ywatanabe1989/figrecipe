@@ -121,9 +121,12 @@ function updateLegendDragOverlay(bbox) {
     const img = document.getElementById('preview-image');
     if (!img) return;
 
-    const rect = img.getBoundingClientRect();
-    const scaleX = rect.width / img.naturalWidth;
-    const scaleY = rect.height / img.naturalHeight;
+    // Use offsetWidth/offsetHeight for overlay positioning (pre-CSS-transform local coords)
+    // getBoundingClientRect() returns post-transform dimensions causing zoom-dependent error
+    const localW = img.offsetWidth || img.naturalWidth;
+    const localH = img.offsetHeight || img.naturalHeight;
+    const scaleX = localW / img.naturalWidth;
+    const scaleY = localH / img.naturalHeight;
 
     const left = bbox.x * scaleX;
     const top = bbox.y * scaleY;

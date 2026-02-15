@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 """Diagram builder for rich scientific diagrams."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from ._constants import ANCHOR_POINTS, NODE_CLASSES, VERIFICATION_STATES
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes  # noqa: F401; from matplotlib.figure import Figure
 
 
 @dataclass
@@ -31,6 +32,7 @@ class BoxSpec:
     node_class: Optional[str] = None  # source/input/processing/output/claim
     state: Optional[str] = None  # verified/tampered/invalidated/ignored
     language: Optional[str] = None  # syntax highlighting language (e.g. "python")
+    bullet: Optional[str] = None  # "circle" (·), "dash" (–), "arrow" (→)
 
 
 @dataclass
@@ -73,6 +75,18 @@ class PositionSpec:
     height_mm: float
 
 
+def _resolve_emphasis(emphasis, fill_color, border_color, title_color=None):
+    """Resolve emphasis shorthand to explicit colors (explicit colors always win)."""
+    from .._shared._styles_native import get_emphasis_style
+
+    ec = get_emphasis_style(emphasis)
+    return (
+        fill_color or ec["fill"],
+        border_color or ec["stroke"],
+        title_color or ec.get("text"),
+    )
+
+
 class Diagram:
     """Builder for rich box-and-arrow diagrams with mm-based coordinates."""
 
@@ -93,22 +107,16 @@ class Diagram:
             )
         self.title = title
         self.width_mm = width_mm
-
-        # Flex layout: gap_mm triggers auto-height
         self._padding_mm = padding_mm
         self._gap_mm = gap_mm
         self._flow_items: List[str] = []
         if gap_mm is not None:
             height_mm = None  # force auto-height in flex mode
-
         self._auto_height = height_mm is None
         self.height_mm = height_mm if height_mm is not None else 0
-
-        # Compute figsize and limits (1 data unit = 1 mm)
         self.figsize = (width_mm / 25.4, self.height_mm / 25.4)
         self.xlim = (0, width_mm)
         self.ylim = (0, self.height_mm)
-
         self._boxes: Dict[str, BoxSpec] = {}
         self._containers: Dict[str, Dict] = {}
         self._arrows: List[ArrowSpec] = []
@@ -136,24 +144,23 @@ class Diagram:
         node_class: Optional[str] = None,
         state: Optional[str] = None,
         language: Optional[str] = None,
+        bullet: Optional[str] = None,
     ) -> "Diagram":
-        """Add a rich text box.
-
-        node_class: semantic role (source/input/processing/output/claim/code).
-            Sets default shape if shape not explicitly given.
-        state: verification state (verified/tampered/invalidated/ignored).
-            Sets default fill_color/border_color if not explicitly given.
-        language: code language for syntax highlighting (e.g. "python", "bash").
-            Only used when shape="codeblock". Requires pygments.
-        """
+        """Add a rich text box. See BoxSpec for node_class/state/language/bullet."""
         # Resolve node_class → default shape (explicit shape wins)
         if node_class and shape == "rounded" and node_class in NODE_CLASSES:
             shape = NODE_CLASSES[node_class]
-        # Resolve state → default colors (explicit colors win)
+        # Resolve state/emphasis → explicit colors (explicit colors always win)
         if state and state in VERIFICATION_STATES:
             s_fill, s_border = VERIFICATION_STATES[state]
             fill_color = fill_color or s_fill
             border_color = border_color or s_border
+        fill_color, border_color, title_color = _resolve_emphasis(
+            emphasis,
+            fill_color,
+            border_color,
+            title_color,
+        )
         box = BoxSpec(
             id=id,
             title=title,
@@ -169,9 +176,9 @@ class Diagram:
             node_class=node_class,
             state=state,
             language=language,
+            bullet=bullet,
         )
         self._boxes[id] = box
-
         # Flex mode: auto-size and defer positioning
         if self._gap_mm is not None and x_mm is None and y_mm is None:
             if height_mm is None:
@@ -179,25 +186,14 @@ class Diagram:
             from ._flex import auto_box_width
 
             w = width_mm if width_mm is not None else auto_box_width(box)
-            self._positions[id] = PositionSpec(
-                x_mm=0,
-                y_mm=0,
-                width_mm=w,
-                height_mm=height_mm,
-            )
+            self._positions[id] = PositionSpec(0, 0, w, height_mm)
             self._flow_items.append(id)
             return self
-
         # Auto-compute height when x/y/width given but height is None
         if height_mm is None and None not in (x_mm, y_mm, width_mm):
             height_mm = self._auto_box_height(box)
         if None not in (x_mm, y_mm, width_mm, height_mm):
-            self._positions[id] = PositionSpec(
-                x_mm=x_mm,
-                y_mm=y_mm,
-                width_mm=width_mm,
-                height_mm=height_mm,
-            )
+            self._positions[id] = PositionSpec(x_mm, y_mm, width_mm, height_mm)
         return self
 
     def add_container(
@@ -216,8 +212,13 @@ class Diagram:
         direction: str = "row",
         container_gap_mm: float = 8.0,
         container_padding_mm: float = 8.0,
+        equalize_heights: bool = True,
+        equalize_widths: bool = True,
     ) -> "Diagram":
-        """Add a container (direction/container_gap_mm/container_padding_mm for flex)."""
+        """Add a container. equalize_heights/widths: match children in row/column."""
+        fill_color, border_color, _ = _resolve_emphasis(
+            emphasis, fill_color, border_color
+        )
         self._containers[id] = {
             "title": title,
             "children": children or [],
@@ -228,6 +229,8 @@ class Diagram:
             "direction": direction,
             "gap_mm": container_gap_mm,
             "padding_mm": container_padding_mm,
+            "equalize_heights": equalize_heights,
+            "equalize_widths": equalize_widths,
         }
         if self._gap_mm is not None and x_mm is None and y_mm is None:
             self._positions[id] = PositionSpec(0, 0, width_mm or 0, height_mm or 0)
@@ -282,10 +285,7 @@ class Diagram:
         color: Optional[str] = None,
         opacity: float = 1.0,
     ) -> "Diagram":
-        """Add an icon (SVG/PNG file path or built-in name).
-
-        Built-in icons: 'warning', 'check', 'cross', 'info', 'lock'.
-        """
+        """Add an icon (SVG/PNG or built-in: warning/check/cross/info/lock)."""
         self._icons[id] = IconSpec(
             id=id,
             source=source,
@@ -391,9 +391,14 @@ class Diagram:
         return ("top", "bottom") if dy > 0 else ("bottom", "top")
 
     def render(
-        self, ax: Optional[Axes] = None, auto_fix: bool = False
+        self,
+        ax: Optional[Axes] = None,
+        auto_fix: bool = False,
+        auto_curve: bool = True,
     ) -> Tuple[Figure, Axes]:
-        """Render the schematic. Set auto_fix=True to auto-resolve layout violations."""
+        """Render. auto_fix=True resolves violations; auto_curve=False skips R7."""
+        import matplotlib.pyplot as plt
+
         from . import _render as _sr
         from . import _validate as _sv
 
@@ -401,7 +406,7 @@ class Diagram:
         if auto_fix:
             from ._autofix import auto_fix as _af
 
-            _af(self)
+            _af(self, auto_curve=auto_curve)
 
         figsize = (
             (self.xlim[1] - self.xlim[0]) / 25.4,
@@ -413,35 +418,8 @@ class Diagram:
         else:
             fig = ax.figure
 
-        def _draw_all():
-            ax.clear()
-            ax.set_xlim(self.xlim)
-            ax.set_ylim(self.ylim)
-            ax.set_aspect("equal")
-            ax.axis("off")
-            for cid, container in self._containers.items():
-                if cid in self._positions:
-                    _sr.render_container(self, ax, cid, container)
-            for bid, box in self._boxes.items():
-                if bid in self._positions:
-                    _sr.render_box(self, ax, bid, box)
-            for arrow in self._arrows:
-                _sr.render_arrow(self, ax, arrow)
-            for iid, icon in self._icons.items():
-                if iid in self._positions:
-                    _sr.render_icon(self, ax, iid, icon)
-            if self.title:
-                ax.text(
-                    (self.xlim[0] + self.xlim[1]) / 2,
-                    self.ylim[1] - 5.0,
-                    self.title,
-                    ha="center",
-                    va="top",
-                    fontsize=12,
-                    fontweight="bold",
-                )
-
-        _draw_all()
+        _sr.draw_all_elements(self, ax)
+        _draw_all = lambda: _sr.draw_all_elements(self, ax)
 
         # Phase 2: post-render auto-fix for text collisions (R5/R6/R7)
         if auto_fix:
@@ -452,27 +430,34 @@ class Diagram:
                     break
                 _draw_all()
 
-        # Validate when we own the figure; when ax is external,
-        # the caller (diagram_plot) handles validation with error capture
+        # Validate and set diagram markers only when owns_fig (not in composed)
         if owns_fig:
-            _sv.validate_all(self, fig=fig, ax=ax)
+            fig._figrecipe_diagram_failed = False
+            fig._figrecipe_validation_errors = []
+            try:
+                _sv.validate_all(self, fig=fig, ax=ax)
+            except ValueError as e:
+                import warnings
 
+                fig._figrecipe_diagram_failed = True
+                fig._figrecipe_validation_errors = str(e).split("\n")
+                warnings.warn(str(e), UserWarning, stacklevel=2)
+            fig._figrecipe_diagram = self
         return fig, ax
 
-    def render_to_file(self, path: Union[str, Path], dpi: int = 200) -> Path:
+    def render_to_file(
+        self,
+        path: Union[str, Path],
+        dpi: int = 200,
+        save_recipe: bool = True,
+        save_hitmap: bool = False,
+    ) -> Path:
         """Render and save. On validation failure, saves as *_FAILED.png."""
-        path = Path(path)
-        try:
-            fig, ax = self.render()
-        except ValueError:
-            fig = plt.gcf()
-            failed = path.with_stem(f"{path.stem}_FAILED")
-            fig.savefig(failed, dpi=dpi, bbox_inches="tight", facecolor="white")
-            plt.close(fig)
-            raise
-        fig.savefig(path, dpi=dpi, bbox_inches="tight", facecolor="white")
-        plt.close(fig)
-        return path
+        from ._io import render_to_file as _rtf
+
+        return _rtf(
+            self, path, dpi=dpi, save_recipe=save_recipe, save_hitmap=save_hitmap
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert schematic to dictionary for serialization."""

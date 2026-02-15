@@ -140,21 +140,17 @@ function startAnnotationDrag(event, elemKey) {
         x: bbox.rel_x !== undefined ? bbox.rel_x : 0,
         y: bbox.rel_y !== undefined ? bbox.rel_y : 0
     };
-    console.log('[AnnotationDrag] Original anchor position (rel):', annotationOriginalRelPos.x.toFixed(3), annotationOriginalRelPos.y.toFixed(3));
-
     // Calculate offset from click position to bbox corner for precise cursor following
-    // This ensures the overlay follows the cursor at exactly the click point
+    // IMPORTANT: Use getBoundingClientRect for screen-space mouse calculations
     const rect = img.getBoundingClientRect();
-    const scaleX = rect.width / img.naturalWidth;
-    const scaleY = rect.height / img.naturalHeight;
-    const bboxScreenX = bbox.x * scaleX;
-    const bboxScreenY = bbox.y * scaleY;
-    // Offset is the distance from bbox corner to click point (in screen pixels)
+    const screenScaleX = rect.width / img.naturalWidth;
+    const screenScaleY = rect.height / img.naturalHeight;
+    const bboxScreenX = bbox.x * screenScaleX;
+    const bboxScreenY = bbox.y * screenScaleY;
     annotationDragOffset = {
         x: event.clientX - rect.left - bboxScreenX,
         y: event.clientY - rect.top - bboxScreenY
     };
-    console.log('[AnnotationDrag] Click offset from bbox corner:', annotationDragOffset.x.toFixed(1), annotationDragOffset.y.toFixed(1));
 
     // Extract axis index from key (e.g., "ax0_panel_label" -> 0)
     const match = elemKey.match(/ax(\\d+)_/);
@@ -196,10 +192,12 @@ function handleAnnotationDragMove(event) {
 
     // Calculate new bbox position directly from cursor position minus offset
     // This ensures the overlay follows the cursor precisely at the click point
+    // Use screen-space (getBoundingClientRect) for mouse coord conversion
     const screenToImgX = img.naturalWidth / rect.width;
     const screenToImgY = img.naturalHeight / rect.height;
 
     // Convert current mouse position to image coordinates, accounting for the click offset
+    // annotationDragOffset is in screen pixels, so subtract in screen space before converting
     const cursorScreenX = event.clientX - rect.left - annotationDragOffset.x;
     const cursorScreenY = event.clientY - rect.top - annotationDragOffset.y;
 
@@ -225,9 +223,13 @@ function updateAnnotationDragOverlay(bbox, isSnapped = false) {
     const img = document.getElementById('preview-image');
     if (!img) return;
 
-    const rect = img.getBoundingClientRect();
-    const scaleX = rect.width / img.naturalWidth;
-    const scaleY = rect.height / img.naturalHeight;
+    // Use offsetWidth/offsetHeight for overlay positioning (pre-CSS-transform local coords)
+    // getBoundingClientRect() returns post-transform screen dimensions which causes
+    // position error that grows with distance from origin when zoom != 100%
+    const localW = img.offsetWidth || img.naturalWidth;
+    const localH = img.offsetHeight || img.naturalHeight;
+    const scaleX = localW / img.naturalWidth;
+    const scaleY = localH / img.naturalHeight;
 
     const left = bbox.x * scaleX;
     const top = bbox.y * scaleY;
@@ -358,10 +360,13 @@ async function handleAnnotationDragEnd(event) {
     const deltaX = event.clientX - annotationDragStartPos.x;
     const deltaY = event.clientY - annotationDragStartPos.y;
 
-    // Only update if moved significantly (5px threshold)
+    // Movement below threshold — treat as click, select element
     if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) {
-        console.log('[AnnotationDrag] Movement below threshold, not updating');
         isDraggingAnnotation = false;
+        if (annotationKey && colorMap && typeof selectElement === 'function') {
+            const info = { ...(currentBboxes?.[annotationKey] || {}), ...(colorMap[annotationKey] || {}), key: annotationKey };
+            selectElement(info);
+        }
         return;
     }
 

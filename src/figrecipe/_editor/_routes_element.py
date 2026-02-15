@@ -103,11 +103,17 @@ def register_element_routes(app, editor):
                         # Store override - will be applied via apply_overrides()
                         editor.style_overrides.set_call_override(call_id, param, value)
 
-                        # Also update record kwargs for persistence
-                        if value is None or value == "" or value == "null":
-                            call.kwargs.pop(param, None)
-                        else:
-                            call.kwargs[param] = value
+                        # For diagram/schematic calls, dotted params like
+                        # "boxes.a.fill_color" are deep-merged into
+                        # diagram_data by _apply_diagram_override() during
+                        # render — don't set as flat kwargs key.
+                        is_diagram = call.function in ("diagram", "schematic")
+                        if not is_diagram:
+                            # Update record kwargs for persistence
+                            if value is None or value == "" or value == "null":
+                                call.kwargs.pop(param, None)
+                            else:
+                                call.kwargs[param] = value
 
                         updated = True
                         break
@@ -133,7 +139,10 @@ def register_element_routes(app, editor):
             )
 
             # Regenerate hitmap
-            hitmap_img, color_map = generate_hitmap(editor.fig, dpi=150)
+            editor._main_img_size = img_size
+            hitmap_img, color_map = generate_hitmap(
+                editor.fig, dpi=150, target_size=editor._main_img_size
+            )
             editor._color_map = color_map
             editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
             editor._hitmap_generated = True
@@ -261,7 +270,10 @@ def register_element_routes(app, editor):
             )
 
             # Regenerate hitmap
-            hitmap_img, color_map = generate_hitmap(editor.fig, dpi=150)
+            editor._main_img_size = img_size
+            hitmap_img, color_map = generate_hitmap(
+                editor.fig, dpi=150, target_size=editor._main_img_size
+            )
             editor._color_map = color_map
             editor._hitmap_base64 = hitmap_to_base64(hitmap_img)
             editor._hitmap_generated = True

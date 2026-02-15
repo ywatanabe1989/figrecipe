@@ -110,7 +110,6 @@ def gui(
     import tempfile
 
     from ._flask_app import FigureEditor
-    from ._hitmap import generate_hitmap, hitmap_to_base64
 
     # Handle different input types
     fig, recipe_path = _resolve_source(source)
@@ -123,10 +122,12 @@ def gui(
     static_png_path = Path(tempfile.mktemp(suffix="_figrecipe_static.png"))
     mpl_fig.savefig(static_png_path, format="png", dpi=150, bbox_inches="tight")
 
-    # Generate hitmap ONCE at this point
-    # Pass RecordingFigure to preserve record for plot type detection
-    hitmap, color_map = generate_hitmap(fig)
-    hitmap_base64 = hitmap_to_base64(hitmap)
+    # Hitmap generation is deferred to the lazy /hitmap endpoint.
+    # This ensures the hitmap matches the main render's exact dimensions,
+    # which is critical for diagram figures where bbox_inches="tight"
+    # produces slightly different crops between renders.
+    hitmap_base64 = None
+    color_map = None
 
     # Resolve working directory
     resolved_working_dir = Path(working_dir) if working_dir else Path.cwd()

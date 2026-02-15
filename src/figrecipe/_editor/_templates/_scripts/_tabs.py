@@ -16,7 +16,7 @@ let currentTab = 'figure';
 
 // Element type to tab mapping
 const AXIS_TYPES = ['title', 'xlabel', 'ylabel', 'suptitle', 'supxlabel', 'supylabel', 'legend'];
-const ELEMENT_TYPES = ['line', 'scatter', 'bar', 'hist', 'fill', 'boxplot', 'violin', 'image', 'linecollection', 'quiver', 'pie', 'contour', 'specgram', 'errorbar', 'stem', 'step', 'stairs', 'stackplot', 'eventplot', 'barbs', 'quadmesh'];
+const ELEMENT_TYPES = ['line', 'scatter', 'bar', 'hist', 'fill', 'boxplot', 'violin', 'image', 'linecollection', 'quiver', 'pie', 'contour', 'specgram', 'errorbar', 'stem', 'step', 'stairs', 'stackplot', 'eventplot', 'barbs', 'quadmesh', 'diagram_box', 'diagram_container', 'diagram_arrow'];
 
 // Switch between Figure/Axis/Element tabs
 function switchTab(tabName) {
@@ -72,7 +72,11 @@ function updateTabHints() {
             if (elementHint) elementHint.style.display = 'none';
             if (elementPanel) {
                 elementPanel.style.display = 'block';
-                document.getElementById('element-type-badge').textContent = selectedElement.type;
+                // Show friendly type name for diagram elements
+                const typeDisplay = selectedElement.type.startsWith('diagram_')
+                    ? 'Diagram ' + selectedElement.type.replace('diagram_', '')
+                    : selectedElement.type;
+                document.getElementById('element-type-badge').textContent = typeDisplay;
                 document.getElementById('element-name').textContent = selectedElement.label || selectedElement.key;
             }
         } else {

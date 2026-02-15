@@ -117,6 +117,9 @@ class FigureEditor:
         self._hitmap_base64 = hitmap_base64
         self._color_map = color_map if color_map is not None else {}
 
+        # Main render image size — hitmap must match these dimensions exactly
+        self._main_img_size = None
+
     def _init_style_overrides(self, programmatic_style: Optional[Dict[str, Any]]):
         """Initialize the layered style override system."""
         # Try to load existing overrides

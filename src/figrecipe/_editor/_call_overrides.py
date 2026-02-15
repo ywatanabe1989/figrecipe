@@ -72,6 +72,65 @@ def apply_call_overrides(
                     _apply_patch_param(wedge, param, value)
             elif call_function in ("fill_between", "fill_betweenx"):
                 _apply_fill_override(ax, ax_record_found, call_id, param, value)
+            elif call_function in ("diagram", "schematic"):
+                _apply_diagram_override(ax_record_found, call_id, param, value)
+
+
+def _apply_diagram_override(ax_record, call_id, param, value):
+    """Apply override to diagram element by modifying diagram_data in-place.
+
+    Diagram overrides use dotted path params that target specific elements:
+    - "boxes.a.fill_color" -> sets boxes[idx_of_a]["fill_color"] = value
+    - "boxes.a.title" -> sets boxes[idx_of_a]["title"] = value
+    - "arrows.0.color" -> sets arrows[0]["color"] = value
+    - "containers.group1.fill_color" -> sets containers[idx]["fill_color"] = value
+
+    The modified diagram_data is picked up on next render when
+    Diagram.from_dict(diagram_data) reconstructs the diagram.
+    """
+    # Find the diagram call
+    call = next((c for c in ax_record.calls if c.id == call_id), None)
+    if call is None:
+        return
+
+    diagram_data = call.kwargs.get("diagram_data") or call.kwargs.get("schematic_data")
+    if diagram_data is None:
+        return
+
+    # Parse dotted path: "collection.element_id.property"
+    parts = param.split(".")
+    if len(parts) < 3:
+        import warnings
+
+        warnings.warn(
+            f"Diagram override param '{param}' must have format "
+            "'collection.element_id.property'",
+            stacklevel=2,
+        )
+        return
+
+    collection, element_id, prop = parts[0], parts[1], ".".join(parts[2:])
+
+    if collection == "boxes":
+        items = diagram_data.get("boxes", [])
+        for item in items:
+            if item.get("id") == element_id:
+                item[prop] = value
+                return
+    elif collection == "arrows":
+        items = diagram_data.get("arrows", [])
+        try:
+            idx = int(element_id)
+        except ValueError:
+            return
+        if 0 <= idx < len(items):
+            items[idx][prop] = value
+    elif collection == "containers":
+        items = diagram_data.get("containers", [])
+        for item in items:
+            if item.get("id") == element_id:
+                item[prop] = value
+                return
 
 
 def _apply_bar_override(ax, ax_record, call_id, param, value):

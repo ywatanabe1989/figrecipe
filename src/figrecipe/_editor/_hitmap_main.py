@@ -14,7 +14,7 @@ The color encoding uses 24-bit RGB:
 """
 
 import io
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from matplotlib.figure import Figure
 from PIL import Image
@@ -24,6 +24,7 @@ def generate_hitmap(
     fig: Figure,
     dpi: int = 150,
     include_text: bool = True,
+    target_size: Optional[Tuple[int, int]] = None,
 ) -> Tuple[Image.Image, Dict[str, Any]]:
     """
     Generate hitmap with unique colors per element.
@@ -36,6 +37,10 @@ def generate_hitmap(
         Resolution for hitmap rendering (default: 150).
     include_text : bool, optional
         Whether to include text elements like labels (default: True).
+    target_size : tuple of (width, height), optional
+        Force hitmap to this exact pixel size to match the main render.
+        Required for diagram figures where bbox_inches="tight" produces
+        slightly different crops between renders due to color changes.
 
     Returns
     -------
@@ -90,6 +95,9 @@ def generate_hitmap(
         mpl_fig = fig
     axes_list = mpl_fig.get_axes()
 
+    # Detect diagram figures for special handling
+    is_diagram = getattr(mpl_fig, "_figrecipe_diagram", None) is not None
+
     # Process all artists and assign colors
     for ax_idx, ax in enumerate(axes_list):
         ax_info = plot_types.get(ax_idx, {"types": set(), "call_ids": {}})
@@ -109,8 +117,10 @@ def generate_hitmap(
             ax, ax_idx, element_id, original_props, color_map, ax_info
         )
 
-        # Process images
-        element_id = process_images(ax, ax_idx, element_id, color_map, ax_info)
+        # Process images (pass original_props to save/restore image data)
+        element_id = process_images(
+            ax, ax_idx, element_id, color_map, ax_info, original_props
+        )
 
         # Process text elements
         if include_text:
@@ -135,14 +145,42 @@ def generate_hitmap(
         ax.set_facecolor(normalize_color(BACKGROUND_COLOR))
 
     # Render to buffer
-    # IMPORTANT: Do NOT use bbox_inches="tight" - it causes dimension changes
-    # between renders when elements change (e.g., color). Must match main render.
+    # IMPORTANT: Do NOT use bbox_inches="tight" for regular figures - it causes
+    # dimension changes between renders. Must match main render.
+    # Exception: diagram figures NEED bbox_inches="tight" to crop whitespace,
+    # matching how render_with_overrides() renders them.
+    hitmap_dpi = dpi
+    if is_diagram:
+        fig_w, fig_h = mpl_fig.get_size_inches()
+        max_dim = max(fig_w, fig_h)
+        max_pixels = 1500
+        if max_dim * hitmap_dpi > max_pixels:
+            hitmap_dpi = max(30, int(max_pixels / max_dim))
+    save_kwargs = dict(format="png", dpi=hitmap_dpi, facecolor=fig.get_facecolor())
+    if is_diagram:
+        # Use bbox_inches="tight" to match render_with_overrides() crop.
+        # Color changes don't affect element positions so tight bbox is identical.
+        save_kwargs["bbox_inches"] = "tight"
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=dpi, facecolor=fig.get_facecolor())
+    fig.savefig(buf, **save_kwargs)
     buf.seek(0)
 
     # Load as PIL Image
     hitmap = Image.open(buf).convert("RGB")
+
+    # Force hitmap to match main render dimensions exactly.
+    # bbox_inches="tight" recomputes the crop per render, and color changes
+    # in the hitmap cause a slightly different tight bbox (typically 2-3px).
+    # Use NEAREST resampling to preserve exact color-to-element mapping.
+    if target_size and hitmap.size != target_size:
+        import warnings
+
+        warnings.warn(
+            f"Hitmap size {hitmap.size} differs from main render {target_size}, resizing",
+            UserWarning,
+            stacklevel=2,
+        )
+        hitmap = hitmap.resize(target_size, Image.NEAREST)
 
     # Restore original properties
     restore_axes_properties(axes_list, original_props, include_text)
