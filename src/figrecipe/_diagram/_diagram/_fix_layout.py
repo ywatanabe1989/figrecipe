@@ -22,21 +22,21 @@ _CONTAINER_PAD_MM = 8.0
 # ── Collectors ──────────────────────────────────────────────────────
 
 
-def _collect_container_violations(schematic: "Diagram") -> List[Dict]:
+def _collect_container_violations(diagram: "Diagram") -> List[Dict]:
     """Collect all R1 container-enclosure violations."""
     results = []
-    for cid, container in schematic._containers.items():
-        if cid not in schematic._positions:
+    for cid, container in diagram._containers.items():
+        if cid not in diagram._positions:
             continue
-        cpos = schematic._positions[cid]
+        cpos = diagram._positions[cid]
         cl = cpos.x_mm - cpos.width_mm / 2
         cr = cpos.x_mm + cpos.width_mm / 2
         cb = cpos.y_mm - cpos.height_mm / 2
         ct = cpos.y_mm + cpos.height_mm / 2
         for child_id in container.get("children", []):
-            if child_id not in schematic._positions:
+            if child_id not in diagram._positions:
                 continue
-            ch = schematic._positions[child_id]
+            ch = diagram._positions[child_id]
             chl = ch.x_mm - ch.width_mm / 2
             chr_ = ch.x_mm + ch.width_mm / 2
             chb = ch.y_mm - ch.height_mm / 2
@@ -54,13 +54,13 @@ def _collect_container_violations(schematic: "Diagram") -> List[Dict]:
     return results
 
 
-def _collect_overlap_violations(schematic: "Diagram") -> List[Dict]:
+def _collect_overlap_violations(diagram: "Diagram") -> List[Dict]:
     """Collect all R2 box-overlap violations."""
     results = []
-    box_ids = [bid for bid in schematic._boxes if bid in schematic._positions]
+    box_ids = [bid for bid in diagram._boxes if bid in diagram._positions]
     for id_a, id_b in combinations(box_ids, 2):
-        r_a = box_rect(schematic._positions[id_a])
-        r_b = box_rect(schematic._positions[id_b])
+        r_a = box_rect(diagram._positions[id_a])
+        r_b = box_rect(diagram._positions[id_b])
         if rects_overlap(r_a, r_b):
             results.append(
                 {
@@ -73,15 +73,15 @@ def _collect_overlap_violations(schematic: "Diagram") -> List[Dict]:
     return results
 
 
-def _collect_canvas_violations(schematic: "Diagram") -> List[Dict]:
+def _collect_canvas_violations(diagram: "Diagram") -> List[Dict]:
     """Collect all R9 canvas-bounds violations."""
-    x_lo, x_hi = schematic.xlim
-    y_lo, y_hi = schematic.ylim
+    x_lo, x_hi = diagram.xlim
+    y_lo, y_hi = diagram.ylim
     results = []
-    for eid in list(schematic._boxes) + list(schematic._containers):
-        if eid not in schematic._positions:
+    for eid in list(diagram._boxes) + list(diagram._containers):
+        if eid not in diagram._positions:
             continue
-        left, bottom, right, top = box_rect(schematic._positions[eid])
+        left, bottom, right, top = box_rect(diagram._positions[eid])
         excess = {
             "left": max(0, x_lo - left),
             "right": max(0, right - x_hi),
@@ -96,9 +96,9 @@ def _collect_canvas_violations(schematic: "Diagram") -> List[Dict]:
 # ── Fixers ──────────────────────────────────────────────────────────
 
 
-def fix_container_enclosure(schematic: "Diagram") -> int:
+def fix_container_enclosure(diagram: "Diagram") -> int:
     """R1: Expand containers to enclose children and center them. Returns fix count."""
-    violations = _collect_container_violations(schematic)
+    violations = _collect_container_violations(diagram)
     if not violations:
         return 0
     # Aggregate max excess per container across all children.
@@ -110,7 +110,7 @@ def fix_container_enclosure(schematic: "Diagram") -> int:
         for edge in ("left", "right", "bottom", "top"):
             per_container[cid][edge] = max(per_container[cid][edge], v["excess"][edge])
     for cid, excess in per_container.items():
-        pos = schematic._positions[cid]
+        pos = diagram._positions[cid]
         pad = _CONTAINER_PAD_MM
         grow_w = excess["left"] + excess["right"] + 2 * pad
         grow_h = excess["bottom"] + excess["top"] + 2 * pad
@@ -123,10 +123,10 @@ def fix_container_enclosure(schematic: "Diagram") -> int:
     # Center children within their (now-expanded) containers.
     _TITLE_RESERVE_MM = 8.0  # vertical space for container title
     for cid in per_container:
-        cpos = schematic._positions[cid]
-        children = schematic._containers[cid].get("children", [])
+        cpos = diagram._positions[cid]
+        children = diagram._containers[cid].get("children", [])
         child_positions = [
-            schematic._positions[ch] for ch in children if ch in schematic._positions
+            diagram._positions[ch] for ch in children if ch in diagram._positions
         ]
         if not child_positions:
             continue
@@ -149,36 +149,36 @@ def fix_container_enclosure(schematic: "Diagram") -> int:
     return len(per_container)
 
 
-def fix_overlaps(schematic: "Diagram") -> int:
+def fix_overlaps(diagram: "Diagram") -> int:
     """R2: Push overlapping boxes apart. Returns fix count."""
-    violations = _collect_overlap_violations(schematic)
+    violations = _collect_overlap_violations(diagram)
     if not violations:
         return 0
     from ._overlap import resolve_overlaps
 
-    x_lo, x_hi = schematic.xlim
-    y_lo, y_hi = schematic.ylim
+    x_lo, x_hi = diagram.xlim
+    y_lo, y_hi = diagram.ylim
     resolve_overlaps(
-        schematic, gap=_FIX_MARGIN_MM, x_min=x_lo, x_max=x_hi, y_min=y_lo, y_max=y_hi
+        diagram, gap=_FIX_MARGIN_MM, x_min=x_lo, x_max=x_hi, y_min=y_lo, y_max=y_hi
     )
     return len(violations)
 
 
-def fix_canvas_bounds(schematic: "Diagram") -> int:
+def fix_canvas_bounds(diagram: "Diagram") -> int:
     """R9: Expand canvas xlim/ylim to encompass all elements. Returns fix count."""
-    violations = _collect_canvas_violations(schematic)
+    violations = _collect_canvas_violations(diagram)
     if not violations:
         return 0
-    x_lo, x_hi = schematic.xlim
-    y_lo, y_hi = schematic.ylim
+    x_lo, x_hi = diagram.xlim
+    y_lo, y_hi = diagram.ylim
     for v in violations:
         excess = v["excess"]
         x_lo -= excess["left"] + _FIX_MARGIN_MM if excess["left"] > 0 else 0
         x_hi += excess["right"] + _FIX_MARGIN_MM if excess["right"] > 0 else 0
         y_lo -= excess["bottom"] + _FIX_MARGIN_MM if excess["bottom"] > 0 else 0
         y_hi += excess["top"] + _FIX_MARGIN_MM if excess["top"] > 0 else 0
-    schematic.xlim = (x_lo, x_hi)
-    schematic.ylim = (y_lo, y_hi)
-    schematic.width_mm = x_hi - x_lo
-    schematic.height_mm = y_hi - y_lo
+    diagram.xlim = (x_lo, x_hi)
+    diagram.ylim = (y_lo, y_hi)
+    diagram.width_mm = x_hi - x_lo
+    diagram.height_mm = y_hi - y_lo
     return len(violations)

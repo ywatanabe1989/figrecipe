@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Rendering functions for schematic diagrams."""
+"""Rendering functions for diagram diagrams."""
 
 from typing import TYPE_CHECKING, Dict
 
@@ -211,9 +211,9 @@ def _render_file(ax, pos, fill, border, zorder=2):
 _AESTHETIC_PAD = 1.0
 
 
-def render_container(schematic: "Diagram", ax: Axes, cid: str, container: Dict) -> None:
+def render_container(diagram: "Diagram", ax: Axes, cid: str, container: Dict) -> None:
     """Render a container box."""
-    pos = schematic._positions[cid]
+    pos = diagram._positions[cid]
     colors = get_emphasis_style(container["emphasis"])
     fill = container.get("fill_color")
     fill = fill if fill is not None else colors["fill"]
@@ -255,12 +255,12 @@ def render_container(schematic: "Diagram", ax: Axes, cid: str, container: Dict) 
             bbox=_bg,
         )
 
-    schematic._render_info[cid] = {"pos": pos}
+    diagram._render_info[cid] = {"pos": pos}
 
 
-def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None:
+def render_box(diagram: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None:
     """Render a rich text box."""
-    pos = schematic._positions[bid]
+    pos = diagram._positions[bid]
     colors = get_emphasis_style(box.emphasis)
     fill = box.fill_color or colors["fill"]
     border = box.border_color or colors["stroke"]
@@ -311,7 +311,7 @@ def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None
         from ._codeblock import render_codeblock_text
 
         render_codeblock_text(ax, pos, box, fill, title_color, colors)
-        schematic._render_info[bid] = {"pos": pos}
+        diagram._render_info[bid] = {"pos": pos}
         return
 
     # Build text items: list of (text, fontsize, fontweight, color)
@@ -366,37 +366,37 @@ def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None
             bbox=_txt_bg,
         )
 
-    schematic._render_info[bid] = {"pos": pos}
+    diagram._render_info[bid] = {"pos": pos}
 
 
-def render_icon(schematic, ax, iid, icon):
+def render_icon(diagram, ax, iid, icon):
     """Delegate to icons module."""
     from ._icons import render_icon as _ri
 
-    _ri(schematic, ax, iid, icon)
+    _ri(diagram, ax, iid, icon)
 
 
-def render_arrow(schematic: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
+def render_arrow(diagram: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
     """Render an arrow."""
     if (
-        arrow.source not in schematic._positions
-        or arrow.target not in schematic._positions
+        arrow.source not in diagram._positions
+        or arrow.target not in diagram._positions
     ):
         return
 
-    src_pos = schematic._positions[arrow.source]
-    tgt_pos = schematic._positions[arrow.target]
+    src_pos = diagram._positions[arrow.source]
+    tgt_pos = diagram._positions[arrow.target]
 
     # Determine anchors
     if arrow.source_anchor == "auto" or arrow.target_anchor == "auto":
-        auto_src, auto_tgt = schematic._auto_anchor(src_pos, tgt_pos)
+        auto_src, auto_tgt = diagram._auto_anchor(src_pos, tgt_pos)
         src_anc = auto_src if arrow.source_anchor == "auto" else arrow.source_anchor
         tgt_anc = auto_tgt if arrow.target_anchor == "auto" else arrow.target_anchor
     else:
         src_anc, tgt_anc = arrow.source_anchor, arrow.target_anchor
 
-    start = schematic._get_anchor(src_pos, src_anc)
-    end = schematic._get_anchor(tgt_pos, tgt_anc)
+    start = diagram._get_anchor(src_pos, src_anc)
+    end = diagram._get_anchor(tgt_pos, tgt_anc)
 
     # Apply angle-aware margin accounting for visual box padding
     import math

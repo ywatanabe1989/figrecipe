@@ -19,26 +19,26 @@ _MIN_ARROW_GAP_MM = 15.0
 # ── Collectors ──────────────────────────────────────────────────────
 
 
-def _collect_label_side_violations(schematic: "Diagram") -> List[Dict]:
+def _collect_label_side_violations(diagram: "Diagram") -> List[Dict]:
     """Collect all R8 arrow-label-side violations."""
     from ._validate import compute_arrow_label_position
 
     results = []
-    for arrow in schematic._arrows:
+    for arrow in diagram._arrows:
         if not arrow.curve or not arrow.label:
             continue
-        src_pos = schematic._positions.get(arrow.source)
-        tgt_pos = schematic._positions.get(arrow.target)
+        src_pos = diagram._positions.get(arrow.source)
+        tgt_pos = diagram._positions.get(arrow.target)
         if not src_pos or not tgt_pos:
             continue
         if arrow.source_anchor == "auto" or arrow.target_anchor == "auto":
-            auto_s, auto_t = schematic._auto_anchor(src_pos, tgt_pos)
+            auto_s, auto_t = diagram._auto_anchor(src_pos, tgt_pos)
             sa = auto_s if arrow.source_anchor == "auto" else arrow.source_anchor
             ta = auto_t if arrow.target_anchor == "auto" else arrow.target_anchor
         else:
             sa, ta = arrow.source_anchor, arrow.target_anchor
-        start = schematic._get_anchor(src_pos, sa)
-        end = schematic._get_anchor(tgt_pos, ta)
+        start = diagram._get_anchor(src_pos, sa)
+        end = diagram._get_anchor(tgt_pos, ta)
         lx, ly = compute_arrow_label_position(
             start, end, arrow.curve, arrow.label_offset_mm
         )
@@ -58,7 +58,7 @@ def _collect_label_side_violations(schematic: "Diagram") -> List[Dict]:
 # ── Pre-render fixers ───────────────────────────────────────────────
 
 
-def fix_arrow_lengths(schematic: "Diagram") -> int:
+def fix_arrow_lengths(diagram: "Diagram") -> int:
     """Ensure minimum visible gap between connected boxes for readable arrows.
 
     For each arrow, measures the rectangle-to-rectangle gap between source
@@ -72,9 +72,9 @@ def fix_arrow_lengths(schematic: "Diagram") -> int:
     from ._geom import bbox_gap
 
     fixed = 0
-    for arrow in schematic._arrows:
-        src = schematic._positions.get(arrow.source)
-        tgt = schematic._positions.get(arrow.target)
+    for arrow in diagram._arrows:
+        src = diagram._positions.get(arrow.source)
+        tgt = diagram._positions.get(arrow.target)
         if not src or not tgt:
             continue
         dx = tgt.x_mm - src.x_mm
@@ -105,15 +105,15 @@ def fix_arrow_lengths(schematic: "Diagram") -> int:
     return fixed
 
 
-def fix_arrow_labels(schematic: "Diagram") -> int:
+def fix_arrow_labels(diagram: "Diagram") -> int:
     """R8: Flip curve sign so label is on same side as arc. Returns fix count."""
-    violations = _collect_label_side_violations(schematic)
+    violations = _collect_label_side_violations(diagram)
     for v in violations:
         v["arrow"].curve = -v["current_curve"]
     return len(violations)
 
 
-def fix_bidirectional_arrows(schematic: "Diagram", curve: float = 0.4) -> int:
+def fix_bidirectional_arrows(diagram: "Diagram", curve: float = 0.4) -> int:
     """Offset bidirectional arrow pairs with opposite curves.
 
     Detects pairs where A->B and B->A both exist, then assigns
@@ -121,7 +121,7 @@ def fix_bidirectional_arrows(schematic: "Diagram", curve: float = 0.4) -> int:
     Skips arrows where the user already set a non-zero curve.
     """
     pairs: Dict[tuple, list] = {}
-    for a in schematic._arrows:
+    for a in diagram._arrows:
         key = tuple(sorted([a.source, a.target]))
         pairs.setdefault(key, []).append(a)
     fixed = 0
@@ -139,7 +139,7 @@ def fix_bidirectional_arrows(schematic: "Diagram", curve: float = 0.4) -> int:
 # ── R7: Arrow occlusion auto-curve ─────────────────────────────────
 
 
-def _arrow_visibility_prerender(schematic: "Diagram", arrow) -> float:
+def _arrow_visibility_prerender(diagram: "Diagram", arrow) -> float:
     """Compute visibility ratio for an arrow against intermediate boxes.
 
     Returns float in [0, 1]: 1.0 = fully visible, 0.0 = fully occluded.
@@ -148,8 +148,8 @@ def _arrow_visibility_prerender(schematic: "Diagram", arrow) -> float:
     """
     from ._geom import box_rect, seg_rect_clip_len
 
-    src = schematic._positions.get(arrow.source)
-    tgt = schematic._positions.get(arrow.target)
+    src = diagram._positions.get(arrow.source)
+    tgt = diagram._positions.get(arrow.target)
     if not src or not tgt:
         return 1.0
     dx, dy = tgt.x_mm - src.x_mm, tgt.y_mm - src.y_mm
@@ -166,8 +166,8 @@ def _arrow_visibility_prerender(schematic: "Diagram", arrow) -> float:
         segments = [(src.x_mm, src.y_mm, tgt.x_mm, tgt.y_mm)]
     total_len = sum(math.hypot(s[2] - s[0], s[3] - s[1]) for s in segments)
     occluded = 0.0
-    for bid, pos in schematic._positions.items():
-        if bid in (arrow.source, arrow.target) or bid not in schematic._boxes:
+    for bid, pos in diagram._positions.items():
+        if bid in (arrow.source, arrow.target) or bid not in diagram._boxes:
             continue
         bl, bb, br, bt = box_rect(pos)
         for x0, y0, x1, y1 in segments:
@@ -175,23 +175,23 @@ def _arrow_visibility_prerender(schematic: "Diagram", arrow) -> float:
     return 1.0 - min(occluded / total_len, 1.0)
 
 
-def fix_arrow_occlusion(schematic: "Diagram", min_visible: float = 0.9) -> int:
+def fix_arrow_occlusion(diagram: "Diagram", min_visible: float = 0.9) -> int:
     """R7: Auto-curve arrows occluded by intermediate boxes.
 
     Tries curve values in both directions, picking the one with best
     visibility. Skips arrows where the user already set a curve.
     """
     fixed = 0
-    for arrow in schematic._arrows:
+    for arrow in diagram._arrows:
         if arrow.curve != 0.0:
             continue
-        vis = _arrow_visibility_prerender(schematic, arrow)
+        vis = _arrow_visibility_prerender(diagram, arrow)
         if vis >= min_visible:
             continue
         best_curve, best_vis = 0.0, vis
         for c in [0.3, -0.3, 0.5, -0.5, 0.7, -0.7, 1.0, -1.0]:
             arrow.curve = c
-            v = _arrow_visibility_prerender(schematic, arrow)
+            v = _arrow_visibility_prerender(diagram, arrow)
             if v > best_vis:
                 best_curve, best_vis = c, v
             if v >= min_visible:
@@ -205,10 +205,10 @@ def fix_arrow_occlusion(schematic: "Diagram", min_visible: float = 0.9) -> int:
 # ── Phase 2: Post-render fixers ─────────────────────────────────────
 
 
-def _arrow_perp(schematic, arrow):
+def _arrow_perp(diagram, arrow):
     """Return (nx, ny) perpendicular unit vector for an arrow."""
-    src = schematic._positions.get(arrow.source)
-    tgt = schematic._positions.get(arrow.target)
+    src = diagram._positions.get(arrow.source)
+    tgt = diagram._positions.get(arrow.target)
     if not src or not tgt:
         return (0, 1)
     dx = tgt.x_mm - src.x_mm
@@ -219,7 +219,7 @@ def _arrow_perp(schematic, arrow):
     return (dy / dist, -dx / dist)
 
 
-def fix_post_render(schematic, fig, ax, min_margin=2.0) -> int:
+def fix_post_render(diagram, fig, ax, min_margin=2.0) -> int:
     """R5/R6/R7: Offset arrow labels to fix text collisions and occlusion.
 
     Detects two types of problems:
@@ -244,10 +244,10 @@ def fix_post_render(schematic, fig, ax, min_margin=2.0) -> int:
         bb = t.get_window_extent(renderer).transformed(inv)
         text_entries.append((txt, bb))
 
-    arrow_labels = {a.label for a in schematic._arrows if a.label}
+    arrow_labels = {a.label for a in diagram._arrows if a.label}
 
     fixed = 0
-    for arrow in schematic._arrows:
+    for arrow in diagram._arrows:
         if not arrow.label:
             continue
         label_bb = None
@@ -261,8 +261,8 @@ def fix_post_render(schematic, fig, ax, min_margin=2.0) -> int:
         needs_fix = False
 
         # R7: Check if label bbox occludes the arrow path
-        src = schematic._positions.get(arrow.source)
-        tgt = schematic._positions.get(arrow.target)
+        src = diagram._positions.get(arrow.source)
+        tgt = diagram._positions.get(arrow.target)
         if src and tgt:
             clip = seg_rect_clip_len(
                 src.x_mm,
@@ -290,10 +290,10 @@ def fix_post_render(schematic, fig, ax, min_margin=2.0) -> int:
         if not needs_fix:
             from matplotlib.transforms import Bbox
 
-            for eid in list(schematic._boxes) + list(schematic._containers):
-                if eid not in schematic._positions:
+            for eid in list(diagram._boxes) + list(diagram._containers):
+                if eid not in diagram._positions:
                     continue
-                el, eb, er, et = box_rect(schematic._positions[eid])
+                el, eb, er, et = box_rect(diagram._positions[eid])
                 cx = (label_bb.x0 + label_bb.x1) / 2
                 cy = (label_bb.y0 + label_bb.y1) / 2
                 if el <= cx <= er and eb <= cy <= et:
@@ -307,7 +307,7 @@ def fix_post_render(schematic, fig, ax, min_margin=2.0) -> int:
             continue
 
         # Offset label perpendicular to arrow direction
-        nx, ny = _arrow_perp(schematic, arrow)
+        nx, ny = _arrow_perp(diagram, arrow)
         base_offset = arrow.label_offset_mm or (0, 0)
         for offset_mm in (5, 8, 12, -5, -8, -12):
             arrow.label_offset_mm = (
