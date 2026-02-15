@@ -170,4 +170,80 @@ def schematic_from_dict(data: Dict[str, Any]) -> "Diagram":
     return schematic
 
 
-__all__ = ["schematic_to_dict", "schematic_from_dict"]
+def save_diagram_recipe(
+    diagram: "Diagram",
+    path,
+    dpi: int = 200,
+) -> "Path":
+    """Save a standalone YAML recipe for a Diagram.
+
+    Parameters
+    ----------
+    diagram : Diagram
+        The diagram to save.
+    path : str or Path
+        Output YAML path.
+    dpi : int
+        DPI used for rendering.
+
+    Returns
+    -------
+    Path
+        Path to saved YAML file.
+    """
+    import datetime
+    from pathlib import Path
+
+    import yaml
+
+    path = Path(path)
+    data = schematic_to_dict(diagram)
+
+    recipe = {
+        "figrecipe": "1.0",
+        "type": "diagram",
+        "created": datetime.datetime.now().isoformat(),
+        "dpi": dpi,
+        "diagram": data,
+    }
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        yaml.dump(recipe, f, default_flow_style=False, sort_keys=False)
+
+    return path
+
+
+def render_to_file(
+    diagram: "Diagram",
+    path,
+    dpi: int = 200,
+    save_recipe: bool = True,
+    save_hitmap: bool = False,
+):
+    """Render diagram and save to file. On validation failure, saves as *_FAILED.png."""
+    from pathlib import Path
+
+    import matplotlib.pyplot as plt
+
+    path = Path(path)
+    fig, ax = diagram.render()
+    if fig._figrecipe_diagram_failed:
+        path = path.with_stem(f"{path.stem}_FAILED")
+    fig.savefig(path, dpi=dpi, bbox_inches="tight", facecolor="white")
+    if save_recipe and not fig._figrecipe_diagram_failed:
+        save_diagram_recipe(diagram, path.with_suffix(".yaml"), dpi=dpi)
+    if save_hitmap:
+        from ._hitmap import save_diagram_hitmap
+
+        save_diagram_hitmap(diagram, path.with_stem(path.stem + "_hitmap"), dpi=dpi)
+    plt.close(fig)
+    return path
+
+
+__all__ = [
+    "schematic_to_dict",
+    "schematic_from_dict",
+    "save_diagram_recipe",
+    "render_to_file",
+]

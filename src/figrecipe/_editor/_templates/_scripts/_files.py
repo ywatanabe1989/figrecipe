@@ -218,6 +218,12 @@ async function switchToFile(filePath) {
             window.currentColorMap = data.color_map;
         }
 
+        // Hide welcome overlay when a figure is loaded
+        const welcomeOverlay = document.getElementById('welcome-overlay');
+        if (welcomeOverlay) {
+            welcomeOverlay.style.display = 'none';
+        }
+
         // Update current file path
         currentFilePath = filePath;
 

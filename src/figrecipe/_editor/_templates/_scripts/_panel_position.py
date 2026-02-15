@@ -353,7 +353,7 @@ function initPanelPositionControls() {
 
 let allBboxesVisible = false;
 
-// Toggle showing all panel bboxes at once
+// Toggle showing all element-level bboxes
 function toggleAllBboxes() {
     allBboxesVisible = !allBboxesVisible;
 
@@ -364,15 +364,17 @@ function toggleAllBboxes() {
     document.querySelectorAll('.debug-panel-bbox').forEach(el => el.remove());
 
     if (!allBboxesVisible) {
-        console.log('[Debug] All bboxes hidden');
+        overlay.style.zIndex = '';
+        showToast('Bboxes hidden', 'info');
         updateDebugButton(false);
         return;
     }
 
-    const panelBboxes = currentBboxes?._meta?.panel_bboxes;
-    if (!panelBboxes) {
-        console.warn('[Debug] No panel bboxes available');
-        showToast('No panel bboxes available', 'warning');
+    // Raise overlay above hitregion-overlay (z-index:10) so bboxes are visible
+    overlay.style.zIndex = '20';
+
+    if (!currentBboxes) {
+        showToast('No bboxes available', 'warning');
         return;
     }
 
@@ -384,42 +386,63 @@ function toggleAllBboxes() {
     overlay.style.width = `${img.naturalWidth}px`;
     overlay.style.height = `${img.naturalHeight}px`;
 
-    // Colors for different panels
-    const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316'];
+    // Smart font sizing: adapts to image dimensions and element size
+    function getSmartLabelFontSize(bbox) {
+        const avgDim = (img.naturalWidth + img.naturalHeight) / 2;
+        let base = Math.max(8, Math.min(16, (avgDim / 600) * 10));
+        const minDim = Math.min(bbox.width, bbox.height);
+        if (minDim < 30) base *= 0.8;
+        else if (minDim > 200) base *= 1.1;
+        return Math.round(base);
+    }
 
-    // Draw bbox for each panel
-    Object.entries(panelBboxes).forEach(([axIdx, bbox], idx) => {
-        const color = colors[idx % colors.length];
-        const label = String.fromCharCode(65 + parseInt(axIdx)); // A, B, C...
+    // Colors by element type
+    const typeColors = {
+        'line': '#3b82f6', 'scatter': '#10b981', 'bar': '#f59e0b',
+        'hist': '#ef4444', 'pie': '#8b5cf6', 'fill': '#06b6d4',
+        'diagram_box': '#ec4899', 'diagram_arrow': '#f97316',
+        'text': '#84cc16', 'title': '#a855f7', 'xlabel': '#a855f7',
+        'ylabel': '#a855f7', 'legend': '#64748b', 'boxplot': '#fb923c',
+        'stairs': '#14b8a6', 'image': '#e879f9',
+    };
+    const defaultColor = '#94a3b8';
+    let count = 0;
 
-        // Create bbox rectangle
+    // Draw all element-level bboxes
+    for (const [key, bbox] of Object.entries(currentBboxes)) {
+        if (key === '_meta' || !bbox || !bbox.width || !bbox.height) continue;
+        const elType = bbox.type || key.replace(/^ax\d+_/, '').replace(/\d+$/, '');
+        const color = typeColors[elType] || defaultColor;
+
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.classList.add('debug-panel-bbox');
         rect.setAttribute('x', bbox.x);
         rect.setAttribute('y', bbox.y);
         rect.setAttribute('width', bbox.width);
         rect.setAttribute('height', bbox.height);
-        rect.setAttribute('fill', 'none');
+        rect.setAttribute('fill', color);
+        rect.setAttribute('fill-opacity', '0.1');
         rect.setAttribute('stroke', color);
-        rect.setAttribute('stroke-width', '2');
-        rect.setAttribute('stroke-dasharray', '5,3');
+        rect.setAttribute('stroke-width', '1.5');
         rect.style.pointerEvents = 'none';
         overlay.appendChild(rect);
 
-        // Create label
+        // Label
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.classList.add('debug-panel-bbox');
-        text.setAttribute('x', bbox.x + 5);
-        text.setAttribute('y', bbox.y + 15);
+        const fontSize = getSmartLabelFontSize(bbox);
+        text.setAttribute('x', bbox.x + 2);
+        text.setAttribute('y', bbox.y + fontSize);
         text.setAttribute('fill', color);
-        text.setAttribute('font-size', '14');
+        text.setAttribute('font-size', fontSize);
         text.setAttribute('font-weight', 'bold');
         text.style.pointerEvents = 'none';
-        text.textContent = `Panel ${label}`;
+        text.textContent = bbox.label || key;
         overlay.appendChild(text);
-    });
+        count++;
+    }
 
-    console.log('[Debug] Showing all panel bboxes:', Object.keys(panelBboxes).length);
+    showToast(`Showing ${count} element bboxes`, 'success');
     updateDebugButton(true);
 }
 

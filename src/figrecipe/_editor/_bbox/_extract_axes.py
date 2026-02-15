@@ -242,12 +242,36 @@ def extract_patches(
     saved_height_inches,
     bboxes,
 ):
-    """Extract bboxes for patch elements (bars, wedges, polygons)."""
-    from matplotlib.patches import Polygon, Wedge
+    """Extract bboxes for patch elements (bars, wedges, polygons, diagram boxes)."""
+    from matplotlib.patches import FancyBboxPatch, Polygon, Wedge
 
     bar_idx = 0
     for i, patch in enumerate(ax.patches):
-        if isinstance(patch, Rectangle):
+        if isinstance(patch, FancyBboxPatch):
+            if not patch.get_visible():
+                continue
+            bbox = get_patch_bbox(
+                patch,
+                ax,
+                fig,
+                renderer,
+                tight_bbox,
+                img_width,
+                img_height,
+                scale_x,
+                scale_y,
+                pad_inches,
+                saved_height_inches,
+            )
+            if bbox:
+                # Key must match hitmap colorMap key format: ax{idx}_dbox{i}
+                bboxes[f"ax{ax_idx}_dbox{i}"] = {
+                    **bbox,
+                    "type": "diagram_box",
+                    "label": patch.get_label() or f"dbox_{i}",
+                    "ax_index": ax_idx,
+                }
+        elif isinstance(patch, Rectangle):
             if not patch.get_visible():
                 continue
             if patch.get_width() == 1.0 and patch.get_height() == 1.0:

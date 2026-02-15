@@ -136,18 +136,21 @@ def render_with_overrides(
             new_fig.set_layout_engine("none")
 
     # Apply overrides directly to existing figure
-    # Get record for call_id grouping (if fig is a RecordingFigure)
-    record = fig.record if hasattr(fig, "record") else None
-    if overrides:
-        from ._render_overrides import apply_overrides
+    # Skip style overrides for diagram figures — diagrams have their own
+    # layout/styling that would be corrupted by regular figure style settings
+    is_diagram = getattr(new_fig, "_figrecipe_diagram", None) is not None
+    if not is_diagram:
+        record = fig.record if hasattr(fig, "record") else None
+        if overrides:
+            from ._render_overrides import apply_overrides
 
-        apply_overrides(new_fig, overrides, record)
+            apply_overrides(new_fig, overrides, record)
 
-    # Apply dark mode if requested
-    if dark_mode:
-        from ._render_overrides import apply_dark_mode
+        # Apply dark mode if requested
+        if dark_mode:
+            from ._render_overrides import apply_dark_mode
 
-        apply_dark_mode(new_fig)
+            apply_dark_mode(new_fig)
 
     # Validate axes bounds before rendering (prevent infinite/invalid extents)
     for ax in new_fig.get_axes():
@@ -174,7 +177,19 @@ def render_with_overrides(
             transparent = (
                 overrides.get("output_transparent", True) if overrides else True
             )
-            new_fig.savefig(buf, format="png", dpi=150, transparent=transparent)
+            render_dpi = 150
+            if is_diagram:
+                fig_w, fig_h = new_fig.get_size_inches()
+                max_dim = max(fig_w, fig_h)
+                max_pixels = 1500
+                if max_dim * render_dpi > max_pixels:
+                    render_dpi = max(30, int(max_pixels / max_dim))
+            save_kwargs = dict(format="png", dpi=render_dpi, transparent=transparent)
+            if is_diagram:
+                save_kwargs["bbox_inches"] = "tight"
+                if not transparent:
+                    save_kwargs["facecolor"] = "white"
+            new_fig.savefig(buf, **save_kwargs)
         except Exception:
             buf = io.BytesIO()
             new_fig.set_canvas(FigureCanvasAgg(new_fig))
@@ -184,7 +199,9 @@ def render_with_overrides(
                 transparent = (
                     overrides.get("output_transparent", True) if overrides else True
                 )
-                new_fig.savefig(buf, format="png", dpi=150, transparent=transparent)
+                new_fig.savefig(
+                    buf, format="png", dpi=render_dpi, transparent=transparent
+                )
             except Exception:
                 from PIL import Image as PILImage
 
@@ -210,7 +227,7 @@ def render_with_overrides(
     # Ensure clean canvas state before drawing
     new_fig.set_canvas(FigureCanvasAgg(new_fig))
     original_dpi = new_fig.dpi
-    new_fig.set_dpi(150)
+    new_fig.set_dpi(render_dpi)
     try:
         new_fig.canvas.draw()
     except Exception:

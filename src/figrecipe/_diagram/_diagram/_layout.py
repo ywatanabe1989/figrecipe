@@ -59,16 +59,26 @@ def auto_layout(
     }
     layout_key = layout_map.get(layout.lower(), "lr")
 
-    # Compute needed extent and expand coordinate space if necessary
+    # Compute actual layer assignment for accurate canvas sizing
     n_boxes = len(box_ids)
     is_horizontal = layout_key in ("lr", "rl")
     is_vertical = layout_key in ("tb", "bt")
     title_space_mm = 12.0 if info.title else 0.0
 
+    containers = info._containers if info._containers else None
+    _layers, _layer_groups = _compute_layers(box_ids, edges, containers)
+    n_cols = max(_layers.values()) + 1 if _layers else 1
+    max_per_col = max((len(g) for g in _layer_groups.values()), default=1)
+
     if is_horizontal or is_vertical:
         if is_horizontal:
-            needed_main = n_boxes * w + (n_boxes - 1) * gap_mm + 2 * margin_mm
-            needed_cross = h + 2 * margin_mm + title_space_mm
+            needed_main = n_cols * w + (n_cols - 1) * gap_mm + 2 * margin_mm
+            needed_cross = (
+                max_per_col * h
+                + (max_per_col - 1) * gap_mm
+                + 2 * margin_mm
+                + title_space_mm
+            )
             if info.xlim[1] - info.xlim[0] < needed_main:
                 info.xlim = (info.xlim[0], info.xlim[0] + needed_main)
             if info.ylim[1] - info.ylim[0] < needed_cross:
@@ -76,9 +86,9 @@ def auto_layout(
                 info.ylim = (center_y - needed_cross / 2, center_y + needed_cross / 2)
         else:
             needed_main = (
-                n_boxes * h + (n_boxes - 1) * gap_mm + 2 * margin_mm + title_space_mm
+                n_cols * h + (n_cols - 1) * gap_mm + 2 * margin_mm + title_space_mm
             )
-            needed_cross = w + 2 * margin_mm
+            needed_cross = max_per_col * w + (max_per_col - 1) * gap_mm + 2 * margin_mm
             if info.ylim[1] - info.ylim[0] < needed_main:
                 info.ylim = (info.ylim[0], info.ylim[0] + needed_main)
             if info.xlim[1] - info.xlim[0] < needed_cross:
@@ -127,10 +137,17 @@ def auto_layout(
             gap_mm,
             justify,
             align_items,
+            containers=containers,
+            layers=_layers,
+            layer_groups=_layer_groups,
         )
     elif layout_key == "spring":
+        from ._layout_graph import _spring_layout
+
         positions = _spring_layout(box_ids, edges, dx_min, dx_max, dy_min, dy_max)
     elif layout_key == "circular":
+        from ._layout_graph import _circular_layout
+
         positions = _circular_layout(box_ids, dx_min, dx_max, dy_min, dy_max)
     else:
         positions = _flow_layout(
@@ -144,6 +161,9 @@ def auto_layout(
             gap_mm,
             justify,
             align_items,
+            containers=containers,
+            layers=_layers,
+            layer_groups=_layer_groups,
         )
 
     # Apply positions
@@ -177,6 +197,9 @@ def _flow_layout(
     gap: float = 10.0,
     justify: str = "space-between",
     align_items: str = "center",
+    containers: Optional[Dict] = None,
+    layers: Optional[Dict[str, int]] = None,
+    layer_groups: Optional[Dict[int, List[str]]] = None,
 ) -> Dict[str, Tuple[float, float]]:
     """Compute flow-based layout using topological ordering with CSS-like options.
 
@@ -186,40 +209,17 @@ def _flow_layout(
         Main axis: start, center, end, space-between, space-around
     align_items : str
         Cross axis: start, center, end
+    layers : dict, optional
+        Pre-computed layer assignment from _compute_layers.
+    layer_groups : dict, optional
+        Pre-computed layer grouping from _compute_layers.
     """
-    # Build graph structure
-    successors = {bid: [] for bid in box_ids}
-    predecessors = {bid: [] for bid in box_ids}
-    for src, tgt in edges:
-        if src in successors and tgt in predecessors:
-            successors[src].append(tgt)
-            predecessors[tgt].append(src)
+    # Use pre-computed layers or compute from scratch
+    if layers is None or layer_groups is None:
+        layers, layer_groups = _compute_layers(box_ids, edges, containers)
 
-    # Topological sort (Kahn's algorithm)
-    in_degree = {bid: len(predecessors[bid]) for bid in box_ids}
-    queue = [bid for bid in box_ids if in_degree[bid] == 0]
-    sorted_ids = []
-
-    while queue:
-        node = queue.pop(0)
-        sorted_ids.append(node)
-        for succ in successors[node]:
-            in_degree[succ] -= 1
-            if in_degree[succ] == 0:
-                queue.append(succ)
-
-    # Handle cycles or disconnected - add remaining
-    for bid in box_ids:
-        if bid not in sorted_ids:
-            sorted_ids.append(bid)
-
-    # Assign layers based on longest path from sources
-    layers = _assign_layers(sorted_ids, predecessors)
-
-    # Group by layer
-    layer_groups: Dict[int, List[str]] = {}
-    for bid, layer in layers.items():
-        layer_groups.setdefault(layer, []).append(bid)
+    # Reorder members within layers to minimize edge crossings
+    _reorder_by_barycenter(layer_groups, layers, edges)
 
     n_layers = max(layers.values()) + 1 if layers else 1
 
@@ -256,6 +256,9 @@ def _flow_layout(
             return axis_max
         return (axis_min + axis_max) / 2  # center (default)
 
+    # Cross-axis distribution: space-between spreads items evenly
+    cross_justify = "space-between"
+
     positions = {}
 
     if direction == "lr":
@@ -264,7 +267,7 @@ def _flow_layout(
         for layer_idx, members in layer_groups.items():
             x = main_positions[layer_idx] if layer_idx < len(main_positions) else x_max
             n = len(members)
-            cross_positions = distribute(n, y_min, y_max, "space-between")
+            cross_positions = distribute(n, y_min, y_max, cross_justify)
             for i, bid in enumerate(members):
                 y = (
                     cross_positions[n - 1 - i]
@@ -283,7 +286,7 @@ def _flow_layout(
                 else x_min
             )
             n = len(members)
-            cross_positions = distribute(n, y_min, y_max, "space-between")
+            cross_positions = distribute(n, y_min, y_max, cross_justify)
             for i, bid in enumerate(members):
                 y = (
                     cross_positions[n - 1 - i]
@@ -302,7 +305,7 @@ def _flow_layout(
                 else y_min
             )
             n = len(members)
-            cross_positions = distribute(n, x_min, x_max, "space-between")
+            cross_positions = distribute(n, x_min, x_max, cross_justify)
             for i, bid in enumerate(members):
                 x = cross_positions[i] if n > 1 else align(x_min, x_max, align_items)
                 positions[bid] = (x, y)
@@ -313,7 +316,7 @@ def _flow_layout(
         for layer_idx, members in layer_groups.items():
             y = main_positions[layer_idx] if layer_idx < len(main_positions) else y_max
             n = len(members)
-            cross_positions = distribute(n, x_min, x_max, "space-between")
+            cross_positions = distribute(n, x_min, x_max, cross_justify)
             for i, bid in enumerate(members):
                 x = cross_positions[i] if n > 1 else align(x_min, x_max, align_items)
                 positions[bid] = (x, y)
@@ -322,113 +325,129 @@ def _flow_layout(
 
 
 def _assign_layers(
-    sorted_ids: List[str], predecessors: Dict[str, List[str]]
+    sorted_ids: List[str],
+    predecessors: Dict[str, List[str]],
+    containers: Optional[Dict] = None,
 ) -> Dict[str, int]:
-    """Assign layer numbers based on longest path from sources."""
+    """Assign layer numbers based on longest path from sources.
+
+    When containers are provided, uses container ordering as layer hints
+    for boxes without incoming edges, preventing them from all piling
+    into Layer 0.
+    """
+    # Build container→layer hint from container definition order
+    container_layer: Dict[str, int] = {}
+    if containers:
+        for layer_idx, (_, cdata) in enumerate(containers.items()):
+            for child in cdata.get("children", []):
+                container_layer[child] = layer_idx
+
     layers = {}
     for bid in sorted_ids:
         if not predecessors[bid]:
-            layers[bid] = 0
+            layers[bid] = container_layer.get(bid, 0)
         else:
             layers[bid] = max(layers.get(p, 0) for p in predecessors[bid]) + 1
+            # Ensure layer is at least the container hint
+            if bid in container_layer:
+                layers[bid] = max(layers[bid], container_layer[bid])
     return layers
 
 
-def _spring_layout(
+def _compute_layers(
     box_ids: List[str],
     edges: List[Tuple[str, str]],
-    x_min: float,
-    x_max: float,
-    y_min: float,
-    y_max: float,
-) -> Dict[str, Tuple[float, float]]:
-    """Compute spring (force-directed) layout using networkx."""
-    try:
-        import networkx as nx
+    containers: Optional[Dict] = None,
+) -> Tuple[Dict[str, int], Dict[int, List[str]]]:
+    """Build graph, topo sort, and assign layers.
 
-        G = nx.DiGraph()
-        G.add_nodes_from(box_ids)
-        G.add_edges_from(edges)
+    Returns (layers, layer_groups) for use in canvas sizing and layout.
+    """
+    successors = {bid: [] for bid in box_ids}
+    predecessors = {bid: [] for bid in box_ids}
+    for src, tgt in edges:
+        if src in successors and tgt in predecessors:
+            successors[src].append(tgt)
+            predecessors[tgt].append(src)
 
-        # Use kamada-kawai for better results
-        try:
-            pos = nx.kamada_kawai_layout(G)
-        except Exception:
-            pos = nx.spring_layout(G, seed=42)
+    in_degree = {bid: len(predecessors[bid]) for bid in box_ids}
+    queue = [bid for bid in box_ids if in_degree[bid] == 0]
+    sorted_ids: List[str] = []
+    while queue:
+        node = queue.pop(0)
+        sorted_ids.append(node)
+        for succ in successors[node]:
+            in_degree[succ] -= 1
+            if in_degree[succ] == 0:
+                queue.append(succ)
+    for bid in box_ids:
+        if bid not in sorted_ids:
+            sorted_ids.append(bid)
 
-        # Scale to bounds
-        return _scale_positions(pos, x_min, x_max, y_min, y_max)
-
-    except ImportError:
-        # Fallback to flow layout
-        import warnings
-
-        warnings.warn("networkx not available, falling back to flow layout")
-        return _flow_layout(box_ids, edges, "flow-lr", x_min, x_max, y_min, y_max)
-
-
-def _circular_layout(
-    box_ids: List[str],
-    x_min: float,
-    x_max: float,
-    y_min: float,
-    y_max: float,
-) -> Dict[str, Tuple[float, float]]:
-    """Compute circular layout."""
-    import math
-
-    n = len(box_ids)
-    cx = (x_min + x_max) / 2
-    cy = (y_min + y_max) / 2
-    radius = min(x_max - x_min, y_max - y_min) / 2 * 0.8
-
-    positions = {}
-    for i, bid in enumerate(box_ids):
-        angle = 2 * math.pi * i / n - math.pi / 2  # Start from top
-        x = cx + radius * math.cos(angle)
-        y = cy + radius * math.sin(angle)
-        positions[bid] = (x, y)
-
-    return positions
+    layers = _assign_layers(sorted_ids, predecessors, containers=containers)
+    layer_groups: Dict[int, List[str]] = {}
+    for bid, layer in layers.items():
+        layer_groups.setdefault(layer, []).append(bid)
+    return layers, layer_groups
 
 
-def _scale_positions(
-    pos: Dict[str, Tuple[float, float]],
-    x_min: float,
-    x_max: float,
-    y_min: float,
-    y_max: float,
-) -> Dict[str, Tuple[float, float]]:
-    """Scale positions to fit within bounds."""
-    if not pos:
-        return {}
+def _reorder_by_barycenter(
+    layer_groups: Dict[int, List[str]],
+    layers: Dict[str, int],
+    edges: List[Tuple[str, str]],
+) -> None:
+    """Reorder members within layers to minimize edge crossings (in-place).
 
-    # Get current bounds
-    xs = [p[0] for p in pos.values()]
-    ys = [p[1] for p in pos.values()]
-    cur_x_min, cur_x_max = min(xs), max(xs)
-    cur_y_min, cur_y_max = min(ys), max(ys)
+    Uses the barycenter heuristic with forward + backward sweeps.
+    """
+    preds: Dict[str, List[str]] = {}
+    succs: Dict[str, List[str]] = {}
+    for src, tgt in edges:
+        preds.setdefault(tgt, []).append(src)
+        succs.setdefault(src, []).append(tgt)
 
-    # Scale factors
-    x_scale = (x_max - x_min) / (cur_x_max - cur_x_min) if cur_x_max != cur_x_min else 1
-    y_scale = (y_max - y_min) / (cur_y_max - cur_y_min) if cur_y_max != cur_y_min else 1
+    member_idx: Dict[str, int] = {}
+    for members in layer_groups.values():
+        for i, bid in enumerate(members):
+            member_idx[bid] = i
 
-    # Apply scaling
-    scaled = {}
-    for bid, (x, y) in pos.items():
-        new_x = (
-            x_min + (x - cur_x_min) * x_scale
-            if cur_x_max != cur_x_min
-            else (x_min + x_max) / 2
-        )
-        new_y = (
-            y_min + (y - cur_y_min) * y_scale
-            if cur_y_max != cur_y_min
-            else (y_min + y_max) / 2
-        )
-        scaled[bid] = (new_x, new_y)
+    sorted_keys = sorted(layer_groups.keys())
 
-    return scaled
+    # Forward sweep: reorder by predecessor positions
+    for layer_idx in sorted_keys:
+        if layer_idx == sorted_keys[0]:
+            continue
+        members = layer_groups[layer_idx]
+        n = len(members)
+        bary: Dict[str, float] = {}
+        for bid in members:
+            pi = [
+                member_idx[p]
+                for p in preds.get(bid, [])
+                if layers.get(p, -1) < layer_idx and p in member_idx
+            ]
+            bary[bid] = sum(pi) / len(pi) if pi else n / 2
+        layer_groups[layer_idx] = sorted(members, key=lambda b: bary[b])
+        for i, bid in enumerate(layer_groups[layer_idx]):
+            member_idx[bid] = i
+
+    # Backward sweep: reorder by successor positions
+    for layer_idx in reversed(sorted_keys):
+        if layer_idx == sorted_keys[-1]:
+            continue
+        members = layer_groups[layer_idx]
+        n = len(members)
+        bary = {}
+        for bid in members:
+            si = [
+                member_idx[s]
+                for s in succs.get(bid, [])
+                if layers.get(s, -1) > layer_idx and s in member_idx
+            ]
+            bary[bid] = sum(si) / len(si) if si else n / 2
+        layer_groups[layer_idx] = sorted(members, key=lambda b: bary[b])
+        for i, bid in enumerate(layer_groups[layer_idx]):
+            member_idx[bid] = i
 
 
 __all__ = ["auto_layout"]

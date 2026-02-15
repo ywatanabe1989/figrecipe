@@ -14,11 +14,11 @@ matplotlib.use("Agg")
 import pytest
 
 import figrecipe as fr
-from figrecipe._diagram._diagram._autofix import (
+from figrecipe._diagram._diagram._autofix import auto_fix
+from figrecipe._diagram._diagram._fix_layout import (
     _collect_canvas_violations,
     _collect_container_violations,
     _collect_overlap_violations,
-    auto_fix,
 )
 
 
@@ -173,17 +173,22 @@ class TestAutoFixReturnCount:
 class TestDefaultNoFix:
     """auto_fix=False (default) does not resolve violations."""
 
-    def test_overlapping_boxes_raise_without_autofix(self):
-        """Overlapping boxes raise ValueError with default auto_fix=False."""
+    def test_overlapping_boxes_warn_without_autofix(self):
+        """Overlapping boxes set _figrecipe_diagram_failed with default auto_fix."""
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
 
-        with pytest.raises(ValueError, match="overlap"):
-            s.render()
+        import warnings
 
-    def test_child_outside_container_raises_without_autofix(self):
-        """Child outside container raises ValueError with default auto_fix=False."""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+            assert fig._figrecipe_diagram_failed is True
+            assert any("overlap" in str(x.message) for x in w)
+
+    def test_child_outside_container_warns_without_autofix(self):
+        """Child outside container warns with default auto_fix=False."""
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_container(
             "c",
@@ -196,16 +201,26 @@ class TestDefaultNoFix:
         )
         s.add_box("a", title="A", x_mm=100, y_mm=50, width_mm=40, height_mm=25)
 
-        with pytest.raises(ValueError, match="extends outside container"):
-            s.render()
+        import warnings
 
-    def test_canvas_bounds_violation_raises_without_autofix(self):
-        """Element beyond canvas bounds raises ValueError with default auto_fix=False."""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+            assert fig._figrecipe_diagram_failed is True
+            assert any("extends outside container" in str(x.message) for x in w)
+
+    def test_canvas_bounds_violation_warns_without_autofix(self):
+        """Element beyond canvas bounds warns with default auto_fix=False."""
         s = fr.Diagram(width_mm=170, height_mm=100)
         s.add_box("far", title="Far", x_mm=200, y_mm=50, width_mm=40, height_mm=25)
 
-        with pytest.raises(ValueError, match="outside canvas"):
-            s.render()
+        import warnings
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+            assert fig._figrecipe_diagram_failed is True
+            assert any("outside canvas" in str(x.message) for x in w)
 
 
 class TestFixPostRender:
@@ -219,8 +234,11 @@ class TestFixPostRender:
         s.add_arrow("a", "b", label="Label")
 
         # Without auto_fix, the label occludes the arrow (R7 violation)
-        with pytest.raises(ValueError, match="visibility"):
-            s.render()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            fig, ax = s.render()
+            assert fig._figrecipe_diagram_failed is True
+            assert any("visibility" in str(x.message) for x in w)
 
     def test_arrow_label_occlusion_autofix_succeeds(self):
         """R7: auto_fix offsets the label so arrow visibility passes."""

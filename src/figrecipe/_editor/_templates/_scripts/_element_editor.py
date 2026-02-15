@@ -113,6 +113,13 @@ function showDynamicCallProperties(element) {
 
     console.log('[showDynamicCallProperties] callId:', callId, 'exists in callsData:', callId in callsData);
 
+    // Diagram elements get a specialized property editor
+    const diagramTypes = ['diagram_box', 'diagram_container', 'diagram_arrow'];
+    if (diagramTypes.includes(element.type) && element.diagram_element && callId) {
+        showDiagramElementProperties(element, callId);
+        return;
+    }
+
     // If no call data found, show basic element info instead
     if (!callId || !callsData[callId]) {
         container.style.display = 'block';

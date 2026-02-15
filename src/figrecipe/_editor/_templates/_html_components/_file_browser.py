@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Timestamp: "2026-02-15 17:34:00 (ywatanabe)"
+# File: /home/ywatanabe/proj/figrecipe/src/figrecipe/_editor/_templates/_html_components/_file_browser.py
+
 """File browser panel HTML for the figure editor."""
 
 HTML_FILE_BROWSER = """
@@ -25,7 +28,7 @@ HTML_FILE_BROWSER = """
                     <img src="data:image/png;base64,SCITEX_ICON_PLACEHOLDER" alt="SciTeX" class="brand-icon">
                     <div class="brand-info">
                         <span class="brand-name">FigRecipe</span>
-                        <span class="brand-version">vVERSION_PLACEHOLDER by SciTeX™</span>
+                        <span class="brand-version">vVERSION_PLACEHOLDER by SciTeX</span>
                     </div>
                 </a>
                 <div class="brand-meta" DEBUG_META_DISPLAY_PLACEHOLDER>

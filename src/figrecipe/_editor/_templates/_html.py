@@ -196,7 +196,6 @@ HTML_TEMPLATE = """
                         <summary>Output</summary>
                         <div class="section-content">
                             <div class="form-row"><label>DPI</label><input type="number" id="output_dpi" step="50" min="72" max="600"></div>
-                            <div class="form-row"><label>Transparent</label><input type="checkbox" id="output_transparent"></div>
                         </div>
                     </details>
                     <!-- Figure Caption (Scientific) -->

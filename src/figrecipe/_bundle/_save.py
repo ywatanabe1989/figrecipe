@@ -32,6 +32,7 @@ def save_bundle(
         spec.json      # WHAT (semantic specification)
         style.json     # HOW (appearance settings)
         data.csv       # DATA (immutable source data)
+        recipe.yaml    # Reproducible recipe (for fr.reproduce())
         exports/
             figure.png
             figure_hitmap.png
@@ -107,14 +108,34 @@ def save_bundle(
             export_path = exports_dir / f"figure.{fmt}"
             fig.fig.savefig(export_path, dpi=dpi)
 
-        # Save hitmap
+        # Save recipe.yaml for reproducibility
+        try:
+            recipe_path = tmpdir / "recipe.yaml"
+            fig.save_recipe(
+                recipe_path,
+                include_data=True,
+                data_format="csv",
+                csv_format="separate",
+            )
+        except Exception as e:
+            if verbose:
+                warnings.warn(f"Recipe saving in bundle failed: {e}")
+
+        # Save hitmap (diagram-specific if diagram detected, generic otherwise)
         if save_hitmap:
             try:
-                from .._editor._hitmap import generate_hitmap
-
-                hitmap_img, _ = generate_hitmap(fig, dpi=min(dpi, 150))
+                mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+                diagram = getattr(mpl_fig, "_figrecipe_diagram", None)
                 hitmap_path = exports_dir / "figure_hitmap.png"
-                hitmap_img.save(hitmap_path)
+                if diagram is not None:
+                    from .._diagram._diagram._hitmap import save_diagram_hitmap
+
+                    save_diagram_hitmap(diagram, hitmap_path, dpi=min(dpi, 150))
+                else:
+                    from .._editor._hitmap import generate_hitmap
+
+                    hitmap_img, _ = generate_hitmap(fig, dpi=min(dpi, 150))
+                    hitmap_img.save(hitmap_path)
             except Exception as e:
                 if verbose:
                     warnings.warn(f"Hitmap generation failed: {e}")

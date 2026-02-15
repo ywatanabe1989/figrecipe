@@ -620,7 +620,9 @@ class TestComposeRawImages:
         """Test image file extension detection."""
         from pathlib import Path
 
-        from figrecipe._composition._compose import _is_image_file
+        from figrecipe._composition._source_parser import (
+            is_image_file as _is_image_file,
+        )
 
         # Should be detected as images
         assert _is_image_file(Path("test.png"))

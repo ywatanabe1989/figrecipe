@@ -215,8 +215,10 @@ def render_container(schematic: "Diagram", ax: Axes, cid: str, container: Dict) 
     """Render a container box."""
     pos = schematic._positions[cid]
     colors = get_emphasis_style(container["emphasis"])
-    fill = container.get("fill_color") or colors["fill"]
-    border = container.get("border_color") or colors["stroke"]
+    fill = container.get("fill_color")
+    fill = fill if fill is not None else colors["fill"]
+    border = container.get("border_color")
+    border = border if border is not None else colors["stroke"]
 
     box = FancyBboxPatch(
         (pos.x_mm - pos.width_mm / 2, pos.y_mm - pos.height_mm / 2),
@@ -319,16 +321,24 @@ def render_box(schematic: "Diagram", ax: Axes, bid: str, box: "BoxSpec") -> None
         items.append((box.subtitle, 9, "normal", colors["text"]))
     for line in box.content:
         if isinstance(line, dict):
+            pfx = {"circle": "\u00b7 ", "dash": "\u2013 ", "arrow": "\u2192 "}.get(
+                box.bullet, ""
+            )
             items.append(
                 (
-                    line.get("text", ""),
+                    pfx + line.get("text", ""),
                     line.get("fontsize", 8),
                     line.get("fontweight", "normal"),
                     line.get("color", colors["text"]),
                 )
             )
         else:
-            items.append((str(line), 8 if not is_code else 7, "normal", colors["text"]))
+            pfx = {"circle": "\u00b7 ", "dash": "\u2013 ", "arrow": "\u2192 "}.get(
+                box.bullet, ""
+            )
+            items.append(
+                (pfx + str(line), 8 if not is_code else 7, "normal", colors["text"])
+            )
 
     # Text area = PositionSpec minus padding on all sides
     inner_h = pos.height_mm - 2 * box.padding_mm
@@ -459,4 +469,42 @@ def render_arrow(schematic: "Diagram", ax: Axes, arrow: "ArrowSpec") -> None:
             fontstyle="italic",
             zorder=6,
             bbox=_label_bg,
+        )
+
+
+def draw_all_elements(diagram, ax):
+    """Draw all diagram elements onto axes (used by Diagram.render)."""
+    ax.clear()
+    ax.set_xlim(diagram.xlim)
+    ax.set_ylim(diagram.ylim)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    for cid, container in diagram._containers.items():
+        if cid in diagram._positions:
+            render_container(diagram, ax, cid, container)
+    for bid, box in diagram._boxes.items():
+        if bid in diagram._positions:
+            render_box(diagram, ax, bid, box)
+    for arrow in diagram._arrows:
+        render_arrow(diagram, ax, arrow)
+    for iid, icon in diagram._icons.items():
+        if iid in diagram._positions:
+            render_icon(diagram, ax, iid, icon)
+    if diagram.title:
+        ps = list(diagram._positions.values())
+        if ps:
+            cx = (
+                min(p.x_mm - p.width_mm / 2 for p in ps)
+                + max(p.x_mm + p.width_mm / 2 for p in ps)
+            ) / 2
+        else:
+            cx = (diagram.xlim[0] + diagram.xlim[1]) / 2
+        ax.text(
+            cx,
+            diagram.ylim[1] - 5.0,
+            diagram.title,
+            ha="center",
+            va="top",
+            fontsize=12,
+            fontweight="bold",
         )

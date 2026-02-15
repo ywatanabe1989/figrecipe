@@ -4,9 +4,21 @@
 
 from typing import Any, Dict
 
-from matplotlib.patches import Polygon, Rectangle, StepPatch, Wedge
+from matplotlib.patches import (
+    FancyArrowPatch,
+    FancyBboxPatch,
+    Polygon,
+    Rectangle,
+    StepPatch,
+    Wedge,
+)
 
 from .._colors import id_to_rgb, mpl_color_to_hex, normalize_color
+from ._diagram_match import (
+    build_diagram_lookup,
+    process_diagram_arrow,
+    process_diagram_box,
+)
 
 
 def process_patches(
@@ -47,10 +59,19 @@ def process_patches(
     has_boxplot = "boxplot" in ax_plot_types
     boxplot_ids = list(ax_call_ids.get("boxplot", []))
 
+    # Build diagram element lookup if this axes has a diagram
+    diagram_data = ax_info.get("diagram_data")
+    diagram_call_id = ax_info.get("diagram_call_id")
+    box_lookup = None
+    arrow_lookup = None
+    if diagram_data:
+        box_lookup, arrow_lookup = build_diagram_lookup(diagram_data)
+
     stairs_idx = 0
     fill_idx = 0
     boxplot_box_idx = 0
     rect_idx = 0
+    arrow_idx = 0
     for i, patch in enumerate(ax.patches):
         if isinstance(patch, StepPatch):
             element_id, stairs_idx = _process_steppatch(
@@ -64,7 +85,6 @@ def process_patches(
                 stairs_idx,
             )
         elif isinstance(patch, Rectangle):
-            # Check if this rectangle might be a boxplot box
             if has_boxplot:
                 element_id, boxplot_box_idx = _process_boxplot_box(
                     patch,
@@ -92,6 +112,29 @@ def process_patches(
             element_id = _process_wedge(
                 patch, i, ax_idx, element_id, original_props, color_map, pie_ids
             )
+        elif isinstance(patch, FancyBboxPatch):
+            element_id = process_diagram_box(
+                patch,
+                i,
+                ax_idx,
+                element_id,
+                original_props,
+                color_map,
+                diagram_call_id=diagram_call_id,
+                box_lookup=box_lookup,
+            )
+        elif isinstance(patch, FancyArrowPatch):
+            element_id, arrow_idx = process_diagram_arrow(
+                patch,
+                i,
+                ax_idx,
+                element_id,
+                original_props,
+                color_map,
+                diagram_call_id=diagram_call_id,
+                arrow_lookup=arrow_lookup,
+                arrow_idx=arrow_idx,
+            )
         elif isinstance(patch, Polygon):
             element_id, fill_idx = _process_polygon(
                 patch,
@@ -104,7 +147,6 @@ def process_patches(
                 fill_idx,
             )
         else:
-            # Handle PathPatch (boxplot boxes when patch_artist=True)
             from matplotlib.patches import PathPatch
 
             if isinstance(patch, PathPatch):
@@ -150,7 +192,6 @@ def _process_rectangle(
     patch.set_facecolor(normalize_color(rgb))
     patch.set_edgecolor(normalize_color(rgb))
 
-    # Create indexed label for distinguishing multiple bars
     if rect_call_id:
         label = f"{rect_call_id}_{rect_type}{rect_idx}"
     else:
@@ -245,7 +286,6 @@ def _process_boxplot_box(
     if not patch.get_visible():
         return element_id, box_idx
 
-    # Skip background rectangles
     if hasattr(patch, "get_width") and hasattr(patch, "get_height"):
         if patch.get_width() == 1.0 and patch.get_height() == 1.0:
             return element_id, box_idx

@@ -26,6 +26,7 @@ from ._extract_text import (
     extract_spines,
     extract_text_elements,
 )
+from ._transforms import transform_bbox
 
 
 def extract_bboxes(
@@ -74,17 +75,39 @@ def extract_bboxes(
     renderer = fig.canvas.get_renderer()
 
     # Get figure bounds for coordinate transformation
-    # NOTE: We do NOT use bbox_inches='tight' in savefig, so use fixed figsize
     fig_width_inches = fig.get_figwidth()
     fig_height_inches = fig.get_figheight()
 
-    # Create a bbox representing the full figure (for compatibility with element extraction)
-    tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
+    # For diagram figures saved with bbox_inches="tight", we need the actual
+    # tight bbox to correctly map display coordinates to the cropped image.
+    is_diagram = getattr(fig, "_figrecipe_diagram", None) is not None
+    if is_diagram:
+        try:
+            fig_tight = fig.get_tightbbox(renderer)
+            if fig_tight is not None:
+                # fig.get_tightbbox() returns in inches for Figure objects
+                tight_bbox = fig_tight
+                from matplotlib import rcParams
 
-    # No padding since we don't use bbox_inches='tight'
-    pad_inches = 0.0
-    saved_width_inches = fig_width_inches
-    saved_height_inches = fig_height_inches
+                pad_inches = rcParams.get("savefig.pad_inches", 0.1)
+                saved_width_inches = tight_bbox.width + 2 * pad_inches
+                saved_height_inches = tight_bbox.height + 2 * pad_inches
+            else:
+                tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
+                pad_inches = 0.0
+                saved_width_inches = fig_width_inches
+                saved_height_inches = fig_height_inches
+        except Exception:
+            tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
+            pad_inches = 0.0
+            saved_width_inches = fig_width_inches
+            saved_height_inches = fig_height_inches
+    else:
+        # Regular figures: no tight crop, use full figure dimensions
+        tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
+        pad_inches = 0.0
+        saved_width_inches = fig_width_inches
+        saved_height_inches = fig_height_inches
 
     # Calculate scale factors from saved image size to pixel size
     scale_x = img_width / saved_width_inches if saved_width_inches > 0 else 1
@@ -130,6 +153,11 @@ def extract_bboxes(
         renderer=renderer,
         img_width=img_width,
         img_height=img_height,
+        tight_bbox=tight_bbox,
+        pad_inches=pad_inches,
+        scale_x=scale_x,
+        scale_y=scale_y,
+        saved_height_inches=saved_height_inches,
     )
 
     # Add metadata
@@ -301,6 +329,11 @@ def _compute_panel_bboxes(
     renderer=None,
     img_width: int = None,
     img_height: int = None,
+    tight_bbox: Bbox = None,
+    pad_inches: float = 0.0,
+    scale_x: float = None,
+    scale_y: float = None,
+    saved_height_inches: float = None,
 ) -> Dict[int, Dict[str, float]]:
     """
     Compute tight bounding box for each panel (axis).
@@ -309,51 +342,28 @@ def _compute_panel_bboxes(
     all decorators (title, labels, tick labels) without outliers.
 
     Falls back to union of elements if tight bbox is unavailable.
-
-    Parameters
-    ----------
-    bboxes : dict
-        All extracted element bboxes.
-    num_axes : int
-        Number of axes in the figure.
-    fig : Figure, optional
-        Matplotlib figure (needed for tight bbox computation).
-    renderer : optional
-        Matplotlib renderer (needed for tight bbox computation).
-    img_width : int, optional
-        Image width in pixels.
-    img_height : int, optional
-        Image height in pixels.
-
-    Returns
-    -------
-    dict
-        Mapping from ax_index to panel bbox: {ax_index: {x, y, width, height}}
     """
     panel_bboxes = {}
 
     # Try to use tight bbox if figure is available
     if fig is not None and renderer is not None and img_width and img_height:
-        fig_width_inches = fig.get_figwidth()
-        fig_height_inches = fig.get_figheight()
-        dpi = fig.dpi
-
         for ax_idx, ax in enumerate(fig.get_axes()):
             try:
-                tight = ax.get_tightbbox(renderer)
-                if tight is not None:
-                    # Convert from display coords to image coords
-                    # Display y=0 is at bottom, image y=0 is at top
-                    x = tight.x0 * img_width / (fig_width_inches * dpi)
-                    y = img_height - tight.y1 * img_height / (fig_height_inches * dpi)
-                    width = tight.width * img_width / (fig_width_inches * dpi)
-                    height = tight.height * img_height / (fig_height_inches * dpi)
-                    panel_bboxes[ax_idx] = {
-                        "x": x,
-                        "y": y,
-                        "width": width,
-                        "height": height,
-                    }
+                ax_tight = ax.get_tightbbox(renderer)
+                if ax_tight is not None:
+                    result = transform_bbox(
+                        ax_tight,
+                        fig,
+                        tight_bbox,
+                        img_width,
+                        img_height,
+                        scale_x,
+                        scale_y,
+                        pad_inches,
+                        saved_height_inches,
+                    )
+                    if result:
+                        panel_bboxes[ax_idx] = result
             except Exception:
                 pass  # Fall back to union method below
 
