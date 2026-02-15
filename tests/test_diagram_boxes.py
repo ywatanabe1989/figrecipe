@@ -227,9 +227,7 @@ class TestContainerValidation:
             s.validate_containers()
 
     def test_render_validates_containers(self):
-        """Test that render() warns on validation failure and marks figure."""
-        import warnings
-
+        """Test that render() marks figure failed on validation failure."""
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_container(
             "c",
@@ -241,11 +239,11 @@ class TestContainerValidation:
             height_mm=30,
         )
         s.add_box("a", title="A", x_mm=200, y_mm=50, width_mm=40, height_mm=25)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
+        fig, ax = s.render()
         assert fig._figrecipe_diagram_failed is True
-        assert any("extends outside container" in str(wi.message) for wi in w)
+        assert any(
+            "extends outside container" in e for e in fig._figrecipe_validation_errors
+        )
 
 
 class TestBoxOverlapValidation:
@@ -269,69 +267,52 @@ class TestBoxOverlapValidation:
             s.validate_no_overlap()
 
     def test_render_detects_overlap(self):
-        """Test that render() warns on box overlap and marks figure failed."""
-        import warnings
-
+        """Test that render() marks figure failed on box overlap."""
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=55, y_mm=50, width_mm=40, height_mm=25)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
+        fig, ax = s.render()
         assert fig._figrecipe_diagram_failed is True
-        assert any("overlap" in str(wi.message) for wi in w)
+        assert any("overlap" in e for e in fig._figrecipe_validation_errors)
 
 
 class TestTextOverlapValidation:
     """Test text bounding box overlap detection."""
 
     def test_non_overlapping_text_no_warning(self):
-        """Test that separated text produces no warning."""
-        import warnings
-
+        """Test that separated text produces no validation failure."""
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=40, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=140, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b")
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            s.render()  # owns_fig=True, text validation runs
-        overlap_warns = [x for x in w if "Text overlap" in str(x.message)]
-        assert len(overlap_warns) == 0
+        fig, ax = s.render()
+        assert not any("Text overlap" in e for e in fig._figrecipe_validation_errors)
 
     def test_overlapping_text_warns(self):
-        """Test that overlapping arrow labels warn and mark figure failed."""
-        import warnings
-
+        """Test that overlapping arrow labels mark figure failed."""
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=150, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b", label="forward")
         s.add_arrow("b", "a", label="backward")
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
+        fig, ax = s.render()
         assert fig._figrecipe_diagram_failed is True
-        assert any("Text margin" in str(wi.message) for wi in w)
+        assert any("Text margin" in e for e in fig._figrecipe_validation_errors)
 
 
 class TestArrowBoxOcclusion:
     """Test R7: arrow-through-box occlusion detection."""
 
     def test_arrow_through_intermediate_box_warns(self):
-        """Arrow passing through an intermediate box triggers R7 warning."""
-        import warnings
-
+        """Arrow passing through an intermediate box triggers R7 failure."""
         s = fr.Diagram(width_mm=100, height_mm=80)
         s.add_box("top", "Top", x_mm=50, y_mm=65, width_mm=20, height_mm=10)
         s.add_box("mid", "Mid", x_mm=50, y_mm=40, width_mm=20, height_mm=10)
         s.add_box("bot", "Bot", x_mm=50, y_mm=15, width_mm=20, height_mm=10)
         s.add_arrow("top", "bot")
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
+        fig, ax = s.render()
         assert fig._figrecipe_diagram_failed is True
-        assert any("visibility" in str(wi.message) for wi in w)
+        assert any("visibility" in e for e in fig._figrecipe_validation_errors)
 
     def test_no_intermediate_box_passes(self):
         """Arrow between two boxes with nothing between passes R7."""

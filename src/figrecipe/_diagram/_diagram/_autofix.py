@@ -13,6 +13,15 @@ Implementation is split across modules by concern:
 
 from typing import TYPE_CHECKING
 
+try:
+    from scitex.logging import getLogger
+
+    logger = getLogger(__name__)
+except ImportError:
+    import logging
+
+    logger = logging.getLogger(__name__)
+
 from ._fix_arrows import (
     fix_arrow_labels,
     fix_arrow_lengths,
@@ -38,28 +47,35 @@ def auto_fix(diagram: "Diagram", max_passes: int = 3, auto_curve: bool = True) -
     Iterates up to *max_passes* until no violations remain.
     Set auto_curve=False to skip R7 arrow occlusion auto-curving.
     """
-    import warnings
-
     total = 0
+    fixes = []
     for _pass in range(max_passes):
         n = 0
-        n += fix_overlaps(diagram)
-        n += fix_arrow_lengths(diagram)
-        n += fix_bidirectional_arrows(diagram)
-        if auto_curve:
-            n += fix_arrow_occlusion(diagram)
-        n += fix_container_enclosure(diagram)
-        n += fix_arrow_labels(diagram)
-        n += fix_canvas_bounds(diagram)
+        for name, fn in [
+            ("overlaps", lambda: fix_overlaps(diagram)),
+            ("arrow_lengths", lambda: fix_arrow_lengths(diagram)),
+            ("bidirectional_arrows", lambda: fix_bidirectional_arrows(diagram)),
+            *(
+                [("arrow_occlusion", lambda: fix_arrow_occlusion(diagram))]
+                if auto_curve
+                else []
+            ),
+            ("container_enclosure", lambda: fix_container_enclosure(diagram)),
+            ("arrow_labels", lambda: fix_arrow_labels(diagram)),
+            ("canvas_bounds", lambda: fix_canvas_bounds(diagram)),
+        ]:
+            count = fn()
+            if count > 0:
+                fixes.append((name, count))
+            n += count
         total += n
         if n == 0:
             break
 
     if total > 0:
-        warnings.warn(
-            f"auto_fix: applied {total} fix(es) in {_pass + 1} pass(es)",
-            UserWarning,
-            stacklevel=3,
+        detail = ", ".join(f"{name}={c}" for name, c in fixes)
+        logger.warning(
+            f"auto_fix: applied {total} fix(es) in {_pass + 1} pass(es): {detail}"
         )
     return total
 

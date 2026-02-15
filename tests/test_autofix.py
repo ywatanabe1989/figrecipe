@@ -11,7 +11,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-import pytest
 
 import figrecipe as fr
 from figrecipe._diagram._diagram._autofix import auto_fix
@@ -32,12 +31,8 @@ class TestAutoFixNoViolations:
         s.add_box("b", title="B", x_mm=130, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b")
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render(auto_fix=True)
-
-        autofix_warns = [x for x in w if "auto_fix" in str(x.message)]
-        assert len(autofix_warns) == 0
+        fig, ax = s.render(auto_fix=True)
+        assert fig._figrecipe_diagram_failed is False
 
     def test_no_violations_returns_zero(self):
         """auto_fix() returns 0 when there are no violations."""
@@ -63,8 +58,7 @@ class TestFixOverlaps:
         violations_before = _collect_overlap_violations(s)
         assert len(violations_before) > 0
 
-        with pytest.warns(UserWarning, match="auto_fix"):
-            fig, ax = s.render(auto_fix=True)
+        fig, ax = s.render(auto_fix=True)
 
         violations_after = _collect_overlap_violations(s)
         assert len(violations_after) == 0
@@ -76,8 +70,7 @@ class TestFixOverlaps:
         s.add_box("b", title="B", x_mm=55, y_mm=50, width_mm=40, height_mm=25)
         s._finalize_canvas_size()
 
-        with pytest.warns(UserWarning, match="auto_fix"):
-            fig, ax = s.render(auto_fix=True)
+        fig, ax = s.render(auto_fix=True)
 
         violations_after = _collect_overlap_violations(s)
         assert len(violations_after) == 0
@@ -105,8 +98,7 @@ class TestFixContainerEnclosure:
         violations_before = _collect_container_violations(s)
         assert len(violations_before) > 0
 
-        with pytest.warns(UserWarning, match="auto_fix"):
-            fig, ax = s.render(auto_fix=True)
+        fig, ax = s.render(auto_fix=True)
 
         violations_after = _collect_container_violations(s)
         assert len(violations_after) == 0
@@ -125,8 +117,7 @@ class TestFixCanvasBounds:
         violations_before = _collect_canvas_violations(s)
         assert len(violations_before) > 0
 
-        with pytest.warns(UserWarning, match="auto_fix"):
-            fig, ax = s.render(auto_fix=True)
+        fig, ax = s.render(auto_fix=True)
 
         violations_after = _collect_canvas_violations(s)
         assert len(violations_after) == 0
@@ -143,8 +134,7 @@ class TestFixCanvasBounds:
         violations_before = _collect_canvas_violations(s)
         assert len(violations_before) > 0
 
-        with pytest.warns(UserWarning, match="auto_fix"):
-            fig, ax = s.render(auto_fix=True)
+        fig, ax = s.render(auto_fix=True)
 
         violations_after = _collect_canvas_violations(s)
         assert len(violations_after) == 0
@@ -179,16 +169,11 @@ class TestDefaultNoFix:
         s.add_box("a", title="A", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
         s.add_box("b", title="B", x_mm=50, y_mm=50, width_mm=40, height_mm=25)
 
-        import warnings
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
-            assert fig._figrecipe_diagram_failed is True
-            assert any("overlap" in str(x.message) for x in w)
+        fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
 
     def test_child_outside_container_warns_without_autofix(self):
-        """Child outside container warns with default auto_fix=False."""
+        """Child outside container marks diagram as failed with default auto_fix=False."""
         s = fr.Diagram(width_mm=180, height_mm=100)
         s.add_container(
             "c",
@@ -201,26 +186,16 @@ class TestDefaultNoFix:
         )
         s.add_box("a", title="A", x_mm=100, y_mm=50, width_mm=40, height_mm=25)
 
-        import warnings
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
-            assert fig._figrecipe_diagram_failed is True
-            assert any("extends outside container" in str(x.message) for x in w)
+        fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
 
     def test_canvas_bounds_violation_warns_without_autofix(self):
-        """Element beyond canvas bounds warns with default auto_fix=False."""
+        """Element beyond canvas bounds marks diagram as failed with default auto_fix=False."""
         s = fr.Diagram(width_mm=170, height_mm=100)
         s.add_box("far", title="Far", x_mm=200, y_mm=50, width_mm=40, height_mm=25)
 
-        import warnings
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
-            assert fig._figrecipe_diagram_failed is True
-            assert any("outside canvas" in str(x.message) for x in w)
+        fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
 
 
 class TestFixPostRender:
@@ -234,11 +209,8 @@ class TestFixPostRender:
         s.add_arrow("a", "b", label="Label")
 
         # Without auto_fix, the label occludes the arrow (R7 violation)
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render()
-            assert fig._figrecipe_diagram_failed is True
-            assert any("visibility" in str(x.message) for x in w)
+        fig, ax = s.render()
+        assert fig._figrecipe_diagram_failed is True
 
     def test_arrow_label_occlusion_autofix_succeeds(self):
         """R7: auto_fix offsets the label so arrow visibility passes."""
@@ -284,12 +256,8 @@ class TestFixPostRender:
         s.add_box("b", title="B", x_mm=130, y_mm=50, width_mm=40, height_mm=25)
         s.add_arrow("a", "b")
 
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            fig, ax = s.render(auto_fix=True)
-
-        autofix_warns = [x for x in w if "auto_fix" in str(x.message)]
-        assert len(autofix_warns) == 0
+        fig, ax = s.render(auto_fix=True)
+        assert fig._figrecipe_diagram_failed is False
 
 
 # EOF

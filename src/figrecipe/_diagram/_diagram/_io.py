@@ -4,6 +4,15 @@
 
 from typing import TYPE_CHECKING, Any, Dict
 
+try:
+    from scitex.logging import getLogger
+
+    logger = getLogger(__name__)
+except ImportError:
+    import logging
+
+    logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from ._core import Diagram
 
@@ -214,12 +223,39 @@ def save_diagram_recipe(
     return path
 
 
+def _add_watermark(path, dpi=200):
+    """Stamp 'Plotted by {BRAND_NAME}' on bottom-right of a saved image."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    from figrecipe._branding import BRAND_NAME
+
+    img = Image.open(path).convert("RGBA")
+    overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    font_size = max(8, int(7 * dpi / 72))  # 7pt → pixels
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", font_size)
+    except (OSError, IOError):
+        font = ImageFont.load_default()
+    display = "FigRecipe" if BRAND_NAME == "figrecipe" else BRAND_NAME
+    text = f"Plotted by {display}"
+    bbox = draw.textbbox((0, 0), text, font=font)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    x, y = img.width - tw - 8, img.height - th - 6
+    draw.text((x, y), text, font=font, fill=(170, 170, 170, 217))  # alpha~0.85
+    img = Image.alpha_composite(img, overlay).convert("RGB")
+    img.save(path)
+    logger.info("watermark added: '%s' (%dpx font at %d DPI)", text, font_size, dpi)
+
+
 def render_to_file(
     diagram: "Diagram",
     path,
     dpi: int = 200,
     save_recipe: bool = True,
-    save_hitmap: bool = False,
+    save_hitmap: bool = True,
+    save_debug: bool = True,
+    watermark: bool = False,
 ):
     """Render diagram and save to file. On validation failure, saves as *_FAILED.png."""
     from pathlib import Path
@@ -231,13 +267,34 @@ def render_to_file(
     if fig._figrecipe_diagram_failed:
         path = path.with_stem(f"{path.stem}_FAILED")
     fig.savefig(path, dpi=dpi, bbox_inches="tight", facecolor="white")
+    from figrecipe._utils._crop import crop
+
+    crop(path, output_path=path, margin_mm=1.0, overwrite=True, verbose=False)
+    if watermark:
+        _add_watermark(path, dpi=dpi)
     if save_recipe and not fig._figrecipe_diagram_failed:
         save_diagram_recipe(diagram, path.with_suffix(".yaml"), dpi=dpi)
     if save_hitmap:
         from ._hitmap import save_diagram_hitmap
 
         save_diagram_hitmap(diagram, path.with_stem(path.stem + "_hitmap"), dpi=dpi)
+    if save_debug:
+        from ._debug import generate_debug_image
+
+        debug_fig = generate_debug_image(diagram, dpi=dpi)
+        debug_path = path.with_stem(path.stem + "_debug")
+        debug_fig.savefig(debug_path, dpi=dpi, bbox_inches="tight", facecolor="white")
+        plt.close(debug_fig)
     plt.close(fig)
+    try:
+        from PIL import Image
+
+        w, h = Image.open(path).size
+        w_mm, h_mm = w / dpi * 25.4, h / dpi * 25.4
+        _log = getattr(logger, "success", logger.info)
+        _log("diagram saved: %s [W: %.1fmm, H: %.1fmm]", path.name, w_mm, h_mm)
+    except Exception:
+        pass
     return path
 
 

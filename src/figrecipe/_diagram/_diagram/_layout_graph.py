@@ -32,11 +32,17 @@ def _spring_layout(
 
     except ImportError:
         # Fallback to flow layout
-        import warnings
-
         from ._layout import _flow_layout
 
-        warnings.warn("networkx not available, falling back to flow layout")
+        try:
+            from scitex.logging import getLogger
+
+            _logger = getLogger(__name__)
+        except ImportError:
+            import logging as _logging
+
+            _logger = _logging.getLogger(__name__)
+        _logger.warning("networkx not available, falling back to flow layout")
         return _flow_layout(box_ids, edges, "lr", x_min, x_max, y_min, y_max)
 
 
