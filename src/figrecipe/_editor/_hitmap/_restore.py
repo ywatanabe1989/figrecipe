@@ -67,7 +67,7 @@ def restore_axes_properties(
                 "stairs",
                 "boxplot_box",
                 "dbox",
-                "darrow",
+                "arrow_",
             ):
                 key = f"ax{ax_idx}_{prefix}{i}"
                 if key in original_props:

@@ -216,7 +216,7 @@ def process_diagram_arrow(
     if not patch.get_visible():
         return element_id, arrow_idx
 
-    key = f"ax{ax_idx}_darrow{i}"
+    key = f"ax{ax_idx}_arrow_{i}"
     rgb = id_to_rgb(element_id)
 
     original_props[key] = {
