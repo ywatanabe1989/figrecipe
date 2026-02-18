@@ -1,0 +1,18 @@
+# FigRecipe GUI - Docker Compose
+#
+# Usage:
+#   cd /path/to/your/project
+#   docker compose -f /path/to/figrecipe/scripts/containers/docker-compose.gui.yml up
+#
+# Then open http://localhost:5050 in your browser.
+
+services:
+  figrecipe-gui:
+    build:
+      context: ../..
+      dockerfile: scripts/containers/Dockerfile.gui
+    ports:
+      - "${FIGRECIPE_GUI_PORT:-5050}:5050"
+    volumes:
+      - ${FIGRECIPE_PROJECT_DIR:-.}:/workspace
+    restart: unless-stopped

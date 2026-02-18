@@ -27,6 +27,45 @@
 
 ---
 
+## Installation
+
+Requires Python >= 3.9.
+
+```bash
+pip install figrecipe
+```
+
+For the GUI editor:
+
+```bash
+pip install figrecipe[editor]
+```
+
+> **SciTeX users**: `pip install scitex[plt]` already includes FigRecipe.
+
+## Quickstart
+
+```python
+import figrecipe as fr
+import numpy as np
+
+x = np.linspace(0, 2 * np.pi, 100)
+
+fig, ax = fr.subplots()
+ax.plot(x, np.sin(x), id="sine")
+fr.save(fig, "figure.png")
+# Produces: figure.png, figure.yaml, figure_data/sine.csv
+```
+
+Reload and edit from the saved recipe:
+
+```python
+fig, ax = fr.reproduce("figure.yaml")
+fr.gui(fig)  # Launch visual editor at http://127.0.0.1:5050
+```
+
+---
+
 # FigRecipe — **Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
 
 >Four Freedoms for Research

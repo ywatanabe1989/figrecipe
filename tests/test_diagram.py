@@ -290,7 +290,7 @@ class TestDiagramRender:
                 is_jpeg = content[:3] == b"\xff\xd8\xff"
                 is_png = content[:4] == b"\x89PNG"
                 assert is_jpeg or is_png, f"Expected image format, got: {content[:4]}"
-            except urllib.error.HTTPError as e:
+            except (urllib.error.URLError, TimeoutError, OSError) as e:
                 pytest.skip(f"mermaid.ink API unavailable: {e}")
 
     def test_render_svg_format(self):
@@ -311,5 +311,5 @@ class TestDiagramRender:
                 assert result.exists()
                 content = result.read_text()
                 assert "<svg" in content
-            except urllib.error.HTTPError as e:
+            except (urllib.error.URLError, TimeoutError, OSError) as e:
                 pytest.skip(f"mermaid.ink API unavailable: {e}")

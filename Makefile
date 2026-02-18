@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-arial test test-hpc demo-notebook pdf clean clean-outputs clean-old-legacy lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition run-examples
+.PHONY: help install install-dev install-arial test test-hpc demo-notebook pdf clean clean-outputs clean-old-legacy lint lint-fix format pre-commit demo-gui demo-gui-all demo-plot-all demo-composition run-examples docker-build docker-build-gui docker-gui
 
 help:
 	@echo "figrecipe - Record and reproduce matplotlib figures"
@@ -23,6 +23,9 @@ help:
 	@echo "  make demo-plot-all      Generate all demo plots to examples/demo_all_plots_out/"
 	@echo "  make demo-composition   Compose all plots into single figure"
 	@echo "  make run-examples       Run all examples in sequence"
+	@echo "  make docker-build       Build base Docker container"
+	@echo "  make docker-build-gui   Build GUI Docker container"
+	@echo "  make docker-gui         Launch GUI editor via Docker"
 
 PORT ?= 5050
 
@@ -87,3 +90,13 @@ demo-composition:
 
 run-examples:
 	@./examples/00_run_all.sh
+
+docker-build:
+	docker build -t figrecipe -f scripts/containers/Dockerfile .
+
+docker-build-gui:
+	docker build -t figrecipe-gui -f scripts/containers/Dockerfile.gui .
+
+docker-gui: docker-build-gui
+	@echo "Launching GUI editor at http://localhost:$(PORT)"
+	docker run --rm -p $(PORT):$(PORT) -v $(PWD):/workspace figrecipe-gui --port $(PORT)

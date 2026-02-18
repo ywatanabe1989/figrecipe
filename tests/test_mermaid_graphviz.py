@@ -53,7 +53,7 @@ class TestMermaidClass:
             try:
                 result = m.render(out, backend="mermaid.ink")
                 assert result.exists()
-            except urllib.error.URLError:
+            except (urllib.error.URLError, TimeoutError, OSError):
                 pytest.skip("mermaid.ink API unavailable")
 
     def test_render_unknown_backend_raises(self):
@@ -83,7 +83,7 @@ class TestMermaidClass:
             try:
                 with pytest.warns(UserWarning, match="mermaid.ink"):
                     m.render(out, backend="auto")
-            except urllib.error.URLError:
+            except (urllib.error.URLError, TimeoutError, OSError):
                 pytest.skip("mermaid.ink API unavailable")
 
 
