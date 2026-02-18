@@ -286,6 +286,7 @@ def crop(
     margin_px=None,
     overwrite=False,
     verbose=False,
+    return_offset=False,
 ):
     """Crop a figure image to its content area with a specified margin.
 
@@ -303,15 +304,26 @@ def crop(
         Whether to overwrite the input file (default: False)
     verbose : bool, optional
         Whether to print detailed information (default: False)
+    return_offset : bool, optional
+        If True, also return crop offset info dict (default: False)
 
     Returns
     -------
-    Path
-        Path to the saved cropped image.
+    Path or tuple
+        Path to the saved cropped image. If return_offset=True,
+        returns (path, offset_dict).
     """
     from .._utils._crop import crop as _crop
 
-    return _crop(input_path, output_path, margin_mm, margin_px, overwrite, verbose)
+    return _crop(
+        input_path,
+        output_path,
+        margin_mm=margin_mm,
+        margin_px=margin_px,
+        overwrite=overwrite,
+        verbose=verbose,
+        return_offset=return_offset,
+    )
 
 
 def gui(
