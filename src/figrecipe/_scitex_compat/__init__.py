@@ -35,4 +35,9 @@ __all__ = [
     "stx_violin",
 ]
 
+# _csv_formatters/ subpackage: SigmaPlot-compatible CSV export handlers (65 files).
+# Preserved from scitex.plt._subplots._export_as_csv_formatters.
+# Deferred — not imported here, not part of public API.
+# See _csv_formatters/README.md for details.
+
 # EOF
