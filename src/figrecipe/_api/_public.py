@@ -256,7 +256,7 @@ def extract_data(path: Union[str, Path]) -> Dict[str, Dict[str, Any]]:
     return result
 
 
-def validate_recipe(
+def validate(
     path: Union[str, Path],
     mse_threshold: float = 100.0,
 ) -> ValidationResult:
@@ -277,6 +277,10 @@ def validate_recipe(
     from ._validate import validate_recipe as _validate
 
     return _validate(path, mse_threshold)
+
+
+# Backward compatibility alias
+validate_recipe = validate
 
 
 def crop(
@@ -389,7 +393,8 @@ __all__ = [
     "info",
     "load_record",
     "extract_data",
-    "validate_recipe",
+    "validate",
+    "validate_recipe",  # backward compat alias
     "crop",
     "gui",
 ]

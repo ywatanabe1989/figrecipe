@@ -16,19 +16,23 @@ from ._colors import (
     update_alpha,
 )
 from ._interpolate import gen_interpolate, interpolate
-from ._PARAMS import DEF_ALPHA, HEX, PARAMS, RGB, RGB_NORM, RGBA, RGBA_NORM
+from ._PARAMS import (  # noqa: F401
+    DEF_ALPHA,
+    HEX,
+    PARAMS,
+    RGB,
+    RGB_NORM,
+    RGBA,
+    RGBA_NORM,
+)
 
 # Internal functions remain accessible via figrecipe.colors._colors.bgr2rgb etc.
 # but are not re-exported here to keep the public API clean.
 
 __all__ = [
-    # Constants
-    "PARAMS",
-    "DEF_ALPHA",
+    # Color dictionaries
     "RGB",
-    "RGB_NORM",
     "RGBA",
-    "RGBA_NORM",
     "HEX",
     # Universal converters
     "to_hex",
