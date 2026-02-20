@@ -70,7 +70,16 @@ def apply_plots(
 
 def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=None):
     """Call the appropriate plot method based on plot type."""
-    if plot_type in ("hist", "pie", "eventplot"):
+    if plot_type in (
+        "hist",
+        "pie",
+        "eventplot",
+        "acorr",
+        "ecdf",
+        "angle_spectrum",
+        "magnitude_spectrum",
+        "phase_spectrum",
+    ):
         # Single data argument
         if x is not None:
             method(x, **kwargs)
@@ -78,28 +87,57 @@ def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=No
             method(data, **kwargs)
     elif plot_type in ("boxplot", "box", "violinplot", "violin"):
         _apply_boxplot(method, plot_type, x, data, kwargs, plot_spec, ax)
-    elif plot_type in ("imshow", "matshow", "heatmap"):
+    elif plot_type in ("imshow", "matshow", "heatmap", "spy"):
         # 2D data
         if data is not None:
             method(data, **kwargs)
         elif z is not None:
             method(z, **kwargs)
-    elif plot_type in ("contour", "contourf", "pcolormesh"):
-        # X, Y, Z data
+    elif plot_type in ("contour", "contourf", "pcolormesh", "pcolor"):
+        # X, Y, Z data (or Z only)
         if x is not None and y is not None and z is not None:
             method(x, y, z, **kwargs)
         elif z is not None:
             method(z, **kwargs)
         elif data is not None:
             method(data, **kwargs)
-    elif plot_type == "hist2d":
+    elif plot_type in ("hist2d", "hexbin", "xcorr", "csd", "cohere"):
+        # Two 1D data arrays
         if x is not None and y is not None:
             method(x, y, **kwargs)
-    elif plot_type == "hexbin":
+    elif plot_type == "stairs":
+        # stairs(values, edges): values=x, edges=y
         if x is not None and y is not None:
             method(x, y, **kwargs)
+        elif x is not None:
+            method(x, **kwargs)
+    elif plot_type == "stackplot":
+        # stackplot(x, *stacks): y is a list of 1D arrays
+        if x is not None and y is not None:
+            import numpy as np
+
+            y_arr = np.asarray(y)
+            if y_arr.ndim == 1:
+                method(x, y_arr, **kwargs)
+            else:
+                method(x, *y_arr, **kwargs)
+    elif plot_type == "fill_betweenx":
+        # fill_betweenx(y_axis, x1, x2): x=y_axis, y=x1, y2 in plot_spec
+        y2 = plot_spec.get("y2")
+        ykw = {k: v for k, v in kwargs.items() if k != "y2"}
+        if x is not None and y is not None and y2 is not None:
+            method(x, y, y2, **ykw)
+        elif x is not None and y is not None:
+            method(x, y, **ykw)
+    elif plot_type in ("quiver", "streamplot"):
+        # quiver/streamplot(X, Y, U, V): u, v stored in plot_spec
+        u = plot_spec.get("u")
+        v = plot_spec.get("v")
+        ukw = {k: v2 for k, v2 in kwargs.items() if k not in ("u", "v")}
+        if x is not None and y is not None and u is not None and v is not None:
+            method(x, y, u, v, **ukw)
     else:
-        # Standard x, y plots
+        # Standard x, y line-type plots (includes loglog, semilogx, semilogy, fill, …)
         if x is not None and y is not None:
             method(x, y, **kwargs)
         elif y is not None:

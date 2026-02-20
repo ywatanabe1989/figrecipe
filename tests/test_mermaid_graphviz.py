@@ -9,14 +9,16 @@ from unittest.mock import patch
 import pytest
 
 import figrecipe as fr
-from figrecipe import Graphviz, Mermaid
+from figrecipe._diagram._graphviz.graphviz import Graphviz
+from figrecipe._diagram._mermaid.mermaid import Mermaid
 
 
 class TestMermaidClass:
     """Test Mermaid wrapper class."""
 
     def test_import_from_figrecipe(self):
-        assert hasattr(fr, "Mermaid")
+        # Mermaid is accessible as fr._Mermaid (private, not in __all__)
+        assert hasattr(fr, "_Mermaid")
 
     def test_instantiation(self):
         m = Mermaid("graph TD; A-->B;")
@@ -91,7 +93,8 @@ class TestGraphvizClass:
     """Test Graphviz wrapper class."""
 
     def test_import_from_figrecipe(self):
-        assert hasattr(fr, "Graphviz")
+        # Graphviz is accessible as fr._Graphviz (private, not in __all__)
+        assert hasattr(fr, "_Graphviz")
 
     def test_instantiation(self):
         g = Graphviz("digraph { A -> B }")
@@ -141,7 +144,9 @@ class TestAllExports:
     """Test __all__ exports."""
 
     def test_mermaid_in_all(self):
-        assert "Mermaid" in fr.__all__
+        # Mermaid is intentionally private (not in __all__); Diagram is public
+        assert "Diagram" in fr.__all__
 
     def test_graphviz_in_all(self):
-        assert "Graphviz" in fr.__all__
+        # Graphviz is intentionally private (not in __all__); Diagram is public
+        assert "Diagram" in fr.__all__

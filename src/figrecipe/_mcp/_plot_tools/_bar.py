@@ -14,9 +14,10 @@ def register(mcp) -> None:  # noqa: ANN001
 
     @mcp.tool
     def plt_bar(
-        x: List[Union[str, float]],
-        height: List[float],
         output_path: str,
+        x: Union[List[Union[str, float]], str],
+        height: Union[List[float], str],
+        data_file: Optional[str] = None,
         yerr: Optional[List[float]] = None,
         capsize: float = 4.0,
         color: Optional[str] = None,
@@ -42,12 +43,13 @@ def register(mcp) -> None:  # noqa: ANN001
 
         Parameters
         ----------
-        x : list of str or float
-            Bar positions or category labels.
-        height : list of float
-            Bar heights.
         output_path : str
             Save path.
+        x : list of str/float or str
+            Bar positions/labels or column name in data_file.
+        height : list of float or str
+            Bar heights or column name in data_file.
+        data_file : str, optional — CSV file path for column lookup.
         yerr : list of float, optional
             Error bar values.
         capsize : float
@@ -76,6 +78,8 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {"type": "bar", "x": x, "y": height}
+        if data_file is not None:
+            ps["data_file"] = data_file
         if yerr is not None:
             ps["yerr"] = yerr
             ps["capsize"] = capsize
@@ -108,9 +112,10 @@ def register(mcp) -> None:  # noqa: ANN001
 
     @mcp.tool
     def plt_barh(
-        y: List[Union[str, float]],
-        width: List[float],
         output_path: str,
+        y: Union[List[Union[str, float]], str],
+        width: Union[List[float], str],
+        data_file: Optional[str] = None,
         xerr: Optional[List[float]] = None,
         capsize: float = 4.0,
         color: Optional[str] = None,
@@ -135,11 +140,10 @@ def register(mcp) -> None:  # noqa: ANN001
 
         Parameters
         ----------
-        y : list of str or float
-            Bar positions / category labels (vertical axis).
-        width : list of float
-            Bar widths (horizontal extent).
         output_path : str
+        y : list of str/float or str — Positions/labels or column name.
+        width : list of float or str — Bar widths or column name in data_file.
+        data_file : str, optional — CSV file path for column lookup.
         xerr : list of float, optional
         capsize : float
         color, label : str, optional
@@ -154,6 +158,8 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {"type": "barh", "y": y, "x": width}
+        if data_file is not None:
+            ps["data_file"] = data_file
         if xerr is not None:
             ps["xerr"] = xerr
             ps["capsize"] = capsize

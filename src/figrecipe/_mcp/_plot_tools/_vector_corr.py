@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""MCP plot tools: plt_line, plt_scatter, plt_errorbar."""
+"""MCP plot tools: plt_quiver, plt_acorr, plt_xcorr, plt_spy."""
 
 from __future__ import annotations
 
@@ -10,23 +10,21 @@ from ._base import _create
 
 
 def register(mcp) -> None:  # noqa: ANN001
-    """Register line/scatter tools on *mcp*."""
+    """Register vector field and correlation tools on *mcp*."""
 
     @mcp.tool
-    def plt_line(
+    def plt_quiver(
+        X: List[List[float]],
+        Y: List[List[float]],
+        U: List[List[float]],
+        V: List[List[float]],
         output_path: str,
-        x: Union[List[float], str],
-        y: Union[List[float], str],
-        data_file: Optional[str] = None,
+        scale: Optional[float] = None,
         color: Optional[str] = None,
-        label: Optional[str] = None,
-        linestyle: str = "-",
-        linewidth: float = 1.5,
+        cmap: Optional[str] = None,
         alpha: float = 1.0,
-        marker: Optional[str] = None,
-        yerr: Optional[List[float]] = None,
         width_mm: float = 80.0,
-        height_mm: float = 60.0,
+        height_mm: float = 70.0,
         style: str = "SCITEX",
         dpi: int = 300,
         xlabel: Optional[str] = None,
@@ -39,53 +37,33 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a line plot (ax.plot).
+        """Create a vector field (ax.quiver).
 
         Parameters
         ----------
+        X, Y : 2D list of float  — Arrow positions (from np.meshgrid).
+        U, V : 2D list of float  — Arrow direction components.
         output_path : str
-            Path to save the figure (e.g. "plot.png", "plot.svg").
-        x : list of float or str
-            X data (inline list) or column name in data_file.
-        y : list of float or str
-            Y data (inline list) or column name in data_file.
-        data_file : str, optional
-            Path to a CSV file. When provided, x and y are treated as column
-            names to look up in that file.
-        color : str, optional  — Named/hex color.
-        label : str, optional  — Legend label.
-        linestyle : str  — "-", "--", "-.", ":".
-        linewidth : float  — Line width in points.
-        alpha : float  — Transparency 0–1.
-        marker : str, optional  — "o", "s", "^", "D", "x", "+", None.
-        yerr : list of float, optional  — Symmetric y error bars.
-        width_mm, height_mm, style, dpi : Figure dimensions and quality.
-        xlabel, ylabel, title, caption : Axes decorations.
-        legend, xlim, ylim : Additional decorations.
-        stat_annotations : list of dict, optional
-            Significance brackets. Each: {x1, x2, p_value|text, y?, style?}.
-        stats_results : list of dict, optional
-            Direct output from scitex.stats tests.
+        scale : float, optional  — Arrow scale (smaller = longer arrows).
+        color : str, optional  — Uniform arrow color.
+        cmap : str, optional  — Colormap for magnitude-based coloring.
+        alpha : float
+        width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
+        legend, xlim, ylim, stat_annotations, stats_results : ...
 
         Returns
         -------
         dict — {"image_path", "recipe_path", "success"}
         """
-        ps: Dict[str, Any] = {"type": "line", "x": x, "y": y}
-        if data_file is not None:
-            ps["data_file"] = data_file
+        ps: Dict[str, Any] = {"type": "quiver", "x": X, "y": Y, "u": U, "v": V}
+        if scale is not None:
+            ps["scale"] = scale
         if color is not None:
             ps["color"] = color
-        if label is not None:
-            ps["label"] = label
-        ps["linestyle"] = linestyle
-        ps["linewidth"] = linewidth
+        if cmap is not None:
+            ps["cmap"] = cmap
         if alpha != 1.0:
             ps["alpha"] = alpha
-        if marker is not None:
-            ps["marker"] = marker
-        if yerr is not None:
-            ps["yerr"] = yerr
         return _create(
             ps,
             output_path,
@@ -105,17 +83,15 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_scatter(
-        output_path: str,
+    def plt_acorr(
         x: Union[List[float], str],
-        y: Union[List[float], str],
+        output_path: str,
         data_file: Optional[str] = None,
+        maxlags: int = 10,
         color: Optional[str] = None,
         label: Optional[str] = None,
+        linestyle: str = "-",
         marker: str = "o",
-        s: Optional[float] = None,
-        alpha: float = 1.0,
-        edgecolors: Optional[str] = None,
         width_mm: float = 80.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
@@ -130,20 +106,15 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a scatter plot (ax.scatter).
+        """Plot autocorrelation (ax.acorr).
 
         Parameters
         ----------
+        x : list of float or str — 1D time series or column name in data_file.
         output_path : str
-        x : list of float or str — X data or column name in data_file.
-        y : list of float or str — Y data or column name in data_file.
-        data_file : str, optional — CSV file path for column lookup.
-        color : str, optional  — Marker color.
-        label : str, optional  — Legend label.
-        marker : str  — "o", "s", "^", "D", "x", "+", "v", "<", ">".
-        s : float, optional  — Marker size in points².
-        alpha : float  — Transparency 0–1.
-        edgecolors : str, optional  — Marker edge color ("none" to hide).
+        data_file : str, optional — CSV file for column lookup.
+        maxlags : int  — Maximum lag to show.
+        color, label, linestyle, marker : ...
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -151,20 +122,19 @@ def register(mcp) -> None:  # noqa: ANN001
         -------
         dict — {"image_path", "recipe_path", "success"}
         """
-        ps: Dict[str, Any] = {"type": "scatter", "x": x, "y": y}
+        ps: Dict[str, Any] = {
+            "type": "acorr",
+            "x": x,
+            "maxlags": maxlags,
+            "linestyle": linestyle,
+            "marker": marker,
+        }
         if data_file is not None:
             ps["data_file"] = data_file
         if color is not None:
             ps["color"] = color
         if label is not None:
             ps["label"] = label
-        ps["marker"] = marker
-        if s is not None:
-            ps["s"] = s
-        if alpha != 1.0:
-            ps["alpha"] = alpha
-        if edgecolors is not None:
-            ps["edgecolors"] = edgecolors
         return _create(
             ps,
             output_path,
@@ -184,19 +154,16 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_errorbar(
-        output_path: str,
+    def plt_xcorr(
         x: Union[List[float], str],
         y: Union[List[float], str],
+        output_path: str,
         data_file: Optional[str] = None,
-        yerr: Optional[List[float]] = None,
-        xerr: Optional[List[float]] = None,
-        capsize: float = 4.0,
+        maxlags: int = 10,
         color: Optional[str] = None,
         label: Optional[str] = None,
         linestyle: str = "-",
         marker: str = "o",
-        alpha: float = 1.0,
         width_mm: float = 80.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
@@ -211,22 +178,15 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create an error-bar plot (ax.errorbar).
+        """Plot cross-correlation of two signals (ax.xcorr).
 
         Parameters
         ----------
+        x, y : list of float or str — Two 1D time series or column names.
         output_path : str
-        x : list of float or str — X data or column name in data_file.
-        y : list of float or str — Y data or column name in data_file.
-        data_file : str, optional — CSV file path for column lookup.
-        yerr : list of float, optional  — Symmetric y error bars.
-        xerr : list of float, optional  — Symmetric x error bars.
-        capsize : float  — Error cap size in points.
-        color : str, optional.
-        label : str, optional.
-        linestyle : str  — "-", "--", "-.", ":", "" (no line).
-        marker : str  — "o", "s", "^", etc. Use "none" for no markers.
-        alpha : float  — Transparency 0–1.
+        data_file : str, optional — CSV file for column lookup.
+        maxlags : int  — Maximum lag to show.
+        color, label, linestyle, marker : ...
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -234,22 +194,20 @@ def register(mcp) -> None:  # noqa: ANN001
         -------
         dict — {"image_path", "recipe_path", "success"}
         """
-        ps: Dict[str, Any] = {"type": "errorbar", "x": x, "y": y}
+        ps: Dict[str, Any] = {
+            "type": "xcorr",
+            "x": x,
+            "y": y,
+            "maxlags": maxlags,
+            "linestyle": linestyle,
+            "marker": marker,
+        }
         if data_file is not None:
             ps["data_file"] = data_file
-        if yerr is not None:
-            ps["yerr"] = yerr
-        if xerr is not None:
-            ps["xerr"] = xerr
-        ps["capsize"] = capsize
         if color is not None:
             ps["color"] = color
         if label is not None:
             ps["label"] = label
-        ps["linestyle"] = linestyle
-        ps["marker"] = marker
-        if alpha != 1.0:
-            ps["alpha"] = alpha
         return _create(
             ps,
             output_path,
@@ -264,6 +222,67 @@ def register(mcp) -> None:  # noqa: ANN001
             legend=legend,
             xlim=xlim,
             ylim=ylim,
+            stat_annotations=stat_annotations,
+            stats_results=stats_results,
+        )
+
+    @mcp.tool
+    def plt_spy(
+        data: List[List[float]],
+        output_path: str,
+        marker: str = ".",
+        markersize: float = 3.0,
+        color: Optional[str] = None,
+        precision: float = 0.0,
+        width_mm: float = 80.0,
+        height_mm: float = 80.0,
+        style: str = "SCITEX",
+        dpi: int = 300,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        stat_annotations: Optional[List[Dict[str, Any]]] = None,
+        stats_results: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Visualize sparsity of a 2D matrix (ax.spy).
+
+        Parameters
+        ----------
+        data : 2D list of float  — Matrix (non-zero entries are plotted).
+        output_path : str
+        marker : str  — Marker style for non-zero entries.
+        markersize : float
+        color : str, optional
+        precision : float  — Values with |v| <= precision treated as zero.
+        width_mm, height_mm, style, dpi, title, caption : ...
+        stat_annotations, stats_results : ...
+
+        Returns
+        -------
+        dict — {"image_path", "recipe_path", "success"}
+        """
+        ps: Dict[str, Any] = {
+            "type": "spy",
+            "data": data,
+            "marker": marker,
+            "markersize": markersize,
+            "precision": precision,
+        }
+        if color is not None:
+            ps["color"] = color
+        return _create(
+            ps,
+            output_path,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            style=style,
+            dpi=dpi,
+            xlabel=None,
+            ylabel=None,
+            title=title,
+            caption=caption,
+            legend=False,
+            xlim=None,
+            ylim=None,
             stat_annotations=stat_annotations,
             stats_results=stats_results,
         )

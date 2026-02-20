@@ -104,12 +104,36 @@ PLOT_TYPES = {
     # Spectral
     "specgram": "specgram",
     "psd": "psd",
+    "csd": "csd",
+    "cohere": "cohere",
+    "angle_spectrum": "angle_spectrum",
+    "magnitude_spectrum": "magnitude_spectrum",
+    "phase_spectrum": "phase_spectrum",
+    # Log-scale line plots (same convention as plot)
+    "loglog": "loglog",
+    "semilogx": "semilogx",
+    "semilogy": "semilogy",
+    # Additional 2D grid
+    "pcolor": "pcolor",
+    # Stacked area
+    "stackplot": "stackplot",
+    # Step / distribution
+    "stairs": "stairs",
+    "ecdf": "ecdf",
+    # Matrix / sparse
+    "spy": "spy",
+    # Correlation
+    "acorr": "acorr",
+    "xcorr": "xcorr",
+    # Vector fields
+    "quiver": "quiver",
+    "streamplot": "streamplot",
     # Heatmap (convenience alias)
     "heatmap": "imshow",
 }
 
 # Keys that are not matplotlib kwargs
-RESERVED_KEYS = {"type", "x", "y", "z", "data", "id", "data_file", "style"}
+RESERVED_KEYS = {"type", "x", "y", "z", "data", "id", "data_file", "style", "u", "v"}
 
 
 def create_figure_from_spec(

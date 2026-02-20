@@ -14,8 +14,9 @@ def register(mcp) -> None:  # noqa: ANN001
 
     @mcp.tool
     def plt_pie(
-        x: List[float],
+        x: Union[List[float], str],
         output_path: str,
+        data_file: Optional[str] = None,
         labels: Optional[List[str]] = None,
         colors: Optional[List[str]] = None,
         autopct: Optional[str] = None,
@@ -60,6 +61,8 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {"type": "pie", "x": x}
+        if data_file is not None:
+            ps["data_file"] = data_file
         if labels is not None:
             ps["labels"] = labels
         if colors is not None:
@@ -92,8 +95,9 @@ def register(mcp) -> None:  # noqa: ANN001
 
     @mcp.tool
     def plt_hist(
-        x: List[float],
+        x: Union[List[float], str],
         output_path: str,
+        data_file: Optional[str] = None,
         bins: Union[int, str] = "auto",
         color: Optional[str] = None,
         label: Optional[str] = None,
@@ -139,6 +143,8 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {"type": "hist", "x": x, "alpha": alpha}
+        if data_file is not None:
+            ps["data_file"] = data_file
         if not (isinstance(bins, str) and bins == "auto"):
             ps["bins"] = bins
         if color is not None:
@@ -171,9 +177,10 @@ def register(mcp) -> None:  # noqa: ANN001
 
     @mcp.tool
     def plt_fill_between(
-        x: List[float],
-        y1: List[float],
+        x: Union[List[float], str],
+        y1: Union[List[float], str],
         output_path: str,
+        data_file: Optional[str] = None,
         y2: Optional[List[float]] = None,
         color: Optional[str] = None,
         label: Optional[str] = None,
@@ -213,6 +220,8 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {"type": "fill_between", "x": x, "y": y1, "alpha": alpha}
+        if data_file is not None:
+            ps["data_file"] = data_file
         if y2 is not None:
             ps["y2"] = y2
         if color is not None:

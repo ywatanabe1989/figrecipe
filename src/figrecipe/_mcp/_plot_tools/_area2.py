@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""MCP plot tools: plt_step, plt_stem, plt_hexbin, plt_eventplot, plt_stackplot."""
+"""MCP plot tools: plt_fill, plt_fill_betweenx, plt_contour, plt_pcolor,
+plt_pcolormesh, plt_hist2d, plt_matshow."""
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from ._base import _create
 
 
 def register(mcp) -> None:  # noqa: ANN001
-    """Register special-purpose plot tools on *mcp*."""
+    """Register area / grid tools on *mcp*."""
 
     @mcp.tool
-    def plt_step(
-        x: Union[List[float], str],
-        y: Union[List[float], str],
+    def plt_fill(
+        x: List[float],
+        y: List[float],
         output_path: str,
-        data_file: Optional[str] = None,
-        where: str = "mid",
         color: Optional[str] = None,
         label: Optional[str] = None,
-        linestyle: str = "-",
-        linewidth: float = 1.5,
-        alpha: float = 1.0,
+        alpha: float = 0.5,
+        edgecolor: Optional[str] = None,
         width_mm: float = 80.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
@@ -38,15 +36,15 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a step plot (ax.step).
+        """Fill a closed polygon (ax.fill).
 
         Parameters
         ----------
-        x, y : list of float
+        x, y : list of float  — Polygon vertex coordinates.
         output_path : str
-        where : str
-            Step position: "pre", "mid", "post".
-        color, label, linestyle, linewidth, alpha : ...
+        color, label : str, optional
+        alpha : float  — Fill transparency (default 0.5).
+        edgecolor : str, optional
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -54,22 +52,13 @@ def register(mcp) -> None:  # noqa: ANN001
         -------
         dict — {"image_path", "recipe_path", "success"}
         """
-        ps: Dict[str, Any] = {
-            "type": "step",
-            "x": x,
-            "y": y,
-            "where": where,
-            "linestyle": linestyle,
-            "linewidth": linewidth,
-        }
-        if data_file is not None:
-            ps["data_file"] = data_file
+        ps: Dict[str, Any] = {"type": "fill", "x": x, "y": y, "alpha": alpha}
         if color is not None:
             ps["color"] = color
         if label is not None:
             ps["label"] = label
-        if alpha != 1.0:
-            ps["alpha"] = alpha
+        if edgecolor is not None:
+            ps["edgecolor"] = edgecolor
         return _create(
             ps,
             output_path,
@@ -89,15 +78,14 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_stem(
-        y: Union[List[float], str],
+    def plt_fill_betweenx(
+        y: List[float],
+        x1: List[float],
         output_path: str,
-        x: Optional[Union[List[float], str]] = None,
-        data_file: Optional[str] = None,
-        linefmt: str = "C0-",
-        markerfmt: str = "C0o",
-        basefmt: str = "C3-",
+        x2: Optional[List[float]] = None,
+        color: Optional[str] = None,
         label: Optional[str] = None,
+        alpha: float = 0.3,
         width_mm: float = 80.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
@@ -112,22 +100,16 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a stem plot (ax.stem).
+        """Create a horizontal fill-between region (ax.fill_betweenx).
 
         Parameters
         ----------
-        y : list of float
-            Heights of stems.
+        y : list of float  — Y-axis values (vertical axis).
+        x1 : list of float  — Left boundary x values.
         output_path : str
-        x : list of float, optional
-            X positions (defaults to 0, 1, 2, …).
-        linefmt : str
-            Stem line format, e.g. "C0-", "b--".
-        markerfmt : str
-            Marker format at stem tips, e.g. "C0o", "rs".
-        basefmt : str
-            Baseline format, e.g. "C3-", "k-".
-        label : str, optional
+        x2 : list of float, optional  — Right boundary x values (default 0).
+        color, label : str, optional
+        alpha : float
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -135,17 +117,11 @@ def register(mcp) -> None:  # noqa: ANN001
         -------
         dict — {"image_path", "recipe_path", "success"}
         """
-        ps: Dict[str, Any] = {
-            "type": "stem",
-            "y": y,
-            "linefmt": linefmt,
-            "markerfmt": markerfmt,
-            "basefmt": basefmt,
-        }
-        if data_file is not None:
-            ps["data_file"] = data_file
-        if x is not None:
-            ps["x"] = x
+        ps: Dict[str, Any] = {"type": "fill_betweenx", "x": y, "y": x1, "alpha": alpha}
+        if x2 is not None:
+            ps["y2"] = x2
+        if color is not None:
+            ps["color"] = color
         if label is not None:
             ps["label"] = label
         return _create(
@@ -167,15 +143,15 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_hexbin(
-        x: Union[List[float], str],
-        y: Union[List[float], str],
+    def plt_contour(
+        X: List[List[float]],
+        Y: List[List[float]],
+        Z: List[List[float]],
         output_path: str,
-        data_file: Optional[str] = None,
-        gridsize: int = 20,
-        cmap: str = "Blues",
-        bins: Optional[Union[int, str]] = None,
-        mincnt: int = 1,
+        levels: int = 10,
+        cmap: str = "viridis",
+        colors: Optional[str] = None,
+        linewidths: float = 1.0,
         width_mm: float = 80.0,
         height_mm: float = 70.0,
         style: str = "SCITEX",
@@ -190,20 +166,17 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a 2D hexagonal binning plot (ax.hexbin).
+        """Create contour lines (ax.contour).
 
         Parameters
         ----------
-        x, y : list of float
+        X, Y : 2D list of float  — Grid coordinates from np.meshgrid.
+        Z : 2D list of float  — Z values (same shape as X and Y).
         output_path : str
-        gridsize : int
-            Number of hexagons in x direction.
+        levels : int  — Number of contour levels.
         cmap : str
-            "Blues", "viridis", "YlOrRd", etc.
-        bins : int or "log", optional
-            If "log", use log scale for counts.
-        mincnt : int
-            Minimum count to display a hexagon.
+        colors : str, optional  — Single color for all lines (overrides cmap).
+        linewidths : float
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -212,17 +185,16 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "hexbin",
-            "x": x,
-            "y": y,
-            "gridsize": gridsize,
+            "type": "contour",
+            "x": X,
+            "y": Y,
+            "z": Z,
+            "levels": levels,
             "cmap": cmap,
-            "mincnt": mincnt,
+            "linewidths": linewidths,
         }
-        if data_file is not None:
-            ps["data_file"] = data_file
-        if bins is not None:
-            ps["bins"] = bins
+        if colors is not None:
+            ps["colors"] = colors
         return _create(
             ps,
             output_path,
@@ -242,17 +214,17 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_eventplot(
-        positions: List[List[float]],
+    def plt_pcolormesh(
+        X: List[List[float]],
+        Y: List[List[float]],
+        C: List[List[float]],
         output_path: str,
-        orientation: str = "horizontal",
-        lineoffsets: float = 1.0,
-        linelengths: float = 0.8,
-        linewidths: float = 1.0,
-        colors: Optional[List[str]] = None,
-        label: Optional[str] = None,
+        cmap: str = "viridis",
+        vmin: Optional[float] = None,
+        vmax: Optional[float] = None,
+        shading: str = "auto",
         width_mm: float = 80.0,
-        height_mm: float = 60.0,
+        height_mm: float = 70.0,
         style: str = "SCITEX",
         dpi: int = 300,
         xlabel: Optional[str] = None,
@@ -265,24 +237,16 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a spike raster / event plot (ax.eventplot).
+        """Create a pseudocolor mesh plot (ax.pcolormesh).
 
         Parameters
         ----------
-        positions : list of list of float
-            Event positions per channel/row.
-            E.g. [[0.1, 0.5, 0.9], [0.2, 0.7]] for 2 channels.
+        X, Y : 2D list of float  — Grid coordinates.
+        C : 2D list of float  — Color values.
         output_path : str
-        orientation : str
-            "horizontal" or "vertical".
-        lineoffsets : float
-            Vertical spacing between channels.
-        linelengths : float
-            Length of each event tick.
-        linewidths : float
-        colors : list of str, optional
-            Color per channel.
-        label : str, optional
+        cmap : str
+        vmin, vmax : float, optional
+        shading : str  — "auto", "flat", "gouraud".
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -291,17 +255,17 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "eventplot",
-            "x": positions,
-            "orientation": orientation,
-            "lineoffsets": lineoffsets,
-            "linelengths": linelengths,
-            "linewidths": linewidths,
+            "type": "pcolormesh",
+            "x": X,
+            "y": Y,
+            "z": C,
+            "cmap": cmap,
+            "shading": shading,
         }
-        if colors is not None:
-            ps["colors"] = colors
-        if label is not None:
-            ps["label"] = label
+        if vmin is not None:
+            ps["vmin"] = vmin
+        if vmax is not None:
+            ps["vmax"] = vmax
         return _create(
             ps,
             output_path,
@@ -321,43 +285,39 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_stackplot(
+    def plt_hist2d(
         x: List[float],
-        y_stacks: List[List[float]],
+        y: List[float],
         output_path: str,
-        labels: Optional[List[str]] = None,
-        colors: Optional[List[str]] = None,
-        alpha: float = 1.0,
-        baseline: str = "zero",
+        bins: int = 20,
+        cmap: str = "Blues",
+        vmin: Optional[float] = None,
+        vmax: Optional[float] = None,
+        density: bool = False,
         width_mm: float = 80.0,
-        height_mm: float = 60.0,
+        height_mm: float = 70.0,
         style: str = "SCITEX",
         dpi: int = 300,
         xlabel: Optional[str] = None,
         ylabel: Optional[str] = None,
         title: Optional[str] = None,
         caption: Optional[str] = None,
-        legend: bool = True,
+        legend: bool = False,
         xlim: Optional[List[float]] = None,
         ylim: Optional[List[float]] = None,
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a stacked area chart (ax.stackplot).
+        """Create a 2D histogram (ax.hist2d).
 
         Parameters
         ----------
-        x : list of float
-            Shared X values.
-        y_stacks : list of list of float
-            One sublist per stack layer (same length as x).
+        x, y : list of float  — Data points.
         output_path : str
-        labels : list of str, optional
-            Layer labels for legend.
-        colors : list of str, optional
-        alpha : float
-        baseline : str
-            "zero", "sym", "wiggle", "weighted_wiggle".
+        bins : int  — Number of bins in each dimension.
+        cmap : str
+        vmin, vmax : float, optional
+        density : bool  — Normalize to density.
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -365,15 +325,19 @@ def register(mcp) -> None:  # noqa: ANN001
         -------
         dict — {"image_path", "recipe_path", "success"}
         """
-        ps: Dict[str, Any] = {"type": "stackplot", "x": x, "y": y_stacks}
-        if labels is not None:
-            ps["labels"] = labels
-        if colors is not None:
-            ps["colors"] = colors
-        if alpha != 1.0:
-            ps["alpha"] = alpha
-        if baseline != "zero":
-            ps["baseline"] = baseline
+        ps: Dict[str, Any] = {
+            "type": "hist2d",
+            "x": x,
+            "y": y,
+            "bins": bins,
+            "cmap": cmap,
+        }
+        if vmin is not None:
+            ps["vmin"] = vmin
+        if vmax is not None:
+            ps["vmax"] = vmax
+        if density:
+            ps["density"] = density
         return _create(
             ps,
             output_path,
@@ -388,6 +352,63 @@ def register(mcp) -> None:  # noqa: ANN001
             legend=legend,
             xlim=xlim,
             ylim=ylim,
+            stat_annotations=stat_annotations,
+            stats_results=stats_results,
+        )
+
+    @mcp.tool
+    def plt_matshow(
+        data: List[List[float]],
+        output_path: str,
+        cmap: str = "viridis",
+        vmin: Optional[float] = None,
+        vmax: Optional[float] = None,
+        width_mm: float = 80.0,
+        height_mm: float = 70.0,
+        style: str = "SCITEX",
+        dpi: int = 300,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        legend: bool = False,
+        stat_annotations: Optional[List[Dict[str, Any]]] = None,
+        stats_results: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Display a 2D matrix with row/column ticks (ax.matshow).
+
+        Parameters
+        ----------
+        data : 2D list of float  — Matrix to display.
+        output_path : str
+        cmap : str
+        vmin, vmax : float, optional
+        width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
+        legend, stat_annotations, stats_results : ...
+
+        Returns
+        -------
+        dict — {"image_path", "recipe_path", "success"}
+        """
+        ps: Dict[str, Any] = {"type": "matshow", "data": data, "cmap": cmap}
+        if vmin is not None:
+            ps["vmin"] = vmin
+        if vmax is not None:
+            ps["vmax"] = vmax
+        return _create(
+            ps,
+            output_path,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            style=style,
+            dpi=dpi,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=title,
+            caption=caption,
+            legend=legend,
+            xlim=None,
+            ylim=None,
             stat_annotations=stat_annotations,
             stats_results=stats_results,
         )

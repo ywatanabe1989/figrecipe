@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""MCP plot tools: plt_step, plt_stem, plt_hexbin, plt_eventplot, plt_stackplot."""
+"""MCP plot tools: csd, cohere, angle_spectrum, magnitude_spectrum, phase_spectrum."""
 
 from __future__ import annotations
 
@@ -10,20 +10,18 @@ from ._base import _create
 
 
 def register(mcp) -> None:  # noqa: ANN001
-    """Register special-purpose plot tools on *mcp*."""
+    """Register spectral analysis tools on *mcp*."""
 
     @mcp.tool
-    def plt_step(
+    def plt_csd(
         x: Union[List[float], str],
         y: Union[List[float], str],
         output_path: str,
         data_file: Optional[str] = None,
-        where: str = "mid",
+        Fs: float = 2.0,
+        NFFT: int = 256,
         color: Optional[str] = None,
         label: Optional[str] = None,
-        linestyle: str = "-",
-        linewidth: float = 1.5,
-        alpha: float = 1.0,
         width_mm: float = 80.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
@@ -38,15 +36,15 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a step plot (ax.step).
+        """Plot cross-spectral density (ax.csd).
 
         Parameters
         ----------
-        x, y : list of float
+        x, y : list of float  — Two 1D time series.
         output_path : str
-        where : str
-            Step position: "pre", "mid", "post".
-        color, label, linestyle, linewidth, alpha : ...
+        Fs : float  — Sampling frequency.
+        NFFT : int  — FFT window size.
+        color, label : str, optional
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -55,12 +53,11 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "step",
+            "type": "csd",
             "x": x,
             "y": y,
-            "where": where,
-            "linestyle": linestyle,
-            "linewidth": linewidth,
+            "Fs": Fs,
+            "NFFT": NFFT,
         }
         if data_file is not None:
             ps["data_file"] = data_file
@@ -68,8 +65,6 @@ def register(mcp) -> None:  # noqa: ANN001
             ps["color"] = color
         if label is not None:
             ps["label"] = label
-        if alpha != 1.0:
-            ps["alpha"] = alpha
         return _create(
             ps,
             output_path,
@@ -89,167 +84,14 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_stem(
-        y: Union[List[float], str],
-        output_path: str,
-        x: Optional[Union[List[float], str]] = None,
-        data_file: Optional[str] = None,
-        linefmt: str = "C0-",
-        markerfmt: str = "C0o",
-        basefmt: str = "C3-",
-        label: Optional[str] = None,
-        width_mm: float = 80.0,
-        height_mm: float = 60.0,
-        style: str = "SCITEX",
-        dpi: int = 300,
-        xlabel: Optional[str] = None,
-        ylabel: Optional[str] = None,
-        title: Optional[str] = None,
-        caption: Optional[str] = None,
-        legend: bool = False,
-        xlim: Optional[List[float]] = None,
-        ylim: Optional[List[float]] = None,
-        stat_annotations: Optional[List[Dict[str, Any]]] = None,
-        stats_results: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
-        """Create a stem plot (ax.stem).
-
-        Parameters
-        ----------
-        y : list of float
-            Heights of stems.
-        output_path : str
-        x : list of float, optional
-            X positions (defaults to 0, 1, 2, …).
-        linefmt : str
-            Stem line format, e.g. "C0-", "b--".
-        markerfmt : str
-            Marker format at stem tips, e.g. "C0o", "rs".
-        basefmt : str
-            Baseline format, e.g. "C3-", "k-".
-        label : str, optional
-        width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
-        legend, xlim, ylim, stat_annotations, stats_results : ...
-
-        Returns
-        -------
-        dict — {"image_path", "recipe_path", "success"}
-        """
-        ps: Dict[str, Any] = {
-            "type": "stem",
-            "y": y,
-            "linefmt": linefmt,
-            "markerfmt": markerfmt,
-            "basefmt": basefmt,
-        }
-        if data_file is not None:
-            ps["data_file"] = data_file
-        if x is not None:
-            ps["x"] = x
-        if label is not None:
-            ps["label"] = label
-        return _create(
-            ps,
-            output_path,
-            width_mm=width_mm,
-            height_mm=height_mm,
-            style=style,
-            dpi=dpi,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            title=title,
-            caption=caption,
-            legend=legend,
-            xlim=xlim,
-            ylim=ylim,
-            stat_annotations=stat_annotations,
-            stats_results=stats_results,
-        )
-
-    @mcp.tool
-    def plt_hexbin(
+    def plt_cohere(
         x: Union[List[float], str],
         y: Union[List[float], str],
         output_path: str,
         data_file: Optional[str] = None,
-        gridsize: int = 20,
-        cmap: str = "Blues",
-        bins: Optional[Union[int, str]] = None,
-        mincnt: int = 1,
-        width_mm: float = 80.0,
-        height_mm: float = 70.0,
-        style: str = "SCITEX",
-        dpi: int = 300,
-        xlabel: Optional[str] = None,
-        ylabel: Optional[str] = None,
-        title: Optional[str] = None,
-        caption: Optional[str] = None,
-        legend: bool = False,
-        xlim: Optional[List[float]] = None,
-        ylim: Optional[List[float]] = None,
-        stat_annotations: Optional[List[Dict[str, Any]]] = None,
-        stats_results: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
-        """Create a 2D hexagonal binning plot (ax.hexbin).
-
-        Parameters
-        ----------
-        x, y : list of float
-        output_path : str
-        gridsize : int
-            Number of hexagons in x direction.
-        cmap : str
-            "Blues", "viridis", "YlOrRd", etc.
-        bins : int or "log", optional
-            If "log", use log scale for counts.
-        mincnt : int
-            Minimum count to display a hexagon.
-        width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
-        legend, xlim, ylim, stat_annotations, stats_results : ...
-
-        Returns
-        -------
-        dict — {"image_path", "recipe_path", "success"}
-        """
-        ps: Dict[str, Any] = {
-            "type": "hexbin",
-            "x": x,
-            "y": y,
-            "gridsize": gridsize,
-            "cmap": cmap,
-            "mincnt": mincnt,
-        }
-        if data_file is not None:
-            ps["data_file"] = data_file
-        if bins is not None:
-            ps["bins"] = bins
-        return _create(
-            ps,
-            output_path,
-            width_mm=width_mm,
-            height_mm=height_mm,
-            style=style,
-            dpi=dpi,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            title=title,
-            caption=caption,
-            legend=legend,
-            xlim=xlim,
-            ylim=ylim,
-            stat_annotations=stat_annotations,
-            stats_results=stats_results,
-        )
-
-    @mcp.tool
-    def plt_eventplot(
-        positions: List[List[float]],
-        output_path: str,
-        orientation: str = "horizontal",
-        lineoffsets: float = 1.0,
-        linelengths: float = 0.8,
-        linewidths: float = 1.0,
-        colors: Optional[List[str]] = None,
+        Fs: float = 2.0,
+        NFFT: int = 256,
+        color: Optional[str] = None,
         label: Optional[str] = None,
         width_mm: float = 80.0,
         height_mm: float = 60.0,
@@ -265,24 +107,15 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a spike raster / event plot (ax.eventplot).
+        """Plot coherence between two signals (ax.cohere).
 
         Parameters
         ----------
-        positions : list of list of float
-            Event positions per channel/row.
-            E.g. [[0.1, 0.5, 0.9], [0.2, 0.7]] for 2 channels.
+        x, y : list of float  — Two 1D time series.
         output_path : str
-        orientation : str
-            "horizontal" or "vertical".
-        lineoffsets : float
-            Vertical spacing between channels.
-        linelengths : float
-            Length of each event tick.
-        linewidths : float
-        colors : list of str, optional
-            Color per channel.
-        label : str, optional
+        Fs : float  — Sampling frequency.
+        NFFT : int  — FFT window size.
+        color, label : str, optional
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -291,15 +124,16 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "eventplot",
-            "x": positions,
-            "orientation": orientation,
-            "lineoffsets": lineoffsets,
-            "linelengths": linelengths,
-            "linewidths": linewidths,
+            "type": "cohere",
+            "x": x,
+            "y": y,
+            "Fs": Fs,
+            "NFFT": NFFT,
         }
-        if colors is not None:
-            ps["colors"] = colors
+        if data_file is not None:
+            ps["data_file"] = data_file
+        if color is not None:
+            ps["color"] = color
         if label is not None:
             ps["label"] = label
         return _create(
@@ -321,14 +155,14 @@ def register(mcp) -> None:  # noqa: ANN001
         )
 
     @mcp.tool
-    def plt_stackplot(
-        x: List[float],
-        y_stacks: List[List[float]],
+    def plt_angle_spectrum(
+        x: Union[List[float], str],
         output_path: str,
-        labels: Optional[List[str]] = None,
-        colors: Optional[List[str]] = None,
-        alpha: float = 1.0,
-        baseline: str = "zero",
+        data_file: Optional[str] = None,
+        Fs: float = 2.0,
+        Fc: float = 0.0,
+        color: Optional[str] = None,
+        label: Optional[str] = None,
         width_mm: float = 80.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
@@ -337,27 +171,21 @@ def register(mcp) -> None:  # noqa: ANN001
         ylabel: Optional[str] = None,
         title: Optional[str] = None,
         caption: Optional[str] = None,
-        legend: bool = True,
+        legend: bool = False,
         xlim: Optional[List[float]] = None,
         ylim: Optional[List[float]] = None,
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a stacked area chart (ax.stackplot).
+        """Plot angle spectrum (ax.angle_spectrum).
 
         Parameters
         ----------
-        x : list of float
-            Shared X values.
-        y_stacks : list of list of float
-            One sublist per stack layer (same length as x).
+        x : list of float  — 1D signal.
         output_path : str
-        labels : list of str, optional
-            Layer labels for legend.
-        colors : list of str, optional
-        alpha : float
-        baseline : str
-            "zero", "sym", "wiggle", "weighted_wiggle".
+        Fs : float  — Sampling frequency.
+        Fc : float  — Center frequency.
+        color, label : str, optional
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -365,15 +193,159 @@ def register(mcp) -> None:  # noqa: ANN001
         -------
         dict — {"image_path", "recipe_path", "success"}
         """
-        ps: Dict[str, Any] = {"type": "stackplot", "x": x, "y": y_stacks}
-        if labels is not None:
-            ps["labels"] = labels
-        if colors is not None:
-            ps["colors"] = colors
-        if alpha != 1.0:
-            ps["alpha"] = alpha
-        if baseline != "zero":
-            ps["baseline"] = baseline
+        ps: Dict[str, Any] = {
+            "type": "angle_spectrum",
+            "x": x,
+            "Fs": Fs,
+            "Fc": Fc,
+        }
+        if data_file is not None:
+            ps["data_file"] = data_file
+        if color is not None:
+            ps["color"] = color
+        if label is not None:
+            ps["label"] = label
+        return _create(
+            ps,
+            output_path,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            style=style,
+            dpi=dpi,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=title,
+            caption=caption,
+            legend=legend,
+            xlim=xlim,
+            ylim=ylim,
+            stat_annotations=stat_annotations,
+            stats_results=stats_results,
+        )
+
+    @mcp.tool
+    def plt_magnitude_spectrum(
+        x: Union[List[float], str],
+        output_path: str,
+        data_file: Optional[str] = None,
+        Fs: float = 2.0,
+        Fc: float = 0.0,
+        scale: str = "linear",
+        color: Optional[str] = None,
+        label: Optional[str] = None,
+        width_mm: float = 80.0,
+        height_mm: float = 60.0,
+        style: str = "SCITEX",
+        dpi: int = 300,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        legend: bool = False,
+        xlim: Optional[List[float]] = None,
+        ylim: Optional[List[float]] = None,
+        stat_annotations: Optional[List[Dict[str, Any]]] = None,
+        stats_results: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Plot magnitude spectrum (ax.magnitude_spectrum).
+
+        Parameters
+        ----------
+        x : list of float  — 1D signal.
+        output_path : str
+        Fs : float  — Sampling frequency.
+        Fc : float  — Center frequency.
+        scale : str  — "linear", "dB".
+        color, label : str, optional
+        width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
+        legend, xlim, ylim, stat_annotations, stats_results : ...
+
+        Returns
+        -------
+        dict — {"image_path", "recipe_path", "success"}
+        """
+        ps: Dict[str, Any] = {
+            "type": "magnitude_spectrum",
+            "x": x,
+            "Fs": Fs,
+            "Fc": Fc,
+            "scale": scale,
+        }
+        if data_file is not None:
+            ps["data_file"] = data_file
+        if color is not None:
+            ps["color"] = color
+        if label is not None:
+            ps["label"] = label
+        return _create(
+            ps,
+            output_path,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            style=style,
+            dpi=dpi,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=title,
+            caption=caption,
+            legend=legend,
+            xlim=xlim,
+            ylim=ylim,
+            stat_annotations=stat_annotations,
+            stats_results=stats_results,
+        )
+
+    @mcp.tool
+    def plt_phase_spectrum(
+        x: Union[List[float], str],
+        output_path: str,
+        data_file: Optional[str] = None,
+        Fs: float = 2.0,
+        Fc: float = 0.0,
+        color: Optional[str] = None,
+        label: Optional[str] = None,
+        width_mm: float = 80.0,
+        height_mm: float = 60.0,
+        style: str = "SCITEX",
+        dpi: int = 300,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        legend: bool = False,
+        xlim: Optional[List[float]] = None,
+        ylim: Optional[List[float]] = None,
+        stat_annotations: Optional[List[Dict[str, Any]]] = None,
+        stats_results: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Plot phase spectrum (ax.phase_spectrum).
+
+        Parameters
+        ----------
+        x : list of float  — 1D signal.
+        output_path : str
+        Fs : float  — Sampling frequency.
+        Fc : float  — Center frequency.
+        color, label : str, optional
+        width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
+        legend, xlim, ylim, stat_annotations, stats_results : ...
+
+        Returns
+        -------
+        dict — {"image_path", "recipe_path", "success"}
+        """
+        ps: Dict[str, Any] = {
+            "type": "phase_spectrum",
+            "x": x,
+            "Fs": Fs,
+            "Fc": Fc,
+        }
+        if data_file is not None:
+            ps["data_file"] = data_file
+        if color is not None:
+            ps["color"] = color
+        if label is not None:
+            ps["label"] = label
         return _create(
             ps,
             output_path,

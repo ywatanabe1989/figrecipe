@@ -16,6 +16,7 @@ def register(mcp) -> None:  # noqa: ANN001
     def plt_specgram(
         x: List[float],
         output_path: str,
+        data_file: Optional[str] = None,
         Fs: float = 1.0,
         NFFT: int = 256,
         noverlap: int = 128,
@@ -71,6 +72,8 @@ def register(mcp) -> None:  # noqa: ANN001
             "cmap": cmap,
             "scale": scale,
         }
+        if data_file is not None:
+            ps["data_file"] = data_file
         if vmin is not None:
             ps["vmin"] = vmin
         if vmax is not None:
@@ -97,6 +100,7 @@ def register(mcp) -> None:  # noqa: ANN001
     def plt_psd(
         x: List[float],
         output_path: str,
+        data_file: Optional[str] = None,
         Fs: float = 1.0,
         NFFT: int = 256,
         noverlap: int = 128,
@@ -144,6 +148,8 @@ def register(mcp) -> None:  # noqa: ANN001
             "NFFT": NFFT,
             "noverlap": noverlap,
         }
+        if data_file is not None:
+            ps["data_file"] = data_file
         if color is not None:
             ps["color"] = color
         if label is not None:
