@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""MCP plot tools: plt_bar, plt_barh."""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Union
+
+from ._base import _create
+
+
+def register(mcp) -> None:  # noqa: ANN001
+    """Register bar tools on *mcp*."""
+
+    @mcp.tool
+    def plt_bar(
+        x: List[Union[str, float]],
+        height: List[float],
+        output_path: str,
+        yerr: Optional[List[float]] = None,
+        capsize: float = 4.0,
+        color: Optional[str] = None,
+        label: Optional[str] = None,
+        alpha: float = 1.0,
+        width: float = 0.8,
+        edgecolor: Optional[str] = None,
+        width_mm: float = 80.0,
+        height_mm: float = 60.0,
+        style: str = "SCITEX",
+        dpi: int = 300,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        legend: bool = False,
+        xlim: Optional[List[float]] = None,
+        ylim: Optional[List[float]] = None,
+        stat_annotations: Optional[List[Dict[str, Any]]] = None,
+        stats_results: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Create a bar chart (ax.bar).
+
+        Parameters
+        ----------
+        x : list of str or float
+            Bar positions or category labels.
+        height : list of float
+            Bar heights.
+        output_path : str
+            Save path.
+        yerr : list of float, optional
+            Error bar values.
+        capsize : float
+            Error cap size in points.
+        color : str, optional
+        label : str, optional
+        alpha : float
+        width : float
+            Bar width as fraction of spacing (default 0.8).
+        edgecolor : str, optional
+        width_mm, height_mm : float
+            Figure size in mm.
+        style : str
+            "SCITEX" or "MATPLOTLIB".
+        dpi : int
+        xlabel, ylabel, title, caption : str, optional
+        legend : bool
+        xlim, ylim : [min, max], optional
+        stat_annotations : list of dict, optional
+            [{x1, x2, p_value|text, y?, style?}, ...]
+        stats_results : list of dict, optional
+            scitex.stats result dicts (auto-converted to stat_annotations).
+
+        Returns
+        -------
+        dict — {"image_path", "recipe_path", "success"}
+        """
+        ps: Dict[str, Any] = {"type": "bar", "x": x, "y": height}
+        if yerr is not None:
+            ps["yerr"] = yerr
+            ps["capsize"] = capsize
+        if color is not None:
+            ps["color"] = color
+        if label is not None:
+            ps["label"] = label
+        if alpha != 1.0:
+            ps["alpha"] = alpha
+        ps["width"] = width
+        if edgecolor is not None:
+            ps["edgecolor"] = edgecolor
+        return _create(
+            ps,
+            output_path,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            style=style,
+            dpi=dpi,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=title,
+            caption=caption,
+            legend=legend,
+            xlim=xlim,
+            ylim=ylim,
+            stat_annotations=stat_annotations,
+            stats_results=stats_results,
+        )
+
+    @mcp.tool
+    def plt_barh(
+        y: List[Union[str, float]],
+        width: List[float],
+        output_path: str,
+        xerr: Optional[List[float]] = None,
+        capsize: float = 4.0,
+        color: Optional[str] = None,
+        label: Optional[str] = None,
+        alpha: float = 1.0,
+        height: float = 0.8,
+        width_mm: float = 80.0,
+        height_mm: float = 60.0,
+        style: str = "SCITEX",
+        dpi: int = 300,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        legend: bool = False,
+        xlim: Optional[List[float]] = None,
+        ylim: Optional[List[float]] = None,
+        stat_annotations: Optional[List[Dict[str, Any]]] = None,
+        stats_results: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Create a horizontal bar chart (ax.barh).
+
+        Parameters
+        ----------
+        y : list of str or float
+            Bar positions / category labels (vertical axis).
+        width : list of float
+            Bar widths (horizontal extent).
+        output_path : str
+        xerr : list of float, optional
+        capsize : float
+        color, label : str, optional
+        alpha : float
+        height : float
+            Bar height as fraction of spacing (default 0.8).
+        width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
+        legend, xlim, ylim, stat_annotations, stats_results : ...
+
+        Returns
+        -------
+        dict — {"image_path", "recipe_path", "success"}
+        """
+        ps: Dict[str, Any] = {"type": "barh", "y": y, "x": width}
+        if xerr is not None:
+            ps["xerr"] = xerr
+            ps["capsize"] = capsize
+        if color is not None:
+            ps["color"] = color
+        if label is not None:
+            ps["label"] = label
+        if alpha != 1.0:
+            ps["alpha"] = alpha
+        ps["height"] = height
+        return _create(
+            ps,
+            output_path,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            style=style,
+            dpi=dpi,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title=title,
+            caption=caption,
+            legend=legend,
+            xlim=xlim,
+            ylim=ylim,
+            stat_annotations=stat_annotations,
+            stats_results=stats_results,
+        )
+
+
+# EOF
