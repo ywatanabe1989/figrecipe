@@ -385,10 +385,12 @@ def save_figure(
             restore_patches()
 
     # Auto-crop using stored crop margins from mm_layout (or explicit parameter)
-    # Only crop raster image formats (not PDF, SVG, EPS)
+    # Raster formats: pixel-based content-aware crop (post-processing)
+    # SVG: viewBox adjustment via tightbbox query (post-processing, no bbox_inches)
     # Skip for constrained_layout (already cropped at save time)
     croppable_formats = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}
     is_croppable = image_path.suffix.lower() in croppable_formats
+    is_svg = image_path.suffix.lower() == ".svg"
 
     crop_offset = None
     if is_croppable and not use_constrained:
@@ -415,6 +417,20 @@ def save_figure(
                 output_path=image_path,
                 return_offset=True,
             )
+
+    elif is_svg and not use_constrained:
+        # SVG: adjust viewBox post-save using tightbbox query (not bbox_inches='tight')
+        from .._utils._crop import crop_svg
+
+        avg_margin_mm = (
+            crop_margin_left_mm
+            + crop_margin_right_mm
+            + crop_margin_top_mm
+            + crop_margin_bottom_mm
+        ) / 4
+        if crop_margin_mm is not None:
+            avg_margin_mm = crop_margin_mm
+        crop_svg(image_path, fig.fig, margin_mm=avg_margin_mm)
 
     # Capture axes bounding boxes (adjusted for crop if cropping occurred)
     _capture_axes_bboxes(fig, crop_offset)

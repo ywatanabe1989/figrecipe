@@ -163,6 +163,14 @@ def _compose_grid_based(
     if source_data_dirs:
         fig.record.source_data_dirs = source_data_dirs
 
+    # Mark composition figure for auto-crop on save (1mm margin, all sides)
+    fig._mm_layout = {
+        "crop_margin_left_mm": 1,
+        "crop_margin_right_mm": 1,
+        "crop_margin_top_mm": 1,
+        "crop_margin_bottom_mm": 1,
+    }
+
     # Add panel labels if requested
     if panel_labels:
         _add_panel_labels_grid(axes, nrows, ncols, label_style)
@@ -242,6 +250,14 @@ def _compose_mm_based(
 
     if source_data_dirs:
         fig.record.source_data_dirs = source_data_dirs
+
+    # Mark composition figure for auto-crop on save (1mm margin, all sides)
+    fig._mm_layout = {
+        "crop_margin_left_mm": 1,
+        "crop_margin_right_mm": 1,
+        "crop_margin_top_mm": 1,
+        "crop_margin_bottom_mm": 1,
+    }
 
     if panel_labels:
         _add_panel_labels_mm(mpl_fig, sources, canvas_size_mm, label_style)

@@ -237,8 +237,10 @@ def _add_watermark(path, dpi=200):
         font = ImageFont.truetype("DejaVuSans.ttf", font_size)
     except (OSError, IOError):
         font = ImageFont.load_default()
+    from figrecipe import __version__ as _version
+
     display = "FigRecipe" if BRAND_NAME == "figrecipe" else BRAND_NAME
-    text = f"Plotted by {display}"
+    text = f"Plotted by {display} v{_version}"
     bbox = draw.textbbox((0, 0), text, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     x, y = img.width - tw - 8, img.height - th - 6
@@ -248,7 +250,7 @@ def _add_watermark(path, dpi=200):
     logger.info("watermark added: '%s' (%dpx font at %d DPI)", text, font_size, dpi)
 
 
-def render_to_file(
+def _render_to_file(
     diagram: "Diagram",
     path,
     dpi: int = 200,
@@ -257,7 +259,13 @@ def render_to_file(
     save_debug: bool = True,
     watermark: bool = False,
 ):
-    """Render diagram and save to file. On validation failure, saves as *_FAILED.png."""
+    """Render diagram and save to file. On validation failure, saves as *_FAILED.png.
+
+    Post-processing crop strategy (no bbox_inches='tight'):
+    - Raster formats: pixel-based content-aware crop via figrecipe._utils._crop.crop
+    - SVG: viewBox adjustment via crop_svg, triggered automatically by the
+      patched fig.savefig installed in Diagram.render()
+    """
     from pathlib import Path
 
     import matplotlib.pyplot as plt
@@ -266,10 +274,16 @@ def render_to_file(
     fig, ax = diagram.render()
     if fig._figrecipe_diagram_failed:
         path = path.with_stem(f"{path.stem}_FAILED")
-    fig.savefig(path, dpi=dpi, bbox_inches="tight", facecolor="white")
-    from figrecipe._utils._crop import crop
 
-    crop(path, output_path=path, margin_mm=1.0, overwrite=True, verbose=False)
+    # Save without bbox_inches='tight' — post-processing crop handles whitespace
+    fig.savefig(path, dpi=dpi, facecolor="white")
+
+    # Raster: pixel-based content-aware crop (SVG is handled by patched savefig)
+    if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}:
+        from figrecipe._utils._crop import crop
+
+        crop(path, output_path=path, margin_mm=1.0, overwrite=True, verbose=False)
+
     if watermark:
         _add_watermark(path, dpi=dpi)
     if save_recipe and not fig._figrecipe_diagram_failed:
@@ -283,7 +297,18 @@ def render_to_file(
 
         debug_fig = generate_debug_image(diagram, dpi=dpi)
         debug_path = path.with_stem(path.stem + "_debug")
-        debug_fig.savefig(debug_path, dpi=dpi, bbox_inches="tight", facecolor="white")
+        # Debug figure: plain save + post-processing crop
+        debug_fig.savefig(debug_path, dpi=dpi, facecolor="white")
+        if debug_path.suffix.lower() in {".png", ".jpg", ".jpeg"}:
+            from figrecipe._utils._crop import crop
+
+            crop(
+                debug_path,
+                output_path=debug_path,
+                margin_mm=1.0,
+                overwrite=True,
+                verbose=False,
+            )
         plt.close(debug_fig)
     plt.close(fig)
     try:
@@ -298,9 +323,13 @@ def render_to_file(
     return path
 
 
+# Public backward-compat alias — prefer d.save() at call sites
+render_to_file = _render_to_file
+
 __all__ = [
     "diagram_to_dict",
     "diagram_from_dict",
     "save_diagram_recipe",
-    "render_to_file",
+    "_render_to_file",
+    "render_to_file",  # backward-compat alias
 ]

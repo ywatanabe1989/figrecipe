@@ -380,6 +380,25 @@ class Diagram:
                 fig._figrecipe_validation_errors = str(e).split("\n")
                 logger.warning(str(e))
             fig._figrecipe_diagram = self
+
+        # Auto-crop SVG on any savefig call (stx.io.save, direct, etc.)
+        # Pixel-analysis approach: renders temp PNG → find_content_area → adjust viewBox
+        _original_savefig = fig.savefig
+        fig._figrecipe_original_savefig = _original_savefig  # exposed for crop_svg
+
+        def _savefig_with_svg_crop(fname, **kwargs):
+            result = _original_savefig(fname, **kwargs)
+            from pathlib import Path as _Path
+
+            _p = _Path(str(fname))
+            if _p.suffix.lower() == ".svg" and _p.exists():
+                from figrecipe._utils._crop import crop_svg
+
+                crop_svg(_p, fig, margin_mm=2.0)
+            return result
+
+        fig.savefig = _savefig_with_svg_crop
+
         return fig, ax
 
     def save(
