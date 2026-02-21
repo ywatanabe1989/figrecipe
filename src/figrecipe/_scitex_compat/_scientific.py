@@ -266,6 +266,8 @@ def stx_scatter_hist(
     ax : Axes
     df : DataFrame
     """
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
     x, y = np.asarray(x), np.asarray(y)
 
     if fig is None:
@@ -274,20 +276,11 @@ def stx_scatter_hist(
     # Main scatter
     ax.scatter(x, y, s=scatter_size, alpha=scatter_alpha, c=scatter_color, **kwargs)
 
-    # Create marginal histogram axes
-    pos = ax.get_position()
-    margin = 1 - scatter_ratio
-    h = margin * pos.height
-    w = margin * pos.width
-
-    ax_histx = fig.add_axes(
-        [pos.x0, pos.y0 + pos.height * scatter_ratio, pos.width * scatter_ratio, h],
-        sharex=ax,
-    )
-    ax_histy = fig.add_axes(
-        [pos.x0 + pos.width * scatter_ratio, pos.y0, w, pos.height * scatter_ratio],
-        sharey=ax,
-    )
+    # Marginal size as percentage string (e.g. scatter_ratio=0.8 → margin=20%)
+    margin_pct = f"{int(round((1 - scatter_ratio) * 100))}%"
+    divider = make_axes_locatable(ax)
+    ax_histx = divider.append_axes("top", size=margin_pct, pad=0.1, sharex=ax)
+    ax_histy = divider.append_axes("right", size=margin_pct, pad=0.1, sharey=ax)
 
     ax_histx.hist(x, bins=hist_bins, alpha=hist_alpha, color=hist_color_x)
     ax_histy.hist(

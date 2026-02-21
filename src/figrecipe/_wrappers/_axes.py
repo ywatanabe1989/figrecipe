@@ -229,6 +229,7 @@ class RecordingAxes(RecordingAxesMethods, AxesStyleMixin, SciTexMixin, DiagramMi
                 color_val = mcolors.to_rgba(color)
                 container.markerline.set_color(color_val)
                 container.stemlines.set_color(color_val)
+                container.baseline.set_color(color_val)
 
             # Record the call with color
             if self._track and track:

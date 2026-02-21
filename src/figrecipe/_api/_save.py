@@ -11,6 +11,9 @@ from ._save_helpers import (
     _is_bundle_path,
     _save_as_bundle,
 )
+from ._save_helpers import (
+    save_hitmap as _save_hitmap,
+)
 
 # Image extensions supported for saving
 IMAGE_EXTENSIONS = {
@@ -141,41 +144,6 @@ def _make_patches_opaque(fig):
                 item[1].patch.set_alpha(item[2])
 
     return restore
-
-
-def _save_hitmap(fig, image_path: Path, dpi: int, verbose: bool) -> Optional[Path]:
-    """Save hitmap image for GUI editor element selection.
-
-    Auto-detects diagram figures and uses diagram-specific hitmap
-    (element IDs → unique colors) instead of the generic artist hitmap.
-
-    Returns
-    -------
-    Path or None
-        Path to saved hitmap, or None if generation failed.
-    """
-    try:
-        hitmap_path = image_path.with_stem(image_path.stem + "_hitmap")
-        mpl_fig = fig.fig if hasattr(fig, "fig") else fig
-        diagram = getattr(mpl_fig, "_figrecipe_diagram", None)
-
-        if diagram is not None:
-            from .._diagram._diagram._hitmap import save_diagram_hitmap
-
-            save_diagram_hitmap(diagram, hitmap_path, dpi=min(dpi, 150))
-        else:
-            from .._editor._hitmap import generate_hitmap
-
-            hitmap_img, _ = generate_hitmap(fig, dpi=min(dpi, 150))
-            hitmap_img.save(hitmap_path)
-
-        if verbose:
-            print(f"  Hitmap: {hitmap_path}")
-        return hitmap_path
-    except Exception as e:
-        if verbose:
-            print(f"  Hitmap generation failed: {e}")
-        return None
 
 
 def save_figure(
@@ -340,6 +308,8 @@ def save_figure(
     if _is_opaque_facecolor(facecolor):
         restore_patches = _make_patches_opaque(fig)
 
+    pad_inches = 0.0  # updated below if use_constrained
+
     try:
         if use_constrained:
             # For constrained_layout, use bbox_inches='tight' to crop at save time
@@ -444,8 +414,12 @@ def save_figure(
         fig.record.mm_layout = fig._mm_layout
 
     # Save hitmap if requested (for GUI editor element selection)
+    # Pass bbox_inches="tight" when the image was saved that way (constrained_layout)
+    # so the hitmap crop matches the saved image exactly (critical for pie/imshow).
     if save_hitmap:
-        _save_hitmap(fig, image_path, dpi, verbose)
+        _hitmap_bbox = "tight" if use_constrained else None
+        _hitmap_pad = pad_inches if use_constrained else 0.0
+        _save_hitmap(fig, image_path, dpi, verbose, _hitmap_bbox, _hitmap_pad)
 
     # If not saving recipe, return early
     if not save_recipe:

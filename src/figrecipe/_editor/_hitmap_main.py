@@ -25,6 +25,8 @@ def generate_hitmap(
     dpi: int = 150,
     include_text: bool = True,
     target_size: Optional[Tuple[int, int]] = None,
+    bbox_inches: Optional[str] = None,
+    pad_inches: float = 0.0,
 ) -> Tuple[Image.Image, Dict[str, Any]]:
     """
     Generate hitmap with unique colors per element.
@@ -161,6 +163,10 @@ def generate_hitmap(
         # Use bbox_inches="tight" to match render_with_overrides() crop.
         # Color changes don't affect element positions so tight bbox is identical.
         save_kwargs["bbox_inches"] = "tight"
+    elif bbox_inches is not None:
+        # Caller explicitly requested a specific bbox mode (e.g. "tight" for pie/imshow)
+        save_kwargs["bbox_inches"] = bbox_inches
+        save_kwargs["pad_inches"] = pad_inches
     buf = io.BytesIO()
     fig.savefig(buf, **save_kwargs)
     buf.seek(0)

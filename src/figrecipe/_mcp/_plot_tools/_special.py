@@ -96,7 +96,7 @@ def register(mcp) -> None:  # noqa: ANN001
         data_file: Optional[str] = None,
         linefmt: str = "C0-",
         markerfmt: str = "C0o",
-        basefmt: str = "C3-",
+        basefmt: str = "C0-",
         label: Optional[str] = None,
         width_mm: float = 40.0,
         height_mm: float = 60.0,

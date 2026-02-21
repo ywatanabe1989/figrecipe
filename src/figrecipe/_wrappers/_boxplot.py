@@ -35,6 +35,12 @@ def boxplot_plot(
     # Enable patch_artist for filled boxes (editor needs patches for color picking)
     kwargs.setdefault("patch_artist", True)
 
+    # matplotlib 3.9+ renamed 'labels' → 'tick_labels'; handle both for compat
+    import matplotlib
+
+    if matplotlib.__version__ >= "3.9" and "labels" in kwargs:
+        kwargs["tick_labels"] = kwargs.pop("labels")
+
     # Extract color/colors for box facecolors
     box_colors = kwargs.pop("color", None) or kwargs.pop("colors", None)
 
