@@ -68,6 +68,36 @@ def apply_plots(
         _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax)
 
 
+# stx_*/fr_* method type groups
+_FR_SINGLE_ARG = {
+    "stx_line",
+    "fr_line",
+    "stx_ecdf",
+    "fr_ecdf",
+    "stx_raster",
+    "fr_raster",
+    "stx_heatmap",
+    "fr_heatmap",
+    "stx_image",
+    "fr_image",
+    "stx_violin",
+    "fr_violin",
+}
+_FR_TWO_ARG = {"stx_scatter_hist", "fr_scatter_hist"}
+_FR_LINE_XX = {
+    "stx_mean_std",
+    "fr_mean_std",
+    "stx_mean_ci",
+    "fr_mean_ci",
+    "stx_median_iqr",
+    "fr_median_iqr",
+}
+_FR_SHADED = {"stx_shaded_line", "fr_shaded_line"}
+_FR_FILLV = {"stx_fillv", "fr_fillv"}
+_FR_CONF_MAT = {"stx_conf_mat", "fr_conf_mat"}
+_FR_RECTANGLE = {"stx_rectangle", "fr_rectangle"}
+
+
 def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=None):
     """Call the appropriate plot method based on plot type."""
     if plot_type in (
@@ -136,6 +166,41 @@ def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=No
         ukw = {k: v2 for k, v2 in kwargs.items() if k not in ("u", "v")}
         if x is not None and y is not None and u is not None and v is not None:
             method(x, y, u, v, **ukw)
+    elif plot_type in _FR_SINGLE_ARG:
+        # stx_line, stx_ecdf, stx_raster, stx_heatmap, stx_image, stx_violin
+        if x is not None:
+            method(x, **kwargs)
+    elif plot_type in _FR_TWO_ARG:
+        # stx_scatter_hist(x, y)
+        if x is not None and y is not None:
+            method(x, y, **kwargs)
+    elif plot_type in _FR_LINE_XX:
+        # stx_mean_std/ci/median_iqr(values_2d, xx=None): y slot = xx
+        if x is not None:
+            if y is not None:
+                method(x, xx=y, **kwargs)
+            else:
+                method(x, **kwargs)
+    elif plot_type in _FR_SHADED:
+        # stx_shaded_line(xs, ys_lower, ys_middle, ys_upper)
+        y_lower = plot_spec.get("y_lower")
+        y_middle = plot_spec.get("y_middle")
+        y_upper = plot_spec.get("y_upper")
+        if x is not None:
+            method(x, y_lower, y_middle, y_upper, **kwargs)
+    elif plot_type in _FR_FILLV:
+        # stx_fillv(starts, ends, color, alpha) — no **kwargs in signature
+        fillv_kw = {k: v for k, v in kwargs.items() if k in ("color", "alpha")}
+        if x is not None and y is not None:
+            method(x, y, **fillv_kw)
+    elif plot_type in _FR_CONF_MAT:
+        # stx_conf_mat(conf_mat_2d, x_labels=None, y_labels=None): labels via kwargs
+        if x is not None:
+            method(x, **kwargs)
+    elif plot_type in _FR_RECTANGLE:
+        # stx_rectangle(xx, yy, ww, hh): ww/hh go via kwargs
+        if x is not None and y is not None:
+            method(x, y, **kwargs)
     else:
         # Standard x, y line-type plots (includes loglog, semilogx, semilogy, fill, …)
         if x is not None and y is not None:

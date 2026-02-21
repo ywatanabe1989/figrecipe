@@ -223,6 +223,23 @@ class SciTexMixin:
             self._record_stx_call("stx_violin", (values_list,), kwargs, id)
         return result
 
+    # ── fr_* branding aliases ────────────────────────────────────────
+    # figrecipe-branded names for stx_* methods (same implementation)
+    fr_line = stx_line
+    fr_shaded_line = stx_shaded_line
+    fr_mean_std = stx_mean_std
+    fr_mean_ci = stx_mean_ci
+    fr_median_iqr = stx_median_iqr
+    fr_conf_mat = stx_conf_mat
+    fr_ecdf = stx_ecdf
+    fr_raster = stx_raster
+    fr_scatter_hist = stx_scatter_hist
+    fr_heatmap = stx_heatmap
+    fr_fillv = stx_fillv
+    fr_rectangle = stx_rectangle
+    fr_image = stx_image
+    fr_violin = stx_violin
+
 
 __all__ = ["SciTexMixin"]
 

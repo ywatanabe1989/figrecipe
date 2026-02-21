@@ -39,6 +39,7 @@ from . import (
     _line_scatter,
     _log,
     _pie_hist,
+    _scitex,
     _special,
     _spectral,
     _spectral2,
@@ -60,6 +61,7 @@ def register_plot_tools(mcp) -> None:  # noqa: ANN001
     _vector_corr.register(mcp)
     _spectral2.register(mcp)
     _advanced.register(mcp)
+    _scitex.register(mcp)
 
 
 # EOF
