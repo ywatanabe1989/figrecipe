@@ -182,6 +182,15 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
     trace_lw_pt = mm_to_pt(style.get("trace_thickness_mm", 0.3))
     mpl.rcParams["lines.linewidth"] = trace_lw_pt
 
+    # Grid line width — update both rcParams (for future gridlines) and
+    # existing gridline objects (created at axes init with default linewidth)
+    grid_mm = style.get("lines_grid_mm")
+    if grid_mm is not None:
+        grid_lw_pt = mm_to_pt(grid_mm)
+        mpl.rcParams["grid.linewidth"] = grid_lw_pt
+        for line in ax.get_xgridlines() + ax.get_ygridlines():
+            line.set_linewidth(grid_lw_pt)
+
     # Convert marker size from mm to points
     marker_size_mm = style.get("marker_size_mm")
     if marker_size_mm is not None:
@@ -299,7 +308,11 @@ def apply_style_mm(ax: Axes, style: Dict[str, Any]) -> float:
 
     # Configure grid
     if style.get("grid", False):
-        ax.grid(True, alpha=0.3)
+        grid_kw = {"alpha": 0.3}
+        grid_mm = style.get("lines_grid_mm")
+        if grid_mm is not None:
+            grid_kw["linewidth"] = mm_to_pt(grid_mm)
+        ax.grid(True, **grid_kw)
     else:
         ax.grid(False)
 

@@ -139,6 +139,12 @@ def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=No
             result = None
         if result is not None and ax is not None:
             _maybe_add_colorbar(result, ax, plot_spec)
+    elif plot_type == "specgram":
+        # specgram returns (spectrum, freqs, t, im) — im is the AxesImage
+        if x is not None:
+            ret = method(x, **kwargs)
+            if ax is not None and isinstance(ret, tuple) and len(ret) == 4:
+                _maybe_add_colorbar(ret[3], ax, plot_spec)
     elif plot_type == "hexbin":
         if x is not None and y is not None:
             result = method(x, y, **kwargs)

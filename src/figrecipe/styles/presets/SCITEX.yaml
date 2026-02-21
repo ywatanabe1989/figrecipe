@@ -44,6 +44,7 @@ lines:
   trace_mm: 0.12
   errorbar_mm: 0.12
   errorbar_cap_mm: 0.8
+  grid_mm: 0.12
 
 ticks:
   length_mm: 0.8

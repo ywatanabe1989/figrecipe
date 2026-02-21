@@ -166,6 +166,8 @@ RESERVED_KEYS = {
     "style",
     "u",
     "v",
+    # colorbar is handled by figrecipe, not passed to matplotlib
+    "colorbar",
     # stx_*/fr_* shaded_line positional args (extracted manually in dispatch)
     "y_lower",
     "y_middle",

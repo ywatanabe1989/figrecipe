@@ -38,6 +38,7 @@ lines:
   trace_mm: null
   errorbar_mm: null
   errorbar_cap_mm: null
+  grid_mm: null
 
 ticks:
   length_mm: null

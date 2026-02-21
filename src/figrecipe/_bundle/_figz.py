@@ -183,6 +183,9 @@ class Figz:
         plot_type: str = "image",
         position: Optional[Dict] = None,
         size: Optional[Dict] = None,
+        hitmap_bytes: Optional[bytes] = None,
+        hitmap_color_map: Optional[Dict] = None,
+        data_csv: Optional[str] = None,
     ) -> None:
         """Create a .plt.zip bundle from PNG bytes and embed it as a panel.
 
@@ -206,7 +209,14 @@ class Figz:
 
         tmp = Path(tempfile.mktemp(suffix=".plt.zip"))
         try:
-            Pltz.from_png(png_bytes, tmp, plot_type=plot_type)
+            Pltz.from_png(
+                png_bytes,
+                tmp,
+                plot_type=plot_type,
+                hitmap_bytes=hitmap_bytes,
+                hitmap_color_map=hitmap_color_map,
+                data_csv=data_csv,
+            )
             self.add_panel(label, tmp.read_bytes(), position, size)
         finally:
             if tmp.exists():

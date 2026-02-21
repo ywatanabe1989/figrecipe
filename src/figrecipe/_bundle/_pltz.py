@@ -44,6 +44,9 @@ class Pltz:
         plot_type: str = "image",
         spec: Optional[dict] = None,
         style: Optional[dict] = None,
+        hitmap_bytes: Optional[bytes] = None,
+        hitmap_color_map: Optional[dict] = None,
+        data_csv: Optional[str] = None,
     ) -> "Pltz":
         """Create a .plt.zip bundle wrapping a pre-rendered PNG image.
 
@@ -94,6 +97,15 @@ class Pltz:
                     json.dumps(style or {}, indent=2),
                 )
                 zf.writestr("exports/figure.png", png_bytes)
+                if hitmap_bytes:
+                    zf.writestr("exports/hitmap.png", hitmap_bytes)
+                if hitmap_color_map:
+                    zf.writestr(
+                        "metadata/hitmap_color_map.json",
+                        json.dumps(hitmap_color_map, indent=2),
+                    )
+                if data_csv:
+                    zf.writestr("data.csv", data_csv)
             shutil.move(str(tmp), str(path))
         except Exception:
             if tmp.exists():
