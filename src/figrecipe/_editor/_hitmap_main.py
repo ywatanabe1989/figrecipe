@@ -151,13 +151,20 @@ def generate_hitmap(
     # dimension changes between renders. Must match main render.
     # Exception: diagram figures NEED bbox_inches="tight" to crop whitespace,
     # matching how render_with_overrides() renders them.
+    MAX_HITMAP_PIXELS = 2000  # cap per dimension to prevent hang on huge figures
     hitmap_dpi = dpi
+    fig_w, fig_h = mpl_fig.get_size_inches()
+    max_fig_dim = max(fig_w, fig_h)
     if is_diagram:
-        fig_w, fig_h = mpl_fig.get_size_inches()
-        max_dim = max(fig_w, fig_h)
         max_pixels = 1500
-        if max_dim * hitmap_dpi > max_pixels:
-            hitmap_dpi = max(30, int(max_pixels / max_dim))
+        if max_fig_dim * hitmap_dpi > max_pixels:
+            hitmap_dpi = max(30, int(max_pixels / max_fig_dim))
+    else:
+        # Cap DPI so estimated pixel size stays within safe bounds.
+        # Protects against pathologically large images when constrained_layout
+        # collapses axes to zero (e.g. quiver), causing tight bbox to expand hugely.
+        if max_fig_dim * hitmap_dpi > MAX_HITMAP_PIXELS:
+            hitmap_dpi = max(30, int(MAX_HITMAP_PIXELS / max_fig_dim))
     save_kwargs = dict(format="png", dpi=hitmap_dpi, facecolor=fig.get_facecolor())
     if is_diagram:
         # Use bbox_inches="tight" to match render_with_overrides() crop.
@@ -173,6 +180,16 @@ def generate_hitmap(
 
     # Load as PIL Image
     hitmap = Image.open(buf).convert("RGB")
+
+    # Guard: if tight bbox expanded the image beyond safe limits (e.g. quiver with
+    # collapsed constrained_layout), resize down to prevent encode hang.
+    if max(hitmap.size) > MAX_HITMAP_PIXELS * 2:
+        scale = (MAX_HITMAP_PIXELS * 2) / max(hitmap.size)
+        new_size = (
+            max(1, int(hitmap.width * scale)),
+            max(1, int(hitmap.height * scale)),
+        )
+        hitmap = hitmap.resize(new_size, Image.NEAREST)
 
     # Force hitmap to match main render dimensions exactly.
     # bbox_inches="tight" recomputes the crop per render, and color changes

@@ -321,7 +321,24 @@ def save_figure(
             ) / 4
             pad_inches = avg_margin_mm / 25.4  # mm to inches
 
+            # Pre-flight: draw figure to detect constrained_layout collapse
+            # before attempting bbox_inches="tight" save (which hangs for e.g. quiver
+            # when axes collapse to zero and draw_path loops endlessly on degenerate paths).
+            import warnings as _warnings
+
+            _collapse_detected = False
+            with _warnings.catch_warnings(record=True) as _w:
+                _warnings.simplefilter("always")
+                try:
+                    fig.fig.canvas.draw()
+                except Exception:
+                    pass
+                if any("collapsed to zero" in str(w.message) for w in _w):
+                    _collapse_detected = True
+
             try:
+                if _collapse_detected:
+                    raise ValueError("constrained_layout collapsed axes to zero")
                 fig.fig.savefig(
                     image_path,
                     dpi=dpi,
