@@ -68,34 +68,21 @@ def apply_plots(
         _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax)
 
 
-# stx_*/fr_* method type groups
+# stx_*/branding-alias method type groups (driven by FIGRECIPE_ALIAS env var)
+from figrecipe._branding import BRAND_ALIAS as _BA  # noqa: E402
+
 _FR_SINGLE_ARG = {
-    "stx_line",
-    "fr_line",
-    "stx_ecdf",
-    "fr_ecdf",
-    "stx_raster",
-    "fr_raster",
-    "stx_heatmap",
-    "fr_heatmap",
-    "stx_image",
-    "fr_image",
-    "stx_violin",
-    "fr_violin",
+    f"stx_{s}" for s in ("line", "ecdf", "raster", "heatmap", "image", "violin")
+} | {f"{_BA}_{s}" for s in ("line", "ecdf", "raster", "heatmap", "image", "violin")}
+_FR_TWO_ARG = {"stx_scatter_hist", f"{_BA}_scatter_hist"}
+_FR_LINE_XX = {f"stx_{s}" for s in ("mean_std", "mean_ci", "median_iqr")} | {
+    f"{_BA}_{s}" for s in ("mean_std", "mean_ci", "median_iqr")
 }
-_FR_TWO_ARG = {"stx_scatter_hist", "fr_scatter_hist"}
-_FR_LINE_XX = {
-    "stx_mean_std",
-    "fr_mean_std",
-    "stx_mean_ci",
-    "fr_mean_ci",
-    "stx_median_iqr",
-    "fr_median_iqr",
-}
-_FR_SHADED = {"stx_shaded_line", "fr_shaded_line"}
-_FR_FILLV = {"stx_fillv", "fr_fillv"}
-_FR_CONF_MAT = {"stx_conf_mat", "fr_conf_mat"}
-_FR_RECTANGLE = {"stx_rectangle", "fr_rectangle"}
+_FR_SHADED = {"stx_shaded_line", f"{_BA}_shaded_line"}
+_FR_FILLV = {"stx_fillv", f"{_BA}_fillv"}
+_FR_CONF_MAT = {"stx_conf_mat", f"{_BA}_conf_mat"}
+_FR_RECTANGLE = {"stx_rectangle", f"{_BA}_rectangle"}
+del _BA
 
 
 def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=None):

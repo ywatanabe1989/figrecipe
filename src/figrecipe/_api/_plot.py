@@ -130,36 +130,29 @@ PLOT_TYPES = {
     "streamplot": "streamplot",
     # Heatmap (convenience alias)
     "heatmap": "imshow",
-    # SciTeX / figrecipe scientific plots
-    "stx_line": "stx_line",
-    "fr_line": "fr_line",
-    "stx_shaded_line": "stx_shaded_line",
-    "fr_shaded_line": "fr_shaded_line",
-    "stx_mean_std": "stx_mean_std",
-    "fr_mean_std": "fr_mean_std",
-    "stx_mean_ci": "stx_mean_ci",
-    "fr_mean_ci": "fr_mean_ci",
-    "stx_median_iqr": "stx_median_iqr",
-    "fr_median_iqr": "fr_median_iqr",
-    "stx_conf_mat": "stx_conf_mat",
-    "fr_conf_mat": "fr_conf_mat",
-    "stx_ecdf": "stx_ecdf",
-    "fr_ecdf": "fr_ecdf",
-    "stx_raster": "stx_raster",
-    "fr_raster": "fr_raster",
-    "stx_scatter_hist": "stx_scatter_hist",
-    "fr_scatter_hist": "fr_scatter_hist",
-    "stx_heatmap": "stx_heatmap",
-    "fr_heatmap": "fr_heatmap",
-    "stx_fillv": "stx_fillv",
-    "fr_fillv": "fr_fillv",
-    "stx_rectangle": "stx_rectangle",
-    "fr_rectangle": "fr_rectangle",
-    "stx_image": "stx_image",
-    "fr_image": "fr_image",
-    "stx_violin": "stx_violin",
-    "fr_violin": "fr_violin",
 }
+# SciTeX / figrecipe scientific plots — populated from branding alias
+from figrecipe._branding import BRAND_ALIAS as _BRAND_ALIAS  # noqa: E402
+
+for _s in (
+    "line",
+    "shaded_line",
+    "mean_std",
+    "mean_ci",
+    "median_iqr",
+    "conf_mat",
+    "ecdf",
+    "raster",
+    "scatter_hist",
+    "heatmap",
+    "fillv",
+    "rectangle",
+    "image",
+    "violin",
+):
+    PLOT_TYPES[f"stx_{_s}"] = f"stx_{_s}"
+    PLOT_TYPES[f"{_BRAND_ALIAS}_{_s}"] = f"{_BRAND_ALIAS}_{_s}"
+del _s, _BRAND_ALIAS
 
 # Keys that are not matplotlib kwargs
 RESERVED_KEYS = {

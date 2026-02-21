@@ -7,13 +7,14 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
+from figrecipe._branding import BRAND_ALIAS as _BA
 
 
 def register(mcp) -> None:  # noqa: ANN001
     """Register shaded-line fr_* tools on *mcp*."""
 
-    @mcp.tool
-    def fr_line(
+    @mcp.tool(f"{_BA}_line")
+    def _impl_line(
         values: Union[List[float], str],
         output_path: str,
         data_file: Optional[str] = None,
@@ -54,7 +55,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_line",
+            "type": f"{_BA}_line",
             "x": values,
             "linewidth": linewidth,
             "linestyle": linestyle,
@@ -87,8 +88,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_shaded_line(
+    @mcp.tool(f"{_BA}_shaded_line")
+    def _impl_shaded_line(
         xs: Union[List[float], str],
         y_lower: Union[List[float], str],
         y_middle: Union[List[float], str],
@@ -130,7 +131,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_shaded_line",
+            "type": f"{_BA}_shaded_line",
             "x": xs,
             "y_lower": y_lower,
             "y_middle": y_middle,
@@ -162,8 +163,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_mean_std(
+    @mcp.tool(f"{_BA}_mean_std")
+    def _impl_mean_std(
         values_2d: Union[List[List[float]], str],
         output_path: str,
         data_file: Optional[str] = None,
@@ -203,7 +204,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_mean_std",
+            "type": f"{_BA}_mean_std",
             "x": values_2d,
             "sd": sd,
             "linewidth": linewidth,
@@ -235,8 +236,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_mean_ci(
+    @mcp.tool(f"{_BA}_mean_ci")
+    def _impl_mean_ci(
         values_2d: Union[List[List[float]], str],
         output_path: str,
         data_file: Optional[str] = None,
@@ -276,7 +277,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_mean_ci",
+            "type": f"{_BA}_mean_ci",
             "x": values_2d,
             "perc": perc,
             "linewidth": linewidth,
@@ -308,8 +309,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_median_iqr(
+    @mcp.tool(f"{_BA}_median_iqr")
+    def _impl_median_iqr(
         values_2d: Union[List[List[float]], str],
         output_path: str,
         data_file: Optional[str] = None,
@@ -347,7 +348,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_median_iqr",
+            "type": f"{_BA}_median_iqr",
             "x": values_2d,
             "linewidth": linewidth,
             "alpha": alpha,

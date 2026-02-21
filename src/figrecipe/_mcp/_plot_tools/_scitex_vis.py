@@ -7,13 +7,14 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
+from figrecipe._branding import BRAND_ALIAS as _BA
 
 
 def register(mcp) -> None:  # noqa: ANN001
     """Register visualization fr_* tools on *mcp*."""
 
-    @mcp.tool
-    def fr_heatmap(
+    @mcp.tool(f"{_BA}_heatmap")
+    def _impl_heatmap(
         values_2d: List[List[float]],
         output_path: str,
         cmap: str = "viridis",
@@ -50,7 +51,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_heatmap",
+            "type": f"{_BA}_heatmap",
             "x": values_2d,
             "cmap": cmap,
             "annot": annot,
@@ -78,8 +79,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_fillv(
+    @mcp.tool(f"{_BA}_fillv")
+    def _impl_fillv(
         starts: Union[List[float], str],
         ends: Union[List[float], str],
         output_path: str,
@@ -115,7 +116,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_fillv",
+            "type": f"{_BA}_fillv",
             "x": starts,
             "y": ends,
             "color": color,
@@ -141,8 +142,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_rectangle(
+    @mcp.tool(f"{_BA}_rectangle")
+    def _impl_rectangle(
         xx: Union[List[float], float],
         yy: Union[List[float], float],
         ww: Union[List[float], float],
@@ -182,7 +183,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_rectangle",
+            "type": f"{_BA}_rectangle",
             "x": xx,
             "y": yy,
             "ww": ww,
@@ -210,8 +211,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_image(
+    @mcp.tool(f"{_BA}_image")
+    def _impl_image(
         arr_2d: List[List[float]],
         output_path: str,
         cmap: str = "gray",
@@ -244,7 +245,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_image",
+            "type": f"{_BA}_image",
             "x": arr_2d,
             "cmap": cmap,
         }
@@ -270,8 +271,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_violin(
+    @mcp.tool(f"{_BA}_violin")
+    def _impl_violin(
         values_list: List[List[float]],
         output_path: str,
         color: Optional[str] = None,
@@ -308,7 +309,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_violin",
+            "type": f"{_BA}_violin",
             "x": values_list,
             "alpha": alpha,
         }

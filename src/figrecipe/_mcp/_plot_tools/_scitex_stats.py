@@ -7,13 +7,14 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
+from figrecipe._branding import BRAND_ALIAS as _BA
 
 
 def register(mcp) -> None:  # noqa: ANN001
     """Register scientific fr_* tools on *mcp*."""
 
-    @mcp.tool
-    def fr_conf_mat(
+    @mcp.tool(f"{_BA}_conf_mat")
+    def _impl_conf_mat(
         conf_mat: List[List[float]],
         output_path: str,
         x_labels: Optional[List[str]] = None,
@@ -49,7 +50,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_conf_mat",
+            "type": f"{_BA}_conf_mat",
             "x": conf_mat,
             "cmap": cmap,
             "fmt": fmt,
@@ -76,8 +77,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_ecdf(
+    @mcp.tool(f"{_BA}_ecdf")
+    def _impl_ecdf(
         values: Union[List[float], str],
         output_path: str,
         data_file: Optional[str] = None,
@@ -116,7 +117,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_ecdf",
+            "type": f"{_BA}_ecdf",
             "x": values,
             "linewidth": linewidth,
             "complementary": complementary,
@@ -145,8 +146,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_raster(
+    @mcp.tool(f"{_BA}_raster")
+    def _impl_raster(
         spike_times: List[List[float]],
         output_path: str,
         color: Optional[str] = None,
@@ -181,7 +182,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_raster",
+            "type": f"{_BA}_raster",
             "x": spike_times,
             "linelengths": linelengths,
         }
@@ -207,8 +208,8 @@ def register(mcp) -> None:  # noqa: ANN001
             stats_results=stats_results,
         )
 
-    @mcp.tool
-    def fr_scatter_hist(
+    @mcp.tool(f"{_BA}_scatter_hist")
+    def _impl_scatter_hist(
         x: Union[List[float], str],
         y: Union[List[float], str],
         output_path: str,
@@ -245,7 +246,7 @@ def register(mcp) -> None:  # noqa: ANN001
         dict — {"image_path", "recipe_path", "success"}
         """
         ps: Dict[str, Any] = {
-            "type": "fr_scatter_hist",
+            "type": f"{_BA}_scatter_hist",
             "x": x,
             "y": y,
             "bins": bins,
