@@ -106,7 +106,7 @@ def register(mcp) -> None:  # noqa: ANN001
         noverlap: int = 128,
         color: Optional[str] = None,
         label: Optional[str] = None,
-        width_mm: float = 80.0,
+        width_mm: float = 40.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
         dpi: int = 300,
