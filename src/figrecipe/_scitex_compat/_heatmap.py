@@ -5,7 +5,6 @@
 Ported from scitex.plt.ax._plot._stx_heatmap for figrecipe integration.
 """
 
-
 import numpy as np
 from matplotlib.axes import Axes
 
@@ -79,9 +78,12 @@ def stx_heatmap(
         **kwargs,
     )
 
-    # Colorbar
+    # Colorbar with limited ticks
+    from matplotlib.ticker import MaxNLocator
+
     fig = ax.get_figure()
     cbar = fig.colorbar(im, ax=ax)
+    cbar.ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=3))
     if cbar_label:
         cbar.set_label(cbar_label)
 

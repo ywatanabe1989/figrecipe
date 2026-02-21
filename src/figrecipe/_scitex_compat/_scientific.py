@@ -5,7 +5,6 @@
 Ported from scitex.plt.ax._plot for figrecipe integration.
 """
 
-
 import numpy as np
 import pandas as pd
 from matplotlib.axes import Axes
@@ -299,8 +298,15 @@ def stx_scatter_hist(
         orientation="horizontal",
     )
 
-    ax_histx.tick_params(labelbottom=False)
-    ax_histy.tick_params(labelleft=False)
+    # Top histogram: hide x-tick labels (shared with scatter) and y-axis entirely
+    ax_histx.tick_params(labelbottom=False, labelleft=False, left=False)
+    ax_histx.spines["right"].set_visible(False)
+    ax_histx.spines["top"].set_visible(False)
+
+    # Right histogram: hide y-tick labels (shared with scatter) and x-axis entirely
+    ax_histy.tick_params(labelleft=False, labelbottom=False, bottom=False)
+    ax_histy.spines["top"].set_visible(False)
+    ax_histy.spines["right"].set_visible(False)
 
     df = pd.DataFrame({"x": x, "y": y})
     return ax, df
