@@ -21,6 +21,7 @@ def register(mcp) -> None:  # noqa: ANN001
         vert: bool = True,
         showfliers: bool = True,
         color: Optional[str] = None,
+        colors: Optional[List[str]] = None,
         width_mm: float = 40.0,
         height_mm: float = 60.0,
         style: str = "SCITEX",
@@ -51,6 +52,9 @@ def register(mcp) -> None:  # noqa: ANN001
         showfliers : bool
             Show outlier points.
         color : str, optional
+            Single fill color for all boxes.
+        colors : list of str, optional
+            Per-box fill colors (one per group). Overrides color if both given.
         width_mm, height_mm, style, dpi, xlabel, ylabel, title, caption : ...
         legend, xlim, ylim, stat_annotations, stats_results : ...
 
@@ -67,7 +71,9 @@ def register(mcp) -> None:  # noqa: ANN001
             ps["vert"] = vert
         if not showfliers:
             ps["showfliers"] = showfliers
-        if color is not None:
+        if colors is not None:
+            ps["colors"] = colors
+        elif color is not None:
             ps["color"] = color
         return _create(
             ps,
