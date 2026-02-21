@@ -130,11 +130,15 @@ def _call_plot_method(method, plot_type, x, y, z, data, kwargs, plot_spec, ax=No
             _maybe_add_colorbar(result, ax, plot_spec)
     elif plot_type == "contour":
         if x is not None and y is not None and z is not None:
-            method(x, y, z, **kwargs)
+            result = method(x, y, z, **kwargs)
         elif z is not None:
-            method(z, **kwargs)
+            result = method(z, **kwargs)
         elif data is not None:
-            method(data, **kwargs)
+            result = method(data, **kwargs)
+        else:
+            result = None
+        if result is not None and ax is not None:
+            _maybe_add_colorbar(result, ax, plot_spec)
     elif plot_type == "hexbin":
         if x is not None and y is not None:
             result = method(x, y, **kwargs)

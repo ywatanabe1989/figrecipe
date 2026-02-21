@@ -32,6 +32,7 @@ Usage:
     fig, ax = fr.reproduce_bundle('my_figure.zip')
 """
 
+from ._figz import Figz
 from ._load import load_bundle, reproduce_bundle
 from ._paths import (
     bundle_exists,
@@ -39,6 +40,7 @@ from ._paths import (
     get_bundle_paths,
     is_bundle_path,
 )
+from ._pltz import Pltz
 from ._save import save_bundle
 
 __all__ = [
@@ -49,4 +51,6 @@ __all__ = [
     "bundle_exists",
     "get_bundle_paths",
     "create_bundle_structure",
+    "Figz",
+    "Pltz",
 ]
