@@ -239,6 +239,9 @@ async function plotFromVarAssignments() {{
 
             // Clear selection
             if (typeof clearSelection === 'function') clearSelection();
+
+            // Reload datatable tabs to reflect new plot data
+            if (typeof loadTabsFromFigure === 'function') loadTabsFromFigure();
         }} else {{
             console.error('Plot failed:', result.error);
             alert('Failed to create plot: ' + (result.error || 'Unknown error'));

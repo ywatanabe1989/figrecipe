@@ -44,7 +44,7 @@ def get_html_datatable_panel() -> str:
                         <p class="hint">or click to browse</p>
                         <input type="file" id="datatable-file-input" accept=".csv,.tsv,.txt,.json">
                         <div class="dropzone-divider">or</div>
-                        <button class="btn-create-new" onclick="event.stopPropagation(); createNewCSV()">Create New Table</button>
+                        <button class="btn-create-new" onclick="event.stopPropagation(); createNewTab()">Create New Table</button>
                     </div>
                 </div>
 

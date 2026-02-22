@@ -6,7 +6,7 @@ This utility automatically detects the content area of saved figures
 and crops them, removing excess whitespace while preserving a specified margin.
 """
 
-__all__ = ["crop", "find_content_area", "mm_to_pixels"]
+__all__ = ["crop", "crop_svg", "find_content_area", "mm_to_pixels"]
 
 from pathlib import Path
 from typing import Optional, Tuple, Union
@@ -362,5 +362,102 @@ def crop(
             "new_height": final_height,
         }
         return output_path, offset
+
+    return output_path
+
+
+def crop_svg(
+    svg_path: Union[str, Path],
+    fig,
+    margin_mm: float = 1.0,
+    output_path: Optional[Union[str, Path]] = None,
+    _tmp_dpi: int = 72,
+) -> Path:
+    """Crop SVG viewBox using the same pixel-analysis as raster crop.
+
+    Renders the figure to a temporary low-res PNG, uses find_content_area()
+    to locate actual drawn content, maps pixel bounds back to SVG coordinates,
+    then adjusts viewBox/width/height. No bbox_inches='tight' involved.
+
+    Parameters
+    ----------
+    svg_path : str or Path
+        Path to the saved SVG file.
+    fig : matplotlib.figure.Figure
+        The figure that was saved (used to render temp PNG).
+    margin_mm : float
+        Margin to preserve around content, in mm (default: 1.0).
+    output_path : str or Path, optional
+        Output path. If None, overwrites svg_path in place.
+    _tmp_dpi : int
+        DPI for temporary PNG used for content detection (default: 72, fast).
+
+    Returns
+    -------
+    Path
+        Path to the cropped SVG file.
+    """
+    import re
+    import tempfile
+
+    svg_path = Path(svg_path)
+    output_path = Path(output_path) if output_path else svg_path
+
+    fig_w_in, fig_h_in = fig.get_size_inches()
+    svg_total_w_pt = fig_w_in * 72.0  # matplotlib SVG: 72pt per inch
+    svg_total_h_pt = fig_h_in * 72.0
+
+    # Render low-res temp PNG for pixel-based content detection
+    tmp_png = Path(tempfile.mktemp(suffix=".png"))
+    try:
+        # Call original savefig to avoid recursion (patch only triggers on .svg)
+        _save_fn = getattr(fig, "_figrecipe_original_savefig", None) or fig.savefig
+        _save_fn(tmp_png, dpi=_tmp_dpi, facecolor=fig.get_facecolor())
+
+        content_box = find_content_area(tmp_png)  # (left, upper, right, lower) px
+
+        from PIL import Image
+
+        with Image.open(tmp_png) as img:
+            png_w, png_h = img.size
+    except Exception:
+        return svg_path
+    finally:
+        tmp_png.unlink(missing_ok=True)
+
+    left_px, upper_px, right_px, lower_px = content_box
+
+    # Add margin in pixels (at temp DPI)
+    margin_px_val = round(margin_mm * _tmp_dpi / 25.4)
+    left_px = max(0, left_px - margin_px_val)
+    upper_px = max(0, upper_px - margin_px_val)
+    right_px = min(png_w, right_px + margin_px_val)
+    lower_px = min(png_h, lower_px + margin_px_val)
+
+    # Map pixel fractions → SVG points
+    vx = (left_px / png_w) * svg_total_w_pt
+    vy = (upper_px / png_h) * svg_total_h_pt
+    vw = ((right_px - left_px) / png_w) * svg_total_w_pt
+    vh = ((lower_px - upper_px) / png_h) * svg_total_h_pt
+
+    if vw <= 0 or vh <= 0:
+        return svg_path
+
+    with open(svg_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    content = re.sub(
+        r'viewBox="[^"]*"',
+        f'viewBox="{vx:.3f} {vy:.3f} {vw:.3f} {vh:.3f}"',
+        content,
+    )
+    content = re.sub(r'(<svg\b[^>]*\s)width="[^"]*"', rf'\1width="{vw:.3f}pt"', content)
+    content = re.sub(
+        r'(<svg\b[^>]*\s)height="[^"]*"', rf'\1height="{vh:.3f}pt"', content
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(content)
 
     return output_path

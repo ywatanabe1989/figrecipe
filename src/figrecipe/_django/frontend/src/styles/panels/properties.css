@@ -1,0 +1,258 @@
+/* FigRecipe Editor — Properties Panel (vis_app style) */
+
+.properties-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* ── Selected item info ─────────────────────────────────── */
+
+.selected-item-info {
+  padding: 12px 16px;
+  background: var(--vis-bg-secondary);
+  border-bottom: 1px solid var(--vis-border);
+}
+
+.selected-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vis-text-primary);
+}
+
+.selected-item-label {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Tabs — vis_app style ───────────────────────────────── */
+
+.properties-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--vis-bg-tertiary);
+  border-bottom: 1px solid var(--vis-border);
+  flex-shrink: 0;
+}
+
+.properties-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--vis-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.properties-tab:hover {
+  background: var(--vis-bg-hover);
+  color: var(--vis-text-primary);
+}
+
+.properties-tab.active {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+}
+
+/* ── Content ────────────────────────────────────────────── */
+
+.properties-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.properties-panel__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.properties-empty-icon {
+  font-size: 36px;
+  color: var(--vis-text-muted);
+  opacity: 0.4;
+  margin-bottom: 16px;
+}
+
+.properties-empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--vis-text-muted);
+  margin-bottom: 6px;
+}
+
+.properties-empty-hint {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+  opacity: 0.6;
+}
+
+/* ── Collapsible sections — vis_app scitex-section ──────── */
+
+.prop-section {
+  border-bottom: 1px solid var(--vis-border);
+}
+
+.prop-section__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vis-text-muted);
+  background: var(--vis-accent-bg);
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background 0.15s ease;
+}
+
+.prop-section__header:hover {
+  background: var(--vis-bg-hover);
+}
+
+.prop-section__chevron {
+  font-size: 10px;
+  width: 10px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.prop-section.collapsed .prop-section__chevron {
+  transform: rotate(-90deg);
+}
+
+.prop-section__body {
+  padding: 12px 16px;
+}
+
+.prop-section.collapsed .prop-section__body {
+  display: none;
+}
+
+/* ── Property rows ──────────────────────────────────────── */
+
+.property-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.property-row:last-child {
+  margin-bottom: 0;
+}
+
+.property-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.property-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--vis-text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.property-input,
+.property-select {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  border: 1px solid var(--vis-border);
+  border-radius: var(--radius);
+  background: var(--vis-bg-primary);
+  color: var(--vis-text-primary);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.property-input:focus,
+.property-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+}
+
+.property-input::placeholder {
+  color: var(--vis-text-muted);
+  opacity: 0.6;
+}
+
+.property-color {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--vis-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.property-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+  cursor: pointer;
+}
+
+.property-checkbox input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+}
+
+/* ── Trace items ─────────────────────────────────────────── */
+
+.trace-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--vis-bg-primary);
+  border: 1px solid var(--vis-border);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+}
+
+.trace-item:last-child {
+  margin-bottom: 0;
+}
+
+.trace-label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

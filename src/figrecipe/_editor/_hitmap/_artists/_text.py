@@ -137,7 +137,7 @@ def process_legend(
 
 
 def process_figure_text(
-    mpl_fig,
+    fig,
     element_id: int,
     original_props: Dict[str, Any],
     color_map: Dict[str, Any],
@@ -147,8 +147,8 @@ def process_figure_text(
     Returns updated element_id.
     """
     # Suptitle
-    if hasattr(mpl_fig, "_suptitle") and mpl_fig._suptitle is not None:
-        suptitle_obj = mpl_fig._suptitle
+    if hasattr(fig, "_suptitle") and fig._suptitle is not None:
+        suptitle_obj = fig._suptitle
         if suptitle_obj.get_text():
             key = "fig_suptitle"
             rgb = id_to_rgb(element_id)
@@ -166,8 +166,8 @@ def process_figure_text(
             element_id += 1
 
     # Supxlabel
-    if hasattr(mpl_fig, "_supxlabel") and mpl_fig._supxlabel is not None:
-        supxlabel_obj = mpl_fig._supxlabel
+    if hasattr(fig, "_supxlabel") and fig._supxlabel is not None:
+        supxlabel_obj = fig._supxlabel
         if supxlabel_obj.get_text():
             key = "fig_supxlabel"
             rgb = id_to_rgb(element_id)
@@ -185,8 +185,8 @@ def process_figure_text(
             element_id += 1
 
     # Supylabel
-    if hasattr(mpl_fig, "_supylabel") and mpl_fig._supylabel is not None:
-        supylabel_obj = mpl_fig._supylabel
+    if hasattr(fig, "_supylabel") and fig._supylabel is not None:
+        supylabel_obj = fig._supylabel
         if supylabel_obj.get_text():
             key = "fig_supylabel"
             rgb = id_to_rgb(element_id)

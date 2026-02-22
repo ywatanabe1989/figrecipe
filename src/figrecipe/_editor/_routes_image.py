@@ -24,45 +24,27 @@ def _add_image_panel_to_figure(editor, img_array, filename, drop_x, drop_y):
     """
     from .._wrappers._axes import RecordingAxes
 
-    # Get the underlying matplotlib figure
-    mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+    fig = editor.fig
 
     # Calculate panel position based on drop location
-    # Default size: 40% of figure in each dimension
     panel_width = 0.4
     panel_height = 0.4
-
-    # Convert drop position to axes position (bottom-left origin for matplotlib)
     left = max(0.05, min(0.55, drop_x - panel_width / 2))
     bottom = max(0.05, min(0.55, (1 - drop_y) - panel_height / 2))
 
     # Add new axes at the drop position
-    mpl_ax = mpl_fig.add_axes([left, bottom, panel_width, panel_height])
+    mpl_ax = fig.add_axes([left, bottom, panel_width, panel_height])
 
-    # If we have a RecordingFigure with recorder, wrap the axes properly
-    if hasattr(editor.fig, "_recorder"):
-        recorder = editor.fig._recorder
-        # Determine position index for the new panel
-        existing_axes = len(mpl_fig.get_axes()) - 1  # -1 because we just added one
-        position = (existing_axes, 0)  # Simple sequential positioning
+    # Wrap in RecordingAxes so imshow call gets recorded
+    existing_axes = len(fig.flat)
+    position = (existing_axes, 0)
+    wrapped_ax = RecordingAxes(mpl_ax, fig._recorder, position=position)
 
-        # Create RecordingAxes wrapper
-        wrapped_ax = RecordingAxes(mpl_ax, recorder, position=position)
+    wrapped_ax.imshow(img_array, id=f"dropped_{filename[:15]}")
+    wrapped_ax.set_title(filename[:20])
+    wrapped_ax.axis("off")
 
-        # Call imshow through wrapper so it gets recorded
-        wrapped_ax.imshow(img_array, id=f"dropped_{filename[:15]}")
-        wrapped_ax.set_title(filename[:20])
-        wrapped_ax.axis("off")
-
-        # Add to figure's axes list
-        if hasattr(editor.fig, "_axes"):
-            # Append as a new row
-            editor.fig._axes.append([wrapped_ax])
-    else:
-        # Fallback: raw matplotlib (no recording)
-        mpl_ax.imshow(img_array)
-        mpl_ax.set_title(filename[:20])
-        mpl_ax.axis("off")
+    fig._axes.append([wrapped_ax])
 
 
 def _render_and_update_hitmap(editor):

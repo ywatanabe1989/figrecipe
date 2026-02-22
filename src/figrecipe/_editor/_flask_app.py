@@ -211,8 +211,8 @@ class FigureEditor:
 
     def _capture_axes_positions(self) -> Dict[int, list]:
         """Capture current axes positions (matplotlib coords: [left, bottom, width, height])."""
-        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
-        axes = mpl_fig.get_axes()
+        fig = self.fig
+        axes = fig.get_axes()
         positions = {}
         for i, ax in enumerate(axes):
             bbox = ax.get_position()
@@ -222,8 +222,8 @@ class FigureEditor:
     def restore_axes_positions(self) -> None:
         """Restore axes to their original positions from base_style."""
         base_style = self.style_overrides.base_style
-        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
-        axes = mpl_fig.get_axes()
+        fig = self.fig
+        axes = fig.get_axes()
         for i, ax in enumerate(axes):
             key = f"_original_axes_position_{i}"
             if key in base_style:
@@ -232,8 +232,8 @@ class FigureEditor:
 
     def _capture_annotation_positions(self) -> Dict[str, dict]:
         """Capture current annotation (text) positions for each axis."""
-        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
-        axes = mpl_fig.get_axes()
+        fig = self.fig
+        axes = fig.get_axes()
         positions = {}
         for ax_idx, ax in enumerate(axes):
             for text_idx, text_obj in enumerate(ax.texts):
@@ -251,8 +251,8 @@ class FigureEditor:
     def restore_annotation_positions(self) -> None:
         """Restore annotations to their original positions from base_style."""
         base_style = self.style_overrides.base_style
-        mpl_fig = self.fig.fig if hasattr(self.fig, "fig") else self.fig
-        axes = mpl_fig.get_axes()
+        fig = self.fig
+        axes = fig.get_axes()
         for ax_idx, ax in enumerate(axes):
             for text_idx, text_obj in enumerate(ax.texts):
                 key = f"_original_ax{ax_idx}_text{text_idx}"

@@ -157,7 +157,20 @@ def resolve_color(
     if resolved is not None:
         return resolved
 
-    return color if fallback else None
+    # Color not in SCITEX map — warn and fall back to matplotlib
+    if fallback:
+        import warnings
+
+        available = ", ".join(sorted(color_map.keys()))
+        warnings.warn(
+            f"Color '{color}' is not a SCITEX named color. "
+            f"Falling back to matplotlib's '{color}'. "
+            f"Available SCITEX colors are: {available}",
+            UserWarning,
+            stacklevel=3,
+        )
+        return color
+    return None
 
 
 def resolve_colors_in_kwargs(

@@ -59,6 +59,7 @@ def to_subplots_kwargs(style: Optional["DotDict"] = None) -> Dict[str, Any]:
         "lines_trace_mm": style.lines.trace_mm,
         "lines_errorbar_mm": style.lines.get("errorbar_mm", 0.12),
         "lines_errorbar_cap_mm": style.lines.get("errorbar_cap_mm", 0.8),
+        "lines_grid_mm": style.lines.get("grid_mm"),
         # Markers (markers.* in YAML)
         "markers_size_mm": style.markers.size_mm,
         "markers_scatter_mm": style.markers.get("scatter_mm", style.markers.size_mm),

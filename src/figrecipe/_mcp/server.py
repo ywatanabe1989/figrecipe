@@ -476,8 +476,12 @@ def get_spec_schema() -> str:
 register_resources(mcp)
 
 # Register diagram tools
-
 register_diagram_tools(mcp)
+
+# Register explicit per-method plot tools (plt_line, plt_scatter, plt_bar, …)
+from ._plot_tools import register_plot_tools  # noqa: E402
+
+register_plot_tools(mcp)
 
 
 if __name__ == "__main__":

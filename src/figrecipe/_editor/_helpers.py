@@ -4,7 +4,10 @@
 Helper functions for the figure editor.
 """
 
+import logging
 from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 
 def get_form_values_from_style(style: Dict[str, Any]) -> Dict[str, Any]:
@@ -91,6 +94,41 @@ def get_form_values_from_style(style: Dict[str, Any]) -> Dict[str, Any]:
     return values
 
 
+def _reset_to_light_mode(fig) -> None:
+    """Reset figure text/spine colors to light mode defaults.
+
+    Undoes apply_dark_mode mutations so text is visible on light canvas.
+    """
+    import matplotlib as mpl
+
+    txt = "black"
+    for key in ("text.color", "axes.labelcolor", "xtick.color", "ytick.color"):
+        mpl.rcParams[key] = txt
+    fig.patch.set_facecolor("white")
+    for attr in ("_suptitle", "_supxlabel", "_supylabel"):
+        obj = getattr(fig, attr, None)
+        if obj is not None:
+            obj.set_color(txt)
+    for ax in fig.get_axes():
+        ax.set_facecolor("white")
+        ax.xaxis.label.set_color(txt)
+        ax.yaxis.label.set_color(txt)
+        ax.title.set_color(txt)
+        ax.tick_params(colors=txt, which="both")
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_color(txt)
+        for spine in ax.spines.values():
+            spine.set_color(txt)
+        for text in ax.texts:
+            text.set_color(txt)
+        legend = ax.get_legend()
+        if legend is not None:
+            legend.get_frame().set_facecolor("white")
+            legend.get_frame().set_edgecolor(txt)
+            for t in legend.get_texts():
+                t.set_color(txt)
+
+
 def render_with_overrides(
     fig, overrides: Optional[Dict[str, Any]], dark_mode: bool = False
 ):
@@ -108,11 +146,11 @@ def render_with_overrides(
 
     from ._bbox import extract_bboxes
 
-    # Get the underlying matplotlib figure
-    new_fig = fig.fig if hasattr(fig, "fig") else fig
+    # Use the underlying matplotlib Figure for canvas/render to avoid
+    # RecordingFigure.__getattr__ issues with matplotlib internals (dpi etc.)
+    mpl_fig = fig._fig if hasattr(fig, "_fig") else fig
 
-    # Safety check: validate figure size before rendering
-    fig_width, fig_height = new_fig.get_size_inches()
+    fig_width, fig_height = fig.get_size_inches()
     dpi = 150
     pixel_width = fig_width * dpi
     pixel_height = fig_height * dpi
@@ -120,40 +158,41 @@ def render_with_overrides(
     # Sanity check: prevent enormous figures (max 10000x10000 pixels)
     MAX_PIXELS = 10000
     if pixel_width > MAX_PIXELS or pixel_height > MAX_PIXELS:
-        # Reset to reasonable size
-        new_fig.set_size_inches(
+        fig.set_size_inches(
             min(fig_width, MAX_PIXELS / dpi), min(fig_height, MAX_PIXELS / dpi)
         )
 
     # Switch to Agg backend to avoid Tkinter thread issues
-    new_fig.set_canvas(FigureCanvasAgg(new_fig))
+    mpl_fig.set_canvas(FigureCanvasAgg(mpl_fig))
 
     # Disable constrained_layout if present (can cause rendering issues)
-    layout_engine = new_fig.get_layout_engine()
+    layout_engine = fig.get_layout_engine()
     if layout_engine is not None and hasattr(layout_engine, "__class__"):
         layout_name = layout_engine.__class__.__name__
         if "Constrained" in layout_name:
-            new_fig.set_layout_engine("none")
+            fig.set_layout_engine("none")
 
     # Apply overrides directly to existing figure
     # Skip style overrides for diagram figures — diagrams have their own
     # layout/styling that would be corrupted by regular figure style settings
-    is_diagram = getattr(new_fig, "_figrecipe_diagram", None) is not None
+    is_diagram = getattr(fig, "_figrecipe_diagram", None) is not None
     if not is_diagram:
         record = fig.record if hasattr(fig, "record") else None
         if overrides:
             from ._render_overrides import apply_overrides
 
-            apply_overrides(new_fig, overrides, record)
+            apply_overrides(fig, overrides, record)
 
-        # Apply dark mode if requested
+        # Apply dark/light mode to figure text and spine colors
         if dark_mode:
             from ._render_overrides import apply_dark_mode
 
-            apply_dark_mode(new_fig)
+            apply_dark_mode(fig)
+        else:
+            _reset_to_light_mode(fig)
 
     # Validate axes bounds before rendering (prevent infinite/invalid extents)
-    for ax in new_fig.get_axes():
+    for ax in fig.get_axes():
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
         # Check for invalid limits (inf, nan, or extremely large)
@@ -163,55 +202,72 @@ def render_with_overrides(
 
     # Save to PNG using same params as static save
     # Re-create canvas to ensure clean state (avoids matplotlib renderer issues)
-    # Also save/restore the figure's draw method which can get corrupted by _get_renderer
-    original_draw = getattr(new_fig, "draw", None)
-    new_fig.set_canvas(FigureCanvasAgg(new_fig))
+    # IMPORTANT: Use mpl_fig (not RecordingFigure) for canvas/savefig to avoid
+    # RecordingFigure.axes returning 2D list which breaks _tight_bbox.adjust_bbox
+    original_draw = getattr(mpl_fig, "draw", None)
+    mpl_fig.set_canvas(FigureCanvasAgg(mpl_fig))
 
     buf = io.BytesIO()
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", "constrained_layout not applied")
         warnings.filterwarnings("ignore", category=UserWarning)
         try:
-            # Standard render - layout handled by figure settings
-            # Use transparent background if specified in overrides
-            transparent = (
-                overrides.get("output_transparent", True) if overrides else True
-            )
+            # Editor preview always renders transparent — the canvas
+            # provides its own background (dark/light grid theme)
+            transparent = True
             render_dpi = 150
             if is_diagram:
-                fig_w, fig_h = new_fig.get_size_inches()
+                fig_w, fig_h = fig.get_size_inches()
                 max_dim = max(fig_w, fig_h)
                 max_pixels = 1500
                 if max_dim * render_dpi > max_pixels:
                     render_dpi = max(30, int(max_pixels / max_dim))
-            save_kwargs = dict(format="png", dpi=render_dpi, transparent=transparent)
-            if is_diagram:
-                save_kwargs["bbox_inches"] = "tight"
-                if not transparent:
-                    save_kwargs["facecolor"] = "white"
-            new_fig.savefig(buf, **save_kwargs)
-        except Exception:
+            # Make axes backgrounds transparent too (savefig transparent
+            # only affects figure patch, not axes patches)
+            saved_facecolors = []
+            if transparent:
+                for ax in mpl_fig.get_axes():
+                    saved_facecolors.append((ax, ax.get_facecolor()))
+                    ax.set_facecolor("none")
+            save_kwargs = dict(
+                format="png",
+                dpi=render_dpi,
+                transparent=transparent,
+            )
+            if is_diagram and not transparent:
+                save_kwargs["facecolor"] = "white"
+            mpl_fig.savefig(buf, **save_kwargs)
+            # Restore axes facecolors
+            for ax, fc in saved_facecolors:
+                ax.set_facecolor(fc)
+        except Exception as e1:
+            logger.exception("[render_with_overrides] Primary render failed: %s", e1)
             buf = io.BytesIO()
-            new_fig.set_canvas(FigureCanvasAgg(new_fig))
+            mpl_fig.set_canvas(FigureCanvasAgg(mpl_fig))
             if original_draw is not None:
-                new_fig.draw = original_draw
+                mpl_fig.draw = original_draw
             try:
-                transparent = (
-                    overrides.get("output_transparent", True) if overrides else True
+                for ax in mpl_fig.get_axes():
+                    ax.set_facecolor("none")
+                mpl_fig.savefig(
+                    buf,
+                    format="png",
+                    dpi=render_dpi,
+                    transparent=True,
                 )
-                new_fig.savefig(
-                    buf, format="png", dpi=render_dpi, transparent=transparent
+            except Exception as e2:
+                logger.exception(
+                    "[render_with_overrides] Fallback render also failed: %s", e2
                 )
-            except Exception:
                 from PIL import Image as PILImage
 
                 placeholder = PILImage.new("RGB", (400, 300), color=(240, 240, 240))
                 placeholder.save(buf, format="PNG")
                 buf.seek(0)
         finally:
-            if original_draw is not None and hasattr(new_fig, "draw"):
+            if original_draw is not None and hasattr(mpl_fig, "draw"):
                 try:
-                    new_fig.draw = original_draw
+                    mpl_fig.draw = original_draw
                 except AttributeError:
                     pass
     buf.seek(0)
@@ -223,22 +279,21 @@ def render_with_overrides(
     img = Image.open(buf)
     img_size = img.size
 
-    # Extract bboxes
-    # Ensure clean canvas state before drawing
-    new_fig.set_canvas(FigureCanvasAgg(new_fig))
-    original_dpi = new_fig.dpi
-    new_fig.set_dpi(render_dpi)
+    # Extract bboxes using underlying mpl figure for clean canvas state
+    mpl_fig.set_canvas(FigureCanvasAgg(mpl_fig))
+    original_dpi = mpl_fig.dpi
+    mpl_fig.set_dpi(render_dpi)
     try:
-        new_fig.canvas.draw()
+        mpl_fig.canvas.draw()
     except Exception:
         # Canvas draw failed, likely due to corrupted state - reset and retry
-        new_fig.set_canvas(FigureCanvasAgg(new_fig))
+        mpl_fig.set_canvas(FigureCanvasAgg(mpl_fig))
         try:
-            new_fig.canvas.draw()
+            mpl_fig.canvas.draw()
         except Exception:
             pass  # If still fails, proceed with possibly stale bboxes
-    bboxes = extract_bboxes(new_fig, img_size[0], img_size[1])
-    new_fig.set_dpi(original_dpi)
+    bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
+    mpl_fig.set_dpi(original_dpi)
 
     return base64_str, bboxes, img_size
 

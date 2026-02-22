@@ -11,6 +11,9 @@ from ._save_helpers import (
     _is_bundle_path,
     _save_as_bundle,
 )
+from ._save_helpers import (
+    save_hitmap as _save_hitmap,
+)
 
 # Image extensions supported for saving
 IMAGE_EXTENSIONS = {
@@ -141,41 +144,6 @@ def _make_patches_opaque(fig):
                 item[1].patch.set_alpha(item[2])
 
     return restore
-
-
-def _save_hitmap(fig, image_path: Path, dpi: int, verbose: bool) -> Optional[Path]:
-    """Save hitmap image for GUI editor element selection.
-
-    Auto-detects diagram figures and uses diagram-specific hitmap
-    (element IDs → unique colors) instead of the generic artist hitmap.
-
-    Returns
-    -------
-    Path or None
-        Path to saved hitmap, or None if generation failed.
-    """
-    try:
-        hitmap_path = image_path.with_stem(image_path.stem + "_hitmap")
-        mpl_fig = fig.fig if hasattr(fig, "fig") else fig
-        diagram = getattr(mpl_fig, "_figrecipe_diagram", None)
-
-        if diagram is not None:
-            from .._diagram._diagram._hitmap import save_diagram_hitmap
-
-            save_diagram_hitmap(diagram, hitmap_path, dpi=min(dpi, 150))
-        else:
-            from .._editor._hitmap import generate_hitmap
-
-            hitmap_img, _ = generate_hitmap(fig, dpi=min(dpi, 150))
-            hitmap_img.save(hitmap_path)
-
-        if verbose:
-            print(f"  Hitmap: {hitmap_path}")
-        return hitmap_path
-    except Exception as e:
-        if verbose:
-            print(f"  Hitmap generation failed: {e}")
-        return None
 
 
 def save_figure(
@@ -340,6 +308,8 @@ def save_figure(
     if _is_opaque_facecolor(facecolor):
         restore_patches = _make_patches_opaque(fig)
 
+    pad_inches = 0.0  # updated below if use_constrained
+
     try:
         if use_constrained:
             # For constrained_layout, use bbox_inches='tight' to crop at save time
@@ -351,7 +321,24 @@ def save_figure(
             ) / 4
             pad_inches = avg_margin_mm / 25.4  # mm to inches
 
+            # Pre-flight: draw figure to detect constrained_layout collapse
+            # before attempting bbox_inches="tight" save (which hangs for e.g. quiver
+            # when axes collapse to zero and draw_path loops endlessly on degenerate paths).
+            import warnings as _warnings
+
+            _collapse_detected = False
+            with _warnings.catch_warnings(record=True) as _w:
+                _warnings.simplefilter("always")
+                try:
+                    fig.fig.canvas.draw()
+                except Exception:
+                    pass
+                if any("collapsed to zero" in str(w.message) for w in _w):
+                    _collapse_detected = True
+
             try:
+                if _collapse_detected:
+                    raise ValueError("constrained_layout collapsed axes to zero")
                 fig.fig.savefig(
                     image_path,
                     dpi=dpi,
@@ -385,10 +372,12 @@ def save_figure(
             restore_patches()
 
     # Auto-crop using stored crop margins from mm_layout (or explicit parameter)
-    # Only crop raster image formats (not PDF, SVG, EPS)
+    # Raster formats: pixel-based content-aware crop (post-processing)
+    # SVG: viewBox adjustment via tightbbox query (post-processing, no bbox_inches)
     # Skip for constrained_layout (already cropped at save time)
     croppable_formats = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp"}
     is_croppable = image_path.suffix.lower() in croppable_formats
+    is_svg = image_path.suffix.lower() == ".svg"
 
     crop_offset = None
     if is_croppable and not use_constrained:
@@ -416,6 +405,20 @@ def save_figure(
                 return_offset=True,
             )
 
+    elif is_svg and not use_constrained:
+        # SVG: adjust viewBox post-save using tightbbox query (not bbox_inches='tight')
+        from .._utils._crop import crop_svg
+
+        avg_margin_mm = (
+            crop_margin_left_mm
+            + crop_margin_right_mm
+            + crop_margin_top_mm
+            + crop_margin_bottom_mm
+        ) / 4
+        if crop_margin_mm is not None:
+            avg_margin_mm = crop_margin_mm
+        crop_svg(image_path, fig.fig, margin_mm=avg_margin_mm)
+
     # Capture axes bounding boxes (adjusted for crop if cropping occurred)
     _capture_axes_bboxes(fig, crop_offset)
 
@@ -428,8 +431,12 @@ def save_figure(
         fig.record.mm_layout = fig._mm_layout
 
     # Save hitmap if requested (for GUI editor element selection)
+    # Pass bbox_inches="tight" when the image was saved that way (constrained_layout)
+    # so the hitmap crop matches the saved image exactly (critical for pie/imshow).
     if save_hitmap:
-        _save_hitmap(fig, image_path, dpi, verbose)
+        _hitmap_bbox = "tight" if use_constrained else None
+        _hitmap_pad = pad_inches if use_constrained else 0.0
+        _save_hitmap(fig, image_path, dpi, verbose, _hitmap_bbox, _hitmap_pad)
 
     # If not saving recipe, return early
     if not save_recipe:

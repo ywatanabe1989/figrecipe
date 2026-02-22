@@ -1,89 +1,54 @@
 #!/usr/bin/env python3
-"""figrecipe color utilities — RGB, RGBA, BGR, HEX conversions and palettes."""
+"""figrecipe color utilities — RGB, RGBA, HEX conversions and palettes."""
 
+# Public API — universal converters and colormap utilities
 from ._colormap import (
     get_categorical_colors_from_cmap,
-    get_categorical_colors_from_conf_matap,
     get_color_from_cmap,
-    get_color_from_conf_matap,
     get_colors_from_cmap,
-    get_colors_from_conf_matap,
 )
 from ._colors import (
-    bgr2bgra,
-    bgr2rgb,
-    bgra2bgr,
-    bgra2hex,
-    bgra2rgba,
     cycle_color,
-    cycle_color_bgr,
-    cycle_color_rgb,
     gradiate_color,
-    gradiate_color_bgr,
-    gradiate_color_bgra,
-    gradiate_color_rgb,
-    gradiate_color_rgba,
-    rgb2bgr,
-    rgb2rgba,
-    rgba2bgra,
-    rgba2hex,
-    rgba2rgb,
-    str2bgr,
-    str2bgra,
-    str2hex,
-    str2rgb,
-    str2rgba,
     to_hex,
     to_rgb,
     to_rgba,
     update_alpha,
 )
 from ._interpolate import gen_interpolate, interpolate
-from ._PARAMS import DEF_ALPHA, HEX, PARAMS, RGB, RGB_NORM, RGBA, RGBA_NORM
+from ._PARAMS import (  # noqa: F401
+    DEF_ALPHA,
+    HEX,
+    PARAMS,
+    RGB,
+    RGB_NORM,
+    RGBA,
+    RGBA_NORM,
+)
+
+# Internal functions remain accessible via figrecipe.colors._colors.bgr2rgb etc.
+# but are not re-exported here to keep the public API clean.
 
 __all__ = [
-    "PARAMS",
-    "DEF_ALPHA",
+    # Color dictionaries
     "RGB",
-    "RGB_NORM",
     "RGBA",
-    "RGBA_NORM",
     "HEX",
-    "bgr2bgra",
-    "bgr2rgb",
-    "bgra2bgr",
-    "bgra2hex",
-    "bgra2rgba",
-    "cycle_color",
-    "cycle_color_bgr",
-    "cycle_color_rgb",
-    "gen_interpolate",
-    "get_categorical_colors_from_cmap",
-    "get_categorical_colors_from_conf_matap",
-    "get_color_from_cmap",
-    "get_color_from_conf_matap",
-    "get_colors_from_cmap",
-    "get_colors_from_conf_matap",
-    "gradiate_color",
-    "gradiate_color_bgr",
-    "gradiate_color_bgra",
-    "gradiate_color_rgb",
-    "gradiate_color_rgba",
-    "interpolate",
-    "rgb2bgr",
-    "rgb2rgba",
-    "rgba2bgra",
-    "rgba2hex",
-    "rgba2rgb",
-    "str2bgr",
-    "str2bgra",
-    "str2hex",
-    "str2rgb",
-    "str2rgba",
+    # Universal converters
     "to_hex",
     "to_rgb",
     "to_rgba",
     "update_alpha",
+    # Color cycling
+    "cycle_color",
+    # Gradients & interpolation
+    "gradiate_color",
+    "interpolate",
+    "gen_interpolate",
+    # Colormap utilities
+    "get_color_from_cmap",
+    "get_colors_from_cmap",
+    "get_categorical_colors_from_cmap",
 ]
 
 # EOF

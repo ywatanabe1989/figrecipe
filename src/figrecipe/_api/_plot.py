@@ -104,12 +104,75 @@ PLOT_TYPES = {
     # Spectral
     "specgram": "specgram",
     "psd": "psd",
+    "csd": "csd",
+    "cohere": "cohere",
+    "angle_spectrum": "angle_spectrum",
+    "magnitude_spectrum": "magnitude_spectrum",
+    "phase_spectrum": "phase_spectrum",
+    # Log-scale line plots (same convention as plot)
+    "loglog": "loglog",
+    "semilogx": "semilogx",
+    "semilogy": "semilogy",
+    # Additional 2D grid
+    "pcolor": "pcolor",
+    # Stacked area
+    "stackplot": "stackplot",
+    # Step / distribution
+    "stairs": "stairs",
+    "ecdf": "ecdf",
+    # Matrix / sparse
+    "spy": "spy",
+    # Correlation
+    "acorr": "acorr",
+    "xcorr": "xcorr",
+    # Vector fields
+    "quiver": "quiver",
+    "streamplot": "streamplot",
     # Heatmap (convenience alias)
     "heatmap": "imshow",
 }
+# SciTeX / figrecipe scientific plots — populated from branding alias
+from figrecipe._branding import BRAND_ALIAS as _BRAND_ALIAS  # noqa: E402
+
+for _s in (
+    "line",
+    "shaded_line",
+    "mean_std",
+    "mean_ci",
+    "median_iqr",
+    "conf_mat",
+    "ecdf",
+    "raster",
+    "scatter_hist",
+    "heatmap",
+    "fillv",
+    "rectangle",
+    "image",
+    "violin",
+):
+    PLOT_TYPES[f"stx_{_s}"] = f"stx_{_s}"
+    PLOT_TYPES[f"{_BRAND_ALIAS}_{_s}"] = f"{_BRAND_ALIAS}_{_s}"
+del _s, _BRAND_ALIAS
 
 # Keys that are not matplotlib kwargs
-RESERVED_KEYS = {"type", "x", "y", "z", "data", "id", "data_file", "style"}
+RESERVED_KEYS = {
+    "type",
+    "x",
+    "y",
+    "z",
+    "data",
+    "id",
+    "data_file",
+    "style",
+    "u",
+    "v",
+    # colorbar is handled by figrecipe, not passed to matplotlib
+    "colorbar",
+    # stx_*/fr_* shaded_line positional args (extracted manually in dispatch)
+    "y_lower",
+    "y_middle",
+    "y_upper",
+}
 
 
 def create_figure_from_spec(

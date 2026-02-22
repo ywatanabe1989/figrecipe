@@ -257,3 +257,54 @@ def _save_as_bundle(
             if verbose:
                 print(f"Saved: {bundle_dir}/ (directory bundle)")
             return bundle_dir, bundle_dir / BUNDLE_RECIPE_NAME
+
+
+def save_hitmap(
+    fig,
+    image_path: Path,
+    dpi: int,
+    verbose: bool,
+    bbox_inches: Optional[str] = None,
+    pad_inches: float = 0.0,
+) -> Optional[Path]:
+    """Save hitmap image for GUI editor element selection.
+
+    Parameters
+    ----------
+    bbox_inches : str, optional
+        If "tight", hitmap is rendered with bbox_inches="tight" to match
+        figures saved with constrained_layout (e.g. pie, imshow).
+    pad_inches : float
+        Padding in inches when bbox_inches="tight".
+
+    Returns
+    -------
+    Path or None
+    """
+    try:
+        hitmap_path = image_path.with_stem(image_path.stem + "_hitmap")
+        mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+        diagram = getattr(mpl_fig, "_figrecipe_diagram", None)
+
+        if diagram is not None:
+            from .._diagram._diagram._hitmap import save_diagram_hitmap
+
+            save_diagram_hitmap(diagram, hitmap_path, dpi=min(dpi, 150))
+        else:
+            from .._editor._hitmap import generate_hitmap
+
+            hitmap_img, _ = generate_hitmap(
+                fig,
+                dpi=min(dpi, 150),
+                bbox_inches=bbox_inches,
+                pad_inches=pad_inches,
+            )
+            hitmap_img.save(hitmap_path)
+
+        if verbose:
+            print(f"  Hitmap: {hitmap_path}")
+        return hitmap_path
+    except Exception as e:
+        if verbose:
+            print(f"  Hitmap generation failed: {e}")
+        return None

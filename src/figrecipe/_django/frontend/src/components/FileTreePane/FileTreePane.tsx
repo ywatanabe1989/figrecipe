@@ -1,0 +1,39 @@
+/** Left-most pane — File tree with vis_app pane-header. */
+
+import { useEditorStore } from "../../store/useEditorStore";
+import { FileBrowser } from "../FileBrowser/FileBrowser";
+
+interface FileTreePaneProps {
+  onHeaderDoubleClick?: () => void;
+}
+
+export function FileTreePane({ onHeaderDoubleClick }: FileTreePaneProps) {
+  const { files } = useEditorStore();
+
+  const fileCount = files.reduce((n, item) => {
+    if (item.type === "directory") return n + (item.children?.length ?? 0);
+    return n + 1;
+  }, 0);
+
+  return (
+    <>
+      {/* vis_app .pane-header */}
+      <div className="pane-header" onDoubleClick={onHeaderDoubleClick}>
+        <span className="pane-header-title">
+          <i className="fas fa-folder-open" />
+          Files
+        </span>
+
+        {fileCount > 0 && <span className="badge badge-type">{fileCount}</span>}
+
+        {/* Vertical title (visible only when collapsed via CSS) */}
+        <span className="panel-title">Files</span>
+      </div>
+
+      {/* Pane content */}
+      <div className="pane-content">
+        <FileBrowser />
+      </div>
+    </>
+  );
+}

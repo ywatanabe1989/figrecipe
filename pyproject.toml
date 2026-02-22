@@ -120,6 +120,20 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-v --tb=short"
 
+[tool.coverage.run]
+source = ["figrecipe"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/figrecipe/_cli/*",
+    "*/figrecipe/_editor/*",
+    "*/figrecipe/_dev/*",
+]
+
+[tool.coverage.report]
+fail_under = 50
+show_missing = true
+
 [tool.ruff]
 line-length = 88
 target-version = "py39"

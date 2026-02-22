@@ -123,7 +123,7 @@ def restore_axes_properties(
 
 
 def restore_figure_text(
-    mpl_fig,
+    fig,
     original_props: Dict[str, Any],
     include_text: bool = True,
 ) -> None:
@@ -131,7 +131,7 @@ def restore_figure_text(
 
     Parameters
     ----------
-    mpl_fig : Figure
+    fig : Figure
         The matplotlib figure.
     original_props : dict
         Dictionary of original properties.
@@ -142,16 +142,16 @@ def restore_figure_text(
         return
 
     key = "fig_suptitle"
-    if key in original_props and hasattr(mpl_fig, "_suptitle") and mpl_fig._suptitle:
-        mpl_fig._suptitle.set_color(original_props[key]["color"])
+    if key in original_props and hasattr(fig, "_suptitle") and fig._suptitle:
+        fig._suptitle.set_color(original_props[key]["color"])
 
     key = "fig_supxlabel"
-    if key in original_props and hasattr(mpl_fig, "_supxlabel") and mpl_fig._supxlabel:
-        mpl_fig._supxlabel.set_color(original_props[key]["color"])
+    if key in original_props and hasattr(fig, "_supxlabel") and fig._supxlabel:
+        fig._supxlabel.set_color(original_props[key]["color"])
 
     key = "fig_supylabel"
-    if key in original_props and hasattr(mpl_fig, "_supylabel") and mpl_fig._supylabel:
-        mpl_fig._supylabel.set_color(original_props[key]["color"])
+    if key in original_props and hasattr(fig, "_supylabel") and fig._supylabel:
+        fig._supylabel.set_color(original_props[key]["color"])
 
 
 def restore_backgrounds(fig, axes_list: List) -> None:

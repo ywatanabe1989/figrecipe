@@ -23,6 +23,7 @@ FigRecipe (``scitex-plt``) - Reproducible Scientific Figures
    :maxdepth: 2
    :caption: User Guide
 
+   terminology
    gallery
    style_reference
    cli_reference

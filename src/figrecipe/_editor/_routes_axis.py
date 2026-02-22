@@ -25,13 +25,13 @@ def register_axis_routes(app, editor):
         if not label_type:
             return jsonify({"error": "Missing label_type"}), 400
 
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-        axes = mpl_fig.get_axes()
+        fig = editor.fig
+        rec_axes = fig.flat
 
-        if not axes:
+        if not rec_axes:
             return jsonify({"error": "No axes found"}), 400
 
-        ax = axes[min(ax_index, len(axes) - 1)]
+        ax = rec_axes[min(ax_index, len(rec_axes) - 1)]
 
         try:
             if label_type == "title":
@@ -42,10 +42,10 @@ def register_axis_routes(app, editor):
                 ax.set_ylabel(text)
             elif label_type == "suptitle":
                 if text:
-                    mpl_fig.suptitle(text)
+                    fig.suptitle(text)
                 else:
-                    if mpl_fig._suptitle:
-                        mpl_fig._suptitle.set_text("")
+                    if fig._suptitle:
+                        fig._suptitle.set_text("")
             else:
                 return jsonify({"error": f"Unknown label_type: {label_type}"}), 400
 
@@ -75,8 +75,8 @@ def register_axis_routes(app, editor):
     @app.route("/get_labels")
     def get_labels():
         """Get current axis labels (title, xlabel, ylabel, suptitle)."""
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-        axes = mpl_fig.get_axes()
+        fig = editor.fig
+        axes = fig.get_axes()
 
         labels = {"title": "", "xlabel": "", "ylabel": "", "suptitle": ""}
 
@@ -86,8 +86,8 @@ def register_axis_routes(app, editor):
             labels["xlabel"] = ax.get_xlabel()
             labels["ylabel"] = ax.get_ylabel()
 
-        if mpl_fig._suptitle:
-            labels["suptitle"] = mpl_fig._suptitle.get_text()
+        if fig._suptitle:
+            labels["suptitle"] = fig._suptitle.get_text()
 
         return jsonify(labels)
 
@@ -103,13 +103,13 @@ def register_axis_routes(app, editor):
         if not axis or not axis_type:
             return jsonify({"error": "Missing axis or type"}), 400
 
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-        axes_list = mpl_fig.get_axes()
+        fig = editor.fig
+        rec_axes = fig.flat
 
-        if not axes_list:
+        if not rec_axes:
             return jsonify({"error": "No axes found"}), 400
 
-        ax = axes_list[min(ax_index, len(axes_list) - 1)]
+        ax = rec_axes[min(ax_index, len(rec_axes) - 1)]
 
         try:
             if axis == "x":
@@ -158,8 +158,8 @@ def register_axis_routes(app, editor):
     @app.route("/get_axis_info")
     def get_axis_info():
         """Get current axis type info (numerical vs categorical)."""
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-        axes_list = mpl_fig.get_axes()
+        fig = editor.fig
+        axes_list = fig.get_axes()
 
         info = {
             "x_type": "numerical",
@@ -193,13 +193,13 @@ def register_axis_routes(app, editor):
         visible = data.get("visible")
         ax_index = data.get("ax_index", 0)
 
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-        axes_list = mpl_fig.get_axes()
+        fig = editor.fig
+        rec_axes = fig.flat
 
-        if not axes_list:
+        if not rec_axes:
             return jsonify({"error": "No axes found"}), 400
 
-        ax = axes_list[min(ax_index, len(axes_list) - 1)]
+        ax = rec_axes[min(ax_index, len(rec_axes) - 1)]
         legend = ax.get_legend()
 
         if legend is None:
@@ -261,8 +261,8 @@ def register_axis_routes(app, editor):
     @app.route("/get_legend_info")
     def get_legend_info():
         """Get current legend position info."""
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-        axes_list = mpl_fig.get_axes()
+        fig = editor.fig
+        axes_list = fig.get_axes()
 
         info = {
             "has_legend": False,
@@ -316,11 +316,11 @@ def register_axis_routes(app, editor):
         Returns positions as {left_mm, top_mm, width_mm, height_mm}
         where origin is upper-left corner and positive is right/downward.
         """
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-        axes = mpl_fig.get_axes()
+        fig = editor.fig
+        axes = fig.get_axes()
 
         # Get figure size in mm (inches * 25.4)
-        fig_size_inches = mpl_fig.get_size_inches()
+        fig_size_inches = fig.get_size_inches()
         fig_width_mm = fig_size_inches[0] * 25.4
         fig_height_mm = fig_size_inches[1] * 25.4
 
@@ -370,10 +370,10 @@ def register_axis_routes(app, editor):
         if any(v is None for v in [left_mm, top_mm, width_mm, height_mm]):
             return jsonify({"error": "Missing position values"}), 400
 
-        mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+        fig = editor.fig
 
         # Get figure size in mm for conversion
-        fig_size_inches = mpl_fig.get_size_inches()
+        fig_size_inches = fig.get_size_inches()
         fig_width_mm = fig_size_inches[0] * 25.4
         fig_height_mm = fig_size_inches[1] * 25.4
 
@@ -394,7 +394,7 @@ def register_axis_routes(app, editor):
         # Y: convert from top-down to bottom-up
         bottom = 1 - (top_mm + height_mm) / fig_height_mm
 
-        axes = mpl_fig.get_axes()
+        axes = fig.get_axes()
 
         if ax_index >= len(axes):
             return jsonify({"error": f"Invalid ax_index: {ax_index}"}), 400

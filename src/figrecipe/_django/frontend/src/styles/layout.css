@@ -1,0 +1,340 @@
+/* FigRecipe Editor — Layout (vis_app 3-pane split-view) */
+
+/* ── Root ──────────────────────────────────────────────── */
+
+.editor-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.editor-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Split panes (vis_app split-view.css) ──────────────── */
+
+.split-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+}
+
+.split-pane-left {
+  width: var(--sidebar-left-width);
+  background: var(--vis-bg-secondary);
+  border-right: none; /* resizer handles separation */
+}
+
+.split-pane-center {
+  flex: 1;
+  flex-shrink: 1;
+  min-width: 200px;
+  background: var(--vis-bg-primary);
+  position: relative;
+}
+
+.split-pane-right {
+  width: var(--sidebar-right-width);
+  background: var(--vis-bg-secondary);
+  border-left: none; /* resizer handles separation */
+}
+
+/* ── Collapsed state (vis_app .collapsible-panel.collapsed) ── */
+
+.split-pane.collapsed {
+  width: 40px !important;
+  min-width: 40px;
+  max-width: 40px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* Hide all content except vertical title when collapsed */
+.split-pane.collapsed
+  .pane-header
+  > *:not(.panel-title):not(.panel-toggle-btn) {
+  display: none;
+}
+
+.split-pane.collapsed .pane-content,
+.split-pane.collapsed .selected-item-info,
+.split-pane.collapsed .properties-tabs,
+.split-pane.collapsed .properties-content,
+.split-pane.collapsed .datatable-panel__tabs,
+.split-pane.collapsed .datatable-panel__table-wrapper,
+.split-pane.collapsed .datatable-empty-state,
+.split-pane.collapsed .properties-panel__empty,
+.split-pane.collapsed .properties-panel {
+  display: none;
+}
+
+/* Panel header becomes vertical container when collapsed */
+.split-pane.collapsed .pane-header {
+  flex-direction: column;
+  height: 100%;
+  padding: 12px 0;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  border-bottom: none;
+}
+
+/* Panel toggle button stays visible when collapsed */
+.split-pane.collapsed .panel-toggle-btn {
+  display: flex !important;
+}
+
+/* ── Panel vertical title (visible only when collapsed) ── */
+
+.panel-title {
+  display: none;
+}
+
+.split-pane.collapsed .panel-title {
+  display: flex;
+  justify-content: center;
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vis-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  flex: 1;
+}
+
+/* ── Collapsed hover ───────────────────────────────────── */
+
+.split-pane.collapsed:hover {
+  background: rgba(139, 148, 158, 0.08);
+  box-shadow: inset -3px 0 10px -4px var(--accent-primary);
+}
+
+/* ── Pane headers — vis_app .pane-header ───────────────── */
+
+.pane-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--panel-header-height);
+  padding: 0 12px;
+  background: var(--vis-bg-secondary);
+  border-bottom: 1px solid var(--vis-border);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.pane-header-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vis-text-primary);
+  white-space: nowrap;
+}
+
+.pane-header-title i {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+}
+
+/* ── Pane header buttons — vis_app pane-header-btn ─────── */
+
+.pane-header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--vis-text-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  flex-shrink: 0;
+}
+
+.pane-header-btn:hover {
+  background: var(--vis-bg-hover);
+  color: var(--vis-text-primary);
+  border-color: var(--vis-border);
+}
+
+.pane-header-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pane-header-btn--active {
+  background: rgba(139, 148, 158, 0.2);
+  border-color: var(--accent-primary);
+  color: var(--vis-text-primary);
+}
+
+.pane-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.pane-header-right {
+  margin-left: auto;
+}
+
+/* ── Pane content ──────────────────────────────────────── */
+
+.pane-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.canvas-content {
+  overflow: hidden;
+}
+
+/* ── WIP badge ─────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.badge-wip {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  border: 1px solid var(--status-warning-border);
+}
+
+.badge-type {
+  background: rgba(var(--accent-rgb), 0.15);
+  color: var(--accent-hover);
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+}
+
+/* ── Download dropdown ─────────────────────────────────── */
+
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 140px;
+  background: var(--vis-bg-elevated);
+  border: 1px solid var(--vis-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  overflow: hidden;
+  margin-top: 4px;
+  display: none;
+}
+
+.dropdown-menu.open {
+  display: block;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background: var(--vis-bg-hover);
+}
+
+.dropdown-item i {
+  width: 14px;
+  text-align: center;
+  color: var(--vis-text-muted);
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--vis-border);
+}
+
+.format-hint {
+  font-size: 10px;
+  color: var(--vis-text-muted);
+  margin-left: auto;
+}
+
+/* Wide dropdown variant (for alignment menu) */
+.dropdown-menu--wide {
+  min-width: 180px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.dropdown-section-label {
+  padding: 6px 12px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vis-text-muted);
+  opacity: 0.7;
+}
+
+/* ── Theme icon ────────────────────────────────────────── */
+
+.theme-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ── Status bar (bottom) ───────────────────────────────── */
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--vis-bg-secondary);
+  border-top: 1px solid var(--vis-border);
+  font-size: 12px;
+  color: var(--vis-text-muted);
+  flex-shrink: 0;
+}
+
+.status-bar__section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}

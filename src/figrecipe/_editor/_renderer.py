@@ -86,49 +86,36 @@ def render_preview(
     img_size : tuple
         (width, height) in pixels.
     """
-    # Get underlying matplotlib figure
-    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
-
-    # Get record for call_id grouping (if fig is a RecordingFigure)
     record = fig.record if hasattr(fig, "record") else None
 
-    # Apply style overrides
     if overrides:
-        apply_overrides(mpl_fig, overrides, record)
+        apply_overrides(fig, overrides, record)
 
-    # Apply dark mode if requested, or restore light mode colors
     if dark_mode:
-        apply_dark_mode(mpl_fig)
+        apply_dark_mode(fig)
     else:
-        # Restore light mode colors (needed because figure is reused)
-        _restore_light_mode(mpl_fig)
+        _restore_light_mode(fig)
 
-    # Finalize ticks and special plots (must be done after all plotting)
-    _finalize_figure(fig, mpl_fig)
+    _finalize_figure(fig)
 
-    # Render to buffer first
     buf = io.BytesIO()
-    mpl_fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight")
+    fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight")
     buf.seek(0)
     png_bytes = buf.read()
 
-    # Get image dimensions
     from PIL import Image
 
     buf.seek(0)
     img = Image.open(buf)
     img_width, img_height = img.size
 
-    # Set figure DPI to match render DPI and force canvas redraw for accurate bbox extraction
-    original_dpi = mpl_fig.dpi
-    mpl_fig.set_dpi(dpi)
-    mpl_fig.canvas.draw()
+    original_dpi = fig.dpi
+    fig.set_dpi(dpi)
+    fig.canvas.draw()
 
-    # Extract bounding boxes (with figure DPI matching render DPI)
-    bboxes = extract_bboxes(mpl_fig, img_width, img_height)
+    bboxes = extract_bboxes(fig, img_width, img_height)
 
-    # Restore original DPI
-    mpl_fig.set_dpi(original_dpi)
+    fig.set_dpi(original_dpi)
 
     return png_bytes, bboxes, (img_width, img_height)
 
@@ -198,39 +185,34 @@ def render_download(
     bytes
         File content.
     """
-    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
-
-    # Get record for call_id grouping (if fig is a RecordingFigure)
     record = fig.record if hasattr(fig, "record") else None
 
     if overrides:
-        apply_overrides(mpl_fig, overrides, record)
+        apply_overrides(fig, overrides, record)
 
     if dark_mode:
-        apply_dark_mode(mpl_fig)
+        apply_dark_mode(fig)
 
-    # Finalize ticks and special plots (must be done after all plotting)
-    _finalize_figure(fig, mpl_fig)
+    _finalize_figure(fig)
 
     buf = io.BytesIO()
-    mpl_fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches="tight")
+    fig.savefig(buf, format=fmt, dpi=dpi, bbox_inches="tight")
     buf.seek(0)
 
     return buf.read()
 
 
-def _finalize_figure(fig: RecordingFigure, mpl_fig: Any) -> None:
+def _finalize_figure(fig: RecordingFigure) -> None:
     """Finalize ticks and special plots for all axes in the figure."""
     from ..styles._style_applier import finalize_special_plots, finalize_ticks
 
-    # Get style dict for finalization
     style_dict = {}
     if hasattr(fig, "style") and fig.style:
         from ..styles._internal import get_style
 
         style_dict = get_style(fig.style)
 
-    for ax in mpl_fig.get_axes():
+    for ax in fig.get_axes():
         finalize_ticks(ax)
         finalize_special_plots(ax, style_dict)
 

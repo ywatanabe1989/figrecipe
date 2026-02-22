@@ -1,0 +1,54 @@
+/* vis_app data-dropdown — left pane figure/data selector */
+
+.data-dropdown-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.data-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--vis-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  white-space: nowrap;
+}
+
+.data-dropdown-toggle:hover {
+  background: var(--vis-bg-hover);
+  border-color: var(--vis-border);
+}
+
+.data-dropdown-toggle i:first-child {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+}
+
+.data-dropdown-toggle .fa-chevron-down {
+  font-size: 9px;
+  color: var(--vis-text-muted);
+  margin-left: 2px;
+}
+
+.data-dropdown-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-new-btn {
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 11px;
+}

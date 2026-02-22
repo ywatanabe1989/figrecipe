@@ -28,9 +28,7 @@ def detect_plot_types(fig, debug: bool = False) -> Dict[int, Dict[str, Any]]:
     else:
         return {}
 
-    # Get the actual matplotlib figure and its axes
-    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
-    axes_list = mpl_fig.get_axes()
+    axes_list = fig.get_axes()
 
     result = {}
 

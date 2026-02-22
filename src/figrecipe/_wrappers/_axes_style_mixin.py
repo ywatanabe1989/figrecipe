@@ -230,6 +230,77 @@ class AxesStyleMixin:
 
         return map_ticks(self._ax, axis, mapping, labels)
 
+    def set_xytc(
+        self,
+        xlabel=None,
+        ylabel=None,
+        title=None,
+        caption=None,
+        **kwargs,
+    ):
+        """Set xlabel, ylabel, title, and caption in one call.
+
+        Parameters
+        ----------
+        xlabel : str, optional
+        ylabel : str, optional
+        title : str, optional
+        caption : str, optional
+            Panel caption metadata (stored in recipe, not rendered).
+        **kwargs : dict
+            Passed to set_xlabel, set_ylabel, set_title.
+
+        Examples
+        --------
+        >>> ax.set_xytc('Time (s)', 'Voltage (mV)', 'Neural Response',
+        ...             'Panel A shows the neural response to stimulus.')
+        """
+        self.set_xyt(xlabel, ylabel, title, **kwargs)
+        if caption is not None:
+            self.set_caption(caption)
+        return self
+
+    def set_meta(
+        self,
+        caption=None,
+        methods=None,
+        stats=None,
+        notes=None,
+    ):
+        """Set structured scientific metadata for a panel.
+
+        Parameters
+        ----------
+        caption : str, optional
+            Panel caption text.
+        methods : str, optional
+            Methods description (e.g., "Two-sample t-test, alpha=0.05").
+        stats : dict, optional
+            Statistical results dict.
+        notes : str, optional
+            Additional notes.
+
+        Examples
+        --------
+        >>> ax.set_meta(
+        ...     caption='Group comparison of reaction times.',
+        ...     methods='Mann-Whitney U, Bonferroni corrected',
+        ...     stats={'p': 0.003, 'U': 245.0},
+        ... )
+        """
+        if caption is not None:
+            self.set_caption(caption)
+        if stats is not None or methods is not None or notes is not None:
+            meta = {}
+            if methods is not None:
+                meta["methods"] = methods
+            if notes is not None:
+                meta["notes"] = notes
+            if stats is not None:
+                meta.update(stats)
+            self.set_stats(meta)
+        return self
+
 
 __all__ = ["AxesStyleMixin"]
 

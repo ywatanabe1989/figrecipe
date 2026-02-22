@@ -1,0 +1,166 @@
+/* FigRecipe Editor — File Browser (vis_app tree.css pattern) */
+
+.file-browser {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Action toolbar — below pane-header ──────────────── */
+
+.file-browser__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--vis-border);
+  flex-shrink: 0;
+}
+
+/* ── Rename input ──────────────────────────────────────── */
+
+.file-browser__rename {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--vis-border);
+}
+
+/* ── Tree structure — vis_app tree.css indentation ─────── */
+
+.file-tree {
+  list-style: none;
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px 0;
+}
+
+.file-tree__children {
+  list-style: none;
+  overflow: hidden;
+}
+
+/* ── Tree item header — vis_app .tree-item-header ──────── */
+
+.file-tree__entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 0;
+  min-height: 24px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+  user-select: none;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.file-tree__entry:hover {
+  background: var(--vis-bg-hover);
+}
+
+/* Selected/current state — vis_app .tree-item-header.selected */
+.file-tree__entry.current {
+  background: rgba(var(--accent-rgb), 0.15);
+  border-radius: 4px;
+}
+
+.file-tree__entry.current .file-tree__name {
+  color: var(--vis-text-primary);
+  font-weight: 500;
+}
+
+/* ── Chevron toggle — vis_app .tree-toggle ─────────────── */
+
+.file-tree__toggle {
+  font-size: 9px;
+  color: var(--vis-text-muted);
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ── Tree icon — vis_app .tree-icon with type-based color ── */
+
+.file-tree__icon {
+  font-size: 12px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Folder icon — workspace-icon-secondary */
+.file-tree__entry--folder .file-tree__icon {
+  color: var(--workspace-icon-primary);
+}
+
+/* File icon — workspace-icon-primary for files with images */
+.file-tree__entry.has-image .file-tree__icon {
+  color: var(--status-success);
+}
+
+/* Plain file icon — muted */
+.file-tree__entry:not(.has-image):not(.file-tree__entry--folder)
+  .file-tree__icon {
+  color: var(--vis-text-muted);
+}
+
+/* ── Tree label — vis_app .tree-label ──────────────────── */
+
+.file-tree__name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+}
+
+/* ── Tree badge — vis_app .tree-badge ──────────────────── */
+
+.file-tree__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--vis-border);
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--vis-text-muted);
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Hover actions — vis_app .tree-item-actions ────────── */
+
+.file-tree__entry .file-tree__actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.file-tree__entry:hover .file-tree__actions {
+  opacity: 1;
+}
+
+/* ── Empty state — vis_app .tree-empty-state ──────────── */
+
+.file-tree__empty {
+  padding: 40px 20px;
+  color: var(--vis-text-muted);
+  font-size: 12px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Hide file-browser toolbar when pane collapsed ─────── */
+
+.split-pane.collapsed .file-browser__toolbar,
+.split-pane.collapsed .file-browser__rename,
+.split-pane.collapsed .file-tree {
+  display: none;
+}

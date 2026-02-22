@@ -192,25 +192,24 @@ def register_datatable_routes(app, editor):
             return jsonify({"error": "Selected columns have no data"}), 400
 
         try:
-            mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-            axes = mpl_fig.get_axes()
+            from .._wrappers._axes import RecordingAxes
+
+            fig = editor.fig
+            rec_axes = fig.flat
 
             # Determine target axis
-            if target_axis is not None and target_axis < len(axes):
-                # Plot to existing panel
-                ax = axes[target_axis]
+            if target_axis is not None and target_axis < len(rec_axes):
+                ax = rec_axes[target_axis]
             else:
                 # Add new panel to existing figure
-                n_axes = len(axes)
+                n_axes = len(rec_axes)
                 if n_axes == 0:
-                    ax = mpl_fig.add_subplot(111)
+                    mpl_ax = fig.add_subplot(111)
                 else:
-                    # Expand figure width to accommodate new panel
-                    current_width, current_height = mpl_fig.get_size_inches()
-                    # Each panel gets ~60mm width, add space for new panel
+                    current_width, current_height = fig.get_size_inches()
                     panel_width_inches = 60 / 25.4  # 60mm in inches
                     new_width = current_width + panel_width_inches
-                    mpl_fig.set_size_inches(new_width, current_height)
+                    fig.set_size_inches(new_width, current_height)
 
                     # Recalculate positions for all axes
                     n_cols = n_axes + 1
@@ -218,13 +217,19 @@ def register_datatable_routes(app, editor):
                     spacing = 0.05
                     panel_w = (1 - 2 * margin - (n_cols - 1) * spacing) / n_cols
 
-                    for i, old_ax in enumerate(axes):
+                    raw_axes = fig.get_axes()
+                    for i, old_ax in enumerate(raw_axes):
                         left = margin + i * (panel_w + spacing)
                         old_ax.set_position([left, 0.15, panel_w, 0.75])
 
                     # Add new panel
                     left = margin + n_axes * (panel_w + spacing)
-                    ax = mpl_fig.add_axes([left, 0.15, panel_w, 0.75])
+                    mpl_ax = fig.add_axes([left, 0.15, panel_w, 0.75])
+
+                # Wrap in RecordingAxes and register
+                position = (n_axes, 0)
+                ax = RecordingAxes(mpl_ax, fig._recorder, position=position)
+                fig._axes.append([ax])
 
             # Dispatch plot using helper
             from ._datatable_plot_handlers import dispatch_plot

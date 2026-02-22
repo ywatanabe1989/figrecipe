@@ -46,8 +46,8 @@ def register_snapshot_routes(app, editor):
             # Use lock to prevent concurrent matplotlib access (not thread-safe)
             with _figure_lock:
                 # Get matplotlib figure from RecordingFigure wrapper
-                mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-                axes = mpl_fig.get_axes()
+                fig = editor.fig
+                axes = fig.get_axes()
 
                 if ax_index < 0 or ax_index >= len(axes):
                     return {"success": False, "error": f"Invalid ax_index: {ax_index}"}
@@ -63,7 +63,7 @@ def register_snapshot_routes(app, editor):
                     # Render to buffer with transparent background
                     # Use full figure size (no bbox_inches="tight" to preserve dimensions)
                     buf = io.BytesIO()
-                    mpl_fig.savefig(
+                    fig.savefig(
                         buf,
                         format="png",
                         transparent=True,

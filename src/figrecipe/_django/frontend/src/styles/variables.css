@@ -1,0 +1,146 @@
+/* FigRecipe Editor — CSS Custom Properties
+   Exact values from scitex-cloud shared/css/primitives/colors.css + vis_app variables.css
+   Default: dark mode (GitHub Dark inspired) */
+
+:root {
+  /* ── Workspace color primitives (from scitex-cloud colors.css dark mode) ── */
+  --workspace-bg-primary: #0d1117;
+  --workspace-bg-secondary: #161b22;
+  --workspace-bg-tertiary: #1c2128;
+  --workspace-bg-elevated: #21262d;
+  --workspace-bg-monaco: #0d1117;
+  --workspace-border-subtle: #21262d;
+  --workspace-border-default: #30363d;
+  --workspace-border-hover: #484f58;
+  --workspace-border-active: #6e7681;
+  --workspace-ruler-bg: #161b22;
+  --workspace-ruler-border: #21262d;
+  --workspace-icon-primary: #8b949e;
+  --workspace-icon-secondary: #8b949e;
+  --workspace-icon-muted: #6e7681;
+  --workspace-icon-hover: #c9d1d9;
+  --workspace-icon-active: #e6edf3;
+
+  /* ── vis-* aliases (from vis_app variables.css dark mode) ── */
+  --vis-ruler-bg: var(--workspace-ruler-bg);
+  --vis-ruler-border: var(--workspace-ruler-border);
+  --vis-bg-primary: var(--workspace-bg-primary);
+  --vis-bg-secondary: var(--workspace-bg-secondary);
+  --vis-bg-tertiary: var(--workspace-bg-tertiary);
+  --vis-bg-elevated: var(--workspace-bg-elevated);
+  --vis-bg-hover: var(--workspace-bg-tertiary);
+  --vis-border: var(--workspace-border-default);
+  --vis-border-subtle: var(--workspace-border-subtle);
+  --vis-border-hover: var(--workspace-border-hover);
+
+  /* ── Text ─────────────────────────────────────────────── */
+  --vis-text-primary: #e6edf3;
+  --vis-text-secondary: #c9d1d9;
+  --vis-text-muted: #8b949e;
+  --text-inverse: #161b22;
+
+  /* ── Accent — mapped to icon-primary (neutral) ────────── */
+  --accent-primary: var(--workspace-icon-primary);
+  --accent-hover: var(--workspace-icon-hover);
+  --accent-rgb: 139, 148, 158;
+  --vis-accent-bg: rgba(156, 163, 175, 0.1);
+
+  /* ── Status ───────────────────────────────────────────── */
+  --status-success: #6ba89a;
+  --status-success-bg: rgba(107, 168, 154, 0.15);
+  --status-success-text: #6ba89a;
+  --status-success-border: rgba(107, 168, 154, 0.3);
+
+  --status-error: #c08888;
+  --status-error-bg: rgba(192, 136, 136, 0.15);
+  --status-error-text: #c08888;
+  --status-error-border: rgba(192, 136, 136, 0.3);
+
+  --status-warning: #d4a87a;
+  --status-warning-bg: rgba(212, 168, 122, 0.15);
+  --status-warning-text: #d4a87a;
+  --status-warning-border: rgba(212, 168, 122, 0.3);
+
+  --status-info: #8fa9cc;
+  --status-info-bg: rgba(143, 169, 204, 0.15);
+
+  /* ── CTA (buttons) ────────────────────────────────────── */
+  --color-cta: #3b82f6;
+  --color-cta-hover: #2563eb;
+
+  /* ── Buttons — workspace neutral, NO green ────────────── */
+  --color-btn-primary-bg: #484f58;
+  --color-btn-primary-text: #e6edf3;
+  --color-btn-primary-hover-bg: #6e7681;
+  --color-btn-bg: #161b22;
+  --color-btn-text: #e6edf3;
+  --color-btn-border: #30363d;
+  --color-btn-hover-bg: #21262d;
+
+  /* ── Layout ───────────────────────────────────────────── */
+  --sidebar-left-width: 400px;
+  --sidebar-right-width: 320px;
+
+  /* ── Text aliases (vis_app uses both --text-* and --vis-text-*) ── */
+  --text-primary: var(--vis-text-primary);
+  --text-secondary: var(--vis-text-secondary);
+  --text-muted: var(--vis-text-muted);
+  --toolbar-height: 50px;
+  --panel-header-height: 50px;
+
+  /* ── Typography — scitex shared primitives ─────────────── */
+  --radius: 4px;
+  --font:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, Monaco,
+    monospace;
+
+  /* ── Shadows ──────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  /* ── Transitions ──────────────────────────────────────── */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--vis-bg-primary);
+  color: var(--vis-text-primary);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+}
+
+/* ── Scrollbars ─────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vis-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vis-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vis-text-muted);
+}

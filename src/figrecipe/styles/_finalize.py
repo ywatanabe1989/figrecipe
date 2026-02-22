@@ -23,7 +23,12 @@ def finalize_ticks(ax: Axes) -> None:
         The axes to finalize.
     """
     from matplotlib.patches import Wedge
-    from matplotlib.ticker import MaxNLocator
+    from matplotlib.ticker import FixedLocator, MaxNLocator
+
+    try:
+        from matplotlib.category import StrCategoryLocator
+    except ImportError:
+        StrCategoryLocator = None  # older matplotlib
 
     # Skip pie charts - they should have no ticks
     has_pie = any(isinstance(p, Wedge) for p in ax.patches)
@@ -52,16 +57,22 @@ def finalize_ticks(ax: Axes) -> None:
         stripped = stripped.replace("e", "").replace("E", "")
         return stripped.isdigit() or stripped == ""
 
-    # Check if x-axis is categorical
+    _fixed_types = (FixedLocator,)
+    if StrCategoryLocator is not None:
+        _fixed_types = _fixed_types + (StrCategoryLocator,)
+
+    # Check if x-axis is categorical (string labels) or uses a discrete locator
     x_labels = [t.get_text() for t in ax.get_xticklabels()]
     x_is_categorical = any(not _is_numeric_label(lbl) for lbl in x_labels)
-    if not x_is_categorical:
+    x_is_fixed = isinstance(ax.xaxis.get_major_locator(), _fixed_types)
+    if not x_is_categorical and not x_is_fixed:
         ax.xaxis.set_major_locator(MaxNLocator(nbins=nbins, min_n_ticks=n_ticks_min))
 
-    # Check if y-axis is categorical
+    # Check if y-axis is categorical (string labels) or uses a discrete locator
     y_labels = [t.get_text() for t in ax.get_yticklabels()]
     y_is_categorical = any(not _is_numeric_label(lbl) for lbl in y_labels)
-    if not y_is_categorical:
+    y_is_fixed = isinstance(ax.yaxis.get_major_locator(), _fixed_types)
+    if not y_is_categorical and not y_is_fixed:
         ax.yaxis.set_major_locator(MaxNLocator(nbins=nbins, min_n_ticks=n_ticks_min))
 
 

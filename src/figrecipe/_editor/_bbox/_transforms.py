@@ -82,8 +82,16 @@ def transform_bbox(
         width = x1_px - x0_px
         height = y1_px - y0_px
 
-        if width <= 0 or height <= 0:
+        # Allow zero-width or zero-height bboxes (e.g. boxplot whiskers)
+        # by adding minimum padding so they remain clickable
+        if width <= 0 and height <= 0:
             return None
+        if width <= 0:
+            width = 4  # minimum clickable width for vertical lines
+            x0_px = max(0, x0_px - 2)
+        if height <= 0:
+            height = 4  # minimum clickable height for horizontal lines
+            y0_px = max(0, y0_px - 2)
 
         return {
             "x": float(x0_px),

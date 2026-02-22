@@ -123,11 +123,10 @@ class TestCSVCache:
 
     def test_csv_cache_reuse(self, tmp_path):
         """Test that CSV files are cached for reuse."""
-        from figrecipe._api._plot_helpers import (
-            _csv_cache,
-            clear_csv_cache,
-            resolve_data,
-        )
+        # _csv_cache lives in _data_resolver after refactor; _plot_helpers re-exports
+        # clear_csv_cache and resolve_data but not the private cache dict itself
+        from figrecipe._api._data_resolver import _csv_cache
+        from figrecipe._api._plot_helpers import clear_csv_cache, resolve_data
 
         csv_path = tmp_path / "cached.csv"
         csv_path.write_text("a,b,c\n1,2,3\n4,5,6\n")
@@ -149,11 +148,8 @@ class TestCSVCache:
 
     def test_clear_csv_cache(self, tmp_path):
         """Test clearing CSV cache."""
-        from figrecipe._api._plot_helpers import (
-            _csv_cache,
-            clear_csv_cache,
-            resolve_data,
-        )
+        from figrecipe._api._data_resolver import _csv_cache
+        from figrecipe._api._plot_helpers import clear_csv_cache, resolve_data
 
         csv_path = tmp_path / "test.csv"
         csv_path.write_text("x,y\n1,2\n")
@@ -167,11 +163,8 @@ class TestCSVCache:
 
     def test_csv_cache_multiple_files(self, tmp_path):
         """Test caching multiple CSV files."""
-        from figrecipe._api._plot_helpers import (
-            _csv_cache,
-            clear_csv_cache,
-            resolve_data,
-        )
+        from figrecipe._api._data_resolver import _csv_cache
+        from figrecipe._api._plot_helpers import clear_csv_cache, resolve_data
 
         csv1 = tmp_path / "data1.csv"
         csv2 = tmp_path / "data2.csv"

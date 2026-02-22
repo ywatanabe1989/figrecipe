@@ -105,8 +105,17 @@ function loadTabsFromFigure() {
             // Retry color update after hitmap loads (may not be ready yet)
             setTimeout(() => { if (typeof updateTabColors === 'function') updateTabColors(); }, 500);
         }
+
+        // Create default tab if figure has no data yet
+        if (Object.keys(datatableTabs).length === 0) {
+            createNewTab();
+        }
     }).catch(err => {
         console.error('Failed to load tabs from figure:', err);
+        // Still create default tab on error
+        if (Object.keys(datatableTabs).length === 0) {
+            createNewTab();
+        }
     });
 }
 
@@ -246,11 +255,13 @@ function restoreTabState(tabId) {
             renderDatatable();
         }
 
-        // Show toolbar, hide entire import section
+        // Show toolbar, hide import section, reveal canvas
         const importSection = document.getElementById('datatable-import-section');
         if (importSection) importSection.style.display = 'none';
         const toolbar = document.querySelector('.datatable-toolbar');
         if (toolbar) toolbar.style.display = 'flex';
+        const wOverlay = document.getElementById('welcome-overlay');
+        if (wOverlay) wOverlay.style.display = 'none';
 
         // Restore plot type selection
         const plotTypeSelect = document.getElementById('datatable-plot-type');

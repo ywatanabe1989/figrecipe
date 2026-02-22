@@ -75,27 +75,24 @@ from ._api._public import (
     reproduce,
     save,
     subplots,
+    validate,
+    validate_recipe,  # backward compat alias
 )
-from ._api._public import validate_recipe as validate
 from ._api._signature import caption_with_signature, signature
 from ._api._style_manager import list_presets, load_style, unload_style
-from ._bundle import load_bundle, reproduce_bundle, save_bundle
+from ._bundle import Figz, Pltz, load_bundle, reproduce_bundle, save_bundle
 from ._composition import align_panels, align_smart, compose, distribute_panels
 from ._diagram import Diagram
-from ._diagram._graphviz.graphviz import Graphviz
-from ._diagram._mermaid.mermaid import Mermaid
-from ._graph._presets import get_preset as get_graph_preset
+from ._diagram._graphviz.graphviz import Graphviz as _Graphviz  # noqa: F401
+from ._diagram._mermaid.mermaid import Mermaid as _Mermaid  # noqa: F401
+
+# Graph preset functions: accessible but not in __all__ (keep for scitex.plt compat)
+from ._graph._presets import get_preset as get_graph_preset  # noqa: F401
+from ._graph._presets import list_presets as list_graph_presets  # noqa: F401
+from ._graph._presets import register_preset as register_graph_preset  # noqa: F401
 
 
 # Lazy seaborn access (avoids import error if seaborn not installed)
-@property
-def _sns_property(self):
-    from ._seaborn import get_seaborn_recorder as _get_sns
-
-    return _get_sns()
-
-
-# Module-level property emulation for sns
 class _SnsModule:
     def __getattr__(self, name):
         from ._seaborn import get_seaborn_recorder
@@ -104,8 +101,6 @@ class _SnsModule:
 
 
 sns = _SnsModule()
-from ._graph._presets import list_presets as list_graph_presets
-from ._graph._presets import register_preset as register_graph_preset
 
 # =============================================================================
 # PUBLIC API (__all__ controls tab-completion - keep minimal)
@@ -127,6 +122,8 @@ __all__ = [
     "validate",
     "extract_data",
     # Bundle format
+    "Figz",
+    "Pltz",
     "save_bundle",
     "load_bundle",
     "reproduce_bundle",
@@ -134,14 +131,8 @@ __all__ = [
     "load_style",
     "unload_style",
     "list_presets",
-    # Graph presets
-    "get_graph_preset",
-    "list_graph_presets",
-    "register_graph_preset",
     # Diagram
     "Diagram",
-    "Mermaid",
-    "Graphviz",
     # Color utilities
     "colors",
     # Signature

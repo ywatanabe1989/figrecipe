@@ -44,8 +44,7 @@ def replay_stem_call(ax: Axes, call: CallRecord) -> Any:
     if color is not None:
         container.markerline.set_color(color)
         container.stemlines.set_color(color)
-        # Optionally set baseline color too (usually kept default)
-        # container.baseline.set_color(color)
+        container.baseline.set_color(color)
 
     return container
 
