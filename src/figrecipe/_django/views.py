@@ -59,7 +59,7 @@ def _get_editor(request):
 
 
 # ── Endpoints that work without an editor ──────────────────────────
-_NO_EDITOR_ENDPOINTS = {"ping", "list_themes", "api/files"}
+_NO_EDITOR_ENDPOINTS = {"ping", "list_themes", "api/files", "api/switch"}
 
 
 def editor_page(request):

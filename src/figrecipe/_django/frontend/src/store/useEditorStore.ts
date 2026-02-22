@@ -250,21 +250,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   switchFile: async (path) => {
-    // If no recipe is currently loaded, navigate to the recipe URL
-    const params = new URLSearchParams(window.location.search);
-    if (!params.get("recipe")) {
-      // Compute the full recipe path relative to the working dir
-      const workingDir = get().workingDir;
-      const fullPath = workingDir ? `${workingDir}/${path}` : path;
-      params.set("recipe", fullPath);
-      window.location.search = params.toString();
-      return;
-    }
-
     set({ loading: true });
     try {
       const data = await api.post<
-        PreviewResponse & { color_map?: Record<string, unknown> }
+        PreviewResponse & {
+          color_map?: Record<string, unknown>;
+          working_dir?: string;
+        }
       >("api/switch", { path });
       set({
         previewImage: data.image,
@@ -277,8 +269,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       if (data.color_map) {
         set({ colorMap: data.color_map });
       }
+      if (data.working_dir) {
+        set({ workingDir: data.working_dir });
+      }
+      // Update URL without reload so refresh works
+      const params = new URLSearchParams(window.location.search);
+      const wd = data.working_dir || get().workingDir;
+      const fullPath = wd ? `${wd}/${path}` : path;
+      params.set("recipe", fullPath);
+      window.history.replaceState(null, "", `?${params.toString()}`);
+
       get().showToast(`Loaded: ${path}`, "success");
       get().loadFiles();
+      get().loadDatatable();
     } catch (e) {
       console.error("[Editor] Failed to switch file:", e);
       get().showToast(`Error: ${e}`, "error");

@@ -11,11 +11,22 @@ from django.http import FileResponse, JsonResponse
 logger = logging.getLogger(__name__)
 
 
+def _find_default_working_dir():
+    """Find a sensible default directory for recipe files."""
+    cwd = Path.cwd()
+    # Prefer examples/mcp_gallery if it exists (common dev layout)
+    for candidate in ["examples/mcp_gallery", "examples"]:
+        d = cwd / candidate
+        if d.is_dir() and any(d.glob("*.yaml")):
+            return d
+    return cwd
+
+
 def handle_api_files(request, editor):
     """List recipe files in working dir as tree + flat list."""
     working_dir = getattr(editor, "working_dir", None) if editor else None
     if working_dir is None:
-        working_dir = Path.cwd()
+        working_dir = _find_default_working_dir()
 
     def build_tree(directory, relative_base=None):
         if relative_base is None:
@@ -91,7 +102,7 @@ def handle_api_files(request, editor):
 
 
 def handle_api_switch(request, editor):
-    """Switch to a different recipe file."""
+    """Switch to a different recipe file, or bootstrap editor on first load."""
     from figrecipe._editor._helpers import render_with_overrides
     from figrecipe._reproducer import reproduce
 
@@ -100,10 +111,23 @@ def handle_api_switch(request, editor):
     if not file_path:
         return JsonResponse({"error": "No file path provided"}, status=400)
 
-    working_dir = getattr(editor, "working_dir", Path.cwd())
+    # Resolve working_dir — use editor's if available, else default
+    working_dir = getattr(editor, "working_dir", None) if editor else None
+    if working_dir is None:
+        working_dir = _find_default_working_dir()
     full_path = working_dir / file_path
     if not full_path.exists():
+        # Try as absolute path
+        full_path = Path(file_path)
+    if not full_path.exists():
         return JsonResponse({"error": f"File not found: {file_path}"}, status=404)
+
+    # Bootstrap editor if none exists (first file click)
+    if editor is None:
+        from ..services import get_or_create_editor
+
+        session_key = f"figrecipe_{full_path}"
+        editor = get_or_create_editor(session_key, str(full_path))
 
     try:
         fig, _ = reproduce(full_path)
@@ -127,6 +151,7 @@ def handle_api_switch(request, editor):
                 "color_map": {},
                 "img_size": {"width": size[0], "height": size[1]},
                 "file": file_path,
+                "working_dir": str(getattr(editor, "working_dir", full_path.parent)),
             }
         )
     except Exception as e:
