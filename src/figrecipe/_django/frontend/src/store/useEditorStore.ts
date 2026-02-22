@@ -125,7 +125,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   showHitmap: false,
   showRulers: true,
-  rulerUnit: "mm",
+  rulerUnit:
+    (localStorage.getItem("figrecipe-ruler-unit") as "mm" | "inch") || "mm",
 
   toast: null,
 
@@ -205,20 +206,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   loadPanelPositions: async () => {
     try {
-      const data =
-        await api.get<
-          Record<
-            string,
-            | {
-                index: number;
-                left: number;
-                top: number;
-                width: number;
-                height: number;
-              }
-            | { width_mm: number; height_mm: number }
-          >
-        >("get_axes_positions");
+      const data = await api.get<
+        Record<
+          string,
+          | {
+              index: number;
+              left: number;
+              top: number;
+              width: number;
+              height: number;
+            }
+          | { width_mm: number; height_mm: number }
+        >
+      >("get_axes_positions");
       const figsize = data._figsize as
         | { width_mm: number; height_mm: number }
         | undefined;
@@ -373,7 +373,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   toggleRulerUnit: () => {
-    set((s) => ({ rulerUnit: s.rulerUnit === "mm" ? "inch" : "mm" }));
+    set((s) => {
+      const next = s.rulerUnit === "mm" ? "inch" : "mm";
+      localStorage.setItem("figrecipe-ruler-unit", next);
+      return { rulerUnit: next };
+    });
   },
 
   showToast: (message, type = "info") => {
