@@ -4,13 +4,7 @@ import { useCallback, useRef } from "react";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
 
-interface Props {
-  collapsed: boolean;
-  toggleCollapse: () => void;
-  resizerProps?: Record<string, unknown>;
-}
-
-export function DataTablePane({ collapsed, toggleCollapse }: Props) {
+export function DataTablePane() {
   const { datatableTabs, activeTabId, showToast, loadDatatable } =
     useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,16 +105,6 @@ export function DataTablePane({ collapsed, toggleCollapse }: Props) {
             <i className="fas fa-keyboard" />
           </button>
         </div>
-
-        {/* Collapse toggle */}
-        <button
-          className="pane-header-btn panel-toggle-btn"
-          onClick={toggleCollapse}
-          title={collapsed ? "Expand" : "Collapse"}
-          type="button"
-        >
-          <i className={`fas fa-chevron-${collapsed ? "right" : "left"}`} />
-        </button>
 
         {/* Vertical title (visible only when collapsed via CSS) */}
         <span className="panel-title">Data</span>

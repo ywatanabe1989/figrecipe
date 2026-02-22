@@ -24,6 +24,7 @@ export interface PanelResizeResult {
   collapsed: boolean;
   resizerProps: {
     onMouseDown: (e: React.MouseEvent) => void;
+    onDoubleClick: () => void;
   };
   headerProps: {
     onDoubleClick: () => void;
@@ -176,7 +177,7 @@ export function usePanelResize(config: PanelResizeConfig): PanelResizeResult {
   return {
     width,
     collapsed,
-    resizerProps: { onMouseDown },
+    resizerProps: { onMouseDown, onDoubleClick: toggleCollapse },
     headerProps: {
       onDoubleClick: toggleCollapse,
       "data-tooltip": collapsed

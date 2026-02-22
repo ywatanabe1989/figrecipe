@@ -70,17 +70,9 @@ export function App() {
         {/* Pane 1 — File Tree (200px default) */}
         <aside
           className={`split-pane split-pane-left${fileTreePanel.collapsed ? " collapsed" : ""}`}
-          style={
-            fileTreePanel.collapsed ? undefined : { width: fileTreePanel.width }
-          }
-          onClick={
-            fileTreePanel.collapsed ? fileTreePanel.toggleCollapse : undefined
-          }
+          style={fileTreePanel.collapsed ? undefined : { width: fileTreePanel.width }}
         >
-          <FileTreePane
-            collapsed={fileTreePanel.collapsed}
-            toggleCollapse={fileTreePanel.toggleCollapse}
-          />
+          <FileTreePane />
         </aside>
 
         <div className="panel-resizer" {...fileTreePanel.resizerProps} />
@@ -89,12 +81,8 @@ export function App() {
         <aside
           className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
           style={dataPanel.collapsed ? undefined : { width: dataPanel.width }}
-          onClick={dataPanel.collapsed ? dataPanel.toggleCollapse : undefined}
         >
-          <DataTablePane
-            collapsed={dataPanel.collapsed}
-            toggleCollapse={dataPanel.toggleCollapse}
-          />
+          <DataTablePane />
         </aside>
 
         <div className="panel-resizer" {...dataPanel.resizerProps} />
@@ -110,12 +98,8 @@ export function App() {
         <aside
           className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
           style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}
-          onClick={rightPanel.collapsed ? rightPanel.toggleCollapse : undefined}
         >
-          <PropertiesPane
-            collapsed={rightPanel.collapsed}
-            toggleCollapse={rightPanel.toggleCollapse}
-          />
+          <PropertiesPane />
         </aside>
       </div>
 

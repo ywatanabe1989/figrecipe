@@ -3,12 +3,7 @@
 import { useEditorStore } from "../../store/useEditorStore";
 import { Properties } from "../Properties/Properties";
 
-interface Props {
-  collapsed: boolean;
-  toggleCollapse: () => void;
-}
-
-export function PropertiesPane({ collapsed, toggleCollapse }: Props) {
+export function PropertiesPane() {
   const { selectedElement, selectedBbox } = useEditorStore();
 
   return (
@@ -25,19 +20,6 @@ export function PropertiesPane({ collapsed, toggleCollapse }: Props) {
         {selectedElement && selectedBbox?.type && (
           <span className="badge badge-type">{selectedBbox.type}</span>
         )}
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* Collapse toggle */}
-        <button
-          className="pane-header-btn panel-toggle-btn"
-          onClick={toggleCollapse}
-          title={collapsed ? "Expand" : "Collapse"}
-          type="button"
-        >
-          <i className={`fas fa-chevron-${collapsed ? "left" : "right"}`} />
-        </button>
 
         {/* Vertical title (visible only when collapsed via CSS) */}
         <span className="panel-title">Details</span>

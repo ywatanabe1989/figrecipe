@@ -3,12 +3,7 @@
 import { useEditorStore } from "../../store/useEditorStore";
 import { FileBrowser } from "../FileBrowser/FileBrowser";
 
-interface Props {
-  collapsed: boolean;
-  toggleCollapse: () => void;
-}
-
-export function FileTreePane({ collapsed, toggleCollapse }: Props) {
+export function FileTreePane() {
   const { files } = useEditorStore();
 
   const fileCount = files.reduce((n, item) => {
@@ -26,19 +21,6 @@ export function FileTreePane({ collapsed, toggleCollapse }: Props) {
         </span>
 
         {fileCount > 0 && <span className="badge badge-type">{fileCount}</span>}
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* Collapse toggle */}
-        <button
-          className="pane-header-btn panel-toggle-btn"
-          onClick={toggleCollapse}
-          title={collapsed ? "Expand" : "Collapse"}
-          type="button"
-        >
-          <i className={`fas fa-chevron-${collapsed ? "right" : "left"}`} />
-        </button>
 
         {/* Vertical title (visible only when collapsed via CSS) */}
         <span className="panel-title">Files</span>
