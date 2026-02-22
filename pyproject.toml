@@ -114,6 +114,14 @@ Issues = "https://github.com/ywatanabe1989/figrecipe/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/figrecipe"]
+exclude = [
+    "src/figrecipe/_django/frontend/node_modules",
+    "src/figrecipe/_django/frontend/src",
+    "src/figrecipe/_django/frontend/package*.json",
+    "src/figrecipe/_django/frontend/tsconfig*.json",
+    "src/figrecipe/_django/frontend/vite.config.ts",
+    "src/figrecipe/_django/frontend/eslint.config.js",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
