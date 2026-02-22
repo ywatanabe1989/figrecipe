@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_pie, plt_hist, plt_fill_between."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 

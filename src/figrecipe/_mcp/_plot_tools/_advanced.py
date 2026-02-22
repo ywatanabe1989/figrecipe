@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: streamplot, stairs, ecdf, pcolor."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 

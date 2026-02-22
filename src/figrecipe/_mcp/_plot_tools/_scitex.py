@@ -8,7 +8,6 @@ Delegates to three sub-modules:
   _scitex_vis     — fr_heatmap, fr_fillv, fr_rectangle, fr_image, fr_violin
 """
 
-from __future__ import annotations
 
 from . import _scitex_shaded, _scitex_stats, _scitex_vis
 

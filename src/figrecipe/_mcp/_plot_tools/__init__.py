@@ -26,7 +26,6 @@ Each tool:
 - Internally delegates to create_figure_from_spec for recipe/reproduce support
 """
 
-from __future__ import annotations
 
 __all__ = ["register_plot_tools"]
 

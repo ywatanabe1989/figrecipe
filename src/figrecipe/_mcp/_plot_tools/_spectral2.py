@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: csd, cohere, angle_spectrum, magnitude_spectrum, phase_spectrum."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 

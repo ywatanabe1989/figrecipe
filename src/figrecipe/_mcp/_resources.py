@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP Resources for figrecipe documentation."""
 
-from __future__ import annotations
 
 __all__ = ["register_resources"]
 

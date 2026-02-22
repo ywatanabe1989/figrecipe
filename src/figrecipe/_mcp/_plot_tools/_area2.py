@@ -3,7 +3,6 @@
 """MCP plot tools: plt_fill, plt_fill_betweenx, plt_contour, plt_pcolor,
 plt_pcolormesh, plt_hist2d, plt_matshow."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 

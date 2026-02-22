@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_step, plt_stem, plt_hexbin, plt_eventplot, plt_stackplot."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_bar, plt_barh."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 

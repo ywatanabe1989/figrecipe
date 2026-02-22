@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Shared helpers for explicit MCP plot tools."""
 
-from __future__ import annotations
 
 __all__ = ["_build_result", "_create", "_parse_stats_results"]
 

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_imshow, plt_contourf."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 

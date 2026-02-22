@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_loglog, plt_semilogx, plt_semilogy."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 

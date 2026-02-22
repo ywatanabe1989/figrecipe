@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """MCP fr_* tools: statistical/scientific plots (conf_mat, ecdf, raster, scatter_hist)."""
 
-from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from ._base import _create
 from figrecipe._branding import BRAND_ALIAS as _BA
+
+from ._base import _create
 
 
 def register(mcp) -> None:  # noqa: ANN001
