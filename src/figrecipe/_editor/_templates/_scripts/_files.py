@@ -237,6 +237,14 @@ async function switchToFile(filePath) {
         // Reload file list to update selection state
         loadFileList();
 
+        // Reload datatable tabs from new figure
+        datatableTabs = {};
+        activeTabId = null;
+        tabCounter = 0;
+        const tabList = document.getElementById('datatable-tab-list');
+        if (tabList) tabList.innerHTML = '';
+        loadTabsFromFigure();
+
     } catch (error) {
         console.error('[FileSwitcher] Error switching file:', error);
         showToast('Error: ' + error.message, 'error');

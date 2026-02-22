@@ -108,11 +108,11 @@ def render_with_overrides(
 
     from ._bbox import extract_bboxes
 
-    # Get the underlying matplotlib figure
-    new_fig = fig.fig if hasattr(fig, "fig") else fig
+    # Use the underlying matplotlib Figure for canvas/render to avoid
+    # RecordingFigure.__getattr__ issues with matplotlib internals (dpi etc.)
+    mpl_fig = fig._fig if hasattr(fig, "_fig") else fig
 
-    # Safety check: validate figure size before rendering
-    fig_width, fig_height = new_fig.get_size_inches()
+    fig_width, fig_height = fig.get_size_inches()
     dpi = 150
     pixel_width = fig_width * dpi
     pixel_height = fig_height * dpi
@@ -120,40 +120,39 @@ def render_with_overrides(
     # Sanity check: prevent enormous figures (max 10000x10000 pixels)
     MAX_PIXELS = 10000
     if pixel_width > MAX_PIXELS or pixel_height > MAX_PIXELS:
-        # Reset to reasonable size
-        new_fig.set_size_inches(
+        fig.set_size_inches(
             min(fig_width, MAX_PIXELS / dpi), min(fig_height, MAX_PIXELS / dpi)
         )
 
     # Switch to Agg backend to avoid Tkinter thread issues
-    new_fig.set_canvas(FigureCanvasAgg(new_fig))
+    mpl_fig.set_canvas(FigureCanvasAgg(mpl_fig))
 
     # Disable constrained_layout if present (can cause rendering issues)
-    layout_engine = new_fig.get_layout_engine()
+    layout_engine = fig.get_layout_engine()
     if layout_engine is not None and hasattr(layout_engine, "__class__"):
         layout_name = layout_engine.__class__.__name__
         if "Constrained" in layout_name:
-            new_fig.set_layout_engine("none")
+            fig.set_layout_engine("none")
 
     # Apply overrides directly to existing figure
     # Skip style overrides for diagram figures — diagrams have their own
     # layout/styling that would be corrupted by regular figure style settings
-    is_diagram = getattr(new_fig, "_figrecipe_diagram", None) is not None
+    is_diagram = getattr(fig, "_figrecipe_diagram", None) is not None
     if not is_diagram:
         record = fig.record if hasattr(fig, "record") else None
         if overrides:
             from ._render_overrides import apply_overrides
 
-            apply_overrides(new_fig, overrides, record)
+            apply_overrides(fig, overrides, record)
 
         # Apply dark mode if requested
         if dark_mode:
             from ._render_overrides import apply_dark_mode
 
-            apply_dark_mode(new_fig)
+            apply_dark_mode(fig)
 
     # Validate axes bounds before rendering (prevent infinite/invalid extents)
-    for ax in new_fig.get_axes():
+    for ax in fig.get_axes():
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
         # Check for invalid limits (inf, nan, or extremely large)
@@ -164,8 +163,8 @@ def render_with_overrides(
     # Save to PNG using same params as static save
     # Re-create canvas to ensure clean state (avoids matplotlib renderer issues)
     # Also save/restore the figure's draw method which can get corrupted by _get_renderer
-    original_draw = getattr(new_fig, "draw", None)
-    new_fig.set_canvas(FigureCanvasAgg(new_fig))
+    original_draw = getattr(fig, "draw", None)
+    fig.set_canvas(FigureCanvasAgg(fig))
 
     buf = io.BytesIO()
     with warnings.catch_warnings():
@@ -179,7 +178,7 @@ def render_with_overrides(
             )
             render_dpi = 150
             if is_diagram:
-                fig_w, fig_h = new_fig.get_size_inches()
+                fig_w, fig_h = fig.get_size_inches()
                 max_dim = max(fig_w, fig_h)
                 max_pixels = 1500
                 if max_dim * render_dpi > max_pixels:
@@ -189,19 +188,17 @@ def render_with_overrides(
                 save_kwargs["bbox_inches"] = "tight"
                 if not transparent:
                     save_kwargs["facecolor"] = "white"
-            new_fig.savefig(buf, **save_kwargs)
+            fig.savefig(buf, **save_kwargs)
         except Exception:
             buf = io.BytesIO()
-            new_fig.set_canvas(FigureCanvasAgg(new_fig))
+            fig.set_canvas(FigureCanvasAgg(fig))
             if original_draw is not None:
-                new_fig.draw = original_draw
+                fig.draw = original_draw
             try:
                 transparent = (
                     overrides.get("output_transparent", True) if overrides else True
                 )
-                new_fig.savefig(
-                    buf, format="png", dpi=render_dpi, transparent=transparent
-                )
+                fig.savefig(buf, format="png", dpi=render_dpi, transparent=transparent)
             except Exception:
                 from PIL import Image as PILImage
 
@@ -209,9 +206,9 @@ def render_with_overrides(
                 placeholder.save(buf, format="PNG")
                 buf.seek(0)
         finally:
-            if original_draw is not None and hasattr(new_fig, "draw"):
+            if original_draw is not None and hasattr(fig, "draw"):
                 try:
-                    new_fig.draw = original_draw
+                    fig.draw = original_draw
                 except AttributeError:
                     pass
     buf.seek(0)
@@ -225,20 +222,20 @@ def render_with_overrides(
 
     # Extract bboxes
     # Ensure clean canvas state before drawing
-    new_fig.set_canvas(FigureCanvasAgg(new_fig))
-    original_dpi = new_fig.dpi
-    new_fig.set_dpi(render_dpi)
+    fig.set_canvas(FigureCanvasAgg(fig))
+    original_dpi = fig.dpi
+    fig.set_dpi(render_dpi)
     try:
-        new_fig.canvas.draw()
+        fig.canvas.draw()
     except Exception:
         # Canvas draw failed, likely due to corrupted state - reset and retry
-        new_fig.set_canvas(FigureCanvasAgg(new_fig))
+        fig.set_canvas(FigureCanvasAgg(fig))
         try:
-            new_fig.canvas.draw()
+            fig.canvas.draw()
         except Exception:
             pass  # If still fails, proceed with possibly stale bboxes
-    bboxes = extract_bboxes(new_fig, img_size[0], img_size[1])
-    new_fig.set_dpi(original_dpi)
+    bboxes = extract_bboxes(fig, img_size[0], img_size[1])
+    fig.set_dpi(original_dpi)
 
     return base64_str, bboxes, img_size
 

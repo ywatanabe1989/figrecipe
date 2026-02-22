@@ -64,6 +64,27 @@ class RecordingFigure:
         return self._axes
 
     @property
+    def dpi(self):
+        """Proxy dpi to underlying figure.
+
+        Needed as a class-level descriptor so matplotlib's _setattr_cm
+        can do getattr(type(obj), 'dpi') during savefig/print_figure.
+        """
+        return self._fig.dpi
+
+    @dpi.setter
+    def dpi(self, value):
+        self._fig.dpi = value
+
+    def draw(self, renderer):
+        """Proxy draw to underlying figure.
+
+        Needed as a class-level method so matplotlib's _setattr_cm
+        can do getattr(type(obj), 'draw') during _get_renderer.
+        """
+        return self._fig.draw(renderer)
+
+    @property
     def flat(self) -> List[RecordingAxes]:
         """Get flattened list of all axes."""
         result = []
@@ -372,7 +393,12 @@ class RecordingFigure:
         """
         # Handle file-like objects (BytesIO, etc.) - direct matplotlib save
         if hasattr(fname, "write"):
-            self._fig.savefig(fname, dpi=dpi, facecolor=facecolor, **kwargs)
+            save_kwargs = dict(kwargs)
+            if dpi is not None:
+                save_kwargs["dpi"] = dpi
+            if facecolor is not None:
+                save_kwargs["facecolor"] = facecolor
+            self._fig.savefig(fname, **save_kwargs)
             return fname, None, None
 
         from .._api._save import save_figure

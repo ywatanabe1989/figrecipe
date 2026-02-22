@@ -1,0 +1,316 @@
+/* FigRecipe Editor — Canvas (vis_app identical layout)
+ * Rulers and canvas move as one object via CSS transform on .vis-rulers-area.
+ * 3x3 CSS Grid: 60px rulers on all 4 sides (exact copy from vis_app controls.css).
+ */
+
+/* ── Outer container (event target for zoom/pan) ─────── */
+
+/* Outer area (outside canvas) — vis_app uses solid dark bg */
+.canvas-outer {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: var(--vis-bg-primary);
+}
+
+/* ── Rulers Area: 3x3 CSS Grid (exact copy from vis_app) */
+
+.vis-rulers-area {
+  display: grid;
+  grid-template-areas:
+    "corner-tl ruler-h corner-tr"
+    "ruler-v canvas ruler-r"
+    "corner-bl ruler-b corner-br";
+  grid-template-rows: 60px 1fr 60px;
+  grid-template-columns: 60px 1fr 60px;
+  gap: 0;
+  flex: 1;
+  overflow: visible;
+  position: relative;
+  min-width: fit-content;
+  min-height: fit-content;
+  transform-origin: 0 0;
+}
+
+/* ── Ruler corners (vis_app .ruler-corner) ───────────── */
+
+.ruler-corner {
+  background-color: var(--vis-ruler-bg);
+  border: none;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #555;
+  user-select: none;
+  cursor: grab;
+}
+
+.ruler-corner--tl {
+  grid-area: corner-tl;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.ruler-corner--tl:hover {
+  color: var(--accent-primary, #4a9b7e);
+}
+
+.ruler-corner--tr {
+  grid-area: corner-tr;
+}
+
+.ruler-corner--bl {
+  grid-area: corner-bl;
+}
+
+.ruler-corner--br {
+  grid-area: corner-br;
+}
+
+/* ── Ruler base styles (vis_app .ruler) ──────────────── */
+
+.ruler {
+  background-color: var(--vis-ruler-bg);
+  border: none;
+  z-index: 2;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.ruler-horizontal {
+  width: 100%;
+  height: 60px;
+}
+
+.ruler-horizontal[style*="ruler-h"] {
+  grid-area: ruler-h;
+}
+
+.ruler-horizontal[style*="ruler-b"] {
+  grid-area: ruler-b;
+}
+
+.ruler-vertical {
+  width: 60px;
+  height: 100%;
+}
+
+/* Ruler label (clickable for unit toggle) */
+.ruler-label {
+  cursor: pointer;
+  transition: fill 0.15s ease;
+}
+
+.ruler-label:hover {
+  fill: var(--accent-primary, #4a9b7e) !important;
+}
+
+/* ── Canvas container (vis_app .vis-canvas-container) ─── */
+/* Grid pattern: minor grid 1mm (11.81px), major grid 10mm (118.11px) */
+
+.vis-canvas-container {
+  grid-area: canvas;
+  justify-self: start;
+  align-self: start;
+  background-color: #2a2a2a;
+  /* SVG grid — pixel-perfect copy of vis_app GridManager.ts
+   * Layer 1 (top): column guides (531.496px = 0.5col, #6699cc dashed 4,4, 0.55 opacity)
+   * Layer 2: major grid (10mm=118.11px, #707070, 1px stroke)
+   * Layer 3: minor grid (1mm=11.811px, #505050, 0.5px stroke) */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='531.496' height='8'%3E%3Crect x='530.496' y='0' width='1' height='4' fill='%236699cc' opacity='0.55'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='118.11023622047244' height='118.11023622047244'%3E%3Cline x1='0' y1='0' x2='0' y2='118.11' stroke='%23707070' stroke-width='1'/%3E%3Cline x1='0' y1='0' x2='118.11' y2='0' stroke='%23707070' stroke-width='1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11.811023622047244' height='11.811023622047244'%3E%3Cline x1='0' y1='0' x2='0' y2='11.811' stroke='%23505050' stroke-width='0.5'/%3E%3Cline x1='0' y1='0' x2='11.811' y2='0' stroke='%23505050' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: visible;
+  padding: 0;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: fit-content;
+  height: fit-content;
+  position: relative;
+}
+
+/* Dark canvas theme — vis_app uses #2a2a2a for grid bg */
+.vis-canvas-container[data-canvas-theme="dark"] {
+  background-color: #2a2a2a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Figure image ────────────────────────────────────── */
+
+.canvas-image {
+  display: block;
+  border: none;
+}
+
+/* ── Empty state ────────────────────────────────────── */
+
+.canvas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 400px;
+  min-height: 300px;
+  color: var(--vis-text-muted);
+  gap: 8px;
+  padding: 60px 20px;
+}
+
+.canvas-empty__hint {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+/* ── BBox SVG overlay ───────────────────────────────── */
+
+.bbox-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+
+/* ── Rectangles ─────────────────────────────────────── */
+
+.bbox-rect {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+  pointer-events: all;
+  cursor: pointer;
+  transition:
+    fill 0.15s,
+    stroke 0.15s;
+}
+
+.bbox-rect:hover,
+.bbox-group:hover .bbox-rect {
+  fill: var(--element-color);
+  fill-opacity: 0.18;
+  stroke: var(--element-color);
+  stroke-opacity: 0.85;
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+.bbox-rect--axes {
+  pointer-events: none;
+}
+
+/* ── Polylines (lines, scatter) ─────────────────────── */
+
+.bbox-polyline {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: stroke;
+  cursor: pointer;
+  transition: stroke 0.15s;
+}
+
+.bbox-polyline:hover,
+.bbox-group:hover .bbox-polyline {
+  stroke: var(--element-color);
+  stroke-opacity: 0.5;
+  stroke-width: 10;
+}
+
+/* ── Labels ─────────────────────────────────────────── */
+
+.bbox-label {
+  font-size: 9px;
+  fill: #ccc;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.bbox-group:hover .bbox-label {
+  opacity: 1;
+}
+
+/* ── Selected element ───────────────────────────────── */
+
+.bbox-group--selected .bbox-rect {
+  fill: rgba(139, 148, 158, 0.15);
+  stroke: var(--accent-primary);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+.bbox-group--selected .bbox-polyline {
+  stroke: var(--accent-primary);
+  stroke-opacity: 0.75;
+  stroke-width: 10;
+}
+
+.bbox-group--selected .bbox-label {
+  opacity: 1;
+  fill: var(--accent-primary);
+}
+
+/* ── Hitmap debug: always-visible mode ──────────────── */
+
+.bbox-overlay--visible .bbox-rect {
+  fill: var(--element-color);
+  fill-opacity: 0.15;
+  stroke: var(--element-color);
+  stroke-opacity: 0.7;
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+}
+
+.bbox-overlay--visible .bbox-polyline {
+  stroke: var(--element-color);
+  stroke-opacity: 0.4;
+  stroke-width: 8;
+}
+
+.bbox-overlay--visible .bbox-label {
+  opacity: 1;
+}
+
+/* ── Zoom indicator ─────────────────────────────────── */
+
+.canvas-zoom-indicator {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: var(--vis-bg-secondary);
+  border: 1px solid var(--vis-border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--vis-text-muted);
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.canvas-zoom-indicator.visible {
+  opacity: 1;
+}
+
+/* ── Ruler drag-to-pan (vis_app RulersManager) ────────── */
+
+.canvas-outer.panning,
+.canvas-outer.panning * {
+  cursor: grabbing !important;
+}

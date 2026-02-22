@@ -1,0 +1,54 @@
+/* vis_app figure-dropdown — canvas pane figure selector */
+
+.figure-dropdown-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.figure-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--vis-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  white-space: nowrap;
+}
+
+.figure-dropdown-toggle:hover {
+  background: var(--vis-bg-hover);
+  border-color: var(--vis-border);
+}
+
+.figure-dropdown-toggle i:first-child {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+}
+
+.figure-dropdown-toggle .fa-chevron-down {
+  font-size: 9px;
+  color: var(--vis-text-muted);
+  margin-left: 2px;
+}
+
+.figure-dropdown-label {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.figure-new-btn {
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 11px;
+}

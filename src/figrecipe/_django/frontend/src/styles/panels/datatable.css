@@ -1,0 +1,173 @@
+/* FigRecipe Editor — Data Table Panel (vis_app data-table.css pattern) */
+
+/* ── DataTable empty state (vis_app pattern) ─────────── */
+
+.datatable-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.datatable-empty-icon {
+  font-size: 36px;
+  color: var(--vis-text-muted);
+  opacity: 0.4;
+  margin-bottom: 16px;
+}
+
+.datatable-empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--vis-text-muted);
+  margin-bottom: 6px;
+}
+
+.datatable-empty-hint {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+  opacity: 0.6;
+}
+
+/* ── Tabs bar — vis_app .data-tabs-bar ───────────────── */
+
+.datatable-panel__tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--vis-bg-secondary);
+  border-bottom: 1px solid var(--vis-border);
+  padding: 0 4px;
+  height: 32px;
+  min-height: 32px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vis-border) transparent;
+}
+
+.datatable-panel__tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.datatable-panel__tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.datatable-panel__tabs::-webkit-scrollbar-thumb {
+  background: var(--vis-border);
+  border-radius: 2px;
+}
+
+/* ── Tab — vis_app .data-tab with bottom-border indicator ── */
+
+.datatable-panel__tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--vis-text-muted);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.datatable-panel__tab:hover {
+  background: var(--vis-bg-hover);
+  color: var(--vis-text-primary);
+}
+
+/* Active tab — bottom border indicator (vis_app emerald accent) */
+.datatable-panel__tab.active {
+  background: transparent;
+  color: var(--vis-text-primary);
+  font-weight: 500;
+  border-bottom: 2px solid var(--status-success);
+}
+
+/* ── Empty state ─────────────────────────────────────── */
+
+.datatable-panel__empty {
+  padding: 40px 20px;
+  color: var(--vis-text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.datatable-panel__hint {
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+/* ── Table container — vis_app .data-table-container ─── */
+
+.datatable-panel__table-wrapper {
+  flex: 1;
+  overflow: auto;
+}
+
+/* ── Table — vis_app .data-table ─────────────────────── */
+
+.datatable-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: var(--font-mono);
+}
+
+.datatable-panel__table th,
+.datatable-panel__table td {
+  border: 1px solid var(--vis-border);
+  padding: 6px 8px;
+  text-align: left;
+  white-space: nowrap;
+  color: var(--vis-text-primary);
+}
+
+/* Header — sticky, vis_app .data-table th */
+.datatable-panel__table th {
+  background: var(--vis-bg-secondary);
+  font-weight: 600;
+  font-size: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Cell hover */
+.datatable-panel__table td:hover {
+  background: var(--vis-bg-hover);
+}
+
+/* Row hover — subtle accent tint */
+.datatable-panel__table tbody tr:hover {
+  background: rgba(107, 168, 154, 0.05);
+}
+
+/* Alternating rows — dark mode subtle zebra */
+.datatable-panel__table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.datatable-panel__table tbody tr:nth-child(even):hover {
+  background: rgba(107, 168, 154, 0.05);
+}
+
+/* ── Truncation notice ───────────────────────────────── */
+
+.datatable-panel__truncated {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+  text-align: center;
+  padding: 8px;
+  font-style: italic;
+}

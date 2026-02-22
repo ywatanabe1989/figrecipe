@@ -61,11 +61,13 @@ function renderDatatable() {
     // Update selection info
     updateSelectionInfo();
 
-    // Hide dropzone, show content
+    // Hide dropzone, show content, reveal canvas
     const dropzone = document.getElementById('datatable-dropzone');
     if (dropzone) dropzone.style.display = 'none';
     const toolbar = document.querySelector('.datatable-toolbar');
     if (toolbar) toolbar.style.display = 'flex';
+    const wOverlay = document.getElementById('welcome-overlay');
+    if (wOverlay) wOverlay.style.display = 'none';
 }
 
 // ============================================================================

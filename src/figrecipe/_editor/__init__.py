@@ -118,9 +118,8 @@ def gui(
     style_dict = _resolve_style(style)
 
     # Save static PNG FIRST - this is the source of truth for initial display
-    mpl_fig = fig.fig if hasattr(fig, "fig") else fig
     static_png_path = Path(tempfile.mktemp(suffix="_figrecipe_static.png"))
-    mpl_fig.savefig(static_png_path, format="png", dpi=150, bbox_inches="tight")
+    fig.savefig(static_png_path, format="png", dpi=150, bbox_inches="tight")
 
     # Hitmap generation is deferred to the lazy /hitmap endpoint.
     # This ensures the hitmap matches the main render's exact dimensions,

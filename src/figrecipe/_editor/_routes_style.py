@@ -114,9 +114,9 @@ def register_style_routes(app, editor):
                 editor.fig = new_fig
                 # Keep the new style (don't restore old style)
 
-            mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
+            fig = editor.fig
             behavior = new_style.get("behavior", {})
-            for ax in mpl_fig.get_axes():
+            for ax in fig.get_axes():
                 # Handle all four spine directions
                 for side, default in [
                     ("top", True),
@@ -206,17 +206,17 @@ def register_style_routes(app, editor):
             img_data = b64.b64decode(base64_img)
             img = Image.open(io.BytesIO(img_data))
             img_size = img.size
-            mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-            original_dpi = mpl_fig.dpi
+            fig = editor.fig
+            original_dpi = fig.dpi
             try:
-                mpl_fig.set_dpi(150)
-                mpl_fig.canvas.draw()
+                fig.set_dpi(150)
+                fig.canvas.draw()
             except Exception:
                 # Ignore matplotlib/tkinter threading issues in background thread
                 pass
-            bboxes = extract_bboxes(mpl_fig, img_size[0], img_size[1])
+            bboxes = extract_bboxes(fig, img_size[0], img_size[1])
             try:
-                mpl_fig.set_dpi(original_dpi)
+                fig.set_dpi(original_dpi)
             except Exception:
                 pass
         else:

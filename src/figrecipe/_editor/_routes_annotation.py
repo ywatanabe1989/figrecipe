@@ -38,8 +38,8 @@ def register_annotation_routes(app, editor):
 
         try:
             # Get the matplotlib figure
-            mpl_fig = editor.fig.fig if hasattr(editor.fig, "fig") else editor.fig
-            axes_list = mpl_fig.get_axes()
+            fig = editor.fig
+            axes_list = fig.get_axes()
 
             if ax_index >= len(axes_list):
                 return jsonify({"error": f"Invalid axis index: {ax_index}"}), 400

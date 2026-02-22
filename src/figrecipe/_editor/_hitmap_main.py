@@ -90,15 +90,10 @@ def generate_hitmap(
     # Detect plot types from record
     plot_types = detect_plot_types(fig, debug=False)
 
-    # Get all axes (handle RecordingFigure wrapper)
-    if hasattr(fig, "fig"):
-        mpl_fig = fig.fig
-    else:
-        mpl_fig = fig
-    axes_list = mpl_fig.get_axes()
+    axes_list = fig.get_axes()
 
     # Detect diagram figures for special handling
-    is_diagram = getattr(mpl_fig, "_figrecipe_diagram", None) is not None
+    is_diagram = getattr(fig, "_figrecipe_diagram", None) is not None
 
     # Process all artists and assign colors
     for ax_idx, ax in enumerate(axes_list):
@@ -133,7 +128,7 @@ def generate_hitmap(
 
     # Process figure-level text elements
     if include_text:
-        element_id = process_figure_text(mpl_fig, element_id, original_props, color_map)
+        element_id = process_figure_text(fig, element_id, original_props, color_map)
 
     # Set non-selectable elements to axes color
     for ax in axes_list:
@@ -153,7 +148,7 @@ def generate_hitmap(
     # matching how render_with_overrides() renders them.
     MAX_HITMAP_PIXELS = 2000  # cap per dimension to prevent hang on huge figures
     hitmap_dpi = dpi
-    fig_w, fig_h = mpl_fig.get_size_inches()
+    fig_w, fig_h = fig.get_size_inches()
     max_fig_dim = max(fig_w, fig_h)
     if is_diagram:
         max_pixels = 1500
@@ -207,7 +202,7 @@ def generate_hitmap(
 
     # Restore original properties
     restore_axes_properties(axes_list, original_props, include_text)
-    restore_figure_text(mpl_fig, original_props, include_text)
+    restore_figure_text(fig, original_props, include_text)
     restore_backgrounds(fig, axes_list)
 
     return hitmap, color_map

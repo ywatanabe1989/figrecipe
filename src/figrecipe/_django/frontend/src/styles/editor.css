@@ -1,0 +1,7 @@
+/* FigRecipe Editor — Main stylesheet (imports all partials) */
+
+@import "./variables.css";
+@import "./layout.css";
+@import "./canvas.css";
+@import "./panels.css";
+@import "./feedback.css";

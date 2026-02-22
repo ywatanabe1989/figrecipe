@@ -18,7 +18,6 @@ function createNewCSV() {
     // Create default structure with more columns and rows for real data entry
     const columns = [];
     for (let i = 0; i < DEFAULT_COLS; i++) {
-        // Default to 'string' type so users can type anything (change to N if needed)
         columns.push({ name: `col${i + 1}`, type: 'string', index: i });
     }
 
@@ -29,13 +28,14 @@ function createNewCSV() {
 
     const defaultData = { columns, rows };
 
-    // Set as current data
     datatableData = defaultData;
     datatableSelectedColumns = new Set();
     datatableVarAssignments = {};
 
-    // Render editable table
+    // Render editable table and reveal canvas
     renderEditableTable();
+    const wOverlay = document.getElementById('welcome-overlay');
+    if (wOverlay) wOverlay.style.display = 'none';
 
     // Show toolbar, hide entire import section
     const importSection = document.getElementById('datatable-import-section');
