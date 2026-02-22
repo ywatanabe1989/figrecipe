@@ -228,9 +228,13 @@ export function useZoomPan(containerRef: React.RefObject<HTMLElement | null>) {
       if (!container) return;
       const cw = container.clientWidth - 40;
       const ch = container.clientHeight - 40;
-      const zx = cw / 2126;
-      const zy = ch / 2953;
-      setState({ zoom: Math.max(Math.min(zx, zy, 1.0), 0.1), panX: 0, panY: 0 });
+      const zx = cw / 2480;
+      const zy = ch / 3508;
+      setState({
+        zoom: Math.max(Math.min(zx, zy, 1.0), 0.1),
+        panX: 0,
+        panY: 0,
+      });
     },
     [containerRef],
   );

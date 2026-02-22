@@ -14,8 +14,9 @@ import { useZoomPan } from "./useZoomPan";
 
 // ── Constants ────────────────────────────────────────────────
 const DPI = 300;
-const DEFAULT_CANVAS_W = 2126; // 180mm @ 300 DPI
-const DEFAULT_CANVAS_H = 2953; // 250mm @ 300 DPI
+// Canvas = fixed paper size (A4: 210mm x 297mm @ 300 DPI)
+const CANVAS_W = Math.round(210 * (DPI / 25.4)); // 2480px
+const CANVAS_H = Math.round(297 * (DPI / 25.4)); // 3508px
 
 // ── Main Canvas ──────────────────────────────────────────────
 export function Canvas() {
@@ -35,31 +36,25 @@ export function Canvas() {
     handleRulerDoubleClick,
   } = useZoomPan(outerRef);
 
-  // Canvas dimensions — figure size or default
-  const canvasW = imgSize?.width ?? DEFAULT_CANVAS_W;
-  const canvasH = imgSize?.height ?? DEFAULT_CANVAS_H;
-
   // Expose zoom controls to store for toolbar access
-  // Fit to canvas content (excluding rulers) for closer zoom
-  const fitWithImage = useCallback(() => {
-    zoomToFit(canvasW, canvasH);
-  }, [zoomToFit, canvasW, canvasH]);
+  const fitCanvas = useCallback(() => {
+    zoomToFit(CANVAS_W, CANVAS_H);
+  }, [zoomToFit]);
 
   useEffect(() => {
     useEditorStore.setState({
-      zoomControls: { zoomIn, zoomOut, zoomToFit: fitWithImage, resetView },
+      zoomControls: { zoomIn, zoomOut, zoomToFit: fitCanvas, resetView },
     });
-  }, [zoomIn, zoomOut, fitWithImage, resetView]);
+  }, [zoomIn, zoomOut, fitCanvas, resetView]);
 
   // Auto-fit on mount and when image loads
   const didAutoFit = useRef(false);
   useEffect(() => {
-    // Fit on mount (even without image) or on first image load
     if (!didAutoFit.current || imgSize) {
       didAutoFit.current = true;
-      zoomToFit(canvasW, canvasH);
+      zoomToFit(CANVAS_W, CANVAS_H);
     }
-  }, [imgSize, zoomToFit, canvasW, canvasH]);
+  }, [imgSize, zoomToFit]);
 
   const handleElementClick = useCallback((elementId: string) => {
     const { bboxes, selectElement } = useEditorStore.getState();
@@ -89,7 +84,7 @@ export function Canvas() {
           {rulerUnit}
         </div>
         <HorizontalRuler
-          canvasWidth={canvasW}
+          canvasWidth={CANVAS_W}
           dpi={DPI}
           gridArea="ruler-h"
           onMouseDown={handleRulerMouseDown}
@@ -103,7 +98,7 @@ export function Canvas() {
 
         {/* Middle row: ruler-v | canvas | ruler-r */}
         <VerticalRuler
-          canvasHeight={canvasH}
+          canvasHeight={CANVAS_H}
           dpi={DPI}
           gridArea="ruler-v"
           onMouseDown={handleRulerMouseDown}
@@ -112,7 +107,7 @@ export function Canvas() {
         <div
           className="vis-canvas-container"
           data-canvas-theme="dark"
-          style={{ minWidth: canvasW, minHeight: canvasH }}
+          style={{ width: CANVAS_W, height: CANVAS_H }}
         >
           {previewImage ? (
             <>
@@ -121,6 +116,11 @@ export function Canvas() {
                 src={`data:image/png;base64,${previewImage}`}
                 alt="Figure preview"
                 draggable={false}
+                style={
+                  imgSize
+                    ? { width: imgSize.width, height: imgSize.height }
+                    : undefined
+                }
               />
               {imgSize && (
                 <BboxOverlay
@@ -141,7 +141,7 @@ export function Canvas() {
           )}
         </div>
         <VerticalRuler
-          canvasHeight={canvasH}
+          canvasHeight={CANVAS_H}
           dpi={DPI}
           gridArea="ruler-r"
           onMouseDown={handleRulerMouseDown}
@@ -155,7 +155,7 @@ export function Canvas() {
           onDoubleClick={handleRulerDoubleClick}
         />
         <HorizontalRuler
-          canvasWidth={canvasW}
+          canvasWidth={CANVAS_W}
           dpi={DPI}
           gridArea="ruler-b"
           onMouseDown={handleRulerMouseDown}
