@@ -7,67 +7,21 @@
   overflow: hidden;
 }
 
-.file-browser__header {
+/* ── Action toolbar — below pane-header ──────────────── */
+
+.file-browser__toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: var(--panel-header-height);
-  padding: 0 16px;
-  background: var(--vis-bg-secondary);
+  gap: 2px;
+  padding: 4px 8px;
   border-bottom: 1px solid var(--vis-border);
   flex-shrink: 0;
-}
-
-.file-browser__header h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--vis-text-primary);
-}
-
-/* ── Header action buttons — vis_app tree-add-btn style ── */
-
-.file-browser__actions {
-  display: flex;
-  gap: 4px;
-}
-
-.file-browser__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid var(--vis-border);
-  border-radius: 3px;
-  color: var(--vis-text-muted);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  opacity: 0.7;
-}
-
-.file-browser__btn:hover {
-  background: var(--vis-bg-hover);
-  color: var(--vis-text-primary);
-  opacity: 1;
-}
-
-.file-browser__btn:active {
-  transform: scale(0.95);
-}
-
-.file-browser__btn:disabled {
-  opacity: 0.3;
-  cursor: default;
-  pointer-events: none;
 }
 
 /* ── Rename input ──────────────────────────────────────── */
 
 .file-browser__rename {
-  padding: 8px 16px;
+  padding: 4px 8px;
   border-bottom: 1px solid var(--vis-border);
 }
 
@@ -91,7 +45,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 8px 6px 0;
+  padding: 4px 8px 4px 0;
+  min-height: 24px;
   cursor: pointer;
   font-size: 12px;
   color: var(--vis-text-primary);
@@ -106,7 +61,7 @@
 
 /* Selected/current state — vis_app .tree-item-header.selected */
 .file-tree__entry.current {
-  background: var(--status-info-bg);
+  background: rgba(var(--accent-rgb), 0.15);
   border-radius: 4px;
 }
 
@@ -118,22 +73,17 @@
 /* ── Chevron toggle — vis_app .tree-toggle ─────────────── */
 
 .file-tree__toggle {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--vis-text-muted);
   width: 12px;
   text-align: center;
   flex-shrink: 0;
-  transition: transform 0.15s ease;
-}
-
-.file-tree__entry--folder:not(.expanded) .file-tree__toggle {
-  transform: rotate(-90deg);
 }
 
 /* ── Tree icon — vis_app .tree-icon with type-based color ── */
 
 .file-tree__icon {
-  font-size: 13px;
+  font-size: 12px;
   width: 16px;
   text-align: center;
   flex-shrink: 0;
@@ -205,4 +155,12 @@
   font-size: 12px;
   text-align: center;
   font-style: italic;
+}
+
+/* ── Hide file-browser toolbar when pane collapsed ─────── */
+
+.split-pane.collapsed .file-browser__toolbar,
+.split-pane.collapsed .file-browser__rename,
+.split-pane.collapsed .file-tree {
+  display: none;
 }

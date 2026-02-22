@@ -1,8 +1,9 @@
-/** Root layout — vis_app 3-pane: DataTable | Canvas | Details. No top toolbar. */
+/** Root layout — vis_app 4-pane: FileTree | DataTable | Canvas | Details. */
 
 import { useEffect } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
+import { FileTreePane } from "./components/FileTreePane/FileTreePane";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
 import { Spinner } from "./components/common/Spinner";
 import { Toast } from "./components/common/Toast";
@@ -39,12 +40,20 @@ export function App() {
   useElementInspector();
   useKeyboardShortcuts();
 
-  const leftPanel = usePanelResize({
+  const fileTreePanel = usePanelResize({
     direction: "left",
     minWidth: 40,
-    defaultWidth: 400,
-    storageKey: "figrecipe-left-width",
-    collapseKey: "figrecipe-left-collapsed",
+    defaultWidth: 200,
+    storageKey: "figrecipe-filetree-width",
+    collapseKey: "figrecipe-filetree-collapsed",
+  });
+
+  const dataPanel = usePanelResize({
+    direction: "left",
+    minWidth: 40,
+    defaultWidth: 350,
+    storageKey: "figrecipe-data-width",
+    collapseKey: "figrecipe-data-collapsed",
   });
 
   const rightPanel = usePanelResize({
@@ -58,28 +67,46 @@ export function App() {
   return (
     <div className="editor-root">
       <div className="editor-body">
-        {/* Left pane — Data Table (400px default) */}
+        {/* Pane 1 — File Tree (200px default) */}
         <aside
-          className={`split-pane split-pane-left${leftPanel.collapsed ? " collapsed" : ""}`}
-          style={leftPanel.collapsed ? undefined : { width: leftPanel.width }}
-          onClick={leftPanel.collapsed ? leftPanel.toggleCollapse : undefined}
+          className={`split-pane split-pane-left${fileTreePanel.collapsed ? " collapsed" : ""}`}
+          style={
+            fileTreePanel.collapsed ? undefined : { width: fileTreePanel.width }
+          }
+          onClick={
+            fileTreePanel.collapsed ? fileTreePanel.toggleCollapse : undefined
+          }
         >
-          <DataTablePane
-            collapsed={leftPanel.collapsed}
-            toggleCollapse={leftPanel.toggleCollapse}
+          <FileTreePane
+            collapsed={fileTreePanel.collapsed}
+            toggleCollapse={fileTreePanel.toggleCollapse}
           />
         </aside>
 
-        <div className="panel-resizer" {...leftPanel.resizerProps} />
+        <div className="panel-resizer" {...fileTreePanel.resizerProps} />
 
-        {/* Center pane — Canvas (flex: 1) */}
+        {/* Pane 2 — Data Table (350px default) */}
+        <aside
+          className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
+          style={dataPanel.collapsed ? undefined : { width: dataPanel.width }}
+          onClick={dataPanel.collapsed ? dataPanel.toggleCollapse : undefined}
+        >
+          <DataTablePane
+            collapsed={dataPanel.collapsed}
+            toggleCollapse={dataPanel.toggleCollapse}
+          />
+        </aside>
+
+        <div className="panel-resizer" {...dataPanel.resizerProps} />
+
+        {/* Pane 3 — Canvas (flex: 1) */}
         <main className="split-pane split-pane-center">
           <CanvasPane />
         </main>
 
         <div className="panel-resizer" {...rightPanel.resizerProps} />
 
-        {/* Right pane — Properties/Details (320px default) */}
+        {/* Pane 4 — Properties/Details (320px default) */}
         <aside
           className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
           style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}

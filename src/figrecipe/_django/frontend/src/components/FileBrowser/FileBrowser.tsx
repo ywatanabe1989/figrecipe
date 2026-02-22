@@ -1,4 +1,4 @@
-/** File tree panel — browse, switch, and manage recipe files. */
+/** File tree — browse, switch, and manage recipe files. */
 
 import { useCallback, useState } from "react";
 import { api } from "../../api/client";
@@ -18,10 +18,10 @@ function TreeItem({ item, depth }: { item: FileTreeItem; depth: number }) {
           onClick={() => setExpanded(!expanded)}
         >
           <span className="file-tree__toggle">
-            {expanded ? "\u25BC" : "\u25B6"}
+            <i className={`fas fa-chevron-${expanded ? "down" : "right"}`} />
           </span>
           <span className="file-tree__icon">
-            {expanded ? "\u{1F4C2}" : "\u{1F4C1}"}
+            <i className={`fas fa-folder${expanded ? "-open" : ""}`} />
           </span>
           <span className="file-tree__name">{item.name}</span>
           <span className="file-tree__badge">{item.children?.length ?? 0}</span>
@@ -46,7 +46,7 @@ function TreeItem({ item, depth }: { item: FileTreeItem; depth: number }) {
         onClick={() => !isCurrent && switchFile(item.path)}
       >
         <span className="file-tree__icon">
-          {item.has_image ? "\u{1F4CA}" : "\u{1F4C4}"}
+          <i className={`fas ${item.has_image ? "fa-chart-bar" : "fa-file"}`} />
         </span>
         <span className="file-tree__name">{item.name}</span>
         {item.has_image && <span className="file-tree__badge">PNG</span>}
@@ -55,11 +55,7 @@ function TreeItem({ item, depth }: { item: FileTreeItem; depth: number }) {
   );
 }
 
-interface FileBrowserProps {
-  headerProps?: Record<string, unknown>;
-}
-
-export function FileBrowser({ headerProps }: FileBrowserProps) {
+export function FileBrowser() {
   const { files, currentFile, loadFiles, switchFile, showToast } =
     useEditorStore();
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -133,49 +129,52 @@ export function FileBrowser({ headerProps }: FileBrowserProps) {
 
   return (
     <div className="file-browser">
-      <div className="file-browser__header" {...headerProps}>
-        <span className="sidebar-title">FILES</span>
-        <h3>Files</h3>
-        <div className="file-browser__actions">
-          <button
-            className="file-browser__btn"
-            onClick={handleNew}
-            title="New figure"
-          >
-            +
-          </button>
-          <button
-            className="file-browser__btn"
-            onClick={handleDuplicate}
-            title="Duplicate"
-            disabled={!currentFile}
-          >
-            &#x29C9;
-          </button>
-          <button
-            className="file-browser__btn"
-            onClick={startRename}
-            title="Rename"
-            disabled={!currentFile}
-          >
-            &#x270E;
-          </button>
-          <button
-            className="file-browser__btn"
-            onClick={handleDelete}
-            title="Delete"
-            disabled={!currentFile}
-          >
-            &#x2715;
-          </button>
-          <button
-            className="file-browser__btn"
-            onClick={handleRefresh}
-            title="Refresh"
-          >
-            &#x21BB;
-          </button>
-        </div>
+      {/* Action toolbar — below pane-header, inside content area */}
+      <div className="file-browser__toolbar">
+        <button
+          className="pane-header-btn"
+          onClick={handleNew}
+          title="New figure"
+          type="button"
+        >
+          <i className="fas fa-plus" />
+        </button>
+        <button
+          className="pane-header-btn"
+          onClick={handleDuplicate}
+          title="Duplicate"
+          type="button"
+          disabled={!currentFile}
+        >
+          <i className="fas fa-copy" />
+        </button>
+        <button
+          className="pane-header-btn"
+          onClick={startRename}
+          title="Rename"
+          type="button"
+          disabled={!currentFile}
+        >
+          <i className="fas fa-pen" />
+        </button>
+        <button
+          className="pane-header-btn"
+          onClick={handleDelete}
+          title="Delete"
+          type="button"
+          disabled={!currentFile}
+        >
+          <i className="fas fa-trash" />
+        </button>
+        <div style={{ flex: 1 }} />
+        <button
+          className="pane-header-btn"
+          onClick={handleRefresh}
+          title="Refresh"
+          type="button"
+        >
+          <i className="fas fa-sync" />
+        </button>
       </div>
 
       {renaming && (
@@ -198,6 +197,10 @@ export function FileBrowser({ headerProps }: FileBrowserProps) {
       <ul className="file-tree">
         {files.length === 0 ? (
           <li className="file-tree__empty">
+            <i
+              className="fas fa-folder-open"
+              style={{ fontSize: 24, display: "block", marginBottom: 8 }}
+            />
             <p>No recipe files</p>
           </li>
         ) : (
