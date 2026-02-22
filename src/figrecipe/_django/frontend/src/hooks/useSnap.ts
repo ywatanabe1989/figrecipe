@@ -15,7 +15,8 @@ export const MM_PX = DPI / 25.4; // 11.811 px per mm
 export const CANVAS_W = Math.round(210 * MM_PX); // 2480px
 export const CANVAS_H = Math.round(297 * MM_PX); // 3508px
 
-const SNAP_THRESHOLD = 3 * MM_PX; // ~35px hard snap distance
+const SNAP_THRESHOLD = 10 * MM_PX; // ~118px hard snap distance (10mm)
+const MAGNETIC_ZONE = 20 * MM_PX; // ~236px magnetic attraction zone (20mm)
 const GRID_MM = 5; // 5mm grid
 
 // ── Types ────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ function findBestSnap(
   for (const c of candidates) {
     for (const t of targets) {
       const dist = Math.abs(c.pos - t.pos);
-      if (dist > threshold) continue;
+      if (dist > MAGNETIC_ZONE) continue;
 
       // Determine snap type: axes if either side is axes
       const snapType: "axes" | "edge" | "center" =
@@ -104,7 +105,20 @@ function findBestSnap(
         (dist < bestDist * 1.2 && priority < bestPriority)
       ) {
         bestDist = dist;
-        bestResult = { delta: t.pos - c.pos, type: snapType, target: t };
+
+        // Hard lock within threshold; magnetic pull within zone
+        let delta: number;
+        if (dist <= threshold) {
+          // Hard snap — lock to target
+          delta = t.pos - c.pos;
+        } else {
+          // Magnetic zone — quadratic pull toward target
+          const ratio = (dist - threshold) / (MAGNETIC_ZONE - threshold);
+          const strength = 1 - ratio * ratio; // 1 at threshold edge, 0 at zone edge
+          delta = (t.pos - c.pos) * strength;
+        }
+
+        bestResult = { delta, type: snapType, target: t };
       }
     }
   }
