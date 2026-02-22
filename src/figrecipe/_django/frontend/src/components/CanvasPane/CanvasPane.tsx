@@ -20,19 +20,26 @@ const GALLERY_CATEGORIES = [
 
 export function CanvasPane() {
   const {
-    currentFile,
+    placedFigures,
+    selectedFigureId,
     darkMode,
     showHitmap,
+    snapEnabled,
     setDarkMode,
     toggleHitmap,
+    toggleSnap,
+    alignFigures,
+    distributeFigures,
     save,
     showToast,
   } = useEditorStore();
 
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [alignOpen, setAlignOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const alignRef = useRef<HTMLDivElement>(null);
 
-  // Close download dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const close = (e: MouseEvent) => {
       if (
@@ -40,6 +47,9 @@ export function CanvasPane() {
         !dropdownRef.current.contains(e.target as Node)
       ) {
         setDownloadOpen(false);
+      }
+      if (alignRef.current && !alignRef.current.contains(e.target as Node)) {
+        setAlignOpen(false);
       }
     };
     document.addEventListener("mousedown", close);
@@ -64,10 +74,13 @@ export function CanvasPane() {
     [showToast],
   );
 
-  // Extract filename from path
-  const figLabel = currentFile
-    ? (currentFile.split("/").pop()?.replace(/\.py$/, "") ?? "No figures")
-    : "No figures";
+  // Figure label: selected figure name or count
+  const selectedFig = placedFigures.find((f) => f.id === selectedFigureId);
+  const figLabel = selectedFig
+    ? (selectedFig.path.split("/").pop() ?? "figure")
+    : placedFigures.length > 0
+      ? `${placedFigures.length} figure${placedFigures.length > 1 ? "s" : ""}`
+      : "No figures";
 
   return (
     <>
@@ -109,6 +122,164 @@ export function CanvasPane() {
 
         {/* Right-side action buttons */}
         <div className="pane-header-buttons pane-header-right">
+          {/* Snap toggle */}
+          <button
+            className={`pane-header-btn${snapEnabled ? " pane-header-btn--active" : ""}`}
+            onClick={toggleSnap}
+            title={`Snap: ${snapEnabled ? "ON" : "OFF"} (Alt to bypass)`}
+            type="button"
+          >
+            <i className="fas fa-magnet" />
+          </button>
+
+          {/* Alignment dropdown */}
+          <div className="dropdown-container" ref={alignRef}>
+            <button
+              className="pane-header-btn"
+              onClick={() => setAlignOpen(!alignOpen)}
+              title="Align & distribute"
+              type="button"
+            >
+              <i className="fas fa-align-left" />
+            </button>
+            <div
+              className={`dropdown-menu dropdown-menu--wide${alignOpen ? " open" : ""}`}
+            >
+              <div className="dropdown-section-label">Figure edges</div>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("left");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-align-left" /> Align Left
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("right");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-align-right" /> Align Right
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("top");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-arrow-up" /> Align Top
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("bottom");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-arrow-down" /> Align Bottom
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("center-h");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-arrows-alt-h" /> Center Horizontal
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("center-v");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-arrows-alt-v" /> Center Vertical
+              </button>
+              <div className="dropdown-divider" />
+              <div className="dropdown-section-label">Axes edges</div>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("axes-left");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-align-left" style={{ color: "#00bcd4" }} />{" "}
+                Axes Left
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("axes-right");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i
+                  className="fas fa-align-right"
+                  style={{ color: "#00bcd4" }}
+                />{" "}
+                Axes Right
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("axes-top");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-arrow-up" style={{ color: "#00bcd4" }} />{" "}
+                Axes Top
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  alignFigures("axes-bottom");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-arrow-down" style={{ color: "#00bcd4" }} />{" "}
+                Axes Bottom
+              </button>
+              <div className="dropdown-divider" />
+              <div className="dropdown-section-label">Distribute</div>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  distributeFigures("horizontal");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-grip-lines-vertical" /> Distribute H
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  distributeFigures("vertical");
+                  setAlignOpen(false);
+                }}
+                type="button"
+              >
+                <i className="fas fa-grip-lines" /> Distribute V
+              </button>
+            </div>
+          </div>
+
           {/* Hitmap toggle */}
           <button
             className={`pane-header-btn${showHitmap ? " pane-header-btn--active" : ""}`}

@@ -82,24 +82,32 @@ export function useZoomPan(containerRef: React.RefObject<HTMLElement | null>) {
     zoomDelta.current = 0;
   }, []);
 
-  // Ctrl+Wheel → zoom to cursor
+  // Wheel: Ctrl = zoom, plain = pan vertically, Shift = pan horizontally
   const handleWheel = useCallback(
     (e: WheelEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
 
-      const container = containerRef.current;
-      if (!container) return;
+      // Ctrl+Wheel → zoom to cursor
+      if (e.ctrlKey || e.metaKey) {
+        const container = containerRef.current;
+        if (!container) return;
 
-      const rect = container.getBoundingClientRect();
-      zoomMousePos.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
-      zoomDelta.current += e.deltaY;
+        const rect = container.getBoundingClientRect();
+        zoomMousePos.current = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        };
+        zoomDelta.current += e.deltaY;
 
-      cancelAnimationFrame(rafId.current);
-      rafId.current = requestAnimationFrame(applyZoom);
+        cancelAnimationFrame(rafId.current);
+        rafId.current = requestAnimationFrame(applyZoom);
+        return;
+      }
+
+      // Plain wheel → pan (Shift swaps axes for horizontal scroll)
+      const dx = e.shiftKey ? -e.deltaY : -e.deltaX;
+      const dy = e.shiftKey ? 0 : -e.deltaY;
+      setState((s) => ({ ...s, panX: s.panX + dx, panY: s.panY + dy }));
     },
     [containerRef, applyZoom],
   );

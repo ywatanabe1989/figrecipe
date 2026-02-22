@@ -129,6 +129,11 @@ def handle_api_switch(request, editor):
         session_key = f"figrecipe_{full_path}"
         editor = get_or_create_editor(session_key, str(full_path))
 
+    # Sync dark_mode from frontend if provided
+    req_dark = data.get("dark_mode")
+    if req_dark is not None:
+        editor.dark_mode = bool(req_dark)
+
     try:
         fig, _ = reproduce(full_path)
         editor.fig = fig

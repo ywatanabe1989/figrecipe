@@ -2,18 +2,20 @@
 
 import { create } from "zustand";
 import { api } from "../api/client";
+import type { SnapGuide } from "../hooks/useSnap";
 import type {
   BBox,
   ColumnDef,
   FileTreeItem,
   FilesResponse,
   HitmapResponse,
-  ImgSize,
+  PlacedFigure,
   PreviewResponse,
   StyleOverrides,
   TabData,
   ThemeInfo,
 } from "../types/editor";
+import { createFigureActions } from "./figureActions";
 
 interface ZoomControls {
   zoomIn: () => void;
@@ -23,54 +25,53 @@ interface ZoomControls {
 }
 
 interface EditorState {
-  // ── Core ──────────────────────────────────────────────────
-  previewImage: string | null;
+  // ── Canvas figures ──────────────────────────────────────
+  placedFigures: PlacedFigure[];
+  selectedFigureId: string | null;
+
+  // ── Legacy ──────────────────────────────────────────────
   hitmapImage: string | null;
   colorMap: Record<string, unknown>;
-  bboxes: Record<string, BBox>;
-  imgSize: ImgSize | null;
   loading: boolean;
 
-  // ── Selection ─────────────────────────────────────────────
+  // ── Selection ───────────────────────────────────────────
   selectedElement: string | null;
   selectedBbox: BBox | null;
 
-  // ── Files ─────────────────────────────────────────────────
+  // ── Files ───────────────────────────────────────────────
   files: FileTreeItem[];
   currentFile: string | null;
   workingDir: string | null;
 
-  // ── Data ──────────────────────────────────────────────────
+  // ── Data ────────────────────────────────────────────────
   datatableTabs: Record<string, TabData>;
   activeTabId: string | null;
 
-  // ── Style ─────────────────────────────────────────────────
+  // ── Style ───────────────────────────────────────────────
   darkMode: boolean;
   currentTheme: string;
   themes: string[];
   overrides: StyleOverrides;
 
-  // ── Panel positions (mm) ─────────────────────────────────
+  // ── Panel positions (mm) ────────────────────────────────
   panelPositions: Record<
     string,
     { left: number; top: number; width: number; height: number }
   >;
   figSizeMm: { width: number; height: number } | null;
 
-  // ── Zoom ────────────────────────────────────────────────
-  zoomControls: ZoomControls | null;
+  // ── Snap ───────────────────────────────────────────────
+  snapEnabled: boolean;
+  activeSnapGuides: SnapGuide[];
 
-  // ── Debug ─────────────────────────────────────────────────
+  // ── Zoom / Debug / Rulers / Toast ──────────────────────
+  zoomControls: ZoomControls | null;
   showHitmap: boolean;
   showRulers: boolean;
-
-  // ── Rulers ──────────────────────────────────────────────
   rulerUnit: "mm" | "inch";
-
-  // ── Toast ─────────────────────────────────────────────────
   toast: { message: string; type: "info" | "success" | "error" } | null;
 
-  // ── Actions ───────────────────────────────────────────────
+  // ── Actions ─────────────────────────────────────────────
   loadPreview: () => Promise<void>;
   loadHitmap: () => Promise<void>;
   loadFiles: () => Promise<void>;
@@ -78,69 +79,112 @@ interface EditorState {
   loadDatatable: () => Promise<void>;
   loadPanelPositions: () => Promise<void>;
 
-  selectElement: (elementId: string | null, bbox?: BBox) => void;
+  addFigure: (path: string) => Promise<void>;
+  removeFigure: (id: string) => void;
+  selectFigure: (id: string | null) => void;
+  moveFigure: (id: string, x: number, y: number) => void;
+  alignFigures: (
+    mode:
+      | "left"
+      | "right"
+      | "top"
+      | "bottom"
+      | "center-h"
+      | "center-v"
+      | "axes-left"
+      | "axes-right"
+      | "axes-top"
+      | "axes-bottom",
+  ) => void;
+  distributeFigures: (direction: "horizontal" | "vertical") => void;
+  groupFigures: (ids: string[]) => void;
+  ungroupFigures: (groupId: string) => void;
+
+  selectElement: (id: string | null, bbox?: BBox, figureId?: string) => void;
   switchFile: (path: string) => Promise<void>;
   switchTheme: (theme: string) => Promise<void>;
-
   updateOverrides: (overrides: StyleOverrides) => Promise<void>;
   save: () => Promise<void>;
   restore: () => Promise<void>;
 
   setDarkMode: (dark: boolean) => void;
   toggleHitmap: () => void;
+  toggleSnap: () => void;
   toggleRulers: () => void;
   toggleRulerUnit: () => void;
-  showToast: (message: string, type?: "info" | "success" | "error") => void;
+  showToast: (msg: string, type?: "info" | "success" | "error") => void;
   clearToast: () => void;
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const useEditorStore = create<EditorState>((set, get) => ({
-  // ── Initial state ─────────────────────────────────────────
-  previewImage: null,
+  // ── Initial state ───────────────────────────────────────
+  placedFigures: [],
+  selectedFigureId: null,
   hitmapImage: null,
   colorMap: {},
-  bboxes: {},
-  imgSize: null,
   loading: false,
-
   selectedElement: null,
   selectedBbox: null,
-
   files: [],
   currentFile: null,
   workingDir: null,
-
   datatableTabs: {},
   activeTabId: null,
-
   panelPositions: {},
   figSizeMm: null,
-
   darkMode: false,
   currentTheme: "SCITEX",
   themes: [],
   overrides: {},
-
+  snapEnabled: true,
+  activeSnapGuides: [],
   zoomControls: null,
-
   showHitmap: false,
   showRulers: true,
   rulerUnit:
     (localStorage.getItem("figrecipe-ruler-unit") as "mm" | "inch") || "mm",
-
   toast: null,
 
-  // ── Actions ───────────────────────────────────────────────
+  // ── Figure actions (from slice) ─────────────────────────
+  ...createFigureActions(set as any, get as any),
 
+  // ── Load actions ────────────────────────────────────────
   loadPreview: async () => {
     set({ loading: true });
     try {
-      const data = await api.get<PreviewResponse>("preview");
-      set({
-        previewImage: data.image,
-        bboxes: data.bboxes,
-        imgSize: data.img_size,
-      });
+      const dark = get().darkMode;
+      const data = await api.get<PreviewResponse>(`preview?dark_mode=${dark}`);
+      // Sync dark mode from backend on first load
+      if (data.dark_mode !== undefined) {
+        set({ darkMode: data.dark_mode });
+      }
+      const { placedFigures, selectedFigureId, currentFile } = get();
+      if (placedFigures.length === 0) {
+        const fig: PlacedFigure = {
+          id: crypto.randomUUID(),
+          path: currentFile ?? "preview",
+          x: 0,
+          y: 0,
+          previewImage: data.image,
+          bboxes: data.bboxes,
+          imgSize: data.img_size,
+        };
+        set({ placedFigures: [fig], selectedFigureId: fig.id });
+      } else if (selectedFigureId) {
+        set((s) => ({
+          placedFigures: s.placedFigures.map((f) =>
+            f.id === selectedFigureId
+              ? {
+                  ...f,
+                  previewImage: data.image,
+                  bboxes: data.bboxes,
+                  imgSize: data.img_size,
+                }
+              : f,
+          ),
+        }));
+      }
     } catch (e) {
       console.error("[Editor] Failed to load preview:", e);
       get().showToast("Failed to load preview", "error");
@@ -152,10 +196,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   loadHitmap: async () => {
     try {
       const data = await api.get<HitmapResponse>("hitmap");
-      set({
-        hitmapImage: data.image,
-        colorMap: data.color_map,
-      });
+      set({ hitmapImage: data.image, colorMap: data.color_map });
     } catch (e) {
       console.error("[Editor] Failed to load hitmap:", e);
     }
@@ -177,10 +218,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   loadThemes: async () => {
     try {
       const data = await api.get<ThemeInfo>("list_themes");
-      set({
-        themes: data.themes,
-        currentTheme: data.current,
-      });
+      set({ themes: data.themes, currentTheme: data.current });
     } catch (e) {
       console.error("[Editor] Failed to load themes:", e);
     }
@@ -206,19 +244,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   loadPanelPositions: async () => {
     try {
-      const data = await api.get<
-        Record<
-          string,
-          | {
-              index: number;
-              left: number;
-              top: number;
-              width: number;
-              height: number;
-            }
-          | { width_mm: number; height_mm: number }
-        >
-      >("get_axes_positions");
+      const data = await api.get<Record<string, any>>("get_axes_positions");
       const figsize = data._figsize as
         | { width_mm: number; height_mm: number }
         | undefined;
@@ -227,9 +253,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         { left: number; top: number; width: number; height: number }
       > = {};
       for (const [key, val] of Object.entries(data)) {
-        if (key !== "_figsize" && val && "left" in val) {
-          positions[key] = val;
-        }
+        if (key !== "_figsize" && val && "left" in val) positions[key] = val;
       }
       set({
         panelPositions: positions,
@@ -242,54 +266,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
   },
 
-  selectElement: (elementId, bbox) => {
+  // ── Selection ───────────────────────────────────────────
+  selectElement: (elementId, bbox, figureId) => {
     set({
       selectedElement: elementId,
       selectedBbox: bbox ?? null,
+      selectedFigureId: figureId ?? get().selectedFigureId,
     });
   },
 
-  switchFile: async (path) => {
-    set({ loading: true });
-    try {
-      const data = await api.post<
-        PreviewResponse & {
-          color_map?: Record<string, unknown>;
-          working_dir?: string;
-        }
-      >("api/switch", { path });
-      set({
-        previewImage: data.image,
-        bboxes: data.bboxes,
-        imgSize: data.img_size,
-        currentFile: path,
-        selectedElement: null,
-        selectedBbox: null,
-      });
-      if (data.color_map) {
-        set({ colorMap: data.color_map });
-      }
-      if (data.working_dir) {
-        set({ workingDir: data.working_dir });
-      }
-      // Update URL without reload so refresh works
-      const params = new URLSearchParams(window.location.search);
-      const wd = data.working_dir || get().workingDir;
-      const fullPath = wd ? `${wd}/${path}` : path;
-      params.set("recipe", fullPath);
-      window.history.replaceState(null, "", `?${params.toString()}`);
+  switchFile: async (path) => get().addFigure(path),
 
-      get().showToast(`Loaded: ${path}`, "success");
-      get().loadFiles();
-      get().loadDatatable();
-    } catch (e) {
-      console.error("[Editor] Failed to switch file:", e);
-      get().showToast(`Error: ${e}`, "error");
-    } finally {
-      set({ loading: false });
-    }
-  },
-
+  // ── Style actions ───────────────────────────────────────
   switchTheme: async (theme) => {
     set({ loading: true });
     try {
@@ -297,12 +285,24 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         "switch_theme",
         { theme },
       );
-      set({
-        previewImage: data.image,
-        bboxes: data.bboxes,
-        imgSize: data.img_size,
-        currentTheme: theme,
-      });
+      const selId = get().selectedFigureId;
+      if (selId) {
+        set((s) => ({
+          placedFigures: s.placedFigures.map((f) =>
+            f.id === selId
+              ? {
+                  ...f,
+                  previewImage: data.image,
+                  bboxes: data.bboxes,
+                  imgSize: data.img_size,
+                }
+              : f,
+          ),
+          currentTheme: theme,
+        }));
+      } else {
+        set({ currentTheme: theme });
+      }
       get().showToast(`Theme: ${theme}`, "success");
     } catch (e) {
       console.error("[Editor] Failed to switch theme:", e);
@@ -316,12 +316,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ loading: true });
     try {
       const data = await api.post<PreviewResponse>("update", { overrides });
-      set({
-        previewImage: data.image,
-        bboxes: data.bboxes,
-        imgSize: data.img_size,
-        overrides: { ...get().overrides, ...overrides },
-      });
+      const selId = get().selectedFigureId;
+      if (selId) {
+        set((s) => ({
+          placedFigures: s.placedFigures.map((f) =>
+            f.id === selId
+              ? {
+                  ...f,
+                  previewImage: data.image,
+                  bboxes: data.bboxes,
+                  imgSize: data.img_size,
+                }
+              : f,
+          ),
+          overrides: { ...get().overrides, ...overrides },
+        }));
+      }
     } catch (e) {
       console.error("[Editor] Failed to update:", e);
       get().showToast(`Error: ${e}`, "error");
@@ -344,14 +354,24 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ loading: true });
     try {
       const data = await api.post<PreviewResponse>("restore");
-      set({
-        previewImage: data.image,
-        bboxes: data.bboxes,
-        imgSize: data.img_size,
-        overrides: {},
-        selectedElement: null,
-        selectedBbox: null,
-      });
+      const selId = get().selectedFigureId;
+      if (selId) {
+        set((s) => ({
+          placedFigures: s.placedFigures.map((f) =>
+            f.id === selId
+              ? {
+                  ...f,
+                  previewImage: data.image,
+                  bboxes: data.bboxes,
+                  imgSize: data.img_size,
+                }
+              : f,
+          ),
+          overrides: {},
+          selectedElement: null,
+          selectedBbox: null,
+        }));
+      }
       get().showToast("Restored to original", "success");
     } catch (e) {
       console.error("[Editor] Failed to restore:", e);
@@ -361,32 +381,41 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
   },
 
-  setDarkMode: (dark) => {
+  // ── UI toggles ──────────────────────────────────────────
+  setDarkMode: async (dark) => {
     set({ darkMode: dark });
-    // Sync with backend
-    api.post("update", { dark_mode: dark }).catch(console.error);
+    // Update backend and re-render with correct text colors
+    const data = await api.post<PreviewResponse>("update", { dark_mode: dark });
+    if (data?.image) {
+      const { selectedFigureId } = get();
+      if (selectedFigureId) {
+        set((s) => ({
+          placedFigures: s.placedFigures.map((f) =>
+            f.id === selectedFigureId
+              ? {
+                  ...f,
+                  previewImage: data.image,
+                  bboxes: data.bboxes,
+                  imgSize: data.img_size,
+                }
+              : f,
+          ),
+        }));
+      }
+    }
   },
-
-  toggleHitmap: () => {
-    set((s) => ({ showHitmap: !s.showHitmap }));
-  },
-
-  toggleRulers: () => {
-    set((s) => ({ showRulers: !s.showRulers }));
-  },
-
-  toggleRulerUnit: () => {
+  toggleHitmap: () => set((s) => ({ showHitmap: !s.showHitmap })),
+  toggleSnap: () => set((s) => ({ snapEnabled: !s.snapEnabled })),
+  toggleRulers: () => set((s) => ({ showRulers: !s.showRulers })),
+  toggleRulerUnit: () =>
     set((s) => {
       const next = s.rulerUnit === "mm" ? "inch" : "mm";
       localStorage.setItem("figrecipe-ruler-unit", next);
       return { rulerUnit: next };
-    });
-  },
-
+    }),
   showToast: (message, type = "info") => {
     set({ toast: { message, type } });
     setTimeout(() => set({ toast: null }), 3000);
   },
-
   clearToast: () => set({ toast: null }),
 }));

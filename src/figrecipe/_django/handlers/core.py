@@ -21,6 +21,11 @@ def _regen_hitmap(editor, img_size):
 def handle_preview(request, editor):
     from figrecipe._editor._helpers import render_with_overrides
 
+    # Frontend can pass dark_mode to override backend default
+    dark = request.GET.get("dark_mode")
+    if dark is not None:
+        editor.dark_mode = dark == "true"
+
     img, bboxes, size = render_with_overrides(
         editor.fig, editor.get_effective_style(), editor.dark_mode
     )
@@ -29,6 +34,7 @@ def handle_preview(request, editor):
             "image": img,
             "bboxes": bboxes,
             "img_size": {"width": size[0], "height": size[1]},
+            "dark_mode": editor.dark_mode,
         }
     )
 

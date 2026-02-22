@@ -3,13 +3,17 @@
 import { useEditorStore } from "../../store/useEditorStore";
 import { Properties } from "../Properties/Properties";
 
-export function PropertiesPane() {
+interface PropertiesPaneProps {
+  onHeaderDoubleClick?: () => void;
+}
+
+export function PropertiesPane({ onHeaderDoubleClick }: PropertiesPaneProps) {
   const { selectedElement, selectedBbox } = useEditorStore();
 
   return (
     <>
       {/* vis_app .pane-header */}
-      <div className="pane-header">
+      <div className="pane-header" onDoubleClick={onHeaderDoubleClick}>
         {/* Details title */}
         <span className="pane-header-title">
           <i className="fas fa-sliders-h" />

@@ -7,21 +7,23 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
+import { CANVAS_H, CANVAS_W, DPI } from "../../hooks/useSnap";
 import { useEditorStore } from "../../store/useEditorStore";
-import { BboxOverlay } from "./BboxOverlay";
+import { PlacedFigure } from "./PlacedFigure";
 import { HorizontalRuler, VerticalRuler } from "./Rulers";
+import { SnapGuides } from "./SnapGuides";
 import { useZoomPan } from "./useZoomPan";
-
-// ── Constants ────────────────────────────────────────────────
-const DPI = 300;
-// Canvas = fixed paper size (A4: 210mm x 297mm @ 300 DPI)
-const CANVAS_W = Math.round(210 * (DPI / 25.4)); // 2480px
-const CANVAS_H = Math.round(297 * (DPI / 25.4)); // 3508px
 
 // ── Main Canvas ──────────────────────────────────────────────
 export function Canvas() {
-  const { previewImage, imgSize, showHitmap, rulerUnit, toggleRulerUnit } =
-    useEditorStore();
+  const {
+    placedFigures,
+    rulerUnit,
+    toggleRulerUnit,
+    selectFigure,
+    darkMode,
+    activeSnapGuides,
+  } = useEditorStore();
 
   const outerRef = useRef<HTMLDivElement>(null);
   const {
@@ -47,24 +49,19 @@ export function Canvas() {
     });
   }, [zoomIn, zoomOut, fitCanvas, resetView]);
 
-  // Auto-fit on mount and when image loads
+  // Auto-fit only on first figure load — don't reset view when adding more
   const didAutoFit = useRef(false);
   useEffect(() => {
-    if (!didAutoFit.current || imgSize) {
+    if (!didAutoFit.current && placedFigures.length > 0) {
       didAutoFit.current = true;
       zoomToFit(CANVAS_W, CANVAS_H);
     }
-  }, [imgSize, zoomToFit]);
+  }, [placedFigures.length, zoomToFit]);
 
-  const handleElementClick = useCallback((elementId: string) => {
-    const { bboxes, selectElement } = useEditorStore.getState();
-    const bbox =
-      bboxes[elementId] ??
-      Object.values(bboxes).find(
-        (b) => b.label === elementId || b.call_id === elementId,
-      );
-    selectElement(elementId, bbox);
-  }, []);
+  // Click on empty canvas background → deselect
+  const handleCanvasClick = useCallback(() => {
+    selectFigure(null);
+  }, [selectFigure]);
 
   return (
     <div
@@ -106,38 +103,33 @@ export function Canvas() {
         />
         <div
           className="vis-canvas-container"
-          data-canvas-theme="dark"
+          data-canvas-theme={darkMode ? "dark" : "light"}
           style={{ width: CANVAS_W, height: CANVAS_H }}
+          onClick={handleCanvasClick}
         >
-          {previewImage ? (
-            <>
-              <img
-                className="canvas-image"
-                src={`data:image/png;base64,${previewImage}`}
-                alt="Figure preview"
-                draggable={false}
-                style={
-                  imgSize
-                    ? { width: imgSize.width, height: imgSize.height }
-                    : undefined
-                }
-              />
-              {imgSize && (
-                <BboxOverlay
-                  onElementClick={handleElementClick}
-                  imgWidth={imgSize.width}
-                  imgHeight={imgSize.height}
-                  alwaysVisible={showHitmap}
-                />
-              )}
-            </>
-          ) : (
+          {placedFigures.length === 0 ? (
             <div className="canvas-empty">
               <p>No figure loaded</p>
               <p className="canvas-empty__hint">
                 Select a file from the browser or create a new figure
               </p>
             </div>
+          ) : (
+            <>
+              {placedFigures.map((fig, idx) => (
+                <PlacedFigure
+                  key={fig.id}
+                  figure={fig}
+                  zoom={zoom}
+                  figureIndex={idx}
+                />
+              ))}
+              <SnapGuides
+                guides={activeSnapGuides}
+                canvasWidth={CANVAS_W}
+                canvasHeight={CANVAS_H}
+              />
+            </>
           )}
         </div>
         <VerticalRuler

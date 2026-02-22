@@ -134,36 +134,60 @@ def extract_collections(
         elif isinstance(coll, PolyCollection):
             if not coll.get_visible():
                 continue
-            bbox = get_collection_bbox(
-                coll,
-                ax,
-                fig,
-                renderer,
-                tight_bbox,
-                img_width,
-                img_height,
-                scale_x,
-                scale_y,
-                pad_inches,
-                saved_height_inches,
-                False,
-            )
-            if bbox:
-                bboxes[f"ax{ax_idx}_fill{i}"] = {
-                    **bbox,
-                    "type": "fill",
-                    "label": coll.get_label() or f"fill_{i}",
-                    "ax_index": ax_idx,
-                }
+            # Try per-path bboxes (e.g., individual violin bodies)
+            paths = coll.get_paths()
+            if len(paths) > 1:
+                from ._per_element import extract_polycoll_per_path
+
+                extract_polycoll_per_path(
+                    coll,
+                    paths,
+                    i,
+                    ax,
+                    ax_idx,
+                    fig,
+                    tight_bbox,
+                    img_width,
+                    img_height,
+                    scale_x,
+                    scale_y,
+                    pad_inches,
+                    saved_height_inches,
+                    bboxes,
+                )
+            else:
+                bbox = get_collection_bbox(
+                    coll,
+                    ax,
+                    fig,
+                    renderer,
+                    tight_bbox,
+                    img_width,
+                    img_height,
+                    scale_x,
+                    scale_y,
+                    pad_inches,
+                    saved_height_inches,
+                    False,
+                )
+                if bbox:
+                    bboxes[f"ax{ax_idx}_fill{i}"] = {
+                        **bbox,
+                        "type": "fill",
+                        "label": coll.get_label() or f"fill_{i}",
+                        "ax_index": ax_idx,
+                    }
 
         elif isinstance(coll, LineCollection):
             if not coll.get_visible():
                 continue
-            bbox = get_collection_bbox(
+            # Extract segment midpoints as points for polyline rendering
+            from ._per_element import extract_linecoll_with_points
+
+            bbox = extract_linecoll_with_points(
                 coll,
                 ax,
                 fig,
-                renderer,
                 tight_bbox,
                 img_width,
                 img_height,
@@ -171,7 +195,7 @@ def extract_collections(
                 scale_y,
                 pad_inches,
                 saved_height_inches,
-                False,
+                renderer,
             )
             if bbox:
                 bboxes[f"ax{ax_idx}_linecoll{i}"] = {
@@ -243,9 +267,10 @@ def extract_patches(
     bboxes,
 ):
     """Extract bboxes for patch elements (bars, wedges, polygons, diagram boxes)."""
-    from matplotlib.patches import FancyBboxPatch, Polygon, Wedge
+    from matplotlib.patches import FancyBboxPatch, PathPatch, Polygon, Wedge
 
     bar_idx = 0
+    boxplot_box_idx = 0
     for i, patch in enumerate(ax.patches):
         if isinstance(patch, FancyBboxPatch):
             if not patch.get_visible():
@@ -345,6 +370,32 @@ def extract_patches(
                     "label": patch.get_label() or f"fill_{i}",
                     "ax_index": ax_idx,
                 }
+
+        elif isinstance(patch, PathPatch):
+            # PathPatch: boxplot boxes (patch_artist=True)
+            if not patch.get_visible():
+                continue
+            bbox = get_patch_bbox(
+                patch,
+                ax,
+                fig,
+                renderer,
+                tight_bbox,
+                img_width,
+                img_height,
+                scale_x,
+                scale_y,
+                pad_inches,
+                saved_height_inches,
+            )
+            if bbox:
+                bboxes[f"ax{ax_idx}_boxplot_box{boxplot_box_idx}"] = {
+                    **bbox,
+                    "type": "boxplot",
+                    "label": f"boxplot_box_{boxplot_box_idx}",
+                    "ax_index": ax_idx,
+                }
+            boxplot_box_idx += 1
 
 
 def extract_images(

@@ -3,7 +3,11 @@
 import { useEditorStore } from "../../store/useEditorStore";
 import { FileBrowser } from "../FileBrowser/FileBrowser";
 
-export function FileTreePane() {
+interface FileTreePaneProps {
+  onHeaderDoubleClick?: () => void;
+}
+
+export function FileTreePane({ onHeaderDoubleClick }: FileTreePaneProps) {
   const { files } = useEditorStore();
 
   const fileCount = files.reduce((n, item) => {
@@ -14,7 +18,7 @@ export function FileTreePane() {
   return (
     <>
       {/* vis_app .pane-header */}
-      <div className="pane-header">
+      <div className="pane-header" onDoubleClick={onHeaderDoubleClick}>
         <span className="pane-header-title">
           <i className="fas fa-folder-open" />
           Files

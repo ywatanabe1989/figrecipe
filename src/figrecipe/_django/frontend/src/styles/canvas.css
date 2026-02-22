@@ -138,6 +138,52 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
+/* Light canvas theme — from vis_app GridManager.ts GRID_LIGHT_SVG */
+.vis-canvas-container[data-canvas-theme="light"] {
+  background-color: #fdfcfa;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='531.496' height='8'%3E%3Crect x='530.496' y='0' width='1' height='4' fill='%234488aa' opacity='0.5'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='118.11023622047244' height='118.11023622047244'%3E%3Cline x1='0' y1='0' x2='0' y2='118.11' stroke='%23aaa6a2' stroke-width='1'/%3E%3Cline x1='0' y1='0' x2='118.11' y2='0' stroke='%23aaa6a2' stroke-width='1'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11.811023622047244' height='11.811023622047244'%3E%3Cline x1='0' y1='0' x2='0' y2='11.811' stroke='%23ccc8c4' stroke-width='0.5'/%3E%3Cline x1='0' y1='0' x2='11.811' y2='0' stroke='%23ccc8c4' stroke-width='0.5'/%3E%3C/svg%3E");
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Placed figure (composition object on canvas) ───── */
+
+.placed-figure {
+  cursor: pointer;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  transition: outline-color 0.15s;
+}
+
+.placed-figure:hover {
+  outline-color: rgba(255, 255, 255, 0.25);
+}
+
+.placed-figure.selected {
+  outline-color: var(--accent-primary, #4a9b7e);
+  outline-width: 2px;
+}
+
+.placed-figure.grouped {
+  outline-color: rgba(168, 85, 247, 0.35);
+  outline-style: dashed;
+}
+
+.placed-figure.grouped.selected {
+  outline-color: var(--accent-primary, #4a9b7e);
+  outline-style: solid;
+}
+
+.placed-figure.dragging {
+  opacity: 0.7;
+  outline: 2px dashed #2563eb;
+  outline-offset: 2px;
+  cursor: move;
+  z-index: 100;
+}
+
 /* ── Figure image ────────────────────────────────────── */
 
 .canvas-image {
@@ -259,25 +305,132 @@
   fill: var(--accent-primary);
 }
 
+/* ── Scatter circles ────────────────────────────────── */
+
+.bbox-circle {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 1;
+  pointer-events: all;
+  cursor: pointer;
+  transition:
+    fill 0.15s,
+    stroke 0.15s;
+}
+
+.bbox-circle:hover,
+.bbox-group:hover .bbox-circle {
+  fill: var(--element-color);
+  fill-opacity: 0.2;
+  stroke: var(--element-color);
+  stroke-opacity: 0.5;
+  stroke-width: 1;
+}
+
 /* ── Hitmap debug: always-visible mode ──────────────── */
+/* Flask-style: subtle grey strokes; colors only on hover */
 
 .bbox-overlay--visible .bbox-rect {
-  fill: var(--element-color);
-  fill-opacity: 0.15;
-  stroke: var(--element-color);
-  stroke-opacity: 0.7;
+  fill: transparent;
+  stroke: rgba(128, 128, 128, 0.3);
   stroke-width: 1.5;
+  stroke-dasharray: 6 3;
+}
+
+.bbox-overlay--visible .bbox-rect:hover,
+.bbox-overlay--visible .bbox-group:hover .bbox-rect {
+  fill: var(--element-color);
+  fill-opacity: 0.2;
+  stroke: var(--element-color);
+  stroke-opacity: 0.8;
+  stroke-width: 3;
   stroke-dasharray: none;
 }
 
 .bbox-overlay--visible .bbox-polyline {
+  stroke: rgba(128, 128, 128, 0.2);
+  stroke-width: 6;
+}
+
+.bbox-overlay--visible .bbox-group:hover .bbox-polyline {
   stroke: var(--element-color);
   stroke-opacity: 0.4;
   stroke-width: 8;
 }
 
+.bbox-overlay--visible .bbox-circle {
+  fill: transparent;
+  stroke: rgba(128, 128, 128, 0.3);
+  stroke-width: 1;
+}
+
+.bbox-overlay--visible .bbox-group:hover .bbox-circle {
+  fill: var(--element-color);
+  fill-opacity: 0.15;
+  stroke: var(--element-color);
+  stroke-opacity: 0.4;
+  stroke-width: 1;
+}
+
 .bbox-overlay--visible .bbox-label {
   opacity: 1;
+}
+
+/* ── Selected overrides visible mode ───────────────── */
+
+.bbox-overlay--visible .bbox-group--selected .bbox-rect {
+  fill: rgba(139, 148, 158, 0.15);
+  stroke: var(--accent-primary);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+.bbox-overlay--visible .bbox-group--selected .bbox-polyline {
+  stroke: var(--accent-primary);
+  stroke-opacity: 0.75;
+  stroke-width: 10;
+}
+
+.bbox-overlay--visible .bbox-group--selected .bbox-circle {
+  fill: var(--accent-primary);
+  fill-opacity: 0.2;
+  stroke: var(--accent-primary);
+  stroke-opacity: 0.6;
+}
+
+/* ── Caption overlay ─────────────────────────────────── */
+
+.caption-overlay {
+  padding: 6px 4px;
+  text-align: center;
+  user-select: none;
+  cursor: default;
+}
+
+.caption-text {
+  font-family: "Times New Roman", Georgia, serif;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+  line-height: 1.4;
+}
+
+.caption-text--empty {
+  color: var(--vis-text-muted);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.caption-input {
+  width: 100%;
+  padding: 4px 8px;
+  font-family: "Times New Roman", Georgia, serif;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+  background: var(--vis-bg-secondary);
+  border: 1px solid var(--accent-primary, #4a9b7e);
+  border-radius: 3px;
+  outline: none;
+  text-align: center;
 }
 
 /* ── Zoom indicator ─────────────────────────────────── */

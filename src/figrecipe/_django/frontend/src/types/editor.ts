@@ -16,6 +16,17 @@ export interface ImgSize {
   height: number;
 }
 
+export interface PlacedFigure {
+  id: string;
+  path: string;
+  x: number;
+  y: number;
+  previewImage: string;
+  bboxes: Record<string, BBox>;
+  imgSize: ImgSize;
+  groupId?: string;
+}
+
 export interface FileTreeItem {
   name: string;
   path: string;
@@ -52,6 +63,7 @@ export interface PreviewResponse {
   image: string;
   bboxes: Record<string, BBox>;
   img_size: ImgSize;
+  dark_mode?: boolean;
 }
 
 export interface HitmapResponse {

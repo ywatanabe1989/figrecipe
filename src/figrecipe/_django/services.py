@@ -56,8 +56,15 @@ def _create_editor(
 
     # Use fig._fig.savefig() to avoid RecordingFigure's recipe save path
     mpl_fig = fig._fig if hasattr(fig, "_fig") else fig
+    # Make axes backgrounds transparent (savefig transparent only affects figure patch)
+    saved_facecolors = []
+    for ax in mpl_fig.get_axes():
+        saved_facecolors.append((ax, ax.get_facecolor()))
+        ax.set_facecolor("none")
     static_png_path = Path(tempfile.mktemp(suffix="_figrecipe_static.png"))
-    mpl_fig.savefig(static_png_path, format="png", dpi=150)
+    mpl_fig.savefig(static_png_path, format="png", dpi=150, transparent=True)
+    for ax, fc in saved_facecolors:
+        ax.set_facecolor(fc)
 
     hitmap_img, color_map = generate_hitmap(fig)
     hitmap_b64 = hitmap_to_base64(hitmap_img)

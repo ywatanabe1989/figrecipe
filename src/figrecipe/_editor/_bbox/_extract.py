@@ -78,36 +78,13 @@ def extract_bboxes(
     fig_width_inches = fig.get_figwidth()
     fig_height_inches = fig.get_figheight()
 
-    # For diagram figures saved with bbox_inches="tight", we need the actual
-    # tight bbox to correctly map display coordinates to the cropped image.
-    is_diagram = getattr(fig, "_figrecipe_diagram", None) is not None
-    if is_diagram:
-        try:
-            fig_tight = fig.get_tightbbox(renderer)
-            if fig_tight is not None:
-                # fig.get_tightbbox() returns in inches for Figure objects
-                tight_bbox = fig_tight
-                from matplotlib import rcParams
-
-                pad_inches = rcParams.get("savefig.pad_inches", 0.1)
-                saved_width_inches = tight_bbox.width + 2 * pad_inches
-                saved_height_inches = tight_bbox.height + 2 * pad_inches
-            else:
-                tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
-                pad_inches = 0.0
-                saved_width_inches = fig_width_inches
-                saved_height_inches = fig_height_inches
-        except Exception:
-            tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
-            pad_inches = 0.0
-            saved_width_inches = fig_width_inches
-            saved_height_inches = fig_height_inches
-    else:
-        # Regular figures: no tight crop, use full figure dimensions
-        tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
-        pad_inches = 0.0
-        saved_width_inches = fig_width_inches
-        saved_height_inches = fig_height_inches
+    # Use full figure bounds (NOT tight bbox) to preserve mm-based coordinates.
+    # FigRecipe's layout is defined in exact mm dimensions — tight bbox would
+    # crop the figure and break the coordinate mapping.
+    tight_bbox = Bbox.from_bounds(0, 0, fig_width_inches, fig_height_inches)
+    pad_inches = 0.0
+    saved_width_inches = fig_width_inches
+    saved_height_inches = fig_height_inches
 
     # Calculate scale factors from saved image size to pixel size
     scale_x = img_width / saved_width_inches if saved_width_inches > 0 else 1

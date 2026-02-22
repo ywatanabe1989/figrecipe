@@ -70,9 +70,13 @@ export function App() {
         {/* Pane 1 — File Tree (200px default) */}
         <aside
           className={`split-pane split-pane-left${fileTreePanel.collapsed ? " collapsed" : ""}`}
-          style={fileTreePanel.collapsed ? undefined : { width: fileTreePanel.width }}
+          style={
+            fileTreePanel.collapsed ? undefined : { width: fileTreePanel.width }
+          }
         >
-          <FileTreePane />
+          <FileTreePane
+            onHeaderDoubleClick={fileTreePanel.headerProps.onDoubleClick}
+          />
         </aside>
 
         <div className="panel-resizer" {...fileTreePanel.resizerProps} />
@@ -82,7 +86,9 @@ export function App() {
           className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
           style={dataPanel.collapsed ? undefined : { width: dataPanel.width }}
         >
-          <DataTablePane />
+          <DataTablePane
+            onHeaderDoubleClick={dataPanel.headerProps.onDoubleClick}
+          />
         </aside>
 
         <div className="panel-resizer" {...dataPanel.resizerProps} />
@@ -99,7 +105,9 @@ export function App() {
           className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
           style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}
         >
-          <PropertiesPane />
+          <PropertiesPane
+            onHeaderDoubleClick={rightPanel.headerProps.onDoubleClick}
+          />
         </aside>
       </div>
 

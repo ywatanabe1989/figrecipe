@@ -4,7 +4,11 @@ import { useCallback, useRef } from "react";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
 
-export function DataTablePane() {
+interface DataTablePaneProps {
+  onHeaderDoubleClick?: () => void;
+}
+
+export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
   const { datatableTabs, activeTabId, showToast, loadDatatable } =
     useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +49,7 @@ export function DataTablePane() {
   return (
     <>
       {/* vis_app .pane-header */}
-      <div className="pane-header">
+      <div className="pane-header" onDoubleClick={onHeaderDoubleClick}>
         {/* Data dropdown */}
         <div className="data-dropdown-container">
           <button className="data-dropdown-toggle" type="button">
