@@ -25,7 +25,7 @@ export interface SnapGuide {
   y1: number;
   x2: number;
   y2: number;
-  type: "axes" | "edge" | "center";
+  type: "axes" | "edge" | "center" | "label";
 }
 
 interface PanelBbox {

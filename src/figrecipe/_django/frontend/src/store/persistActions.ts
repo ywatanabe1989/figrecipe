@@ -36,6 +36,7 @@ function buildComposePayload(get: Get) {
     height: f.imgSize.height,
     image: f.previewImage,
     panel_letter: f.panelLetter,
+    panel_letter_pos: f.panelLetterPos,
   }));
   return { figures, working_dir: workingDir, dark_mode: darkMode };
 }
@@ -184,6 +185,7 @@ export function buildExportPayload(
       height: f.imgSize.height,
       image: f.previewImage,
       panel_letter: f.panelLetter,
+      panel_letter_pos: f.panelLetterPos,
     })),
     working_dir: workingDir,
     dark_mode: darkMode,

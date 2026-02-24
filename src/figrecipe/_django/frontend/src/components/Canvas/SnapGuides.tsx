@@ -12,18 +12,21 @@ const GUIDE_COLOR: Record<SnapGuide["type"], string> = {
   axes: "#00bcd4",
   edge: "#ff6b6b",
   center: "#a855f7",
+  label: "#22c55e",
 };
 
 const GUIDE_WIDTH: Record<SnapGuide["type"], number> = {
   axes: 2,
   edge: 1.5,
   center: 1,
+  label: 1,
 };
 
 const GUIDE_DASH: Record<SnapGuide["type"], string> = {
   axes: "none",
   edge: "none",
   center: "6 3",
+  label: "4 3",
 };
 
 interface Props {

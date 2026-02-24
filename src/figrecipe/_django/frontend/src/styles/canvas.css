@@ -176,46 +176,48 @@
   outline-style: solid;
 }
 
-/* ── Panel letter badge (A, B, C...) ─────────────── */
+/* ── Panel letter (A, B, C...) — plain bold text, publication style ── */
 .panel-letter {
   position: absolute;
-  top: 6px;
-  left: 8px;
   z-index: 5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 15px;
+  font-size: 10pt;
   font-weight: 700;
-  cursor: default;
+  color: #000;
+  cursor: grab;
   user-select: none;
   pointer-events: auto;
+  line-height: 1;
+}
+
+.panel-letter:active {
+  cursor: grabbing;
+}
+
+.panel-letter.dragging {
+  opacity: 0.7;
+  color: var(--accent-primary, #4a9b7e);
+}
+
+.panel-letter.snapped {
+  color: #22c55e;
 }
 
 .panel-letter-input {
   position: absolute;
-  top: 6px;
-  left: 8px;
   z-index: 6;
-  width: 36px;
-  height: 24px;
-  padding: 0 4px;
-  border: 2px solid var(--accent-primary, #4a9b7e);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
+  width: 24px;
+  padding: 0 2px;
+  border: 1px solid var(--accent-primary, #4a9b7e);
+  border-radius: 2px;
+  background: #fff;
+  color: #000;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 15px;
+  font-size: 10pt;
   font-weight: 700;
   text-align: center;
   outline: none;
+  line-height: 1;
 }
 
 .placed-figure.dragging {
@@ -443,10 +445,12 @@
 /* ── Caption overlay ─────────────────────────────────── */
 
 .caption-overlay {
-  padding: 6px 4px;
+  padding: 4px 4px 6px;
   text-align: center;
   user-select: none;
   cursor: default;
+  background: inherit;
+  margin-top: 2px;
 }
 
 .caption-text {

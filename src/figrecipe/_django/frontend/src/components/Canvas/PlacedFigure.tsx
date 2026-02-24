@@ -18,6 +18,7 @@ import type { PlacedFigure as PlacedFigureType } from "../../types/editor";
 import { BboxOverlay } from "./BboxOverlay";
 import { CaptionOverlay } from "./CaptionOverlay";
 import { PanelLetterOverlay } from "./PanelLetterOverlay";
+import type { LabelSnapTarget } from "./PanelLetterOverlay";
 
 interface Props {
   figure: PlacedFigureType;
@@ -119,6 +120,27 @@ export function PlacedFigure({
     [figure.id],
   );
 
+  const handleLetterMove = useCallback(
+    (x: number, y: number) => {
+      useEditorStore.setState((s) => ({
+        placedFigures: s.placedFigures.map((f) =>
+          f.id === figure.id ? { ...f, panelLetterPos: { x, y } } : f,
+        ),
+      }));
+    },
+    [figure.id],
+  );
+
+  // ── Label snap targets (other figures' label centers) ────
+  const labelSnapTargets: LabelSnapTarget[] = useEditorStore((s) =>
+    s.placedFigures
+      .filter((f) => f.id !== figure.id && f.panelLetter)
+      .map((f) => {
+        const lp = f.panelLetterPos ?? { x: 8, y: 6 };
+        return { cx: f.x + lp.x + 7, cy: f.y + lp.y + 7 };
+      }),
+  );
+
   const handleElementClick = useCallback(
     (elementId: string) => {
       const bbox =
@@ -175,7 +197,12 @@ export function PlacedFigure({
         />
         <PanelLetterOverlay
           letter={figure.panelLetter}
+          position={figure.panelLetterPos}
+          zoom={zoom}
+          figureOrigin={{ x: displayX, y: displayY }}
+          snapTargets={labelSnapTargets}
           onChange={handleLetterChange}
+          onMove={handleLetterMove}
         />
       </div>
       <CaptionOverlay

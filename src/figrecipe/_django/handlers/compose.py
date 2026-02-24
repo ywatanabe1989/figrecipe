@@ -93,35 +93,40 @@ def _compose_pil(figures, dark_mode):
         y = int(fig["y"])
         canvas.paste(img, (x, y), img)  # use alpha mask
 
-        # Draw panel letter (A, B, C...) at top-left of figure
+        # Draw panel letter (A, B, C...) — Arial 10pt bold
         panel_letter = fig.get("panel_letter")
         if panel_letter:
             from PIL import ImageDraw, ImageFont
 
             draw = ImageDraw.Draw(canvas)
-            font_size = 18
-            try:
-                font = ImageFont.truetype("DejaVuSans-Bold.ttf", font_size)
-            except (OSError, IOError):
+            # 10pt at 300 DPI = 10 * 300/72 ≈ 42px
+            font_size = round(10 * 300 / 72)
+            for font_name in (
+                "Arial-Bold",
+                "Arial Bold",
+                "arial",
+                "DejaVuSans-Bold",
+                "LiberationSans-Bold",
+            ):
+                try:
+                    font = ImageFont.truetype(f"{font_name}.ttf", font_size)
+                    break
+                except (OSError, IOError):
+                    continue
+            else:
                 font = ImageFont.load_default()
 
-            # Measure text for badge background
-            bbox = draw.textbbox((0, 0), panel_letter, font=font)
-            tw = bbox[2] - bbox[0]
-            th = bbox[3] - bbox[1]
-            pad_x, pad_y = 6, 3
-            bx = x + 8
-            by = y + 6
+            # Respect custom position if provided
+            lpos = fig.get("panel_letter_pos")
+            lx = int(lpos["x"]) if lpos else 8
+            ly = int(lpos["y"]) if lpos else 6
 
-            # Semi-transparent dark badge
-            badge = Image.new("RGBA", (tw + pad_x * 2, th + pad_y * 2), (0, 0, 0, 165))
-            canvas.paste(badge, (bx, by), badge)
-
-            # White bold letter
+            # Plain bold text, no background (publication style)
+            text_color = (255, 255, 255, 255) if dark_mode else (0, 0, 0, 255)
             draw.text(
-                (bx + pad_x - bbox[0], by + pad_y - bbox[1]),
+                (x + lx, y + ly),
                 panel_letter,
-                fill=(255, 255, 255, 255),
+                fill=text_color,
                 font=font,
             )
 

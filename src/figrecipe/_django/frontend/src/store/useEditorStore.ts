@@ -233,6 +233,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           previewImage: data.image,
           bboxes: data.bboxes,
           imgSize: data.img_size,
+          panelLetter: "A",
         };
         set({ placedFigures: [fig], selectedFigureId: fig.id });
       } else if (selectedFigureId) {

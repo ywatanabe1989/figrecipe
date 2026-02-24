@@ -26,6 +26,7 @@ export interface PlacedFigure {
   imgSize: ImgSize;
   groupId?: string;
   panelLetter?: string;
+  panelLetterPos?: { x: number; y: number };
 }
 
 export interface FileTreeItem {
