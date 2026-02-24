@@ -44,4 +44,16 @@ export const api = {
     if (!res.ok) throw new Error(`Download failed: ${res.status}`);
     return res.blob();
   },
+
+  /** POST JSON and receive raw bytes (for compose export). */
+  postBlob: async (endpoint: string, data?: unknown): Promise<Blob> => {
+    const url = buildUrl(endpoint);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+    return res.blob();
+  },
 };

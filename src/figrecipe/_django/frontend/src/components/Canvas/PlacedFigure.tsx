@@ -17,14 +17,21 @@ import { useEditorStore } from "../../store/useEditorStore";
 import type { PlacedFigure as PlacedFigureType } from "../../types/editor";
 import { BboxOverlay } from "./BboxOverlay";
 import { CaptionOverlay } from "./CaptionOverlay";
+import { PanelLetterOverlay } from "./PanelLetterOverlay";
 
 interface Props {
   figure: PlacedFigureType;
   zoom: number;
   figureIndex: number;
+  onContextMenu?: (e: React.MouseEvent, figureId: string) => void;
 }
 
-export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
+export function PlacedFigure({
+  figure,
+  zoom,
+  figureIndex,
+  onContextMenu,
+}: Props) {
   const {
     selectedFigureId,
     selectFigure,
@@ -54,6 +61,12 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
       const otherFigures = state.placedFigures.filter(
         (f) => f.id !== figure.id,
       );
+      // Collect group sibling IDs to exclude from snap targets
+      const excludeIds = figure.groupId
+        ? state.placedFigures
+            .filter((f) => f.groupId === figure.groupId && f.id !== figure.id)
+            .map((f) => f.id)
+        : undefined;
       const panelBboxes = getPanelBboxes(figure);
       return applySnapping(
         rawX,
@@ -64,6 +77,7 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
         otherFigures,
         CANVAS_W,
         CANVAS_H,
+        excludeIds,
       );
     },
     [figure.id, figure.imgSize.width, figure.imgSize.height, figure.bboxes],
@@ -94,6 +108,17 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
     [figure.id, selectFigure, isDragging],
   );
 
+  const handleLetterChange = useCallback(
+    (letter: string) => {
+      useEditorStore.setState((s) => ({
+        placedFigures: s.placedFigures.map((f) =>
+          f.id === figure.id ? { ...f, panelLetter: letter } : f,
+        ),
+      }));
+    },
+    [figure.id],
+  );
+
   const handleElementClick = useCallback(
     (elementId: string) => {
       const bbox =
@@ -121,6 +146,10 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
       }}
       onClick={handleClick}
       onMouseDown={onMouseDown}
+      onContextMenu={(e) => {
+        e.stopPropagation();
+        onContextMenu?.(e, figure.id);
+      }}
     >
       <div
         style={{
@@ -143,6 +172,10 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
           imgWidth={figure.imgSize.width}
           imgHeight={figure.imgSize.height}
           alwaysVisible={showHitmap}
+        />
+        <PanelLetterOverlay
+          letter={figure.panelLetter}
+          onChange={handleLetterChange}
         />
       </div>
       <CaptionOverlay

@@ -136,7 +136,13 @@ export function applySnapping(
   otherFigures: PlacedFigure[],
   canvasW: number,
   canvasH: number,
+  excludeIds?: string[],
 ): { x: number; y: number; guides: SnapGuide[] } {
+  // Filter out group siblings so we don't snap to our own group
+  if (excludeIds && excludeIds.length > 0) {
+    const excludeSet = new Set(excludeIds);
+    otherFigures = otherFigures.filter((f) => !excludeSet.has(f.id));
+  }
   const guides: SnapGuide[] = [];
 
   // ── Collect targets ────────────────────────────────────────

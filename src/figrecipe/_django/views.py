@@ -9,7 +9,11 @@ from pathlib import Path
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from .handlers import HANDLERS, handle_download_fig, handle_single_call
+from .handlers import (
+    HANDLERS,
+    handle_download_fig,
+    handle_single_call,
+)
 from .services import get_or_create_editor
 
 logger = logging.getLogger(__name__)
@@ -55,11 +59,23 @@ def _get_editor(request):
     if not recipe_path:
         return None
     session_key = f"figrecipe_{recipe_path}"
-    return get_or_create_editor(session_key, recipe_path)
+    try:
+        return get_or_create_editor(session_key, recipe_path)
+    except FileNotFoundError:
+        logger.warning("[FigRecipe] Recipe not found: %s", recipe_path)
+        return None
 
 
 # ── Endpoints that work without an editor ──────────────────────────
-_NO_EDITOR_ENDPOINTS = {"ping", "list_themes", "api/files", "api/switch"}
+_NO_EDITOR_ENDPOINTS = {
+    "ping",
+    "list_themes",
+    "api/files",
+    "api/switch",
+    "api/gallery",
+    "api/gallery/add",
+    "api/compose",
+}
 
 
 def editor_page(request):
@@ -78,7 +94,10 @@ def api_dispatch(request, endpoint):
     editor = _get_editor(request)
 
     # Some endpoints require an editor
-    if editor is None and endpoint not in _NO_EDITOR_ENDPOINTS:
+    _no_editor = endpoint in _NO_EDITOR_ENDPOINTS or endpoint.startswith(
+        ("api/compose/export/", "api/gallery/thumbnail/")
+    )
+    if editor is None and not _no_editor:
         handler = HANDLERS.get(endpoint)
         if handler:
             return JsonResponse(
@@ -95,6 +114,16 @@ def api_dispatch(request, endpoint):
             return JsonResponse({"error": str(e)}, status=500)
 
     # Parameterized endpoints
+    if endpoint.startswith("api/gallery/thumbnail/"):
+        from .handlers import handle_gallery_thumbnail
+
+        name = endpoint[len("api/gallery/thumbnail/") :]
+        try:
+            return handle_gallery_thumbnail(request, editor, name)
+        except Exception as e:
+            logger.exception("[FigRecipe] gallery thumbnail/%s", name)
+            return JsonResponse({"error": str(e)}, status=500)
+
     if endpoint.startswith("call/"):
         if editor is None:
             return JsonResponse({"error": "No recipe loaded"}, status=400)
@@ -113,6 +142,16 @@ def api_dispatch(request, endpoint):
             return handle_download_fig(request, editor, fmt)
         except Exception as e:
             logger.exception("[FigRecipe] API error on /download/%s", fmt)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    if endpoint.startswith("api/compose/export/"):
+        from .handlers.compose import handle_compose_export
+
+        fmt = endpoint[len("api/compose/export/") :]
+        try:
+            return handle_compose_export(request, editor, fmt)
+        except Exception as e:
+            logger.exception("[FigRecipe] compose export/%s", fmt)
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": f"Unknown endpoint: {endpoint}"}, status=404)

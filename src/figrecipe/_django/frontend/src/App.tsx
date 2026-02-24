@@ -1,15 +1,19 @@
-/** Root layout — vis_app 4-pane: FileTree | DataTable | Canvas | Details. */
+/** Root layout — vis_app 4-pane: Ribbon | FileTree | DataTable | Canvas | Details. */
 
 import { useEffect } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
 import { FileTreePane } from "./components/FileTreePane/FileTreePane";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
+import { Ribbon } from "./components/Ribbon/Ribbon";
+import { StatusBar } from "./components/StatusBar/StatusBar";
 import { Spinner } from "./components/common/Spinner";
 import { Toast } from "./components/common/Toast";
 import { useElementInspector } from "./hooks/useElementInspector";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { usePanelResize } from "./hooks/usePanelResize";
+import { useSessionPersistence } from "./hooks/useSessionPersistence";
+import { initUndoHistory } from "./hooks/useUndoRedo";
 import { useEditorStore } from "./store/useEditorStore";
 
 export function App() {
@@ -39,6 +43,12 @@ export function App() {
   // Global hooks
   useElementInspector();
   useKeyboardShortcuts();
+  useSessionPersistence();
+
+  // Initialize undo history once on mount
+  useEffect(() => {
+    initUndoHistory();
+  }, []);
 
   const fileTreePanel = usePanelResize({
     direction: "left",
@@ -66,6 +76,7 @@ export function App() {
 
   return (
     <div className="editor-root">
+      <Ribbon />
       <div className="editor-body">
         {/* Pane 1 — File Tree (200px default) */}
         <aside
@@ -111,6 +122,7 @@ export function App() {
         </aside>
       </div>
 
+      <StatusBar />
       {loading && <Spinner />}
       <Toast />
     </div>

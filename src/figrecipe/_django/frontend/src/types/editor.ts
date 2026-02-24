@@ -25,6 +25,7 @@ export interface PlacedFigure {
   bboxes: Record<string, BBox>;
   imgSize: ImgSize;
   groupId?: string;
+  panelLetter?: string;
 }
 
 export interface FileTreeItem {

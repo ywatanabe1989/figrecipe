@@ -2,6 +2,11 @@
 
 @import "./variables.css";
 @import "./layout.css";
+@import "./ribbon.css";
+@import "./context-menu.css";
 @import "./canvas.css";
 @import "./panels.css";
+@import "./gallery.css";
+@import "./export-dialog.css";
+@import "./status-bar.css";
 @import "./feedback.css";

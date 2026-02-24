@@ -2,6 +2,7 @@
 
 import { api } from "../api/client";
 import { getPanelBboxes } from "../hooks/useSnap";
+import { pushUndoState } from "../hooks/useUndoRedo";
 import type { PlacedFigure, PreviewResponse } from "../types/editor";
 
 type Get = () => {
@@ -9,6 +10,7 @@ type Get = () => {
   selectedFigureId: string | null;
   workingDir: string | null;
   currentFile: string | null;
+  darkMode: boolean;
   showToast: (msg: string, type?: "info" | "success" | "error") => void;
   loadFiles: () => Promise<void>;
   loadDatatable: () => Promise<void>;
@@ -56,6 +58,7 @@ export function createFigureActions(set: Set, get: Get) {
           previewImage: data.image,
           bboxes: data.bboxes,
           imgSize: data.img_size,
+          panelLetter: String.fromCharCode(65 + placedFigures.length),
         };
 
         set((s) => ({
@@ -71,6 +74,7 @@ export function createFigureActions(set: Set, get: Get) {
         window.history.replaceState(null, "", `?${params.toString()}`);
 
         get().showToast(`Added: ${path}`, "success");
+        pushUndoState();
         get().loadFiles();
         get().loadDatatable();
       } catch (e) {
@@ -82,10 +86,38 @@ export function createFigureActions(set: Set, get: Get) {
     },
 
     removeFigure: (id: string) => {
-      set((s) => ({
-        placedFigures: s.placedFigures.filter((f) => f.id !== id),
-        selectedFigureId: s.selectedFigureId === id ? null : s.selectedFigureId,
-      }));
+      set((s) => {
+        const remaining = s.placedFigures.filter((f) => f.id !== id);
+        return {
+          placedFigures: remaining.map((f, i) => ({
+            ...f,
+            panelLetter: String.fromCharCode(65 + i),
+          })),
+          selectedFigureId:
+            s.selectedFigureId === id ? null : s.selectedFigureId,
+        };
+      });
+      pushUndoState();
+    },
+
+    /** Reassign A, B, C... by spatial position (top-left first). */
+    reorderPanelLetters: () => {
+      set((s) => {
+        const sorted = [...s.placedFigures].sort((a, b) =>
+          a.y !== b.y ? a.y - b.y : a.x - b.x,
+        );
+        const idToLetter = new Map<string, string>();
+        sorted.forEach((f, i) =>
+          idToLetter.set(f.id, String.fromCharCode(65 + i)),
+        );
+        return {
+          placedFigures: s.placedFigures.map((f) => ({
+            ...f,
+            panelLetter: idToLetter.get(f.id) ?? f.panelLetter,
+          })),
+        };
+      });
+      pushUndoState();
     },
 
     selectFigure: (id: string | null) => {
@@ -114,6 +146,7 @@ export function createFigureActions(set: Set, get: Get) {
           }),
         };
       });
+      pushUndoState();
     },
 
     /** Group selected figures (or all if none selected). */
@@ -125,6 +158,7 @@ export function createFigureActions(set: Set, get: Get) {
           ids.includes(f.id) ? { ...f, groupId } : f,
         ),
       }));
+      pushUndoState();
     },
 
     /** Ungroup figures by group ID. */
@@ -134,6 +168,7 @@ export function createFigureActions(set: Set, get: Get) {
           f.groupId === groupId ? { ...f, groupId: undefined } : f,
         ),
       }));
+      pushUndoState();
     },
 
     /** Align all figures by figure edge or axes edge. */
@@ -152,8 +187,6 @@ export function createFigureActions(set: Set, get: Get) {
     ) => {
       const { placedFigures } = get();
       if (placedFigures.length < 2) return;
-
-      const isAxes = mode.startsWith("axes-");
 
       // Helper: get reference value from first figure
       const first = placedFigures[0];
@@ -247,6 +280,7 @@ export function createFigureActions(set: Set, get: Get) {
           }
         }),
       }));
+      pushUndoState();
     },
 
     /** Distribute figures evenly. */
@@ -304,6 +338,7 @@ export function createFigureActions(set: Set, get: Get) {
           }),
         }));
       }
+      pushUndoState();
     },
   };
 }

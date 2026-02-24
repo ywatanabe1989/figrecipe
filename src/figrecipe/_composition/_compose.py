@@ -188,6 +188,7 @@ def _compose_mm_based(
 ) -> Tuple[RecordingFigure, List[RecordingAxes]]:
     """Mm-based composition using fig.add_axes() for precise positioning."""
     import matplotlib
+    import matplotlib.pyplot
 
     from .._recorder import Recorder
     from .._wrappers import RecordingAxes as RA

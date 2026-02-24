@@ -1,0 +1,79 @@
+/* Status bar — bottom info strip */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  padding: 0 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.status-bar-left,
+.status-bar-center,
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-bar-left {
+  flex: 1;
+}
+
+.status-bar-center {
+  flex: 1;
+  justify-content: center;
+}
+
+.status-bar-right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.status-item i {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.status-selected {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.status-hint {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.status-group-badge {
+  background: var(--accent-bg);
+  color: var(--accent-color);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+
+.status-toggle {
+  opacity: 0.5;
+}
+
+.status-toggle.active {
+  opacity: 1;
+  color: var(--accent-color);
+}

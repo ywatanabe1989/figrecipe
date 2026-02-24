@@ -7,8 +7,10 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
+import { useContextMenu } from "../../hooks/useContextMenu";
 import { CANVAS_H, CANVAS_W, DPI } from "../../hooks/useSnap";
 import { useEditorStore } from "../../store/useEditorStore";
+import { ContextMenu } from "../ContextMenu/ContextMenu";
 import { PlacedFigure } from "./PlacedFigure";
 import { HorizontalRuler, VerticalRuler } from "./Rulers";
 import { SnapGuides } from "./SnapGuides";
@@ -24,6 +26,12 @@ export function Canvas() {
     darkMode,
     activeSnapGuides,
   } = useEditorStore();
+
+  const {
+    menu,
+    show: showContextMenu,
+    hide: hideContextMenu,
+  } = useContextMenu();
 
   const outerRef = useRef<HTMLDivElement>(null);
   const {
@@ -62,6 +70,22 @@ export function Canvas() {
   const handleCanvasClick = useCallback(() => {
     selectFigure(null);
   }, [selectFigure]);
+
+  // Right-click on canvas → context menu (no figure selected)
+  const handleCanvasContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      showContextMenu(e, null);
+    },
+    [showContextMenu],
+  );
+
+  // Right-click on figure → context menu with figure ID
+  const handleFigureContextMenu = useCallback(
+    (e: React.MouseEvent, figureId: string) => {
+      showContextMenu(e, figureId);
+    },
+    [showContextMenu],
+  );
 
   return (
     <div
@@ -106,6 +130,7 @@ export function Canvas() {
           data-canvas-theme={darkMode ? "dark" : "light"}
           style={{ width: CANVAS_W, height: CANVAS_H }}
           onClick={handleCanvasClick}
+          onContextMenu={handleCanvasContextMenu}
         >
           {placedFigures.length === 0 ? (
             <div className="canvas-empty">
@@ -122,6 +147,7 @@ export function Canvas() {
                   figure={fig}
                   zoom={zoom}
                   figureIndex={idx}
+                  onContextMenu={handleFigureContextMenu}
                 />
               ))}
               <SnapGuides
@@ -164,6 +190,16 @@ export function Canvas() {
       <div className="canvas-zoom-indicator visible">
         {Math.round(zoom * 100)}%
       </div>
+
+      {/* Context menu overlay */}
+      {menu.visible && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          figureId={menu.figureId}
+          onClose={hideContextMenu}
+        />
+      )}
     </div>
   );
 }
