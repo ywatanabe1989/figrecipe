@@ -14,6 +14,16 @@
   overflow: hidden;
 }
 
+/* ── Embedded mode (scitex-cloud integration) ──────── */
+
+.editor-root.embedded {
+  background: transparent;
+}
+
+.editor-root.embedded .editor-body {
+  height: 100%;
+}
+
 /* ── Split panes (vis_app split-view.css) ──────────────── */
 
 .split-pane {
