@@ -37,7 +37,7 @@ def list_available_fonts() -> List[str]:
 
 
 def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
-    """Check if font is available, with fallback and helpful error message.
+    """Check if font is available, with fallback chain.
 
     Parameters
     ----------
@@ -62,16 +62,22 @@ def check_font(font_family: str, fallback: str = "DejaVu Sans") -> str:
     if font_family in available:
         return font_family
 
-    # Font not found - show helpful message
-    similar = [f for f in available if font_family.lower() in f.lower()]
+    # Try a fallback chain: common sans-serif fonts
+    _FALLBACK_CHAIN = ["Arial", "Liberation Sans", "DejaVu Sans"]
+    for candidate in _FALLBACK_CHAIN:
+        if candidate != font_family and candidate in available:
+            warnings.warn(
+                f"Font '{font_family}' not found, using '{candidate}'",
+                UserWarning,
+            )
+            return candidate
 
-    msg = f"Font '{font_family}' not found.\n"
-    if similar:
-        msg += f"  Similar fonts available: {similar[:5]}\n"
-    msg += f"  Using fallback: '{fallback}'\n"
-    msg += "  To see all available fonts: ps.list_available_fonts()\n"
-    msg += "  To install Arial on Linux: sudo apt install ttf-mscorefonts-installer"
+    # Last resort
+    if fallback in available:
+        warnings.warn(
+            f"Font '{font_family}' not found, using fallback '{fallback}'",
+            UserWarning,
+        )
+        return fallback
 
-    warnings.warn(msg, UserWarning)
-
-    return fallback if fallback in available else "DejaVu Sans"
+    return "DejaVu Sans"

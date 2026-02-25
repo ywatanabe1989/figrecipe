@@ -87,24 +87,18 @@ export function App() {
     <div className={embedded ? "editor-root embedded" : "editor-root"}>
       <Ribbon />
       <div className="editor-body">
-        {/* Pane 1 — File Tree (hidden in embedded mode — scitex-cloud provides its own) */}
-        {!embedded && (
-          <>
-            <aside
-              className={`split-pane split-pane-left${fileTreePanel.collapsed ? " collapsed" : ""}`}
-              style={
-                fileTreePanel.collapsed
-                  ? undefined
-                  : { width: fileTreePanel.width }
-              }
-            >
-              <FileTreePane
-                onHeaderDoubleClick={fileTreePanel.headerProps.onDoubleClick}
-              />
-            </aside>
-            <div className="panel-resizer" {...fileTreePanel.resizerProps} />
-          </>
-        )}
+        {/* Pane 1 — File Tree (recipe files) */}
+        <aside
+          className={`split-pane split-pane-left${fileTreePanel.collapsed ? " collapsed" : ""}`}
+          style={
+            fileTreePanel.collapsed ? undefined : { width: fileTreePanel.width }
+          }
+        >
+          <FileTreePane
+            onHeaderDoubleClick={fileTreePanel.headerProps.onDoubleClick}
+          />
+        </aside>
+        <div className="panel-resizer" {...fileTreePanel.resizerProps} />
 
         {/* Pane 2 — Data Table (350px default) */}
         <aside

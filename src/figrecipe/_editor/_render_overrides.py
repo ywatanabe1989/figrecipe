@@ -83,11 +83,18 @@ def _apply_font_overrides(ax: Axes, overrides: Dict[str, Any]) -> None:
 
     family = overrides.get("fonts_family", overrides.get("font_family"))
     if family is not None:
+        from ..styles._fonts import check_font
+
+        family = check_font(family)
         ax.xaxis.label.set_fontfamily(family)
         ax.yaxis.label.set_fontfamily(family)
         ax.title.set_fontfamily(family)
         for label in ax.get_xticklabels() + ax.get_yticklabels():
             label.set_fontfamily(family)
+        legend = ax.get_legend()
+        if legend is not None:
+            for t in legend.get_texts():
+                t.set_fontfamily(family)
 
 
 def _apply_tick_overrides(ax: Axes, overrides: Dict[str, Any]) -> None:
@@ -498,10 +505,5 @@ def _apply_dark_mode_to_axes(ax: Axes, bg_color: str, text_color: str) -> None:
             text.set_color(text_color)
 
 
-__all__ = [
-    "apply_overrides",
-    "apply_color_palette",
-    "apply_dark_mode",
-]
-
+__all__ = ["apply_overrides", "apply_color_palette", "apply_dark_mode"]
 # EOF

@@ -47,7 +47,7 @@ def get_form_values_from_style(style: Dict[str, Any]) -> Dict[str, Any]:
 
     # Fonts
     if "fonts" in style:
-        values["fonts_family"] = style["fonts"].get("family", "Arial")
+        values["fonts_family"] = style["fonts"].get("family", "DejaVu Sans")
         values["fonts_axis_label_pt"] = style["fonts"].get("axis_label_pt", 7)
         values["fonts_tick_label_pt"] = style["fonts"].get("tick_label_pt", 6)
         values["fonts_title_pt"] = style["fonts"].get("title_pt", 8)
@@ -171,6 +171,17 @@ def render_with_overrides(
         layout_name = layout_engine.__class__.__name__
         if "Constrained" in layout_name:
             fig.set_layout_engine("none")
+
+    # Set global font family via rcParams to catch any text matplotlib creates
+    if overrides:
+        import matplotlib as mpl
+
+        from ..styles._fonts import check_font
+
+        font_fam = overrides.get("fonts_family", overrides.get("font_family"))
+        if font_fam:
+            mpl.rcParams["font.family"] = "sans-serif"
+            mpl.rcParams["font.sans-serif"] = [check_font(font_fam)]
 
     # Apply overrides directly to existing figure
     # Skip style overrides for diagram figures — diagrams have their own
