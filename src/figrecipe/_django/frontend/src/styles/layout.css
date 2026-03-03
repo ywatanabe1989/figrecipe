@@ -205,6 +205,17 @@
   margin-left: auto;
 }
 
+/* ── Toolbar separator (thin vertical line between button groups) ── */
+
+.toolbar-sep {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: var(--vis-border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
 /* ── Pane content ──────────────────────────────────────── */
 
 .pane-content {

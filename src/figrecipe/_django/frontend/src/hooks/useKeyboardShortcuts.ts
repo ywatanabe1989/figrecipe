@@ -20,6 +20,8 @@ export function useKeyboardShortcuts() {
       const isEditing =
         tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 
+      console.log("[Keyboard] key:", e.key, "tag:", tag, "isEditing:", isEditing, "mod:", mod);
+
       if (mod && e.key === "s") {
         e.preventDefault();
         save();
@@ -60,11 +62,39 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // Delete/Backspace → remove selected figure (skip when typing)
+      // Ctrl+A → select all figures
+      if (mod && e.key === "a" && !isEditing) {
+        e.preventDefault();
+        const state = useEditorStore.getState();
+        const ids = state.placedFigures.map((f) => f.id);
+        useEditorStore.setState({
+          selectedFigureIds: ids,
+          selectedFigureId: ids.length > 0 ? ids[0] : null,
+        });
+        return;
+      }
+
+      // Delete/Backspace → remove selected figure(s) (skip when typing)
       if ((e.key === "Delete" || e.key === "Backspace") && !isEditing) {
-        if (selectedFigureId) {
+        const state = useEditorStore.getState();
+        const ids =
+          state.selectedFigureIds.length > 0
+            ? [...state.selectedFigureIds]
+            : state.selectedFigureId
+              ? [state.selectedFigureId]
+              : [];
+        console.log("[Keyboard] Delete pressed. selectedFigureId:", state.selectedFigureId,
+          "selectedFigureIds:", state.selectedFigureIds,
+          "ids to delete:", ids,
+          "figures:", state.placedFigures.map(f => f.id));
+        if (ids.length > 0) {
           e.preventDefault();
-          removeFigure(selectedFigureId);
+          for (const id of ids) {
+            console.log("[Keyboard] Removing figure:", id);
+            useEditorStore.getState().removeFigure(id);
+          }
+        } else {
+          console.log("[Keyboard] No figures to delete");
         }
         return;
       }
@@ -93,11 +123,14 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // Ctrl+G → group all figures
+      // Ctrl+G → group selected figures (or all if < 2 selected)
       if (mod && e.key === "g" && !e.shiftKey) {
         e.preventDefault();
         const state = useEditorStore.getState();
-        const ids = state.placedFigures.map((f) => f.id);
+        const ids =
+          state.selectedFigureIds.length >= 2
+            ? state.selectedFigureIds
+            : state.placedFigures.map((f) => f.id);
         if (ids.length >= 2) state.groupFigures(ids);
         return;
       }

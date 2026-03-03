@@ -9,14 +9,15 @@
 
 import type { PlacedFigure } from "../types/editor";
 
-// ── Constants (A4 @ 300 DPI) ─────────────────────────────────
-export const DPI = 300;
-export const MM_PX = DPI / 25.4; // 11.811 px per mm
-export const CANVAS_W = Math.round(210 * MM_PX); // 2480px
-export const CANVAS_H = Math.round(297 * MM_PX); // 3508px
+// ── Constants (180mm × 210mm canvas, DPI from display) ──────
+export const DPI =
+  typeof window !== "undefined" ? Math.round(window.devicePixelRatio * 96) : 96;
+export const MM_PX = DPI / 25.4; // px per mm (display-dependent)
+export const CANVAS_W = Math.round(180 * MM_PX); // 180mm publication width
+export const CANVAS_H = Math.round(210 * MM_PX); // 210mm height
 
-const SNAP_THRESHOLD = 10 * MM_PX; // ~118px hard snap distance (10mm)
-const MAGNETIC_ZONE = 20 * MM_PX; // ~236px magnetic attraction zone (20mm)
+const SNAP_THRESHOLD = 10 * MM_PX; // hard snap distance (10mm)
+const MAGNETIC_ZONE = 20 * MM_PX; // magnetic attraction zone (20mm)
 const GRID_MM = 5; // 5mm grid
 
 // ── Types ────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { SnapGuide } from "../../hooks/useSnap";
 import { CANVAS_H, CANVAS_W } from "../../hooks/useSnap";
 import { useEditorStore } from "../../store/useEditorStore";
+import { getPanelColorByLetter } from "../../utils/panelColors";
 
 /** Absolute canvas position of another panel label's center. */
 export interface LabelSnapTarget {
@@ -201,10 +202,18 @@ export function PanelLetterOverlay({
     );
   }
 
+  const panelColor = getPanelColorByLetter(letter);
+
   return (
     <span
       className={`panel-letter${dragging ? " dragging" : ""}${snapped ? " snapped" : ""}`}
-      style={{ left: pos.x, top: pos.y }}
+      style={{
+        left: pos.x,
+        top: pos.y,
+        backgroundColor: panelColor,
+        color: "#fff",
+        textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+      }}
       onMouseDown={handleMouseDown}
       onDoubleClick={(e) => {
         e.stopPropagation();

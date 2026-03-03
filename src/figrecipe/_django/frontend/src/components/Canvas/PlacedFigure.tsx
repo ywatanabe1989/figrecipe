@@ -15,6 +15,7 @@ import {
 import type { SnapGuide } from "../../hooks/useSnap";
 import { useEditorStore } from "../../store/useEditorStore";
 import type { PlacedFigure as PlacedFigureType } from "../../types/editor";
+import { getPanelColorByLetter } from "../../utils/panelColors";
 import { BboxOverlay } from "./BboxOverlay";
 import { CaptionOverlay } from "./CaptionOverlay";
 import { PanelLetterOverlay } from "./PanelLetterOverlay";
@@ -35,13 +36,18 @@ export function PlacedFigure({
 }: Props) {
   const {
     selectedFigureId,
+    selectedFigureIds,
+    selectedElement,
     selectFigure,
+    toggleFigureSelection,
     selectElement,
     showHitmap,
     moveFigure,
     snapEnabled,
   } = useEditorStore();
   const isSelected = selectedFigureId === figure.id;
+  const isMultiSelected =
+    selectedFigureIds.length > 1 && selectedFigureIds.includes(figure.id);
 
   // ── Drag-to-move ──────────────────────────────────────────
   const handleDragEnd = useCallback(
@@ -104,9 +110,14 @@ export function PlacedFigure({
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!isDragging) selectFigure(figure.id);
+      if (isDragging) return;
+      if (e.ctrlKey || e.metaKey) {
+        toggleFigureSelection(figure.id);
+      } else {
+        selectFigure(figure.id);
+      }
     },
-    [figure.id, selectFigure, isDragging],
+    [figure.id, selectFigure, toggleFigureSelection, isDragging],
   );
 
   const handleLetterChange = useCallback(
@@ -157,15 +168,20 @@ export function PlacedFigure({
   const displayX = isDragging ? figure.x + dragOffset.dx : figure.x;
   const displayY = isDragging ? figure.y + dragOffset.dy : figure.y;
 
+  const panelColor = getPanelColorByLetter(figure.panelLetter ?? "");
+
   return (
     <div
-      className={`placed-figure${isSelected ? " selected" : ""}${isDragging ? " dragging" : ""}${figure.groupId ? " grouped" : ""}`}
-      style={{
-        position: "absolute",
-        left: displayX,
-        top: displayY,
-        width: figure.imgSize.width,
-      }}
+      className={`placed-figure${isSelected ? " selected" : ""}${isMultiSelected ? " multi-selected" : ""}${isDragging ? " dragging" : ""}${figure.groupId ? " grouped" : ""}`}
+      style={
+        {
+          position: "absolute",
+          left: displayX,
+          top: displayY,
+          width: figure.imgSize.width,
+          "--panel-color": panelColor,
+        } as React.CSSProperties
+      }
       onClick={handleClick}
       onMouseDown={onMouseDown}
       onContextMenu={(e) => {
@@ -194,6 +210,7 @@ export function PlacedFigure({
           imgWidth={figure.imgSize.width}
           imgHeight={figure.imgSize.height}
           alwaysVisible={showHitmap}
+          selectedElement={isSelected ? selectedElement : null}
         />
         <PanelLetterOverlay
           letter={figure.panelLetter}

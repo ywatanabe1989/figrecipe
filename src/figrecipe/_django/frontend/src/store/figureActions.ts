@@ -3,17 +3,28 @@
 import { api } from "../api/client";
 import { getPanelBboxes } from "../hooks/useSnap";
 import { pushUndoState } from "../hooks/useUndoRedo";
-import type { PlacedFigure, PreviewResponse } from "../types/editor";
+import type {
+  BBox,
+  PlacedFigure,
+  PreviewResponse,
+  TabData,
+} from "../types/editor";
 
 type Get = () => {
   placedFigures: PlacedFigure[];
   selectedFigureId: string | null;
+  selectedFigureIds: string[];
+  selectedElement: string | null;
+  selectedBbox: BBox | null;
   workingDir: string | null;
   currentFile: string | null;
   darkMode: boolean;
+  datatableTabs: Record<string, TabData>;
+  activeTabId: string | null;
   showToast: (msg: string, type?: "info" | "success" | "error") => void;
   loadFiles: () => Promise<void>;
   loadDatatable: () => Promise<void>;
+  loadPanelPositions: () => Promise<void>;
 };
 type Set = (
   partial:
@@ -77,6 +88,7 @@ export function createFigureActions(set: Set, get: Get) {
         pushUndoState();
         get().loadFiles();
         get().loadDatatable();
+        get().loadPanelPositions();
       } catch (e) {
         console.error("[Editor] Failed to add figure:", e);
         get().showToast(`Error: ${e}`, "error");
@@ -87,7 +99,21 @@ export function createFigureActions(set: Set, get: Get) {
 
     removeFigure: (id: string) => {
       set((s) => {
+        const figure = s.placedFigures.find((f) => f.id === id);
         const remaining = s.placedFigures.filter((f) => f.id !== id);
+
+        // Clean up data table tab for the removed figure
+        const updatedTabs = { ...s.datatableTabs };
+        if (figure?.path) {
+          delete updatedTabs[figure.path];
+        }
+        // If active tab was for this figure, switch to first remaining tab
+        let activeTabId = s.activeTabId;
+        if (figure?.path && activeTabId === figure.path) {
+          const tabKeys = Object.keys(updatedTabs);
+          activeTabId = tabKeys.length > 0 ? tabKeys[0] : null;
+        }
+
         return {
           placedFigures: remaining.map((f, i) => ({
             ...f,
@@ -95,6 +121,11 @@ export function createFigureActions(set: Set, get: Get) {
           })),
           selectedFigureId:
             s.selectedFigureId === id ? null : s.selectedFigureId,
+          selectedFigureIds: s.selectedFigureIds.filter((fid) => fid !== id),
+          selectedElement: s.selectedFigureId === id ? null : s.selectedElement,
+          selectedBbox: s.selectedFigureId === id ? null : s.selectedBbox,
+          datatableTabs: updatedTabs,
+          activeTabId,
         };
       });
       pushUndoState();
@@ -123,6 +154,7 @@ export function createFigureActions(set: Set, get: Get) {
     selectFigure: (id: string | null) => {
       set({
         selectedFigureId: id,
+        selectedFigureIds: id ? [id] : [],
         selectedElement: null,
         selectedBbox: null,
       } as never);

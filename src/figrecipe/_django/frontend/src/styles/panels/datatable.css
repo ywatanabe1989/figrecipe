@@ -93,6 +93,33 @@
   border-bottom: 2px solid var(--status-success);
 }
 
+/* ── Tab close button ────────────────────────────────── */
+
+.datatable-panel__tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 3px;
+  color: var(--vis-text-muted);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  margin-left: 2px;
+}
+
+.datatable-panel__tab:hover .datatable-panel__tab-close {
+  opacity: 0.6;
+}
+
+.datatable-panel__tab-close:hover {
+  opacity: 1 !important;
+  background: rgba(255, 100, 100, 0.2);
+  color: #ff6b6b;
+}
+
 /* ── Empty state ─────────────────────────────────────── */
 
 .datatable-panel__empty {
@@ -160,6 +187,17 @@
 
 .datatable-panel__table tbody tr:nth-child(even):hover {
   background: rgba(107, 168, 154, 0.05);
+}
+
+/* ── Highlighted rows (element ↔ data sync) ──────────── */
+
+.datatable-panel__table tbody tr.datatable-row-highlighted {
+  background: rgba(107, 168, 154, 0.2);
+  outline: 1px solid rgba(107, 168, 154, 0.4);
+}
+
+.datatable-panel__table tbody tr.datatable-row-highlighted:hover {
+  background: rgba(107, 168, 154, 0.25);
 }
 
 /* ── Truncation notice ───────────────────────────────── */

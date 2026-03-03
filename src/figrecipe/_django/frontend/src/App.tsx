@@ -7,7 +7,6 @@ import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
 import { FileTreePane } from "./components/FileTreePane/FileTreePane";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
-import { Ribbon } from "./components/Ribbon/Ribbon";
 import { StatusBar } from "./components/StatusBar/StatusBar";
 import { Spinner } from "./components/common/Spinner";
 import { Toast } from "./components/common/Toast";
@@ -85,7 +84,6 @@ export function App() {
 
   return (
     <div className={embedded ? "editor-root embedded" : "editor-root"}>
-      <Ribbon />
       <div className="editor-body">
         {/* Pane 1 — File Tree (recipe files) */}
         <aside

@@ -1,9 +1,9 @@
 /** Properties panel — orchestrator for element property editing. */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
-import type { CallRecord } from "../../types/editor";
+import { StatsOverlay } from "../StatsOverlay/StatsOverlay";
 import { AxesPositionSection } from "./AxesPositionSection";
 import { LabelsSection } from "./LabelsSection";
 import { LegendSection } from "./LegendSection";
@@ -11,22 +11,19 @@ import { PropRow } from "./PropRow";
 import { PropSection } from "./PropSection";
 
 export function Properties() {
-  const { selectedElement, selectedBbox, showToast, loadPreview } =
-    useEditorStore();
-  const [calls, setCalls] = useState<CallRecord[]>([]);
+  const {
+    selectedElement,
+    selectedBbox,
+    calls: callsMap,
+    showToast,
+    refreshAfterMutation,
+  } = useEditorStore();
   const [activeTab, setActiveTab] = useState<"current" | "preset">("current");
 
-  // Load call records when element is selected
-  useEffect(() => {
-    if (!selectedElement || selectedBbox?.ax_index === undefined) {
-      setCalls([]);
-      return;
-    }
-    api
-      .get<{ calls: CallRecord[] }>(`calls?ax_index=${selectedBbox.ax_index}`)
-      .then((data) => setCalls(data.calls ?? []))
-      .catch(() => setCalls([]));
-  }, [selectedElement, selectedBbox]);
+  // Read calls from centralized store (loaded by selectElement action)
+  const axKey =
+    selectedBbox?.ax_index !== undefined ? String(selectedBbox.ax_index) : null;
+  const calls = axKey ? (callsMap[axKey] ?? []) : [];
 
   const matchedCall = calls.find(
     (c) => c.call_id === selectedBbox?.call_id || c.call_id === selectedElement,
@@ -36,12 +33,12 @@ export function Properties() {
     async (callId: string, param: string, value: unknown) => {
       try {
         await api.post("update_call", { call_id: callId, param, value });
-        loadPreview();
+        refreshAfterMutation();
       } catch (e) {
         showToast(`Update failed: ${e}`, "error");
       }
     },
-    [showToast, loadPreview],
+    [showToast, refreshAfterMutation],
   );
 
   const axIndex = selectedBbox?.ax_index;
@@ -126,6 +123,7 @@ export function Properties() {
             )}
 
             {axIndex !== undefined && <LegendSection axIndex={axIndex} />}
+            {axIndex !== undefined && <StatsOverlay axIndex={axIndex} />}
 
             {calls.length > 0 && (
               <PropSection title="Traces" defaultOpen={false}>

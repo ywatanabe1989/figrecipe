@@ -84,3 +84,32 @@ export interface ThemeInfo {
   themes: string[];
   current: string;
 }
+
+/** Labels for axes (title, xlabel, ylabel). */
+export interface AxesLabels {
+  title: string;
+  xlabel: string;
+  ylabel: string;
+  suptitle: string;
+}
+
+/** Mapping from element to data columns/rows it uses. */
+export interface ElementDataLink {
+  columns: string[];
+  rowIndices: number[];
+}
+
+/** Statistical bracket annotation. */
+export interface StatBracket {
+  bracket_id: string;
+  ax_index: number;
+  x1: number;
+  x2: number;
+  y: number | null;
+  p_value: number;
+  stars: string;
+  label: string;
+  style: "bracket" | "asterisk" | "text" | "compact";
+  effect_size: number | null;
+  effect_size_name: string | null;
+}

@@ -5,19 +5,24 @@ import { api } from "../api/client";
 import type { SnapGuide } from "../hooks/useSnap";
 import { pushUndoState } from "../hooks/useUndoRedo";
 import type {
+  AxesLabels,
   BBox,
+  CallRecord,
   ColumnDef,
+  ElementDataLink,
   FileTreeItem,
   FilesResponse,
   HitmapResponse,
   PlacedFigure,
   PreviewResponse,
+  StatBracket,
   StyleOverrides,
   TabData,
   ThemeInfo,
 } from "../types/editor";
 import { createFigureActions } from "./figureActions";
 import { createPersistActions } from "./persistActions";
+import { createSyncActions } from "./syncActions";
 
 interface ZoomControls {
   zoomIn: () => void;
@@ -30,6 +35,7 @@ interface EditorState {
   // ── Canvas figures ──────────────────────────────────────
   placedFigures: PlacedFigure[];
   selectedFigureId: string | null;
+  selectedFigureIds: string[];
 
   // ── Legacy ──────────────────────────────────────────────
   hitmapImage: string | null;
@@ -61,6 +67,17 @@ interface EditorState {
     { left: number; top: number; width: number; height: number }
   >;
   figSizeMm: { width: number; height: number } | null;
+
+  // ── Sync: Element ↔ Data ────────────────────────────────
+  elementDataMap: Record<string, ElementDataLink>;
+  highlightedDataRows: number[];
+
+  // ── Sync: Calls & Labels (moved from Properties local state) ──
+  calls: Record<string, CallRecord[]>;
+  labels: Record<string, AxesLabels>;
+
+  // ── Sync: Stat brackets ───────────────────────────────
+  statBrackets: Record<string, StatBracket[]>;
 
   // ── Clipboard ──────────────────────────────────────────
   clipboard: PlacedFigure | null;
@@ -106,6 +123,8 @@ interface EditorState {
   groupFigures: (ids: string[]) => void;
   ungroupFigures: (groupId: string) => void;
 
+  toggleFigureSelection: (id: string) => void;
+
   copyFigure: () => void;
   pasteFigure: () => void;
   bringToFront: (id: string) => void;
@@ -117,6 +136,19 @@ interface EditorState {
   updateOverrides: (overrides: StyleOverrides) => Promise<void>;
   save: () => Promise<void>;
   restore: () => Promise<void>;
+
+  // ── Sync actions ───────────────────────────────────────
+  loadCalls: (axIndex: number) => Promise<void>;
+  loadLabels: (axIndex: number) => Promise<void>;
+  highlightDataForElement: (elementId: string | null) => void;
+  refreshAfterMutation: () => Promise<void>;
+
+  // ── Stats bracket actions ─────────────────────────────
+  loadStatBrackets: (axIndex?: number) => Promise<void>;
+  addStatBracket: (
+    bracket: Omit<StatBracket, "bracket_id"> & { bracket_id?: string },
+  ) => Promise<string | null>;
+  removeStatBracket: (axIndex: number, bracketId: string) => Promise<boolean>;
 
   setDarkMode: (dark: boolean) => void;
   toggleHitmap: () => void;
@@ -132,6 +164,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   // ── Initial state ───────────────────────────────────────
   placedFigures: [],
   selectedFigureId: null,
+  selectedFigureIds: [],
   hitmapImage: null,
   colorMap: {},
   loading: false,
@@ -142,6 +175,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   workingDir: null,
   datatableTabs: {},
   activeTabId: null,
+  elementDataMap: {},
+  highlightedDataRows: [],
+  calls: {},
+  labels: {},
+  statBrackets: {},
   panelPositions: {},
   figSizeMm: null,
   darkMode: false,
@@ -163,6 +201,24 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   // ── Persist actions (save/restore/theme/overrides) ──────
   ...createPersistActions(set as any, get as any),
+
+  // ── Multi-selection ────────────────────────────────────
+  toggleFigureSelection: (id: string) => {
+    set((s) => {
+      const current = s.selectedFigureIds;
+      // If nothing selected yet, start multi-select from current + new
+      let base = current.length > 0 ? current : (s.selectedFigureId ? [s.selectedFigureId] : []);
+      const ids = base.includes(id)
+        ? base.filter((fid) => fid !== id)
+        : [...base, id];
+      return {
+        selectedFigureIds: ids,
+        selectedFigureId: ids.length > 0 ? ids[ids.length - 1] : null,
+        selectedElement: null,
+        selectedBbox: null,
+      };
+    });
+  },
 
   // ── Clipboard & layer operations ──────────────────────
   copyFigure: () => {
@@ -294,6 +350,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       const data = await api.get<{
         columns: ColumnDef[];
         rows: (string | number)[][];
+        element_data_map?: Record<
+          string,
+          { columns: string[]; row_indices: number[] }
+        >;
       }>("datatable/data");
       const tab: TabData = {
         id: "main",
@@ -301,7 +361,24 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         columns: data.columns ?? [],
         rows: data.rows ?? [],
       };
-      set({ datatableTabs: { main: tab }, activeTabId: "main" });
+      // Build element-data mapping if provided by backend
+      const elementDataMap: Record<
+        string,
+        { columns: string[]; rowIndices: number[] }
+      > = {};
+      if (data.element_data_map) {
+        for (const [key, val] of Object.entries(data.element_data_map)) {
+          elementDataMap[key] = {
+            columns: val.columns,
+            rowIndices: val.row_indices,
+          };
+        }
+      }
+      set({
+        datatableTabs: { main: tab },
+        activeTabId: "main",
+        elementDataMap,
+      });
     } catch (e) {
       console.warn("[Editor] No datatable data available:", e);
     }
@@ -331,6 +408,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
   },
 
+  // ── Sync actions (calls, labels, highlights, stats brackets) ──
+  ...createSyncActions(set as any, get as any),
+
   // ── Selection ───────────────────────────────────────────
   selectElement: (elementId, bbox, figureId) => {
     set({
@@ -338,6 +418,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       selectedBbox: bbox ?? null,
       selectedFigureId: figureId ?? get().selectedFigureId,
     });
+    // Sync gap fix: load calls/labels and highlight data rows
+    if (bbox?.ax_index !== undefined) {
+      get().loadCalls(bbox.ax_index);
+      get().loadLabels(bbox.ax_index);
+    }
+    get().highlightDataForElement(elementId);
   },
 
   switchFile: async (path) => get().addFigure(path),

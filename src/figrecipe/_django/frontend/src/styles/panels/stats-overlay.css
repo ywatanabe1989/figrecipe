@@ -1,0 +1,89 @@
+/* FigRecipe Editor — Stats Overlay (bracket controls in Properties pane) */
+
+.stats-overlay {
+  padding: 8px 12px;
+  border-top: 1px solid var(--vis-border);
+}
+
+.stats-overlay__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.stats-overlay__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vis-text-primary);
+}
+
+.stats-overlay__title i {
+  margin-right: 6px;
+  opacity: 0.6;
+}
+
+.stats-overlay__add-btn {
+  background: transparent;
+  border: 1px solid var(--vis-border);
+  border-radius: 4px;
+  color: var(--vis-text-muted);
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 11px;
+  transition: all 0.15s ease;
+}
+
+.stats-overlay__add-btn:hover {
+  background: var(--vis-bg-hover);
+  color: var(--vis-text-primary);
+  border-color: var(--status-success);
+}
+
+.stats-overlay__empty {
+  font-size: 12px;
+  color: var(--vis-text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.stats-overlay__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stats-overlay__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats-overlay__label {
+  color: var(--vis-text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.stats-overlay__pval {
+  color: var(--vis-text-muted);
+}
+
+.stats-overlay__remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--vis-text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 11px;
+  opacity: 0.5;
+  transition: all 0.15s ease;
+}
+
+.stats-overlay__remove-btn:hover {
+  color: var(--status-error);
+  opacity: 1;
+}

@@ -53,6 +53,12 @@ from .image import (
     handle_add_image_panel,
     handle_load_recipe,
 )
+from .stats import (
+    handle_stats_add_bracket,
+    handle_stats_list_brackets,
+    handle_stats_remove_bracket,
+    handle_stats_update_bracket,
+)
 from .style import (
     handle_diff,
     handle_get_theme,
@@ -130,6 +136,12 @@ HANDLERS = {
 
     # Compose
     "api/compose":                  handle_compose_save,
+
+    # Stats annotations
+    "stats/add_bracket":            handle_stats_add_bracket,
+    "stats/remove_bracket":         handle_stats_remove_bracket,
+    "stats/update_bracket":         handle_stats_update_bracket,
+    "stats/list_brackets":          handle_stats_list_brackets,
 }
 # fmt: on
 

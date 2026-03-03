@@ -158,12 +158,19 @@
 }
 
 .placed-figure:hover {
-  outline-color: rgba(255, 255, 255, 0.25);
+  outline-color: var(--panel-color, rgba(255, 255, 255, 0.25));
+  opacity: 0.85;
 }
 
 .placed-figure.selected {
-  outline-color: var(--accent-primary, #4a9b7e);
+  outline-color: var(--panel-color, var(--accent-primary, #4a9b7e));
   outline-width: 2px;
+}
+
+.placed-figure.multi-selected {
+  outline-color: var(--panel-color, var(--accent-primary, #4a9b7e));
+  outline-width: 2px;
+  outline-style: dashed;
 }
 
 .placed-figure.grouped {
@@ -500,6 +507,16 @@
 
 .canvas-zoom-indicator.visible {
   opacity: 1;
+}
+
+/* ── Marquee selection rectangle ──────────────────────── */
+
+.marquee-selection {
+  position: absolute;
+  border: 1px dashed var(--accent-primary, #4a9b7e);
+  background: rgba(74, 155, 126, 0.1);
+  pointer-events: none;
+  z-index: 50;
 }
 
 /* ── Ruler drag-to-pan (vis_app RulersManager) ────────── */

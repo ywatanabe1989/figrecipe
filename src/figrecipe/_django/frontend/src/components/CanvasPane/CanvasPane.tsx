@@ -1,10 +1,12 @@
-/** Center pane — Canvas with figure dropdown + gallery categories.
- * Controls moved to Ribbon: save, download, align, snap, hitmap, dark mode.
+/** Center pane — Canvas with figure dropdown, gallery categories, and toolbar.
+ * All actions formerly in the Ribbon are now in the pane header toolbar.
  */
 
 import { useState } from "react";
+import { redo, undo } from "../../hooks/useUndoRedo";
 import { useEditorStore } from "../../store/useEditorStore";
 import { Canvas } from "../Canvas/Canvas";
+import { ExportDialog } from "../ExportDialog/ExportDialog";
 import { GalleryPanel } from "../Gallery/GalleryPanel";
 
 const GALLERY_CATEGORIES = [
@@ -21,9 +23,24 @@ const GALLERY_CATEGORIES = [
 ] as const;
 
 export function CanvasPane() {
-  const { placedFigures, selectedFigureId } = useEditorStore();
+  const {
+    placedFigures,
+    selectedFigureId,
+    save,
+    restore,
+    darkMode,
+    setDarkMode,
+    snapEnabled,
+    showRulers,
+    toggleSnap,
+    toggleRulers,
+    zoomControls,
+    showHitmap,
+    toggleHitmap,
+  } = useEditorStore();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryCategory, setGalleryCategory] = useState<string | undefined>();
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Figure label: selected figure name or count
   const selectedFig = placedFigures.find((f) => f.id === selectedFigureId);
@@ -40,7 +57,7 @@ export function CanvasPane() {
 
   return (
     <>
-      {/* vis_app pane-header for canvas */}
+      {/* Pane header with figure dropdown + toolbar actions */}
       <div className="pane-header">
         {/* Figure dropdown */}
         <div className="figure-dropdown-container">
@@ -59,9 +76,6 @@ export function CanvasPane() {
           </button>
         </div>
 
-        {/* WIP badge */}
-        <span className="badge badge-wip">WIP</span>
-
         {/* Gallery category buttons */}
         <div className="gallery-categories">
           {GALLERY_CATEGORIES.map((cat) => (
@@ -77,6 +91,109 @@ export function CanvasPane() {
             </button>
           ))}
         </div>
+
+        {/* Toolbar actions (right-aligned) */}
+        <div className="pane-header-buttons pane-header-right">
+          {/* Undo / Redo */}
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Undo (Ctrl+Z)"
+            onClick={undo}
+          >
+            <i className="fas fa-undo" />
+          </button>
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Redo (Ctrl+Shift+Z)"
+            onClick={redo}
+          >
+            <i className="fas fa-redo" />
+          </button>
+
+          <span className="toolbar-sep" />
+
+          {/* Snap / Rulers */}
+          <button
+            className={`pane-header-btn${snapEnabled ? " pane-header-btn--active" : ""}`}
+            type="button"
+            title={`Snap: ${snapEnabled ? "ON" : "OFF"}`}
+            onClick={toggleSnap}
+          >
+            <i className="fas fa-magnet" />
+          </button>
+          <button
+            className={`pane-header-btn${showRulers ? " pane-header-btn--active" : ""}`}
+            type="button"
+            title="Toggle rulers"
+            onClick={toggleRulers}
+          >
+            <i className="fas fa-ruler-combined" />
+          </button>
+
+          <span className="toolbar-sep" />
+
+          {/* Zoom */}
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Zoom to fit"
+            onClick={zoomControls?.zoomToFit}
+          >
+            <i className="fas fa-compress-arrows-alt" />
+          </button>
+
+          {/* Hitmap */}
+          <button
+            className={`pane-header-btn${showHitmap ? " pane-header-btn--active" : ""}`}
+            type="button"
+            title="Toggle hit regions (debug)"
+            onClick={toggleHitmap}
+          >
+            <i className="fas fa-bullseye" />
+          </button>
+
+          <span className="toolbar-sep" />
+
+          {/* Save / Restore / Export */}
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Save (Ctrl+S)"
+            onClick={save}
+          >
+            <i className="fas fa-save" />
+          </button>
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Restore original"
+            onClick={restore}
+          >
+            <i className="fas fa-undo-alt" />
+          </button>
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Export (PNG/SVG/PDF)"
+            onClick={() => setExportOpen(true)}
+          >
+            <i className="fas fa-download" />
+          </button>
+
+          <span className="toolbar-sep" />
+
+          {/* Theme toggle */}
+          <button
+            className="pane-header-btn"
+            type="button"
+            title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            onClick={() => setDarkMode(!darkMode)}
+          >
+            <i className={darkMode ? "fas fa-moon" : "fas fa-sun"} />
+          </button>
+        </div>
       </div>
 
       {/* Canvas content */}
@@ -91,6 +208,9 @@ export function CanvasPane() {
           initialCategory={galleryCategory}
         />
       )}
+
+      {/* Export dialog */}
+      {exportOpen && <ExportDialog onClose={() => setExportOpen(false)} />}
     </>
   );
 }
