@@ -3,18 +3,54 @@
 import { useCallback, useRef } from "react";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
+import { getPanelColor } from "../../utils/panelColors";
 
 interface DataTablePaneProps {
   onHeaderDoubleClick?: () => void;
 }
 
 export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
-  const { datatableTabs, activeTabId, showToast, loadDatatable } =
-    useEditorStore();
+  const {
+    datatableTabs,
+    activeTabId,
+    highlightedDataRows,
+    placedFigures,
+    removeFigure,
+    showToast,
+    loadDatatable,
+    refreshAfterMutation,
+  } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const tabs = Object.values(datatableTabs);
   const activeTab = activeTabId ? datatableTabs[activeTabId] : null;
+
+  /** Close a tab and remove the corresponding figure from canvas. */
+  const handleCloseTab = useCallback(
+    (tabId: string) => {
+      // Find figure that matches this tab by path, id, or fall back to selected/first
+      const figure =
+        placedFigures.find((f) => f.path === tabId || f.id === tabId) ??
+        placedFigures.find(
+          (f) => f.id === useEditorStore.getState().selectedFigureId,
+        ) ??
+        (placedFigures.length === 1 ? placedFigures[0] : null);
+      if (figure) {
+        removeFigure(figure.id);
+      }
+      // Always remove the tab
+      useEditorStore.setState((s) => {
+        const updated = { ...s.datatableTabs };
+        delete updated[tabId];
+        const remaining = Object.keys(updated);
+        return {
+          datatableTabs: updated,
+          activeTabId: remaining.length > 0 ? remaining[0] : null,
+        };
+      });
+    },
+    [placedFigures, removeFigure],
+  );
 
   const handleExportCsv = useCallback(async () => {
     try {
@@ -39,11 +75,12 @@ export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
         await api.post("datatable/import", { content, format });
         showToast("Imported data", "success");
         loadDatatable();
+        refreshAfterMutation();
       } catch (e) {
         showToast(`Import failed: ${e}`, "error");
       }
     },
-    [showToast, loadDatatable],
+    [showToast, loadDatatable, refreshAfterMutation],
   );
 
   return (
@@ -139,18 +176,31 @@ export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
           </div>
         ) : (
           <>
-            {tabs.length > 1 && (
+            {tabs.length >= 1 && (
               <div className="datatable-panel__tabs">
-                {tabs.map((tab) => (
+                {tabs.map((tab, idx) => (
                   <button
                     key={tab.id}
                     className={`datatable-panel__tab${tab.id === activeTabId ? " active" : ""}`}
+                    style={{
+                      borderLeft: `3px solid ${getPanelColor(idx)}`,
+                    }}
                     onClick={() =>
                       useEditorStore.setState({ activeTabId: tab.id })
                     }
                     type="button"
                   >
                     {tab.label}
+                    <span
+                      className="datatable-panel__tab-close"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCloseTab(tab.id);
+                      }}
+                      title="Close tab and remove figure"
+                    >
+                      &times;
+                    </span>
                   </button>
                 ))}
               </div>
@@ -168,7 +218,14 @@ export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
                   </thead>
                   <tbody>
                     {activeTab.rows.slice(0, 100).map((row, ri) => (
-                      <tr key={ri}>
+                      <tr
+                        key={ri}
+                        className={
+                          highlightedDataRows.includes(ri)
+                            ? "datatable-row-highlighted"
+                            : ""
+                        }
+                      >
                         {row.map((cell, ci) => (
                           <td key={ci}>
                             {typeof cell === "number"

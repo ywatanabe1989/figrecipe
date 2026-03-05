@@ -20,6 +20,7 @@ from .axis import (
     handle_update_label,
     handle_update_legend_position,
 )
+from .compose import handle_compose_save
 from .core import handle_hitmap, handle_ping, handle_preview, handle_update
 from .datatable import (
     handle_datatable_data,
@@ -42,10 +43,21 @@ from .files import (
     handle_api_rename,
     handle_api_switch,
 )
+from .gallery import (
+    handle_gallery_add,
+    handle_gallery_available,
+    handle_gallery_thumbnail,
+)
 from .image import (
     handle_add_image_from_url,
     handle_add_image_panel,
     handle_load_recipe,
+)
+from .stats import (
+    handle_stats_add_bracket,
+    handle_stats_list_brackets,
+    handle_stats_remove_bracket,
+    handle_stats_update_bracket,
 )
 from .style import (
     handle_diff,
@@ -117,6 +129,19 @@ HANDLERS = {
     "api/rename":                   handle_api_rename,
     "api/duplicate":                handle_api_duplicate,
     "api/download":                 handle_api_download_recipe,
+
+    # Gallery
+    "api/gallery":                  handle_gallery_available,
+    "api/gallery/add":              handle_gallery_add,
+
+    # Compose
+    "api/compose":                  handle_compose_save,
+
+    # Stats annotations
+    "stats/add_bracket":            handle_stats_add_bracket,
+    "stats/remove_bracket":         handle_stats_remove_bracket,
+    "stats/update_bracket":         handle_stats_update_bracket,
+    "stats/list_brackets":          handle_stats_list_brackets,
 }
 # fmt: on
 
@@ -124,4 +149,6 @@ __all__ = [
     "HANDLERS",
     "handle_single_call",
     "handle_download_fig",
+    "handle_gallery_thumbnail",
+    "handle_compose_export",
 ]

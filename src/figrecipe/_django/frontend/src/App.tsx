@@ -1,18 +1,29 @@
-/** Root layout — vis_app 4-pane: FileTree | DataTable | Canvas | Details. */
+/** Root layout — vis_app 4-pane: Ribbon | FileTree | DataTable | Canvas | Details.
+ * Supports `?mode=embedded` for scitex-cloud integration (hides FileTree + StatusBar).
+ */
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
 import { FileTreePane } from "./components/FileTreePane/FileTreePane";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
+import { StatusBar } from "./components/StatusBar/StatusBar";
 import { Spinner } from "./components/common/Spinner";
 import { Toast } from "./components/common/Toast";
 import { useElementInspector } from "./hooks/useElementInspector";
+import { useEmbeddedMessages } from "./hooks/useEmbeddedMessages";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { usePanelResize } from "./hooks/usePanelResize";
+import { useSessionPersistence } from "./hooks/useSessionPersistence";
+import { initUndoHistory } from "./hooks/useUndoRedo";
 import { useEditorStore } from "./store/useEditorStore";
 
 export function App() {
+  const embedded = useMemo(
+    () =>
+      new URLSearchParams(window.location.search).get("mode") === "embedded",
+    [],
+  );
   const {
     loading,
     loadPreview,
@@ -39,6 +50,13 @@ export function App() {
   // Global hooks
   useElementInspector();
   useKeyboardShortcuts();
+  useSessionPersistence();
+  useEmbeddedMessages(embedded);
+
+  // Initialize undo history once on mount
+  useEffect(() => {
+    initUndoHistory();
+  }, []);
 
   const fileTreePanel = usePanelResize({
     direction: "left",
@@ -65,9 +83,9 @@ export function App() {
   });
 
   return (
-    <div className="editor-root">
+    <div className={embedded ? "editor-root embedded" : "editor-root"}>
       <div className="editor-body">
-        {/* Pane 1 — File Tree (200px default) */}
+        {/* Pane 1 — File Tree (recipe files) */}
         <aside
           className={`split-pane split-pane-left${fileTreePanel.collapsed ? " collapsed" : ""}`}
           style={
@@ -78,7 +96,6 @@ export function App() {
             onHeaderDoubleClick={fileTreePanel.headerProps.onDoubleClick}
           />
         </aside>
-
         <div className="panel-resizer" {...fileTreePanel.resizerProps} />
 
         {/* Pane 2 — Data Table (350px default) */}
@@ -111,6 +128,7 @@ export function App() {
         </aside>
       </div>
 
+      {!embedded && <StatusBar />}
       {loading && <Spinner />}
       <Toast />
     </div>

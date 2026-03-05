@@ -6,9 +6,11 @@
  * Rulers and canvas move as one object.
  */
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useContextMenu } from "../../hooks/useContextMenu";
 import { CANVAS_H, CANVAS_W, DPI } from "../../hooks/useSnap";
 import { useEditorStore } from "../../store/useEditorStore";
+import { ContextMenu } from "../ContextMenu/ContextMenu";
 import { PlacedFigure } from "./PlacedFigure";
 import { HorizontalRuler, VerticalRuler } from "./Rulers";
 import { SnapGuides } from "./SnapGuides";
@@ -24,6 +26,21 @@ export function Canvas() {
     darkMode,
     activeSnapGuides,
   } = useEditorStore();
+
+  const {
+    menu,
+    show: showContextMenu,
+    hide: hideContextMenu,
+  } = useContextMenu();
+
+  // ── Marquee selection state ───────────────────────────
+  const [marquee, setMarquee] = useState<{
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  } | null>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   const outerRef = useRef<HTMLDivElement>(null);
   const {
@@ -58,10 +75,91 @@ export function Canvas() {
     }
   }, [placedFigures.length, zoomToFit]);
 
-  // Click on empty canvas background → deselect
-  const handleCanvasClick = useCallback(() => {
-    selectFigure(null);
-  }, [selectFigure]);
+  // Mousedown on empty canvas → start marquee or deselect on click
+  const handleCanvasMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0) return;
+      // Only start on the canvas itself, not on child elements
+      if (e.target !== e.currentTarget) return;
+
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const startX = (e.clientX - rect.left) / zoom;
+      const startY = (e.clientY - rect.top) / zoom;
+
+      setMarquee({ x1: startX, y1: startY, x2: startX, y2: startY });
+
+      const handleMove = (ev: MouseEvent) => {
+        const curX = (ev.clientX - rect.left) / zoom;
+        const curY = (ev.clientY - rect.top) / zoom;
+        setMarquee({ x1: startX, y1: startY, x2: curX, y2: curY });
+      };
+
+      const handleUp = (ev: MouseEvent) => {
+        const endX = (ev.clientX - rect.left) / zoom;
+        const endY = (ev.clientY - rect.top) / zoom;
+        const selX = Math.min(startX, endX);
+        const selY = Math.min(startY, endY);
+        const selW = Math.abs(endX - startX);
+        const selH = Math.abs(endY - startY);
+
+        if (selW > 5 || selH > 5) {
+          // Marquee drag — select intersecting figures
+          const state = useEditorStore.getState();
+          const ids = state.placedFigures
+            .filter((fig) => {
+              const fx = fig.x;
+              const fy = fig.y;
+              const fw = fig.imgSize.width;
+              const fh = fig.imgSize.height;
+              return (
+                fx < selX + selW &&
+                fx + fw > selX &&
+                fy < selY + selH &&
+                fy + fh > selY
+              );
+            })
+            .map((fig) => fig.id);
+          if (ids.length > 0) {
+            useEditorStore.setState({
+              selectedFigureIds: ids,
+              selectedFigureId: ids[0],
+              selectedElement: null,
+              selectedBbox: null,
+            });
+          } else {
+            selectFigure(null);
+          }
+        } else {
+          // Simple click — deselect all
+          selectFigure(null);
+        }
+
+        setMarquee(null);
+        document.removeEventListener("mousemove", handleMove);
+        document.removeEventListener("mouseup", handleUp);
+      };
+
+      document.addEventListener("mousemove", handleMove);
+      document.addEventListener("mouseup", handleUp);
+    },
+    [zoom, selectFigure],
+  );
+
+  // Right-click on canvas → context menu (no figure selected)
+  const handleCanvasContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      showContextMenu(e, null);
+    },
+    [showContextMenu],
+  );
+
+  // Right-click on figure → context menu with figure ID
+  const handleFigureContextMenu = useCallback(
+    (e: React.MouseEvent, figureId: string) => {
+      showContextMenu(e, figureId);
+    },
+    [showContextMenu],
+  );
 
   return (
     <div
@@ -102,10 +200,12 @@ export function Canvas() {
           onDoubleClick={handleRulerDoubleClick}
         />
         <div
+          ref={canvasRef}
           className="vis-canvas-container"
           data-canvas-theme={darkMode ? "dark" : "light"}
           style={{ width: CANVAS_W, height: CANVAS_H }}
-          onClick={handleCanvasClick}
+          onMouseDown={handleCanvasMouseDown}
+          onContextMenu={handleCanvasContextMenu}
         >
           {placedFigures.length === 0 ? (
             <div className="canvas-empty">
@@ -122,6 +222,7 @@ export function Canvas() {
                   figure={fig}
                   zoom={zoom}
                   figureIndex={idx}
+                  onContextMenu={handleFigureContextMenu}
                 />
               ))}
               <SnapGuides
@@ -130,6 +231,17 @@ export function Canvas() {
                 canvasHeight={CANVAS_H}
               />
             </>
+          )}
+          {marquee && (
+            <div
+              className="marquee-selection"
+              style={{
+                left: Math.min(marquee.x1, marquee.x2),
+                top: Math.min(marquee.y1, marquee.y2),
+                width: Math.abs(marquee.x2 - marquee.x1),
+                height: Math.abs(marquee.y2 - marquee.y1),
+              }}
+            />
           )}
         </div>
         <VerticalRuler
@@ -164,6 +276,16 @@ export function Canvas() {
       <div className="canvas-zoom-indicator visible">
         {Math.round(zoom * 100)}%
       </div>
+
+      {/* Context menu overlay */}
+      {menu.visible && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          figureId={menu.figureId}
+          onClose={hideContextMenu}
+        />
+      )}
     </div>
   );
 }

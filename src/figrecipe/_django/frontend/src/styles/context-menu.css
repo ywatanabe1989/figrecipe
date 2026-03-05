@@ -1,0 +1,79 @@
+/* FigRecipe Editor — Context Menu
+   Right-click overlay menu matching vis_app ContextMenuManager pattern. */
+
+.context-menu {
+  position: fixed;
+  z-index: 10000;
+  min-width: 200px;
+  background: var(--vis-bg-elevated);
+  border: 1px solid var(--vis-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--vis-text-primary);
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--vis-text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  font-size: 12px;
+  font-family: var(--font);
+}
+
+.context-menu-item:hover {
+  background: var(--vis-bg-hover);
+}
+
+.context-menu-item:disabled {
+  color: var(--vis-text-muted);
+  cursor: default;
+  opacity: 0.5;
+}
+
+.context-menu-item:disabled:hover {
+  background: transparent;
+}
+
+.context-menu-item i {
+  width: 16px;
+  text-align: center;
+  color: var(--vis-text-muted);
+  font-size: 12px;
+}
+
+.context-menu-item:hover i {
+  color: var(--vis-text-primary);
+}
+
+.context-menu-shortcut {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--vis-text-muted);
+  opacity: 0.7;
+}
+
+.context-menu-divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--vis-border);
+}
+
+.context-menu-label {
+  padding: 4px 16px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vis-text-muted);
+  opacity: 0.7;
+}

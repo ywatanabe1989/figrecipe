@@ -3,15 +3,32 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./dist": {
+      "import": "./dist/figrecipe-editor.js"
+    },
+    "./styles": "./dist/style.css"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:lib": "tsc && vite build --config vite.config.lib.ts",
     "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.0"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.0",

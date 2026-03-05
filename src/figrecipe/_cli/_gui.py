@@ -78,12 +78,7 @@ def gui(
     SOURCE is the optional path to a .yaml recipe file or bundle.
     If not provided, creates a new blank figure.
     """
-    try:
-        from .. import gui as fr_gui
-    except ImportError:
-        raise click.ClickException(
-            "Editor requires Flask. Install with: pip install figrecipe[editor]"
-        ) from None
+    from .. import gui as fr_gui
 
     if force:
         if _kill_port(port):

@@ -1,9 +1,13 @@
-/** Center pane — Canvas with vis_app pane-header (figure dropdown, gallery categories, actions). */
+/** Center pane — Canvas with figure dropdown, gallery categories, and toolbar.
+ * All actions formerly in the Ribbon are now in the pane header toolbar.
+ */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { api } from "../../api/client";
+import { useState } from "react";
+import { redo, undo } from "../../hooks/useUndoRedo";
 import { useEditorStore } from "../../store/useEditorStore";
 import { Canvas } from "../Canvas/Canvas";
+import { ExportDialog } from "../ExportDialog/ExportDialog";
+import { GalleryPanel } from "../Gallery/GalleryPanel";
 
 const GALLERY_CATEGORIES = [
   { key: "line", icon: "fa-chart-line", label: "Line" },
@@ -22,57 +26,21 @@ export function CanvasPane() {
   const {
     placedFigures,
     selectedFigureId,
-    darkMode,
-    showHitmap,
-    snapEnabled,
-    setDarkMode,
-    toggleHitmap,
-    toggleSnap,
-    alignFigures,
-    distributeFigures,
     save,
-    showToast,
+    restore,
+    darkMode,
+    setDarkMode,
+    snapEnabled,
+    showRulers,
+    toggleSnap,
+    toggleRulers,
+    zoomControls,
+    showHitmap,
+    toggleHitmap,
   } = useEditorStore();
-
-  const [downloadOpen, setDownloadOpen] = useState(false);
-  const [alignOpen, setAlignOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const alignRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setDownloadOpen(false);
-      }
-      if (alignRef.current && !alignRef.current.contains(e.target as Node)) {
-        setAlignOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, []);
-
-  const handleDownload = useCallback(
-    async (fmt: string) => {
-      setDownloadOpen(false);
-      try {
-        const blob = await api.getBlob(`download/${fmt}`);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `figure.${fmt}`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } catch (e) {
-        showToast(`Download failed: ${e}`, "error");
-      }
-    },
-    [showToast],
-  );
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryCategory, setGalleryCategory] = useState<string | undefined>();
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Figure label: selected figure name or count
   const selectedFig = placedFigures.find((f) => f.id === selectedFigureId);
@@ -82,9 +50,14 @@ export function CanvasPane() {
       ? `${placedFigures.length} figure${placedFigures.length > 1 ? "s" : ""}`
       : "No figures";
 
+  const openGallery = (category?: string) => {
+    setGalleryCategory(category);
+    setGalleryOpen(true);
+  };
+
   return (
     <>
-      {/* vis_app pane-header for canvas */}
+      {/* Pane header with figure dropdown + toolbar actions */}
       <div className="pane-header">
         {/* Figure dropdown */}
         <div className="figure-dropdown-container">
@@ -96,14 +69,12 @@ export function CanvasPane() {
           <button
             className="pane-header-btn figure-new-btn"
             type="button"
-            title="New figure"
+            title="New from gallery"
+            onClick={() => openGallery()}
           >
             <i className="fas fa-plus" />
           </button>
         </div>
-
-        {/* WIP badge */}
-        <span className="badge badge-wip">WIP</span>
 
         {/* Gallery category buttons */}
         <div className="gallery-categories">
@@ -114,246 +85,113 @@ export function CanvasPane() {
               data-category={cat.key}
               type="button"
               title={cat.label}
+              onClick={() => openGallery(cat.key)}
             >
               <i className={`fas ${cat.icon}`} />
             </button>
           ))}
         </div>
 
-        {/* Right-side action buttons */}
+        {/* Toolbar actions (right-aligned) */}
         <div className="pane-header-buttons pane-header-right">
-          {/* Snap toggle */}
+          {/* Undo / Redo */}
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Undo (Ctrl+Z)"
+            onClick={undo}
+          >
+            <i className="fas fa-undo" />
+          </button>
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Redo (Ctrl+Shift+Z)"
+            onClick={redo}
+          >
+            <i className="fas fa-redo" />
+          </button>
+
+          <span className="toolbar-sep" />
+
+          {/* Snap / Rulers */}
           <button
             className={`pane-header-btn${snapEnabled ? " pane-header-btn--active" : ""}`}
-            onClick={toggleSnap}
-            title={`Snap: ${snapEnabled ? "ON" : "OFF"} (Alt to bypass)`}
             type="button"
+            title={`Snap: ${snapEnabled ? "ON" : "OFF"}`}
+            onClick={toggleSnap}
           >
             <i className="fas fa-magnet" />
           </button>
+          <button
+            className={`pane-header-btn${showRulers ? " pane-header-btn--active" : ""}`}
+            type="button"
+            title="Toggle rulers"
+            onClick={toggleRulers}
+          >
+            <i className="fas fa-ruler-combined" />
+          </button>
 
-          {/* Alignment dropdown */}
-          <div className="dropdown-container" ref={alignRef}>
-            <button
-              className="pane-header-btn"
-              onClick={() => setAlignOpen(!alignOpen)}
-              title="Align & distribute"
-              type="button"
-            >
-              <i className="fas fa-align-left" />
-            </button>
-            <div
-              className={`dropdown-menu dropdown-menu--wide${alignOpen ? " open" : ""}`}
-            >
-              <div className="dropdown-section-label">Figure edges</div>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("left");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-align-left" /> Align Left
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("right");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-align-right" /> Align Right
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("top");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-arrow-up" /> Align Top
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("bottom");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-arrow-down" /> Align Bottom
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("center-h");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-arrows-alt-h" /> Center Horizontal
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("center-v");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-arrows-alt-v" /> Center Vertical
-              </button>
-              <div className="dropdown-divider" />
-              <div className="dropdown-section-label">Axes edges</div>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("axes-left");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-align-left" style={{ color: "#00bcd4" }} />{" "}
-                Axes Left
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("axes-right");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i
-                  className="fas fa-align-right"
-                  style={{ color: "#00bcd4" }}
-                />{" "}
-                Axes Right
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("axes-top");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-arrow-up" style={{ color: "#00bcd4" }} />{" "}
-                Axes Top
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  alignFigures("axes-bottom");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-arrow-down" style={{ color: "#00bcd4" }} />{" "}
-                Axes Bottom
-              </button>
-              <div className="dropdown-divider" />
-              <div className="dropdown-section-label">Distribute</div>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  distributeFigures("horizontal");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-grip-lines-vertical" /> Distribute H
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  distributeFigures("vertical");
-                  setAlignOpen(false);
-                }}
-                type="button"
-              >
-                <i className="fas fa-grip-lines" /> Distribute V
-              </button>
-            </div>
-          </div>
+          <span className="toolbar-sep" />
 
-          {/* Hitmap toggle */}
+          {/* Zoom */}
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Zoom to fit"
+            onClick={zoomControls?.zoomToFit}
+          >
+            <i className="fas fa-compress-arrows-alt" />
+          </button>
+
+          {/* Hitmap */}
           <button
             className={`pane-header-btn${showHitmap ? " pane-header-btn--active" : ""}`}
-            onClick={toggleHitmap}
-            title="Toggle hit regions"
             type="button"
+            title="Toggle hit regions (debug)"
+            onClick={toggleHitmap}
           >
             <i className="fas fa-bullseye" />
           </button>
 
-          {/* Download dropdown */}
-          <div className="dropdown-container" ref={dropdownRef}>
-            <button
-              className="pane-header-btn"
-              onClick={() => setDownloadOpen(!downloadOpen)}
-              title="Download"
-              type="button"
-            >
-              <i className="fas fa-download" />
-            </button>
-            <div className={`dropdown-menu${downloadOpen ? " open" : ""}`}>
-              <button
-                className="dropdown-item"
-                onClick={() => handleDownload("png")}
-                type="button"
-              >
-                <i className="fas fa-file-image" /> PNG
-                <span className="format-hint">(300 DPI)</span>
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => handleDownload("svg")}
-                type="button"
-              >
-                <i className="fas fa-file-code" /> SVG
-              </button>
-              <div className="dropdown-divider" />
-              <button
-                className="dropdown-item"
-                onClick={() => handleDownload("pdf")}
-                type="button"
-              >
-                <i className="fas fa-file-pdf" /> PDF
-              </button>
-            </div>
-          </div>
+          <span className="toolbar-sep" />
 
-          {/* Save */}
+          {/* Save / Restore / Export */}
           <button
             className="pane-header-btn"
-            onClick={save}
-            title="Save (Ctrl+S)"
             type="button"
+            title="Save (Ctrl+S)"
+            onClick={save}
           >
-            <i className="fas fa-cloud-upload-alt" />
+            <i className="fas fa-save" />
           </button>
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Restore original"
+            onClick={restore}
+          >
+            <i className="fas fa-undo-alt" />
+          </button>
+          <button
+            className="pane-header-btn"
+            type="button"
+            title="Export (PNG/SVG/PDF)"
+            onClick={() => setExportOpen(true)}
+          >
+            <i className="fas fa-download" />
+          </button>
+
+          <span className="toolbar-sep" />
 
           {/* Theme toggle */}
           <button
             className="pane-header-btn"
+            type="button"
+            title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
             onClick={() => setDarkMode(!darkMode)}
-            title={darkMode ? "Switch to light" : "Switch to dark"}
-            type="button"
           >
-            <span className="theme-icon">🌓</span>
-          </button>
-
-          {/* Keyboard shortcuts */}
-          <button
-            className="pane-header-btn"
-            title="Keyboard shortcuts"
-            type="button"
-          >
-            <i className="fas fa-keyboard" />
+            <i className={darkMode ? "fas fa-moon" : "fas fa-sun"} />
           </button>
         </div>
       </div>
@@ -362,6 +200,17 @@ export function CanvasPane() {
       <div className="pane-content canvas-content">
         <Canvas />
       </div>
+
+      {/* Gallery modal */}
+      {galleryOpen && (
+        <GalleryPanel
+          onClose={() => setGalleryOpen(false)}
+          initialCategory={galleryCategory}
+        />
+      )}
+
+      {/* Export dialog */}
+      {exportOpen && <ExportDialog onClose={() => setExportOpen(false)} />}
     </>
   );
 }

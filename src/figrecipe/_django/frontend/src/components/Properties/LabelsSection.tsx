@@ -1,28 +1,18 @@
 /** Labels sub-panel — editable title, xlabel, ylabel for an axes. */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
 import { DebouncedInput } from "./DebouncedInput";
 import { PropSection } from "./PropSection";
 
-interface Labels {
-  title: string;
-  xlabel: string;
-  ylabel: string;
-  suptitle: string;
-}
-
 export function LabelsSection({ axIndex }: { axIndex: number }) {
-  const [labels, setLabels] = useState<Labels | null>(null);
-  const { showToast, loadPreview } = useEditorStore();
+  const labelsMap = useEditorStore((s) => s.labels);
+  const showToast = useEditorStore((s) => s.showToast);
+  const refreshAfterMutation = useEditorStore((s) => s.refreshAfterMutation);
+  const loadLabels = useEditorStore((s) => s.loadLabels);
 
-  useEffect(() => {
-    api
-      .get<Labels>(`get_labels?ax_index=${axIndex}`)
-      .then(setLabels)
-      .catch(() => setLabels(null));
-  }, [axIndex]);
+  const labels = labelsMap[String(axIndex)] ?? null;
 
   const updateLabel = useCallback(
     async (labelType: string, text: string) => {
@@ -32,12 +22,13 @@ export function LabelsSection({ axIndex }: { axIndex: number }) {
           text,
           ax_index: axIndex,
         });
-        loadPreview();
+        refreshAfterMutation();
+        loadLabels(axIndex);
       } catch (e) {
         showToast(`Label update failed: ${e}`, "error");
       }
     },
-    [axIndex, loadPreview, showToast],
+    [axIndex, refreshAfterMutation, loadLabels, showToast],
   );
 
   if (!labels) return null;

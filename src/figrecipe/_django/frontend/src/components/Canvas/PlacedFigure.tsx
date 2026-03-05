@@ -15,25 +15,39 @@ import {
 import type { SnapGuide } from "../../hooks/useSnap";
 import { useEditorStore } from "../../store/useEditorStore";
 import type { PlacedFigure as PlacedFigureType } from "../../types/editor";
+import { getPanelColorByLetter } from "../../utils/panelColors";
 import { BboxOverlay } from "./BboxOverlay";
 import { CaptionOverlay } from "./CaptionOverlay";
+import { PanelLetterOverlay } from "./PanelLetterOverlay";
+import type { LabelSnapTarget } from "./PanelLetterOverlay";
 
 interface Props {
   figure: PlacedFigureType;
   zoom: number;
   figureIndex: number;
+  onContextMenu?: (e: React.MouseEvent, figureId: string) => void;
 }
 
-export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
+export function PlacedFigure({
+  figure,
+  zoom,
+  figureIndex,
+  onContextMenu,
+}: Props) {
   const {
     selectedFigureId,
+    selectedFigureIds,
+    selectedElement,
     selectFigure,
+    toggleFigureSelection,
     selectElement,
     showHitmap,
     moveFigure,
     snapEnabled,
   } = useEditorStore();
   const isSelected = selectedFigureId === figure.id;
+  const isMultiSelected =
+    selectedFigureIds.length > 1 && selectedFigureIds.includes(figure.id);
 
   // ── Drag-to-move ──────────────────────────────────────────
   const handleDragEnd = useCallback(
@@ -54,6 +68,12 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
       const otherFigures = state.placedFigures.filter(
         (f) => f.id !== figure.id,
       );
+      // Collect group sibling IDs to exclude from snap targets
+      const excludeIds = figure.groupId
+        ? state.placedFigures
+            .filter((f) => f.groupId === figure.groupId && f.id !== figure.id)
+            .map((f) => f.id)
+        : undefined;
       const panelBboxes = getPanelBboxes(figure);
       return applySnapping(
         rawX,
@@ -64,6 +84,7 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
         otherFigures,
         CANVAS_W,
         CANVAS_H,
+        excludeIds,
       );
     },
     [figure.id, figure.imgSize.width, figure.imgSize.height, figure.bboxes],
@@ -89,9 +110,46 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!isDragging) selectFigure(figure.id);
+      if (isDragging) return;
+      if (e.ctrlKey || e.metaKey) {
+        toggleFigureSelection(figure.id);
+      } else {
+        selectFigure(figure.id);
+      }
     },
-    [figure.id, selectFigure, isDragging],
+    [figure.id, selectFigure, toggleFigureSelection, isDragging],
+  );
+
+  const handleLetterChange = useCallback(
+    (letter: string) => {
+      useEditorStore.setState((s) => ({
+        placedFigures: s.placedFigures.map((f) =>
+          f.id === figure.id ? { ...f, panelLetter: letter } : f,
+        ),
+      }));
+    },
+    [figure.id],
+  );
+
+  const handleLetterMove = useCallback(
+    (x: number, y: number) => {
+      useEditorStore.setState((s) => ({
+        placedFigures: s.placedFigures.map((f) =>
+          f.id === figure.id ? { ...f, panelLetterPos: { x, y } } : f,
+        ),
+      }));
+    },
+    [figure.id],
+  );
+
+  // ── Label snap targets (other figures' label centers) ────
+  const labelSnapTargets: LabelSnapTarget[] = useEditorStore((s) =>
+    s.placedFigures
+      .filter((f) => f.id !== figure.id && f.panelLetter)
+      .map((f) => {
+        const lp = f.panelLetterPos ?? { x: 8, y: 6 };
+        return { cx: f.x + lp.x + 7, cy: f.y + lp.y + 7 };
+      }),
   );
 
   const handleElementClick = useCallback(
@@ -110,17 +168,26 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
   const displayX = isDragging ? figure.x + dragOffset.dx : figure.x;
   const displayY = isDragging ? figure.y + dragOffset.dy : figure.y;
 
+  const panelColor = getPanelColorByLetter(figure.panelLetter ?? "");
+
   return (
     <div
-      className={`placed-figure${isSelected ? " selected" : ""}${isDragging ? " dragging" : ""}${figure.groupId ? " grouped" : ""}`}
-      style={{
-        position: "absolute",
-        left: displayX,
-        top: displayY,
-        width: figure.imgSize.width,
-      }}
+      className={`placed-figure${isSelected ? " selected" : ""}${isMultiSelected ? " multi-selected" : ""}${isDragging ? " dragging" : ""}${figure.groupId ? " grouped" : ""}`}
+      style={
+        {
+          position: "absolute",
+          left: displayX,
+          top: displayY,
+          width: figure.imgSize.width,
+          "--panel-color": panelColor,
+        } as React.CSSProperties
+      }
       onClick={handleClick}
       onMouseDown={onMouseDown}
+      onContextMenu={(e) => {
+        e.stopPropagation();
+        onContextMenu?.(e, figure.id);
+      }}
     >
       <div
         style={{
@@ -143,6 +210,16 @@ export function PlacedFigure({ figure, zoom, figureIndex }: Props) {
           imgWidth={figure.imgSize.width}
           imgHeight={figure.imgSize.height}
           alwaysVisible={showHitmap}
+          selectedElement={isSelected ? selectedElement : null}
+        />
+        <PanelLetterOverlay
+          letter={figure.panelLetter}
+          position={figure.panelLetterPos}
+          zoom={zoom}
+          figureOrigin={{ x: displayX, y: displayY }}
+          snapTargets={labelSnapTargets}
+          onChange={handleLetterChange}
+          onMove={handleLetterMove}
         />
       </div>
       <CaptionOverlay

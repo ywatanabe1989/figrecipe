@@ -1,0 +1,26 @@
+{
+  "name": "figrecipe_app",
+  "slug": "figrecipe",
+  "label": "Figrecipe",
+  "version": "0.1.0",
+  "icon": "fas fa-palette",
+  "subtitle": "Interactive figure editor for publication-ready matplotlib plots",
+  "about": "Create, edit, and compose publication-ready figures with an interactive visual editor. Supports drag-and-drop layout, statistical annotations, style presets, and multi-panel composition.",
+  "description": "Figrecipe is a visual figure editor built on matplotlib. It provides an interactive canvas for creating and editing publication-ready scientific figures. Features include drag-and-drop panel layout, statistical bracket annotations, theme/style management, data table integration, and multi-format export (PNG, SVG, PDF).",
+  "author": "ywatanabe",
+  "license": "AGPL-3.0",
+  "capabilities": [
+    "Create publication-ready matplotlib figures",
+    "Interactive visual editing with drag-and-drop",
+    "Statistical bracket annotations (t-test, ANOVA, etc.)",
+    "Multi-panel figure composition",
+    "Export to PNG, SVG, PDF formats",
+    "Style/theme presets for journals"
+  ],
+  "allowed_extensions": [".py", ".csv", ".json", ".yaml", ".figz", ".pltz"],
+  "wip": false,
+  "standalone": true,
+  "standalone_command": "figrecipe gui",
+  "standalone_port": 5050,
+  "frontend_type": "react"
+}

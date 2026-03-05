@@ -1,0 +1,199 @@
+/* FigRecipe Editor — Ribbon Toolbar
+   Ported from scitex-cloud vis_app/css/vis/ribbon.css */
+
+/* ── Main ribbon container ─────────────────────────────── */
+
+.ribbon {
+  background: var(--vis-bg-primary);
+  border-bottom: 2px solid var(--vis-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+}
+
+/* ── Ribbon Tabs (left side) ───────────────────────────── */
+
+.ribbon-tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  background: var(--vis-bg-secondary);
+  padding: 0 8px;
+  border-right: 1px solid var(--vis-border);
+  flex-shrink: 0;
+}
+
+.ribbon-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--vis-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: var(--font);
+}
+
+.ribbon-tab:hover {
+  color: var(--vis-text-primary);
+  background: var(--vis-bg-hover);
+  border-bottom-color: var(--vis-border);
+}
+
+.ribbon-tab.active {
+  color: var(--accent-primary);
+  background: var(--vis-bg-primary);
+  border-bottom-color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.ribbon-tab i {
+  font-size: 14px;
+}
+
+/* ── Ribbon Content (right side, fills remaining space) ── */
+
+.ribbon-content {
+  background: var(--vis-bg-primary);
+  padding: 8px 16px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.ribbon-panel {
+  display: none;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.ribbon-panel.active {
+  display: flex;
+}
+
+/* ── Ribbon Groups (labeled button clusters) ───────────── */
+
+.ribbon-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ribbon-group-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--vis-text-muted);
+  padding: 0 4px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.ribbon-group-buttons {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+
+/* ── Ribbon Buttons (icon above label) ──────────────────── */
+
+.ribbon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 10px;
+  background: var(--vis-bg-secondary);
+  border: 1px solid var(--vis-border);
+  border-radius: var(--radius);
+  color: var(--vis-text-primary);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 52px;
+  font-family: var(--font);
+}
+
+.ribbon-btn:hover {
+  background: var(--vis-bg-hover);
+  border-color: var(--vis-border-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ribbon-btn:active {
+  transform: translateY(0);
+}
+
+.ribbon-btn i {
+  font-size: 16px;
+  color: var(--accent-primary);
+}
+
+.ribbon-btn span {
+  white-space: nowrap;
+}
+
+/* Active state (for toggles like snap, hitmap, rulers) */
+.ribbon-btn--active {
+  background: rgba(139, 148, 158, 0.2);
+  border-color: var(--accent-primary);
+}
+
+.ribbon-btn--active i {
+  color: var(--vis-text-primary);
+}
+
+/* Disabled state */
+.ribbon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Ribbon Separator (vertical line between groups) ───── */
+
+.ribbon-separator {
+  width: 1px;
+  align-self: stretch;
+  background: var(--vis-border);
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+
+/* ── Ribbon Select (for theme dropdown) ────────────────── */
+
+.ribbon-select {
+  padding: 4px 8px;
+  background: var(--vis-bg-secondary);
+  border: 1px solid var(--vis-border);
+  border-radius: var(--radius);
+  color: var(--vis-text-primary);
+  font-size: 11px;
+  font-family: var(--font);
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.ribbon-select:hover {
+  border-color: var(--vis-border-hover);
+}
+
+.ribbon-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}

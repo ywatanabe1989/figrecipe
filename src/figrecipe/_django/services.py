@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Editor service -- creation, caching, HTML generation.
+"""Editor service -- creation, caching.
 
 Editors are cached in-process because route handlers mutate
 the matplotlib figure directly (labels, legend, axes positions).
+No Flask dependency -- uses a lightweight EditorState dataclass.
 """
 
 import logging
 import tempfile
 import time
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -19,11 +21,34 @@ _editor_cache: Dict[str, Tuple[Any, float]] = {}
 _CACHE_TTL_SECONDS = 3600  # 1 hour
 
 
+@dataclass
+class EditorState:
+    """Lightweight editor state (replaces Flask FigureEditor)."""
+
+    fig: Any = None
+    recipe_path: Optional[Path] = None
+    style: Optional[Dict[str, Any]] = None
+    working_dir: Path = field(default_factory=Path.cwd)
+    dark_mode: bool = False
+    _color_map: Optional[Dict] = None
+    _style_name: str = "SCITEX"
+    _hitmap_generated: bool = False
+
+    # StyleOverrides for layered style management
+    _overrides: Any = None
+
+    def get_effective_style(self) -> Dict[str, Any]:
+        """Get the effective style with overrides."""
+        if self._overrides is not None:
+            return self._overrides.get_effective_style(dark_mode=self.dark_mode)
+        return self.style or {}
+
+
 def get_or_create_editor(
     session_key: str,
     recipe_path: str,
     style: Optional[str] = None,
-) -> Any:
+) -> EditorState:
     """Get cached editor or create a new one."""
     _cleanup_expired()
 
@@ -45,18 +70,15 @@ def remove_editor(session_key: str) -> None:
 def _create_editor(
     recipe_path: str,
     style: Optional[str] = None,
-) -> Any:
-    """Create a FigureEditor from recipe path without running Flask."""
+) -> EditorState:
+    """Create an EditorState from recipe path."""
     from figrecipe._editor import _resolve_source, _resolve_style
-    from figrecipe._editor._flask_app import FigureEditor
-    from figrecipe._editor._hitmap import generate_hitmap, hitmap_to_base64
+    from figrecipe._editor._hitmap import generate_hitmap
 
     fig, resolved_path = _resolve_source(recipe_path)
     style_dict = _resolve_style(style)
 
-    # Use fig._fig.savefig() to avoid RecordingFigure's recipe save path
     mpl_fig = fig._fig if hasattr(fig, "_fig") else fig
-    # Make axes backgrounds transparent (savefig transparent only affects figure patch)
     saved_facecolors = []
     for ax in mpl_fig.get_axes():
         saved_facecolors.append((ax, ax.get_facecolor()))
@@ -67,77 +89,17 @@ def _create_editor(
         ax.set_facecolor(fc)
 
     hitmap_img, color_map = generate_hitmap(fig)
-    hitmap_b64 = hitmap_to_base64(hitmap_img)
 
-    editor = FigureEditor(
+    editor = EditorState(
         fig=fig,
         recipe_path=resolved_path,
         style=style_dict,
-        port=0,
-        host="127.0.0.1",
-        static_png_path=static_png_path,
-        hitmap_base64=hitmap_b64,
-        color_map=color_map,
-        hot_reload=False,
         working_dir=Path(recipe_path).parent if recipe_path else Path.cwd(),
+        _color_map=color_map,
+        _hitmap_generated=True,
     )
-    editor._hitmap_generated = True
     logger.info("[FigRecipe] Created editor for %s", recipe_path)
     return editor
-
-
-def get_editor_html(editor: Any, base_url: str, dark_mode: bool = False) -> str:
-    """Build the editor HTML page.
-
-    In development with React, this returns a shell page that loads
-    the Vite dev server. In production, it returns the built React app
-    served as static files.
-    """
-    from figrecipe._editor import _check_figure_has_content
-    from figrecipe._editor._helpers import render_with_overrides
-    from figrecipe._editor._templates import build_html_template
-
-    editor.dark_mode = dark_mode
-
-    base64_img, bboxes, img_size = render_with_overrides(
-        editor.fig,
-        editor.get_effective_style(),
-        editor.dark_mode,
-    )
-
-    html = build_html_template(
-        image_base64=base64_img,
-        bboxes=bboxes,
-        color_map=editor._color_map,
-        style=editor.style,
-        overrides=editor.get_effective_style(),
-        img_size=img_size,
-        style_name=getattr(editor, "_style_name", "SCITEX"),
-        hot_reload=False,
-        dark_mode=dark_mode,
-        figure_has_content=_check_figure_has_content(editor.fig),
-        debug_mode=False,
-    )
-
-    return _inject_base_url(html, base_url)
-
-
-def _inject_base_url(html: str, base_url: str) -> str:
-    """Override window.fetch to prefix figrecipe URLs with Django path."""
-    fetch_override = f"""<script>
-(function() {{
-  var _origFetch = window.fetch;
-  var BASE = '{base_url}';
-  window.fetch = function(url) {{
-    var args = Array.prototype.slice.call(arguments);
-    if (typeof url === 'string' && url.startsWith('/') && !url.startsWith(BASE)) {{
-      args[0] = BASE + url;
-    }}
-    return _origFetch.apply(this, args);
-  }};
-}})();
-</script>"""
-    return html.replace("<script>", fetch_override + "\n<script>", 1)
 
 
 def _cleanup_expired() -> None:

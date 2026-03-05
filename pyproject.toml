@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "figrecipe"
-version = "0.26.0"
+version = "0.26.2"
 description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
@@ -85,7 +85,7 @@ graph-interactive = [
     "pyvis>=0.3",
 ]
 mcp = [
-    "fastmcp>=2.0.0",
+    "fastmcp>=2.0",
 ]
 all = [
     "pytest>=7.0.0",
@@ -114,6 +114,14 @@ Issues = "https://github.com/ywatanabe1989/figrecipe/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/figrecipe"]
+exclude = [
+    "src/figrecipe/_django/frontend/node_modules",
+    "src/figrecipe/_django/frontend/src",
+    "src/figrecipe/_django/frontend/package*.json",
+    "src/figrecipe/_django/frontend/tsconfig*.json",
+    "src/figrecipe/_django/frontend/vite.config.ts",
+    "src/figrecipe/_django/frontend/eslint.config.js",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 """MCP fr_* tools: shaded line family (fr_line, fr_shaded_line, fr_mean_*)."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
-from figrecipe._branding import BRAND_ALIAS as _BA
+# Hardcode "fr" prefix — these are FR-family tools and must not collide
+# with base plt_* tools when scitex overrides FIGRECIPE_ALIAS to "plt".
+_BA = "fr"
 
 from ._base import _create
 

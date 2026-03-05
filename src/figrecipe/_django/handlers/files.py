@@ -22,9 +22,24 @@ def _find_default_working_dir():
     return cwd
 
 
+def _is_figrecipe_yaml(path: Path) -> bool:
+    """Check if a YAML file is a figrecipe recipe (has figure: and axes: keys)."""
+    try:
+        text = path.read_text(errors="ignore")[:2048]  # read first 2KB only
+        return "figure:" in text and "axes:" in text
+    except (OSError, UnicodeDecodeError):
+        return False
+
+
 def handle_api_files(request, editor):
     """List recipe files in working dir as tree + flat list."""
     working_dir = getattr(editor, "working_dir", None) if editor else None
+    # Allow override from query param (embedded mode passes user's project path)
+    wd_param = request.GET.get("working_dir")
+    if wd_param:
+        wd_path = Path(wd_param)
+        if wd_path.is_dir():
+            working_dir = wd_path
     if working_dir is None:
         working_dir = _find_default_working_dir()
 
@@ -60,6 +75,8 @@ def handle_api_files(request, editor):
                         }
                     )
             elif entry.suffix.lower() in (".yaml", ".yml"):
+                if not _is_figrecipe_yaml(entry):
+                    continue
                 items.append(
                     {
                         "path": rel_path,
@@ -113,6 +130,11 @@ def handle_api_switch(request, editor):
 
     # Resolve working_dir — use editor's if available, else default
     working_dir = getattr(editor, "working_dir", None) if editor else None
+    wd_param = request.GET.get("working_dir")
+    if wd_param:
+        wd_path = Path(wd_param)
+        if wd_path.is_dir():
+            working_dir = wd_path
     if working_dir is None:
         working_dir = _find_default_working_dir()
     full_path = working_dir / file_path
