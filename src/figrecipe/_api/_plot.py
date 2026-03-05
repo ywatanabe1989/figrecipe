@@ -151,7 +151,9 @@ for _s in (
     "violin",
 ):
     PLOT_TYPES[f"stx_{_s}"] = f"stx_{_s}"
-    PLOT_TYPES[f"{_BRAND_ALIAS}_{_s}"] = f"{_BRAND_ALIAS}_{_s}"
+    PLOT_TYPES[f"fr_{_s}"] = f"fr_{_s}"  # Always register fr_ prefix
+    if _BRAND_ALIAS not in ("stx", "fr"):
+        PLOT_TYPES[f"{_BRAND_ALIAS}_{_s}"] = f"{_BRAND_ALIAS}_{_s}"
 del _s, _BRAND_ALIAS
 
 # Keys that are not matplotlib kwargs
