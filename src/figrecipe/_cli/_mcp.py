@@ -117,11 +117,19 @@ def _estimate_tokens(text: str) -> int:
     return len(text) // 4 if text else 0
 
 
+def _get_tools_dict(mcp_server) -> dict:
+    """Get tools as {name: tool_obj} dict, compatible with FastMCP v2+."""
+    import asyncio
+
+    tools_list = asyncio.run(mcp_server.list_tools())
+    return {t.name: t for t in tools_list}
+
+
 def _get_mcp_summary(mcp_server) -> dict:
     """Get MCP server summary statistics."""
     import json as json_mod
 
-    tools = list(mcp_server._tool_manager._tools.values())
+    tools = list(_get_tools_dict(mcp_server).values())
     instructions = getattr(mcp_server, "instructions", "") or ""
     total_desc = sum(len(t.description or "") for t in tools)
     total_params = sum(
@@ -172,8 +180,9 @@ def list_tools(
             f"fastmcp not installed. Install with: pip install figrecipe[mcp]\n{e}"
         ) from e
 
-    # Get all tools
-    tools = list(mcp_server._tool_manager._tools.keys())
+    # Get all tools (single async call, cache result)
+    _tools_dict = _get_tools_dict(mcp_server)
+    tools = list(_tools_dict.keys())
 
     # Group by module prefix
     modules = {}
@@ -208,7 +217,7 @@ def list_tools(
                 "tools": [],
             }
             for tool_name in tool_list:
-                tool_obj = mcp_server._tool_manager._tools.get(tool_name)
+                tool_obj = _tools_dict.get(tool_name)
                 schema = tool_obj.parameters if hasattr(tool_obj, "parameters") else {}
                 output["modules"][mod]["tools"].append(
                     {
@@ -235,7 +244,7 @@ def list_tools(
         for mod, tool_list in sorted(modules.items()):
             click.secho(f"{mod}: {len(tool_list)} tools", fg="green", bold=True)
             for tool_name in tool_list:
-                tool_obj = mcp_server._tool_manager._tools.get(tool_name)
+                tool_obj = _tools_dict.get(tool_name)
 
                 if verbose == 0:
                     # Names only
@@ -294,9 +303,7 @@ def doctor() -> None:
     try:
         from .._mcp.server import mcp as mcp_server
 
-        click.echo(
-            f"  ✓ MCP server loaded ({len(mcp_server._tool_manager._tools)} tools)"
-        )
+        click.echo(f"  ✓ MCP server loaded ({len(_get_tools_dict(mcp_server))} tools)")
     except Exception as e:
         click.echo(f"  ✗ MCP server error: {e}")
         return
@@ -344,7 +351,7 @@ def info() -> None:
     click.echo("=" * 40)
     click.echo()
     click.echo("Available tools:")
-    for tool in mcp_server._tool_manager._tools.values():
+    for tool in _get_tools_dict(mcp_server).values():
         click.echo(f"  - {tool.name}")
     click.echo()
     click.echo("Usage:")
