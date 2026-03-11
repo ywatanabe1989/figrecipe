@@ -1,191 +1,69 @@
-<!-- ---
-!-- Timestamp: 2025-12-23 03:28:50
-!-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/figrecipe/CONTRIBUTING.md
-!-- --- -->
+# Contributing to SciTeX
 
-# Contributing to FigRecipe
+Thank you for your interest in contributing to SciTeX. This guide covers the
+process for reporting issues, suggesting features, and submitting code.
 
-Thank you for your interest in contributing to FigRecipe! This document provides guidelines for contributing to the project.
+## Contributor License Agreement
 
-## Getting Started
+Before your first contribution can be merged, you must agree to the
+[SciTeX CLA](CLA.md). This is a one-time process. The CLA ensures that:
 
-### Prerequisites
+- You retain copyright of your work.
+- The project can continue to offer dual licensing (free for researchers,
+  commercial for enterprises).
 
-- Python 3.9 or higher
-- Git
-
-### Development Setup
-
-1. Fork the repository on GitHub
-
-2. Clone your fork:
-   ```bash
-   git clone https://github.com/ywatanabe1989/figrecipe.git
-   cd figrecipe
-   ```
-
-3. Create a virtual environment:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # Linux/macOS
-   # or: .venv\Scripts\activate  # Windows
-   ```
-
-4. Install in development mode with all extras:
-   ```bash
-   pip install -e ".[all]"
-   ```
-
-5. Create a feature branch:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-## Code Style
-
-This project uses [ruff](https://github.com/astral-sh/ruff) for linting and formatting.
-
-- Line length: 88 characters
-- Target Python version: 3.9+
-- Enabled rules: E (pycodestyle errors), F (pyflakes), W (pycodestyle warnings), I (isort)
-
-### Running the Linter
-
-```bash
-make lint
-# or
-ruff check src/ tests/
-```
-
-### Formatting Code
-
-```bash
-make format
-# or
-ruff format src/ tests/
-```
-
-## Testing
-
-Tests are written with pytest and located in the `tests/` directory.
-
-### Running Tests
-
-```bash
-make test
-# or
-pytest tests/ -v
-```
-
-### Writing Tests
-
-- Test files should be named `test_*.py`
-- Place tests in the `tests/` directory
-- Follow existing test patterns in the codebase
-- Ensure tests are deterministic and don't depend on external state
-
-## Project Structure
-
-```
-figrecipe/
-├── src/figrecipe/       # Main package source
-│   ├── _api/            # Public API functions
-│   ├── _composition/    # Multi-panel composition
-│   ├── _diagram/        # Box-and-arrow diagrams
-│   ├── _editor/         # GUI editor components
-│   ├── _graph/          # NetworkX graph visualization
-│   ├── _recorder/       # Recording infrastructure
-│   ├── _reproducer/     # Recipe reproduction engine
-│   ├── _utils/          # Utility functions
-│   ├── _wrappers/       # Matplotlib wrappers
-│   ├── styles/          # Style presets
-│   └── _serializer.py   # YAML serialization
-├── tests/               # Test suite
-├── examples/            # Example scripts
-└── docs/                # Documentation (Sphinx + RTD)
-```
-
-## Making Changes
-
-### Commit Messages
-
-Use clear, descriptive commit messages:
-
-```
-feat: Add support for new plot type
-fix: Correct mm-to-inch conversion
-docs: Update API documentation
-test: Add tests for reproducer module
-refactor: Simplify serialization logic
-```
-
-### Pull Request Process
-
-1. Ensure all tests pass: `make test`
-2. Run the linter: `make lint`
-3. Update documentation if needed
-4. Push to your fork and create a Pull Request against `develop` branch
-5. Fill in the PR template with a clear description of changes
-
-### Pull Request Guidelines
-
-- Keep PRs focused on a single feature or fix
-- Include tests for new functionality
-- Update the CHANGELOG.md for notable changes
-- Ensure CI passes before requesting review
+See [CLA.md](CLA.md) for full details.
 
 ## Reporting Issues
 
-### Bug Reports
+- Search [existing issues](https://github.com/ywatanabe1989/figrecipe/issues)
+  before opening a new one.
+- Include a minimal reproducible example when reporting bugs.
+- Specify your Python version, OS, and `scitex` version.
 
-When reporting bugs, please include:
-
-- Python version
-- FigRecipe version (`pip show figrecipe`)
-- Operating system
-- Minimal code example that reproduces the issue
-- Full error traceback if applicable
-
-### Feature Requests
-
-For feature requests, please describe:
-
-- The problem you're trying to solve
-- Your proposed solution
-- Any alternatives you've considered
-
-## Development Tips
-
-### Running the Demo Notebook
+## Development Setup
 
 ```bash
-make notebook
+git clone git@github.com:ywatanabe1989/figrecipe.git
+cd figrecipe
+pip install -e ".[dev]"
 ```
 
-### Generating PDF from Notebook
+## Branch Workflow
+
+- `main` — stable releases only. Do not push directly.
+- `develop` — integration branch. PRs target here.
+- Feature branches — create from `develop`, name as `feature/<description>`.
 
 ```bash
-make pdf
+git checkout develop
+git checkout -b feature/my-change
+# ... make changes ...
+git push origin feature/my-change
+# Open PR targeting develop
 ```
 
-### Cleaning Build Artifacts
+## Code Style
+
+- Follow existing conventions in the codebase.
+- Use `_` prefix for internal/private modules and functions.
+- Keep files under 512 lines.
+- Run tests before submitting:
 
 ```bash
-make clean
+pytest tests/ -x -q
 ```
+
+## Pull Request Process
+
+1. Ensure your branch is up to date with `develop`.
+2. Write tests for new functionality.
+3. Run the test suite and confirm all tests pass.
+4. Open a PR targeting `develop` with a clear description.
+5. The CLA bot will check your CLA status on your first PR.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the AGPL-3.0 License.
-
-## Questions?
-
-If you have questions, feel free to:
-
-- Open a [GitHub Issue](https://github.com/ywatanabe1989/figrecipe/issues)
-- Check existing issues and discussions
-
-Thank you for contributing!
-
-<!-- EOF -->
+By contributing, you agree to the terms of the [CLA](CLA.md), which includes
+licensing under AGPL-3.0 (see [LICENSE](LICENSE)) and the dual-licensing
+provisions described therein.
