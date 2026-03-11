@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-02-16 10:20:09
+!-- Timestamp: 2026-03-11 12:29:40
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/figrecipe/README.md
 !-- --- -->
@@ -383,6 +383,27 @@ figrecipe mcp install
 > **[Full MCP specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)**
 
 </details>
+
+## Lint Rules
+
+Detected by [scitex-linter](https://github.com/ywatanabe1989/scitex-linter) when this package is installed.
+
+| Rule | Severity | Message |
+|------|----------|---------|
+| `STX-FM001` | warning | `figsize=` detected — inch-based figure sizing is imprecise for publications |
+| `STX-FM002` | warning | `tight_layout()` detected — layout is unpredictable across plot types |
+| `STX-FM003` | warning | `bbox_inches="tight"` detected — can crop important elements unpredictably |
+| `STX-FM004` | info | `constrained_layout=True` detected — conflicts with mm-based layout control |
+| `STX-FM005` | info | `subplots_adjust()` with hardcoded fractions — fragile across figure sizes |
+| `STX-FM006` | info | `plt.savefig()` detected — no provenance tracking |
+| `STX-FM007` | info | `rcParams` direct modification detected — hard to maintain across figures |
+| `STX-FM008` | warning | `set_size_inches()` detected — bypasses mm-based layout control |
+| `STX-FM009` | warning | `ax.set_position()` detected — conflicts with mm-based layout control |
+| `STX-P001` | info | `ax.plot()` — consider `ax.stx_line()` for automatic CSV data export |
+| `STX-P002` | info | `ax.scatter()` — consider `ax.stx_scatter()` for automatic CSV data export |
+| `STX-P003` | info | `ax.bar()` — consider `ax.stx_bar()` for automatic sample size annotation |
+| `STX-P004` | info | `plt.show()` is non-reproducible in batch/CI environments |
+| `STX-P005` | info | `print()` inside @stx.session — use `logger` for tracked logging |
 
 ## 47 matplotlib plot types supported
 

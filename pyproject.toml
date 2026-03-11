@@ -106,6 +106,9 @@ all = [
 [project.scripts]
 figrecipe = "figrecipe._cli:main"
 
+[project.entry-points."scitex_linter.plugins"]
+figure = "figrecipe._linter_plugin:get_plugin"
+
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/figrecipe"
 Documentation = "https://github.com/ywatanabe1989/figrecipe#readme"
