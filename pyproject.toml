@@ -161,4 +161,7 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/figrecipe/__init__.py" = ["E402"]
+"src/figrecipe/__init__.py" = ["E402", "F401"]
+"src/figrecipe/_scitex_compat/_csv_formatters/__init__.py" = ["F401"]
+"src/figrecipe/_scitex_compat/_csv_formatters/_export_as_csv.py" = ["E402"]
+"src/figrecipe/_scitex_compat/_csv_formatters/*.py" = ["F841", "E722"]
