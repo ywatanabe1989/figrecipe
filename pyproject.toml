@@ -85,13 +85,18 @@ graph-interactive = [
     "networkx>=3.0",
     "pyvis>=0.3",
 ]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+    "sphinx-copybutton>=0.5",
+    "sphinx-autodoc-typehints>=1.25",
+]
 mcp = [
     "fastmcp>=2.0",
 ]
 all = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-xdist>=3.0.0",
+    "figrecipe[dev,docs,graph-interactive,mcp]",
     "pyyaml>=6.0.0",
     "Pillow>=9.0.0",
     "seaborn>=0.12.0",
@@ -100,12 +105,13 @@ all = [
     "pywebview>=4.0.0",
     "playwright>=1.40.0",
     "pytesseract>=0.3.0",
-    "networkx>=3.0",
-    "pyvis>=0.3",
 ]
 
 [project.scripts]
 figrecipe = "figrecipe._cli:main"
+
+[project.entry-points."scitex_dev.docs"]
+figrecipe = "figrecipe"
 
 [project.entry-points."scitex_linter.plugins"]
 figure = "figrecipe._linter_plugin:get_plugin"
