@@ -68,6 +68,8 @@ fr.gui(fig)  # Launch visual editor at http://127.0.0.1:5050
 
 # FigRecipe — **Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
 
+The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
+
 >Four Freedoms for Research
 >
 >0. The freedom to **run** your research anywhere — your machine, your terms.
@@ -75,7 +77,7 @@ fr.gui(fig)  # Launch visual editor at http://127.0.0.1:5050
 >2. The freedom to **redistribute** your workflows, not just your papers.
 >3. The freedom to **modify** any module and share improvements with the community.
 >
->AGPL-3.0 — because research infrastructure deserves the same freedoms as the software it runs on.
+>AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
 
 > **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
 
@@ -364,7 +366,7 @@ figrecipe info fig.yaml               # Show recipe metadata
 
 <br>
 
-AI agents can create, compose, and reproduce publication-ready figures autonomously.
+AI agents can create, compose, and reproduce publication-ready figures autonomously via the [Model Context Protocol](https://modelcontextprotocol.io/).
 
 | Tool | Description |
 |------|-------------|
@@ -374,10 +376,50 @@ AI agents can create, compose, and reproduce publication-ready figures autonomou
 | `crop` | Auto-crop whitespace |
 | `info` | Inspect recipe metadata |
 | `validate` | Verify reproduction fidelity |
+| `diagram_compile_mermaid` | Compile diagram spec to Mermaid |
+| `diagram_render` | Render diagram to PNG/SVG/PDF |
+| `audio_speak` | Text-to-speech relay to user's speakers |
+
+**Audio relay**: The `audio_speak` tool enables AI agents to provide auditory feedback through the user's local speakers — the agent generates text, the MCP server synthesizes speech on the host machine. This keeps the human in the loop without requiring them to watch the terminal.
+
+#### Claude Code Setup
+
+Add `.mcp.json` to your project root. Use `SCITEX_ENV_SRC` to load all configuration from a `.src` file — this keeps `.mcp.json` static across environments:
+
+```json
+{
+  "mcpServers": {
+    "scitex": {
+      "command": "scitex",
+      "args": ["mcp", "start"],
+      "env": {
+        "SCITEX_ENV_SRC": "${SCITEX_ENV_SRC}"
+      }
+    }
+  }
+}
+```
+
+Then switch environments via your shell profile:
 
 ```bash
-# Install to Claude Code
-figrecipe mcp install
+# Local machine
+export SCITEX_ENV_SRC=~/.scitex/scitex/local.src
+
+# Remote server
+export SCITEX_ENV_SRC=~/.scitex/scitex/remote.src
+```
+
+Generate a template `.src` file:
+
+```bash
+scitex env-template -o ~/.scitex/scitex/local.src
+```
+
+Or install globally:
+
+```bash
+scitex mcp install
 ```
 
 > **[Full MCP specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)**
