@@ -8,7 +8,7 @@ version = "0.26.5"
 description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Yusuke Watanabe", email = "ywatanabe@scitex.ai" },
 ]
@@ -154,7 +154,7 @@ show_missing = true
 
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
