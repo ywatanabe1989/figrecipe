@@ -32,7 +32,7 @@ def _show_dependency_versions() -> None:
         ("Pillow", "PIL"),
         ("seaborn", "seaborn"),
         ("pandas", "pandas"),
-        ("flask", "flask"),
+        ("django", "django"),
     ]
 
     click.echo("Dependencies:")

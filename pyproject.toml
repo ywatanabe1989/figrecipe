@@ -44,6 +44,7 @@ dependencies = [
     "scipy>=1.7.0",
     "click>=8.0.0",
     "rich>=13.0.0",
+    "scitex-app>=0.1.0",
 ]
 
 [project.optional-dependencies]

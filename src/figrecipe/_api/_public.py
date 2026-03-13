@@ -350,9 +350,9 @@ def gui(
     style : str or dict, optional
         Style preset name or style dict.
     port : int, optional
-        Flask server port (default: 5050).
+        Django server port (default: 5050).
     host : str, optional
-        Host to bind Flask server (default: "127.0.0.1", use "0.0.0.0" for Docker).
+        Host to bind server (default: "127.0.0.1", use "0.0.0.0" for Docker).
     open_browser : bool, optional
         Whether to open browser automatically (default: True).
     hot_reload : bool, optional

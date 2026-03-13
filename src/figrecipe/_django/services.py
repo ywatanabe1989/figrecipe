@@ -4,7 +4,7 @@
 
 Editors are cached in-process because route handlers mutate
 the matplotlib figure directly (labels, legend, axes positions).
-No Flask dependency -- uses a lightweight EditorState dataclass.
+Uses a lightweight EditorState dataclass.
 """
 
 import logging

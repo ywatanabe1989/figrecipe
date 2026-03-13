@@ -78,7 +78,7 @@ fr.gui('{self.recipe_path}', port={self.port}, open_browser=False)
             cwd=Path(__file__).parent.parent.parent,
         )
 
-        # Allow time for Flask + matplotlib initialization
+        # Allow time for server + matplotlib initialization
         max_wait = 30
         poll_interval = 0.5
         start_time = time.time()

@@ -3,7 +3,7 @@
 """figrecipe GUI Editor - Django+React based interactive figure editor.
 
 This module provides the public gui() function and utility functions
-needed by Django handlers. No Flask dependency.
+needed by Django handlers.
 """
 
 from pathlib import Path

@@ -231,6 +231,53 @@
   accent-color: var(--accent-primary);
 }
 
+/* ── Details button grid (Layout/View tabs) ──────────────── */
+
+.details-btn-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.details-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--vis-text-primary);
+  background: var(--vis-bg-primary);
+  border: 1px solid var(--vis-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.details-btn:hover {
+  background: var(--vis-bg-hover);
+  border-color: var(--vis-text-muted);
+}
+
+.details-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.details-btn--active {
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  border-color: var(--accent-primary);
+}
+
+.details-btn i {
+  font-size: 12px;
+  width: 14px;
+  text-align: center;
+}
+
 /* ── Trace items ─────────────────────────────────────────── */
 
 .trace-item {
