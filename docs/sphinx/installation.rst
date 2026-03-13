@@ -21,7 +21,7 @@ Install with all optional dependencies:
 
 This includes:
 
-- ``editor``: GUI editor (Flask, pywebview)
+- ``editor``: GUI editor (Django + React)
 - ``imaging``: Image processing (Pillow, scipy)
 - ``mcp``: MCP server for AI integration (fastmcp)
 

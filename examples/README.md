@@ -24,7 +24,7 @@ Demonstration scripts showcasing FigRecipe's capabilities for reproducible scien
 | 09 | `09_diagram.py` | Box-and-arrow diagrams (mm-based, see below) |
 | 10 | `10_mcp.py` | MCP integration for AI agents |
 | 11 | `11_cli_commands.sh` | CLI: info, reproduce, validate, crop, extract |
-| 99 | `99_gui_editor.py` | Interactive Flask-based visual editor |
+| 99 | `99_gui_editor.py` | Interactive Django+React visual editor |
 
 ## Diagrams (Example 09)
 

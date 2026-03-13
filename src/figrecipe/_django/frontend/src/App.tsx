@@ -6,6 +6,7 @@ import { useEffect, useMemo } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
 import { FileTreePane } from "./components/FileTreePane/FileTreePane";
+import { PlotTypeNav } from "./components/PlotTypeNav/PlotTypeNav";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
 import { StatusBar } from "./components/StatusBar/StatusBar";
 import { Spinner } from "./components/common/Spinner";
@@ -109,6 +110,9 @@ export function App() {
         </aside>
 
         <div className="panel-resizer" {...dataPanel.resizerProps} />
+
+        {/* Plot type selector nav — fixed width, never collapses */}
+        <PlotTypeNav />
 
         {/* Pane 3 — Canvas (flex: 1) */}
         <main className="split-pane split-pane-center">

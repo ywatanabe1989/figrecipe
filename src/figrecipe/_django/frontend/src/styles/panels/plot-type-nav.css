@@ -1,0 +1,102 @@
+/* Plot Type Nav — vertical icon+label selector, fixed width, never collapses.
+ * Pattern matches scitex-cloud ws-apps-nav sidebar.
+ */
+
+.plot-type-nav {
+  display: flex;
+  flex-direction: column;
+  width: 56px;
+  min-width: 56px;
+  max-width: 56px;
+  background: var(--vis-bg-secondary);
+  border-left: 1px solid var(--vis-border);
+  border-right: 1px solid var(--vis-border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.plot-type-nav__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  font-size: 12px;
+  color: var(--vis-text-muted);
+  border-bottom: 1px solid var(--vis-border);
+  flex-shrink: 0;
+}
+
+.plot-type-nav__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+}
+
+.plot-type-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  color: var(--vis-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.plot-type-nav__item:hover {
+  color: var(--vis-text-primary);
+  background: var(--vis-bg-hover);
+}
+
+.plot-type-nav__item:hover::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: var(--accent-primary);
+  border-radius: 0 2px 2px 0;
+}
+
+.plot-type-nav__item i {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.plot-type-nav__label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48px;
+}
+
+.plot-type-nav__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border-top: 1px solid var(--vis-border);
+  flex-shrink: 0;
+}
+
+.plot-type-nav__count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--vis-text-muted);
+  background: var(--vis-bg-tertiary);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
