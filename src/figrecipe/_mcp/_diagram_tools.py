@@ -27,12 +27,12 @@ def register_diagram_tools(mcp):
         dict
             Result with 'mermaid' and 'graphviz' output strings.
         """
-        from .._diagram import Diagram
+        from .._diagram import GraphDiagram
 
         if spec_path:
-            d = Diagram.from_yaml(spec_path)
+            d = GraphDiagram.from_yaml(spec_path)
         elif spec_dict:
-            d = Diagram.from_dict(spec_dict)
+            d = GraphDiagram.from_dict(spec_dict)
         else:
             raise ValueError("Either spec_dict or spec_path must be provided")
 
@@ -66,12 +66,12 @@ def register_diagram_tools(mcp):
         dict
             Result with 'mermaid' output and 'output_path'.
         """
-        from .._diagram import Diagram
+        from .._diagram import GraphDiagram
 
         if spec_path:
-            d = Diagram.from_yaml(spec_path)
+            d = GraphDiagram.from_yaml(spec_path)
         elif spec_dict:
-            d = Diagram.from_dict(spec_dict)
+            d = GraphDiagram.from_dict(spec_dict)
         else:
             raise ValueError("Either spec_dict or spec_path must be provided")
 
@@ -101,12 +101,12 @@ def register_diagram_tools(mcp):
         dict
             Result with 'graphviz' output and 'output_path'.
         """
-        from .._diagram import Diagram
+        from .._diagram import GraphDiagram
 
         if spec_path:
-            d = Diagram.from_yaml(spec_path)
+            d = GraphDiagram.from_yaml(spec_path)
         elif spec_dict:
-            d = Diagram.from_dict(spec_dict)
+            d = GraphDiagram.from_dict(spec_dict)
         else:
             raise ValueError("Either spec_dict or spec_path must be provided")
 
@@ -177,9 +177,9 @@ def register_diagram_tools(mcp):
         dict
             Result with split diagram parts.
         """
-        from .._diagram import Diagram
+        from .._diagram import GraphDiagram
 
-        d = Diagram.from_yaml(spec_path)
+        d = GraphDiagram.from_yaml(spec_path)
         parts = d.split(max_nodes=max_nodes_per_part, strategy=strategy)
 
         return {
@@ -253,19 +253,19 @@ def register_diagram_tools(mcp):
         dict
             Result with 'output_path' and 'success'.
         """
-        from .._diagram import Diagram
+        from .._diagram import GraphDiagram
 
         if not output_path:
             raise ValueError("output_path is required")
 
         if spec_path:
-            d = Diagram.from_yaml(spec_path)
+            d = GraphDiagram.from_yaml(spec_path)
         elif spec_dict:
-            d = Diagram.from_dict(spec_dict)
+            d = GraphDiagram.from_dict(spec_dict)
         else:
             raise ValueError("Either spec_dict or spec_path must be provided")
 
-        # Use Diagram.render() method - same as CLI
+        # Use GraphDiagram.render() method - same as CLI
         result_path = d.render(output_path, format=format, backend=backend, scale=scale)
 
         return {
