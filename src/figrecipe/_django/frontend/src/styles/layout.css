@@ -1,27 +1,18 @@
-/* FigRecipe Editor — Layout (vis_app 3-pane split-view) */
+/* FigRecipe Editor — Layout (split-view panes inside AppShell mainContent) */
 
-/* ── Root ──────────────────────────────────────────────── */
+/* ── Inner editor (React content inside AppShell.mainContent) ── */
 
-.editor-root {
+.inner-editor {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 .editor-body {
   display: flex;
   flex: 1;
   overflow: hidden;
-}
-
-/* ── Embedded mode (scitex-cloud integration) ──────── */
-
-.editor-root.embedded {
-  background: transparent;
-}
-
-.editor-root.embedded .editor-body {
-  height: 100%;
 }
 
 /* ── Split panes (vis_app split-view.css) ──────────────── */

@@ -65,6 +65,7 @@ seaborn = [
 editor = [
     "django>=4.2.0",
     "Pillow>=9.0.0",
+    "scitex-ui>=0.1.0",
 ]
 desktop = [
     "django>=4.2.0",

@@ -37,6 +37,27 @@ class EditorState:
     # StyleOverrides for layered style management
     _overrides: Any = None
 
+    # FilesBackend for file I/O abstraction (lazy-initialized)
+    _files_backend: Any = None
+
+    @property
+    def files(self):
+        """Get FilesBackend for file operations.
+
+        Tries scitex-app's get_files() first (supports local + cloud),
+        falls back to LocalFilesAdapter (pure pathlib, zero deps).
+        """
+        if self._files_backend is None:
+            try:
+                from scitex_app import get_files
+
+                self._files_backend = get_files(root=str(self.working_dir))
+            except ImportError:
+                from ._local_files import LocalFilesAdapter
+
+                self._files_backend = LocalFilesAdapter(self.working_dir)
+        return self._files_backend
+
     def get_effective_style(self) -> Dict[str, Any]:
         """Get the effective style with overrides."""
         if self._overrides is not None:
