@@ -146,6 +146,9 @@ omit = [
     "*/figrecipe/_cli/*",
     "*/figrecipe/_editor/*",
     "*/figrecipe/_dev/*",
+    "*/figrecipe/_scitex_compat/*",
+    "*/figrecipe/_mcp/*",
+    "*/figrecipe/_django/*",
 ]
 
 [tool.coverage.report]
