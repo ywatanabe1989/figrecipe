@@ -75,47 +75,38 @@ class TestMCPResourcesExist:
 class TestMCPServerResources:
     """Test MCP server has resources registered."""
 
-    def test_server_has_resources(self):
-        """Test that MCP server has resources registered."""
+    @staticmethod
+    def _get_resource_uris():
+        import asyncio
+
         from figrecipe._mcp.server import mcp
 
-        resources = list(mcp._resource_manager._resources.keys())
+        return [str(r.uri) for r in asyncio.run(mcp.list_resources())]
+
+    def test_server_has_resources(self):
+        """Test that MCP server has resources registered."""
+        resources = self._get_resource_uris()
         assert len(resources) >= 4
 
     def test_cheatsheet_resource_registered(self):
         """Test cheatsheet resource is registered."""
-        from figrecipe._mcp.server import mcp
-
-        resources = list(mcp._resource_manager._resources.keys())
-        assert "figrecipe://cheatsheet" in resources
+        assert "figrecipe://cheatsheet" in self._get_resource_uris()
 
     def test_api_core_resource_registered(self):
         """Test API core resource is registered."""
-        from figrecipe._mcp.server import mcp
-
-        resources = list(mcp._resource_manager._resources.keys())
-        assert "figrecipe://api/core" in resources
+        assert "figrecipe://api/core" in self._get_resource_uris()
 
     def test_mcp_spec_resource_registered(self):
         """Test MCP spec resource is registered."""
-        from figrecipe._mcp.server import mcp
-
-        resources = list(mcp._resource_manager._resources.keys())
-        assert "figrecipe://mcp-spec" in resources
+        assert "figrecipe://mcp-spec" in self._get_resource_uris()
 
     def test_integration_resource_registered(self):
         """Test integration resource is registered."""
-        from figrecipe._mcp.server import mcp
-
-        resources = list(mcp._resource_manager._resources.keys())
-        assert "figrecipe://integration" in resources
+        assert "figrecipe://integration" in self._get_resource_uris()
 
     def test_spec_schema_resource_registered(self):
         """Test spec-schema resource is registered."""
-        from figrecipe._mcp.server import mcp
-
-        resources = list(mcp._resource_manager._resources.keys())
-        assert "figrecipe://spec-schema" in resources
+        assert "figrecipe://spec-schema" in self._get_resource_uris()
 
 
 class TestBrandingInstructions:
