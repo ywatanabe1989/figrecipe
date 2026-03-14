@@ -90,7 +90,6 @@ if (embedded) {
 
   const fileBrowser = new FileBrowser({
     container: fileBrowserMount,
-    apiUrl: "api/files",
     onFileSelect,
     showImageBadge: true,
   });
