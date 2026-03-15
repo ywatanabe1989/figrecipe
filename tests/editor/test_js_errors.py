@@ -112,14 +112,14 @@ class TestEditorJSErrors:
                 or page.locator("body").count() > 0
             ), "Editor container not found"
 
-            # Wait up to 10s for the preview image to render
-            # (Django dev server is single-threaded, so JS fetch may take time)
+            # Wait up to 30s for the preview image to render
+            # (Django dev server is single-threaded, so JS fetch queues)
             try:
-                page.locator("img, canvas").first.wait_for(timeout=10000)
+                page.locator("img, canvas").first.wait_for(timeout=30000)
                 has_preview = True
             except Exception:
                 has_preview = False
 
-            assert has_preview, "Figure preview not found within 10s"
+            assert has_preview, "Figure preview not found within 30s"
 
             browser.close()

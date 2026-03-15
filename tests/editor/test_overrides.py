@@ -61,10 +61,7 @@ class TestEditorOverrides:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            page.goto(editor_server.recipe_url)
-            page.wait_for_load_state("networkidle")
-
-            # POST to update endpoint with JSON body
+            # Direct API call — skip page.goto to avoid blocking
             response = page.request.post(
                 editor_server.api("update"),
                 headers={"Content-Type": "application/json"},
@@ -87,9 +84,7 @@ class TestEditorOverrides:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            page.goto(editor_server.recipe_url)
-            page.wait_for_load_state("networkidle")
-
+            # Direct API call — skip page.goto to avoid blocking
             response = page.request.get(editor_server.api("preview"))
             assert response.ok, f"Preview request failed: {response.status}"
             assert "application/json" in response.headers.get("content-type", ""), (
