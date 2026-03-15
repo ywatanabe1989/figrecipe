@@ -147,8 +147,11 @@ export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
           </button>
         </div>
 
-        {/* Vertical title (visible only when collapsed via CSS) */}
-        <span className="panel-title">Data</span>
+        {/* Vertical title with icon (visible only when collapsed via CSS) */}
+        <span className="panel-title">
+          <i className="fas fa-table" />
+          Table
+        </span>
       </div>
 
       {/* Hidden file input for CSV import */}

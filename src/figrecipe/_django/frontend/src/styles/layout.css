@@ -172,7 +172,9 @@
 
 .split-pane.collapsed .panel-title {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
   writing-mode: vertical-lr;
   text-orientation: mixed;
   transform: rotate(180deg);
@@ -183,6 +185,11 @@
   letter-spacing: 0.5px;
   margin: 0;
   flex: 1;
+}
+
+.split-pane.collapsed .panel-title i {
+  font-size: 14px;
+  color: var(--vis-text-secondary);
 }
 
 /* ── Collapsed hover ───────────────────────────────────── */
