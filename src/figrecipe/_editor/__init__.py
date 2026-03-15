@@ -162,6 +162,17 @@ def gui(
 
     django.setup()
 
+    # Start terminal WebSocket server on port+1
+    try:
+        from figrecipe._django.terminal import start_terminal_server
+
+        terminal_port = port + 1
+        start_terminal_server(terminal_port)
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).warning("Terminal server failed: %s", e)
+
     if open_browser and not desktop:
         threading.Timer(1.5, webbrowser.open, args=[url]).start()
 
