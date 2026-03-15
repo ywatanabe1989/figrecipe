@@ -102,6 +102,14 @@ function FigrecipeApp() {
           switchFile(node.path);
         }
       }}
+      onFileDoubleClick={(node) => {
+        if (
+          node.type === "file" &&
+          (node.path.endsWith(".yaml") || node.path.endsWith(".yml"))
+        ) {
+          switchFile(node.path);
+        }
+      }}
       onFileDrop={async (path) => {
         if (path.endsWith(".csv") || path.endsWith(".tsv")) {
           try {

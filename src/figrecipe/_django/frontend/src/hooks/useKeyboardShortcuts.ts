@@ -20,8 +20,6 @@ export function useKeyboardShortcuts() {
       const isEditing =
         tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 
-      console.log("[Keyboard] key:", e.key, "tag:", tag, "isEditing:", isEditing, "mod:", mod);
-
       if (mod && e.key === "s") {
         e.preventDefault();
         save();
@@ -42,8 +40,10 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // Ctrl+C → copy
+      // Ctrl+C → copy figure (only when no text is selected — let browser handle text copy)
       if (mod && e.key === "c" && !isEditing) {
+        const sel = window.getSelection();
+        if (sel && sel.toString().length > 0) return; // native text copy
         e.preventDefault();
         useEditorStore.getState().copyFigure();
         return;
@@ -83,18 +83,11 @@ export function useKeyboardShortcuts() {
             : state.selectedFigureId
               ? [state.selectedFigureId]
               : [];
-        console.log("[Keyboard] Delete pressed. selectedFigureId:", state.selectedFigureId,
-          "selectedFigureIds:", state.selectedFigureIds,
-          "ids to delete:", ids,
-          "figures:", state.placedFigures.map(f => f.id));
         if (ids.length > 0) {
           e.preventDefault();
           for (const id of ids) {
-            console.log("[Keyboard] Removing figure:", id);
             useEditorStore.getState().removeFigure(id);
           }
-        } else {
-          console.log("[Keyboard] No figures to delete");
         }
         return;
       }
