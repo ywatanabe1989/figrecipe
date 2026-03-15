@@ -42,6 +42,7 @@ from .files import (
     handle_api_new,
     handle_api_rename,
     handle_api_switch,
+    handle_api_tree,
 )
 from .gallery import (
     handle_gallery_add,
@@ -122,6 +123,7 @@ HANDLERS = {
     "load_recipe":                  handle_load_recipe,
 
     # Files
+    "api/tree":                     handle_api_tree,
     "api/files":                    handle_api_files,
     "api/switch":                   handle_api_switch,
     "api/new":                      handle_api_new,

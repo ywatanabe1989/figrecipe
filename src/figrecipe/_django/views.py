@@ -70,6 +70,7 @@ def _get_editor(request):
 _NO_EDITOR_ENDPOINTS = {
     "ping",
     "list_themes",
+    "api/tree",
     "api/files",
     "api/switch",
     "api/gallery",

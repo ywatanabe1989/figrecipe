@@ -17,6 +17,9 @@ import type {
   FileNode,
 } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace/types";
 
+// Chat backend
+import { DjangoChatBackend } from "./backends/DjangoChatBackend";
+
 // React app content
 import { InnerEditor } from "./InnerEditor";
 import { api } from "./api/client";
@@ -48,10 +51,10 @@ const root = document.getElementById("root")!;
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get("mode") === "embedded";
 
-/** File tree backend using figrecipe's existing API */
-class FigrecipeFileTreeBackend implements FileTreeBackend {
+/** File tree backend — returns ALL files (general directory tree) */
+class GeneralFileTreeBackend implements FileTreeBackend {
   async fetchTree(): Promise<FileNode[]> {
-    const data = await api.get<{ tree: FileNode[] }>("api/files");
+    const data = await api.get<{ tree: FileNode[] }>("api/tree");
     return data.tree || [];
   }
 }
@@ -65,14 +68,18 @@ function FigrecipeApp() {
     return new LocalTerminalBackend(`ws://127.0.0.1:${port + 1}/`);
   }, []);
 
-  // File tree backend — uses figrecipe's API
-  const fileTreeBackend = useMemo(() => new FigrecipeFileTreeBackend(), []);
+  // Chat backend — connects to Django SSE endpoint
+  const chatBackend = useMemo(() => new DjangoChatBackend(), []);
+
+  // File tree backend — general directory listing
+  const fileTreeBackend = useMemo(() => new GeneralFileTreeBackend(), []);
 
   return (
     <Workspace
       appName="figrecipe"
-      accentColor="#7c5cbf"
+      accentColor="#a07ae0"
       terminalBackend={terminalBackend}
+      chatBackend={chatBackend}
       fileTreeBackend={fileTreeBackend}
       highlightExtensions={[".yaml", ".yml"]}
       onFileSelect={(node) => {
