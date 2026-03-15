@@ -31,7 +31,6 @@ classifiers = [
     "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -44,7 +43,6 @@ dependencies = [
     "scipy>=1.7.0",
     "click>=8.0.0",
     "rich>=13.0.0",
-    "scitex-app>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -62,10 +60,14 @@ seaborn = [
     "seaborn>=0.12.0",
     "pandas>=1.3.0",
 ]
+scitex = [
+    "scitex",
+    "scitex-app>=0.1.0",
+    "scitex-ui>=0.1.0",
+]
 editor = [
     "django>=4.2.0",
     "Pillow>=9.0.0",
-    "scitex-ui>=0.1.0",
 ]
 desktop = [
     "django>=4.2.0",
@@ -97,7 +99,7 @@ mcp = [
     "fastmcp>=2.0",
 ]
 all = [
-    "figrecipe[dev,docs,graph-interactive,mcp]",
+    "figrecipe[dev,docs,graph-interactive,mcp,scitex]",
     "pyyaml>=6.0.0",
     "Pillow>=9.0.0",
     "seaborn>=0.12.0",

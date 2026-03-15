@@ -82,12 +82,17 @@ def _is_figrecipe_yaml_rel(rel_path: str, files_backend) -> bool:
         return False
 
 
-def handle_api_files(request, editor):
-    """List recipe files in working dir as tree + flat list."""
-    from scitex_app import build_tree as _build_tree
+def _local_build_tree(files_backend, extensions=None):
+    """Fallback tree builder when scitex-app is not installed."""
+    tree = []
+    for f in files_backend.list("", extensions=extensions or []):
+        tree.append({"name": Path(f).name, "path": f, "type": "file"})
+    return tree
 
+
+def _get_working_dir_and_backend(request, editor):
+    """Resolve working directory and files backend from request context."""
     working_dir = getattr(editor, "working_dir", None) if editor else None
-    # Allow override from query param (embedded mode passes user's project path)
     wd_param = request.GET.get("working_dir")
     if wd_param:
         wd_path = Path(wd_param)
@@ -98,9 +103,38 @@ def handle_api_files(request, editor):
 
     files_backend = editor.files if editor else None
     if files_backend is None:
-        from scitex_app import get_files
+        try:
+            from scitex_app import get_files
 
-        files_backend = get_files(root=str(working_dir))
+            files_backend = get_files(root=str(working_dir))
+        except ImportError:
+            from .._local_files import LocalFilesAdapter
+
+            files_backend = LocalFilesAdapter(working_dir)
+
+    return working_dir, files_backend
+
+
+def handle_api_tree(request, editor):
+    """List ALL files in working dir as a tree (no filtering)."""
+    try:
+        from scitex_app import build_tree as _build_tree
+    except ImportError:
+        _build_tree = _local_build_tree
+
+    working_dir, files_backend = _get_working_dir_and_backend(request, editor)
+    tree = _build_tree(files_backend)
+    return JsonResponse({"tree": tree, "working_dir": str(working_dir)})
+
+
+def handle_api_files(request, editor):
+    """List recipe files in working dir as tree + flat list."""
+    try:
+        from scitex_app import build_tree as _build_tree
+    except ImportError:
+        _build_tree = _local_build_tree
+
+    working_dir, files_backend = _get_working_dir_and_backend(request, editor)
 
     # Use scitex-app's shared build_tree, then enrich with figrecipe-specific data
     tree = _build_tree(files_backend, extensions=[".yaml", ".yml"])
