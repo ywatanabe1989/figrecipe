@@ -1,106 +1,67 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Chat endpoint for standalone figrecipe — streams LLM responses via SSE.
+"""Chat endpoint — delegates to scitex-app's shared chat module.
 
-Uses anthropic SDK if available, falls back to litellm.
-API key read from ANTHROPIC_API_KEY env var.
+Falls back to a minimal local implementation if scitex-app is not installed.
 """
 
-import json
-import logging
-import os
+try:
+    from scitex_app.chat import chat_stream_view as api_chat_stream  # noqa: F401
+except ImportError:
+    # Fallback: minimal SSE chat without scitex-app
+    import json
+    import logging
 
-from django.http import JsonResponse, StreamingHttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+    from django.http import JsonResponse, StreamingHttpResponse
+    from django.views.decorators.csrf import csrf_exempt
+    from django.views.decorators.http import require_http_methods
 
-logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = (
-    "You are a helpful AI assistant embedded in the FigRecipe figure editor. "
-    "Help users create, modify, and understand scientific figures. "
-    "You can help with YAML recipe syntax, matplotlib plot types, "
-    "data formatting, and figure composition."
-)
-
-
-def _stream_anthropic(prompt: str, history: list):
-    """Stream via anthropic SDK."""
-    import anthropic
-
-    client = anthropic.Anthropic()
-    messages = []
-    for msg in history[-10:]:
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    messages.append({"role": "user", "content": prompt})
-
-    with client.messages.stream(
-        model="claude-sonnet-4-20250514",
-        max_tokens=2048,
-        system=SYSTEM_PROMPT,
-        messages=messages,
-    ) as stream:
-        for text in stream.text_stream:
-            yield f"data: {json.dumps({'type': 'chunk', 'text': text})}\n\n"
-    yield "data: [DONE]\n\n"
-
-
-def _stream_litellm(prompt: str, history: list):
-    """Stream via litellm (multi-provider)."""
-    import litellm
-
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    for msg in history[-10:]:
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    messages.append({"role": "user", "content": prompt})
-
-    response = litellm.completion(
-        model=os.getenv("LLM_MODEL", "anthropic/claude-sonnet-4-20250514"),
-        messages=messages,
-        stream=True,
+    _SYSTEM = (
+        "You are a helpful AI assistant in the FigRecipe figure editor. "
+        "Help with YAML recipes, matplotlib plots, and figure composition."
     )
-    for chunk in response:
-        delta = chunk.choices[0].delta
-        if delta.content:
-            yield f"data: {json.dumps({'type': 'chunk', 'text': delta.content})}\n\n"
-    yield "data: [DONE]\n\n"
 
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def api_chat_stream(request):
-    """SSE streaming chat endpoint."""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-    prompt = data.get("prompt", "").strip()
-    if not prompt:
-        return JsonResponse({"error": "prompt required"}, status=400)
-
-    history = data.get("history", [])
-
-    # Pick backend
-    try:
-        import anthropic  # noqa: F401
-
-        if os.getenv("ANTHROPIC_API_KEY"):
-            generator = _stream_anthropic(prompt, history)
-        else:
-            raise ImportError("No API key")
-    except ImportError:
+    @csrf_exempt
+    @require_http_methods(["POST"])
+    def api_chat_stream(request):
+        """Fallback SSE chat (no scitex-app)."""
         try:
-            import litellm  # noqa: F401
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-            generator = _stream_litellm(prompt, history)
-        except ImportError:
+        prompt = data.get("prompt", "").strip()
+        if not prompt:
+            return JsonResponse({"error": "prompt required"}, status=400)
+
+        history = data.get("history", [])
+        messages = [{"role": m["role"], "content": m["content"]} for m in history[-10:]]
+        messages.append({"role": "user", "content": prompt})
+
+        try:
+            import anthropic
+
+            client = anthropic.Anthropic()
+
+            def gen():
+                with client.messages.stream(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=2048,
+                    system=_SYSTEM,
+                    messages=messages,
+                ) as stream:
+                    for text in stream.text_stream:
+                        yield f"data: {json.dumps({'type': 'chunk', 'text': text})}\n\n"
+                yield "data: [DONE]\n\n"
+
+            resp = StreamingHttpResponse(gen(), content_type="text/event-stream")
+            resp["Cache-Control"] = "no-cache"
+            resp["X-Accel-Buffering"] = "no"
+            return resp
+        except (ImportError, Exception) as e:
             return JsonResponse(
-                {"error": "No LLM backend available. Set ANTHROPIC_API_KEY."},
+                {"error": f"Chat unavailable: {e}. Set ANTHROPIC_API_KEY."},
                 status=503,
             )
-
-    response = StreamingHttpResponse(generator, content_type="text/event-stream")
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-    return response
