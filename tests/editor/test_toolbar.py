@@ -23,7 +23,7 @@ class TestEditorToolbar:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             toolbar_buttons = page.locator(
@@ -54,7 +54,7 @@ class TestEditorToolbar:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             all_btn = page.locator("#btn-all, button:has-text('All')").first
@@ -85,7 +85,7 @@ class TestEditorToolbar:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             shortcuts = ["Control+KeyZ", "Control+KeyY", "Control+KeyS", "Escape"]

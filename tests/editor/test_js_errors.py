@@ -31,7 +31,7 @@ class TestEditorJSErrors:
 
             page.on("console", handle_console)
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
             time.sleep(1)
 
@@ -72,7 +72,7 @@ class TestEditorJSErrors:
 
             page.on("pageerror", capture_error)
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
             time.sleep(1)
 
@@ -90,7 +90,7 @@ class TestEditorJSErrors:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             assert (
