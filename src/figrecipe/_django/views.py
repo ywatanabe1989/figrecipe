@@ -76,6 +76,7 @@ _NO_EDITOR_ENDPOINTS = {
     "api/gallery",
     "api/gallery/add",
     "api/compose",
+    "api/chat/stream",
 }
 
 

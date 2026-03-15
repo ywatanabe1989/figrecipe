@@ -51,14 +51,15 @@ def _enrich_tree(tree, working_dir, editor, files_backend):
 
 
 def _find_default_working_dir():
-    """Find a sensible default directory for recipe files."""
-    cwd = Path.cwd()
-    # Prefer examples/mcp_gallery if it exists (common dev layout)
-    for candidate in ["examples/mcp_gallery", "examples"]:
-        d = cwd / candidate
-        if d.is_dir() and any(d.glob("*.yaml")):
-            return d
-    return cwd
+    """Find the working directory — respects FIGRECIPE_WORKING_DIR env var."""
+    import os
+
+    env_dir = os.environ.get("FIGRECIPE_WORKING_DIR")
+    if env_dir:
+        p = Path(env_dir)
+        if p.is_dir():
+            return p
+    return Path.cwd()
 
 
 def _is_figrecipe_yaml(path: Path, files_backend=None) -> bool:
