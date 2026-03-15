@@ -102,6 +102,37 @@ function FigrecipeApp() {
           }
         }
       }}
+      onFileContextAction={async (action, node) => {
+        const { loadFiles, showToast } = useEditorStore.getState();
+        try {
+          if (action === "copy-path") {
+            await navigator.clipboard.writeText(node.path);
+            showToast?.("Path copied");
+            return;
+          }
+          if (action === "delete") {
+            await api.post("api/delete", { path: node.path });
+            loadFiles();
+          } else if (action === "duplicate") {
+            await api.post("api/duplicate", { path: node.path });
+            loadFiles();
+          } else if (action === "rename") {
+            const newName = prompt("New name:", node.name);
+            if (newName && newName !== node.name) {
+              await api.post("api/rename", {
+                path: node.path,
+                new_name: newName,
+              });
+              loadFiles();
+            }
+          } else if (action === "new") {
+            await api.post("api/new", {});
+            loadFiles();
+          }
+        } catch (e) {
+          console.warn("Context action failed:", e);
+        }
+      }}
     >
       <InnerEditor />
     </Workspace>
