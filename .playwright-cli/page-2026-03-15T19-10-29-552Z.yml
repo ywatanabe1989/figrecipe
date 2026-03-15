@@ -1,0 +1,119 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - button " Console" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: 
+        - text: Console
+      - button " Chat" [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: 
+        - text: Chat
+    - generic [ref=e13]:
+      - generic [ref=e14]: 
+      - text: Loading terminal...
+    - generic [ref=e16]:
+      - generic [ref=e17]: 
+      - text: Connected
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - generic [ref=e21]: 
+      - generic [ref=e22]: Files
+    - generic [ref=e23]:
+      - generic [ref=e24]: 0 files
+      - navigation [ref=e25]:
+        - generic [ref=e26]: No files to display
+  - generic [ref=e29]:
+    - generic [ref=e30]: 
+    - paragraph [ref=e31]: Click a file to preview
+  - generic [ref=e34]:
+    - generic [ref=e35]:
+      - button " Plot" [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]: 
+        - text: Plot
+      - button " Canvas" [ref=e38] [cursor=pointer]:
+        - generic [ref=e39]: 
+        - text: Canvas
+    - generic [ref=e40]:
+      - complementary [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - button " No tables " [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: 
+              - generic [ref=e46]: No tables
+              - generic [ref=e47]: 
+            - button "+" [ref=e48] [cursor=pointer]:
+              - generic [ref=e49]: +
+          - generic [ref=e50]: WIP
+          - generic [ref=e51]:
+            - button "" [disabled] [ref=e52]:
+              - generic [ref=e53]: 
+            - button "" [disabled] [ref=e54]:
+              - generic [ref=e55]: 
+            - button "" [disabled] [ref=e56]:
+              - generic [ref=e57]: 
+            - button "" [ref=e58] [cursor=pointer]:
+              - generic [ref=e59]: 
+        - generic [ref=e61]:
+          - generic: 
+          - paragraph [ref=e62]: No data loaded
+          - paragraph [ref=e63]: Import CSV or Excel, or drag & drop files here
+      - navigation [ref=e65]:
+        - generic [ref=e67]: +
+        - generic [ref=e68]:
+          - button " Line" [ref=e69] [cursor=pointer]:
+            - generic [ref=e70]: 
+            - generic [ref=e71]: Line
+          - button " Scatter" [ref=e72] [cursor=pointer]:
+            - generic [ref=e73]: 
+            - generic [ref=e74]: Scatter
+          - button " Bar" [ref=e75] [cursor=pointer]:
+            - generic [ref=e76]: 
+            - generic [ref=e77]: Bar
+          - button " Dist" [ref=e78] [cursor=pointer]:
+            - generic [ref=e79]: 
+            - generic [ref=e80]: Dist
+          - button " Stats" [ref=e81] [cursor=pointer]:
+            - generic [ref=e82]: 
+            - generic [ref=e83]: Stats
+          - button " Grid" [ref=e84] [cursor=pointer]:
+            - generic [ref=e85]: 
+            - generic [ref=e86]: Grid
+          - button " Area" [ref=e87] [cursor=pointer]:
+            - generic [ref=e88]: 
+            - generic [ref=e89]: Area
+          - button " Contour" [ref=e90] [cursor=pointer]:
+            - generic [ref=e91]: 
+            - generic [ref=e92]: Contour
+          - button " Vector" [ref=e93] [cursor=pointer]:
+            - generic [ref=e94]: 
+            - generic [ref=e95]: Vector
+          - button " Special" [ref=e96] [cursor=pointer]:
+            - generic [ref=e97]: 
+            - generic [ref=e98]: Special
+        - generic [ref=e100]: "0"
+      - main [ref=e101]:
+        - generic [ref=e102]:
+          - generic [ref=e103]: 
+          - paragraph [ref=e104]: Select a recipe file to view the figure
+      - complementary [ref=e106]:
+        - generic [ref=e108]:
+          - generic [ref=e109]: 
+          - text: Details
+        - generic [ref=e111]:
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e114]: 
+              - text: No selection
+            - generic [ref=e115]: Select an item from the tree to view properties
+          - generic [ref=e116]:
+            - button " Current" [ref=e117] [cursor=pointer]:
+              - generic [ref=e118]: 
+              - text: Current
+            - button " Preset" [ref=e119] [cursor=pointer]:
+              - generic [ref=e120]: 
+              - text: Preset
+            - button " Layout" [ref=e121] [cursor=pointer]:
+              - generic: 
+              - text: Layout
+            - button " View" [ref=e122] [cursor=pointer]:
+              - generic [ref=e123]: 
+              - text: View

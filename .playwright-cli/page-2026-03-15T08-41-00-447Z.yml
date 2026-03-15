@@ -1,0 +1,893 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button " Console" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: 
+        - text: Console
+      - button " Chat" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: 
+        - text: Chat
+      - button "" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: 
+    - generic [ref=e17]:
+      - generic:
+        - textbox "Terminal input"
+  - generic [ref=e45]:
+    - generic [ref=e46]:
+      - generic [ref=e47]: 
+      - generic [ref=e48]: Files
+      - button "" [ref=e49] [cursor=pointer]:
+        - generic [ref=e50]: 
+    - generic [ref=e51]:
+      - generic [ref=e52]: 244 files
+      - navigation [ref=e53]:
+        - generic [ref=e54] [cursor=pointer]:
+          - generic [ref=e55]: 
+          - generic [ref=e56]: 
+          - generic [ref=e57]: 01_line_data
+        - generic [ref=e58] [cursor=pointer]:
+          - generic [ref=e59]: 
+          - generic [ref=e60]: 
+          - generic [ref=e61]: 02_scatter_data
+        - generic [ref=e62] [cursor=pointer]:
+          - generic [ref=e63]: 
+          - generic [ref=e64]: 
+          - generic [ref=e65]: 03_errorbar_data
+        - generic [ref=e66] [cursor=pointer]:
+          - generic [ref=e67]: 
+          - generic [ref=e68]: 
+          - generic [ref=e69]: 04_bar_data
+        - generic [ref=e70] [cursor=pointer]:
+          - generic [ref=e71]: 
+          - generic [ref=e72]: 
+          - generic [ref=e73]: 05_barh_data
+        - generic [ref=e74] [cursor=pointer]:
+          - generic [ref=e75]: 
+          - generic [ref=e76]: 
+          - generic [ref=e77]: 06_hist_data
+        - generic [ref=e78] [cursor=pointer]:
+          - generic [ref=e79]: 
+          - generic [ref=e80]: 
+          - generic [ref=e81]: 07_boxplot_data
+        - generic [ref=e82] [cursor=pointer]:
+          - generic [ref=e83]: 
+          - generic [ref=e84]: 
+          - generic [ref=e85]: 08_violinplot_data
+        - generic [ref=e86] [cursor=pointer]:
+          - generic [ref=e87]: 
+          - generic [ref=e88]: 
+          - generic [ref=e89]: 09_imshow_data
+        - generic [ref=e90] [cursor=pointer]:
+          - generic [ref=e91]: 
+          - generic [ref=e92]: 
+          - generic [ref=e93]: 10_contourf_data
+        - generic [ref=e94] [cursor=pointer]:
+          - generic [ref=e95]: 
+          - generic [ref=e96]: 
+          - generic [ref=e97]: 11_pie_data
+        - generic [ref=e98] [cursor=pointer]:
+          - generic [ref=e99]: 
+          - generic [ref=e100]: 
+          - generic [ref=e101]: 12_step_data
+        - generic [ref=e102] [cursor=pointer]:
+          - generic [ref=e103]: 
+          - generic [ref=e104]: 
+          - generic [ref=e105]: 13_fill_between_data
+        - generic [ref=e106] [cursor=pointer]:
+          - generic [ref=e107]: 
+          - generic [ref=e108]: 
+          - generic [ref=e109]: 14_stem_data
+        - generic [ref=e110] [cursor=pointer]:
+          - generic [ref=e111]: 
+          - generic [ref=e112]: 
+          - generic [ref=e113]: 15_eventplot_data
+        - generic [ref=e114] [cursor=pointer]:
+          - generic [ref=e115]: 
+          - generic [ref=e116]: 
+          - generic [ref=e117]: 16_hexbin_data
+        - generic [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]: 
+          - generic [ref=e120]: 
+          - generic [ref=e121]: 17_hist2d_data
+        - generic [ref=e122] [cursor=pointer]:
+          - generic [ref=e123]: 
+          - generic [ref=e124]: 
+          - generic [ref=e125]: 18_pcolormesh_data
+        - generic [ref=e126] [cursor=pointer]:
+          - generic [ref=e127]: 
+          - generic [ref=e128]: 
+          - generic [ref=e129]: 19_contour_data
+        - generic [ref=e130] [cursor=pointer]:
+          - generic [ref=e131]: 
+          - generic [ref=e132]: 
+          - generic [ref=e133]: 20_heatmap_data
+        - generic [ref=e134] [cursor=pointer]:
+          - generic [ref=e135]: 
+          - generic [ref=e136]: 
+          - generic [ref=e137]: 21_fill_betweenx_data
+        - generic [ref=e138] [cursor=pointer]:
+          - generic [ref=e139]: 
+          - generic [ref=e140]: 
+          - generic [ref=e141]: 22_matshow_data
+        - generic [ref=e142] [cursor=pointer]:
+          - generic [ref=e143]: 
+          - generic [ref=e144]: 
+          - generic [ref=e145]: 23_psd_data
+        - generic [ref=e146] [cursor=pointer]:
+          - generic [ref=e147]: 
+          - generic [ref=e148]: 
+          - generic [ref=e149]: 23b_specgram_data
+        - generic [ref=e150] [cursor=pointer]:
+          - generic [ref=e151]: 
+          - generic [ref=e152]: 
+          - generic [ref=e153]: 24_fr_line_data
+        - generic [ref=e154] [cursor=pointer]:
+          - generic [ref=e155]: 
+          - generic [ref=e156]: 
+          - generic [ref=e157]: 25_fr_shaded_line_data
+        - generic [ref=e158] [cursor=pointer]:
+          - generic [ref=e159]: 
+          - generic [ref=e160]: 
+          - generic [ref=e161]: 26_fr_mean_std_data
+        - generic [ref=e162] [cursor=pointer]:
+          - generic [ref=e163]: 
+          - generic [ref=e164]: 
+          - generic [ref=e165]: 27_fr_mean_ci_data
+        - generic [ref=e166] [cursor=pointer]:
+          - generic [ref=e167]: 
+          - generic [ref=e168]: 
+          - generic [ref=e169]: 28_fr_median_iqr_data
+        - generic [ref=e170] [cursor=pointer]:
+          - generic [ref=e171]: 
+          - generic [ref=e172]: 
+          - generic [ref=e173]: 29_fr_conf_mat_data
+        - generic [ref=e174] [cursor=pointer]:
+          - generic [ref=e175]: 
+          - generic [ref=e176]: 
+          - generic [ref=e177]: 30_fr_ecdf_data
+        - generic [ref=e178] [cursor=pointer]:
+          - generic [ref=e179]: 
+          - generic [ref=e180]: 
+          - generic [ref=e181]: 31_fr_raster_data
+        - generic [ref=e182] [cursor=pointer]:
+          - generic [ref=e183]: 
+          - generic [ref=e184]: 
+          - generic [ref=e185]: 32_fr_scatter_hist_data
+        - generic [ref=e186] [cursor=pointer]:
+          - generic [ref=e187]: 
+          - generic [ref=e188]: 
+          - generic [ref=e189]: 33_fr_heatmap_data
+        - generic [ref=e190] [cursor=pointer]:
+          - generic [ref=e191]: 
+          - generic [ref=e192]: 
+          - generic [ref=e193]: 34_fr_fillv_data
+        - generic [ref=e194] [cursor=pointer]:
+          - generic [ref=e195]: 
+          - generic [ref=e196]: 
+          - generic [ref=e197]: 36_fr_image_data
+        - generic [ref=e198] [cursor=pointer]:
+          - generic [ref=e199]: 
+          - generic [ref=e200]: 
+          - generic [ref=e201]: 37_fr_violin_data
+        - generic [ref=e202] [cursor=pointer]:
+          - generic [ref=e203]: 
+          - generic [ref=e204]: 
+          - generic [ref=e205]: 38_stackplot_data
+        - generic [ref=e206] [cursor=pointer]:
+          - generic [ref=e207]: 
+          - generic [ref=e208]: 
+          - generic [ref=e209]: 39_stairs_data
+        - generic [ref=e210] [cursor=pointer]:
+          - generic [ref=e211]: 
+          - generic [ref=e212]: 
+          - generic [ref=e213]: 40_ecdf_data
+        - generic [ref=e214] [cursor=pointer]:
+          - generic [ref=e215]: 
+          - generic [ref=e216]: 
+          - generic [ref=e217]: 41_fill_data
+        - generic [ref=e218] [cursor=pointer]:
+          - generic [ref=e219]: 
+          - generic [ref=e220]: 
+          - generic [ref=e221]: 42_loglog_data
+        - generic [ref=e222] [cursor=pointer]:
+          - generic [ref=e223]: 
+          - generic [ref=e224]: 
+          - generic [ref=e225]: 43_semilogx_data
+        - generic [ref=e226] [cursor=pointer]:
+          - generic [ref=e227]: 
+          - generic [ref=e228]: 
+          - generic [ref=e229]: 44_semilogy_data
+        - generic [ref=e230] [cursor=pointer]:
+          - generic [ref=e231]: 
+          - generic [ref=e232]: 
+          - generic [ref=e233]: 45_quiver_data
+        - generic [ref=e234] [cursor=pointer]:
+          - generic [ref=e235]: 
+          - generic [ref=e236]: 
+          - generic [ref=e237]: 46_spy_data
+        - generic [ref=e238] [cursor=pointer]:
+          - generic [ref=e239]: 
+          - generic [ref=e240]: 
+          - generic [ref=e241]: 47_acorr_data
+        - generic [ref=e242] [cursor=pointer]:
+          - generic [ref=e243]: 
+          - generic [ref=e244]: 
+          - generic [ref=e245]: 48_xcorr_data
+        - generic [ref=e246] [cursor=pointer]:
+          - generic [ref=e247]: 
+          - generic [ref=e248]: 
+          - generic [ref=e249]: 49_pcolor_data
+        - generic [ref=e250] [cursor=pointer]:
+          - generic [ref=e251]: 
+          - generic [ref=e252]: 
+          - generic [ref=e253]: composed_data
+        - generic [ref=e254] [cursor=pointer]:
+          - generic [ref=e255]: 
+          - generic [ref=e256]: 01_line_hitmap.png
+        - generic [ref=e257] [cursor=pointer]:
+          - generic [ref=e258]: 
+          - generic [ref=e259]: 01_line.png
+        - generic [ref=e260] [cursor=pointer]:
+          - generic [ref=e261]: 
+          - generic [ref=e262]: 01_line.yaml
+        - generic [ref=e263] [cursor=pointer]:
+          - generic [ref=e264]: 
+          - generic [ref=e265]: 02_scatter_hitmap.png
+        - generic [ref=e266] [cursor=pointer]:
+          - generic [ref=e267]: 
+          - generic [ref=e268]: 02_scatter.png
+        - generic [ref=e269] [cursor=pointer]:
+          - generic [ref=e270]: 
+          - generic [ref=e271]: 02_scatter.yaml
+        - generic [ref=e272] [cursor=pointer]:
+          - generic [ref=e273]: 
+          - generic [ref=e274]: 03_errorbar_hitmap.png
+        - generic [ref=e275] [cursor=pointer]:
+          - generic [ref=e276]: 
+          - generic [ref=e277]: 03_errorbar.png
+        - generic [ref=e278] [cursor=pointer]:
+          - generic [ref=e279]: 
+          - generic [ref=e280]: 03_errorbar.yaml
+        - generic [ref=e281] [cursor=pointer]:
+          - generic [ref=e282]: 
+          - generic [ref=e283]: 04_bar_hitmap.png
+        - generic [ref=e284] [cursor=pointer]:
+          - generic [ref=e285]: 
+          - generic [ref=e286]: 04_bar.png
+        - generic [ref=e287] [cursor=pointer]:
+          - generic [ref=e288]: 
+          - generic [ref=e289]: 04_bar.yaml
+        - generic [ref=e290] [cursor=pointer]:
+          - generic [ref=e291]: 
+          - generic [ref=e292]: 05_barh_hitmap.png
+        - generic [ref=e293] [cursor=pointer]:
+          - generic [ref=e294]: 
+          - generic [ref=e295]: 05_barh.png
+        - generic [ref=e296] [cursor=pointer]:
+          - generic [ref=e297]: 
+          - generic [ref=e298]: 05_barh.yaml
+        - generic [ref=e299] [cursor=pointer]:
+          - generic [ref=e300]: 
+          - generic [ref=e301]: 06_hist_hitmap.png
+        - generic [ref=e303] [cursor=pointer]: 06_hist.overrides.json
+        - generic [ref=e304] [cursor=pointer]:
+          - generic [ref=e305]: 
+          - generic [ref=e306]: 06_hist.png
+        - generic [ref=e307] [cursor=pointer]:
+          - generic [ref=e308]: 
+          - generic [ref=e309]: 06_hist.yaml
+        - generic [ref=e310] [cursor=pointer]:
+          - generic [ref=e311]: 
+          - generic [ref=e312]: 07_boxplot_hitmap.png
+        - generic [ref=e313] [cursor=pointer]:
+          - generic [ref=e314]: 
+          - generic [ref=e315]: 07_boxplot.png
+        - generic [ref=e316] [cursor=pointer]:
+          - generic [ref=e317]: 
+          - generic [ref=e318]: 07_boxplot.yaml
+        - generic [ref=e319] [cursor=pointer]:
+          - generic [ref=e320]: 
+          - generic [ref=e321]: 08_violinplot_hitmap.png
+        - generic [ref=e322] [cursor=pointer]:
+          - generic [ref=e323]: 
+          - generic [ref=e324]: 08_violinplot.png
+        - generic [ref=e325] [cursor=pointer]:
+          - generic [ref=e326]: 
+          - generic [ref=e327]: 08_violinplot.yaml
+        - generic [ref=e328] [cursor=pointer]:
+          - generic [ref=e329]: 
+          - generic [ref=e330]: 09_imshow_hitmap.png
+        - generic [ref=e331] [cursor=pointer]:
+          - generic [ref=e332]: 
+          - generic [ref=e333]: 09_imshow.png
+        - generic [ref=e334] [cursor=pointer]:
+          - generic [ref=e335]: 
+          - generic [ref=e336]: 09_imshow.yaml
+        - generic [ref=e337] [cursor=pointer]:
+          - generic [ref=e338]: 
+          - generic [ref=e339]: 10_contourf_hitmap.png
+        - generic [ref=e340] [cursor=pointer]:
+          - generic [ref=e341]: 
+          - generic [ref=e342]: 10_contourf.png
+        - generic [ref=e343] [cursor=pointer]:
+          - generic [ref=e344]: 
+          - generic [ref=e345]: 10_contourf.yaml
+        - generic [ref=e346] [cursor=pointer]:
+          - generic [ref=e347]: 
+          - generic [ref=e348]: 11_pie_hitmap.png
+        - generic [ref=e349] [cursor=pointer]:
+          - generic [ref=e350]: 
+          - generic [ref=e351]: 11_pie.png
+        - generic [ref=e352] [cursor=pointer]:
+          - generic [ref=e353]: 
+          - generic [ref=e354]: 11_pie.yaml
+        - generic [ref=e355] [cursor=pointer]:
+          - generic [ref=e356]: 
+          - generic [ref=e357]: 12_step_hitmap.png
+        - generic [ref=e358] [cursor=pointer]:
+          - generic [ref=e359]: 
+          - generic [ref=e360]: 12_step.png
+        - generic [ref=e361] [cursor=pointer]:
+          - generic [ref=e362]: 
+          - generic [ref=e363]: 12_step.yaml
+        - generic [ref=e364] [cursor=pointer]:
+          - generic [ref=e365]: 
+          - generic [ref=e366]: 13_fill_between_hitmap.png
+        - generic [ref=e367] [cursor=pointer]:
+          - generic [ref=e368]: 
+          - generic [ref=e369]: 13_fill_between.png
+        - generic [ref=e370] [cursor=pointer]:
+          - generic [ref=e371]: 
+          - generic [ref=e372]: 13_fill_between.yaml
+        - generic [ref=e373] [cursor=pointer]:
+          - generic [ref=e374]: 
+          - generic [ref=e375]: 14_stem_hitmap.png
+        - generic [ref=e376] [cursor=pointer]:
+          - generic [ref=e377]: 
+          - generic [ref=e378]: 14_stem.png
+        - generic [ref=e379] [cursor=pointer]:
+          - generic [ref=e380]: 
+          - generic [ref=e381]: 14_stem.yaml
+        - generic [ref=e382] [cursor=pointer]:
+          - generic [ref=e383]: 
+          - generic [ref=e384]: 15_eventplot_hitmap.png
+        - generic [ref=e385] [cursor=pointer]:
+          - generic [ref=e386]: 
+          - generic [ref=e387]: 15_eventplot.png
+        - generic [ref=e388] [cursor=pointer]:
+          - generic [ref=e389]: 
+          - generic [ref=e390]: 15_eventplot.yaml
+        - generic [ref=e391] [cursor=pointer]:
+          - generic [ref=e392]: 
+          - generic [ref=e393]: 16_hexbin_hitmap.png
+        - generic [ref=e394] [cursor=pointer]:
+          - generic [ref=e395]: 
+          - generic [ref=e396]: 16_hexbin.png
+        - generic [ref=e397] [cursor=pointer]:
+          - generic [ref=e398]: 
+          - generic [ref=e399]: 16_hexbin.yaml
+        - generic [ref=e400] [cursor=pointer]:
+          - generic [ref=e401]: 
+          - generic [ref=e402]: 17_hist2d_hitmap.png
+        - generic [ref=e403] [cursor=pointer]:
+          - generic [ref=e404]: 
+          - generic [ref=e405]: 17_hist2d.png
+        - generic [ref=e406] [cursor=pointer]:
+          - generic [ref=e407]: 
+          - generic [ref=e408]: 17_hist2d.yaml
+        - generic [ref=e409] [cursor=pointer]:
+          - generic [ref=e410]: 
+          - generic [ref=e411]: 18_pcolormesh_hitmap.png
+        - generic [ref=e412] [cursor=pointer]:
+          - generic [ref=e413]: 
+          - generic [ref=e414]: 18_pcolormesh.png
+        - generic [ref=e415] [cursor=pointer]:
+          - generic [ref=e416]: 
+          - generic [ref=e417]: 18_pcolormesh.yaml
+        - generic [ref=e418] [cursor=pointer]:
+          - generic [ref=e419]: 
+          - generic [ref=e420]: 19_contour_hitmap.png
+        - generic [ref=e421] [cursor=pointer]:
+          - generic [ref=e422]: 
+          - generic [ref=e423]: 19_contour.png
+        - generic [ref=e424] [cursor=pointer]:
+          - generic [ref=e425]: 
+          - generic [ref=e426]: 19_contour.yaml
+        - generic [ref=e427] [cursor=pointer]:
+          - generic [ref=e428]: 
+          - generic [ref=e429]: 20_heatmap_hitmap.png
+        - generic [ref=e430] [cursor=pointer]:
+          - generic [ref=e431]: 
+          - generic [ref=e432]: 20_heatmap.png
+        - generic [ref=e433] [cursor=pointer]:
+          - generic [ref=e434]: 
+          - generic [ref=e435]: 20_heatmap.yaml
+        - generic [ref=e436] [cursor=pointer]:
+          - generic [ref=e437]: 
+          - generic [ref=e438]: 21_fill_betweenx_hitmap.png
+        - generic [ref=e439] [cursor=pointer]:
+          - generic [ref=e440]: 
+          - generic [ref=e441]: 21_fill_betweenx.png
+        - generic [ref=e442] [cursor=pointer]:
+          - generic [ref=e443]: 
+          - generic [ref=e444]: 21_fill_betweenx.yaml
+        - generic [ref=e445] [cursor=pointer]:
+          - generic [ref=e446]: 
+          - generic [ref=e447]: 22_matshow_hitmap.png
+        - generic [ref=e448] [cursor=pointer]:
+          - generic [ref=e449]: 
+          - generic [ref=e450]: 22_matshow.png
+        - generic [ref=e451] [cursor=pointer]:
+          - generic [ref=e452]: 
+          - generic [ref=e453]: 22_matshow.yaml
+        - generic [ref=e454] [cursor=pointer]:
+          - generic [ref=e455]: 
+          - generic [ref=e456]: 23_psd_hitmap.png
+        - generic [ref=e457] [cursor=pointer]:
+          - generic [ref=e458]: 
+          - generic [ref=e459]: 23_psd.png
+        - generic [ref=e460] [cursor=pointer]:
+          - generic [ref=e461]: 
+          - generic [ref=e462]: 23_psd.yaml
+        - generic [ref=e463] [cursor=pointer]:
+          - generic [ref=e464]: 
+          - generic [ref=e465]: 23b_specgram_hitmap.png
+        - generic [ref=e466] [cursor=pointer]:
+          - generic [ref=e467]: 
+          - generic [ref=e468]: 23b_specgram.png
+        - generic [ref=e469] [cursor=pointer]:
+          - generic [ref=e470]: 
+          - generic [ref=e471]: 23b_specgram.yaml
+        - generic [ref=e472] [cursor=pointer]:
+          - generic [ref=e473]: 
+          - generic [ref=e474]: 24_fr_line_hitmap.png
+        - generic [ref=e475] [cursor=pointer]:
+          - generic [ref=e476]: 
+          - generic [ref=e477]: 24_fr_line.png
+        - generic [ref=e478] [cursor=pointer]:
+          - generic [ref=e479]: 
+          - generic [ref=e480]: 24_fr_line.yaml
+        - generic [ref=e481] [cursor=pointer]:
+          - generic [ref=e482]: 
+          - generic [ref=e483]: 25_fr_shaded_line_hitmap.png
+        - generic [ref=e484] [cursor=pointer]:
+          - generic [ref=e485]: 
+          - generic [ref=e486]: 25_fr_shaded_line.png
+        - generic [ref=e487] [cursor=pointer]:
+          - generic [ref=e488]: 
+          - generic [ref=e489]: 25_fr_shaded_line.yaml
+        - generic [ref=e490] [cursor=pointer]:
+          - generic [ref=e491]: 
+          - generic [ref=e492]: 26_fr_mean_std_hitmap.png
+        - generic [ref=e493] [cursor=pointer]:
+          - generic [ref=e494]: 
+          - generic [ref=e495]: 26_fr_mean_std.png
+        - generic [ref=e496] [cursor=pointer]:
+          - generic [ref=e497]: 
+          - generic [ref=e498]: 26_fr_mean_std.yaml
+        - generic [ref=e499] [cursor=pointer]:
+          - generic [ref=e500]: 
+          - generic [ref=e501]: 27_fr_mean_ci_hitmap.png
+        - generic [ref=e502] [cursor=pointer]:
+          - generic [ref=e503]: 
+          - generic [ref=e504]: 27_fr_mean_ci.png
+        - generic [ref=e505] [cursor=pointer]:
+          - generic [ref=e506]: 
+          - generic [ref=e507]: 27_fr_mean_ci.yaml
+        - generic [ref=e508] [cursor=pointer]:
+          - generic [ref=e509]: 
+          - generic [ref=e510]: 28_fr_median_iqr_hitmap.png
+        - generic [ref=e511] [cursor=pointer]:
+          - generic [ref=e512]: 
+          - generic [ref=e513]: 28_fr_median_iqr.png
+        - generic [ref=e514] [cursor=pointer]:
+          - generic [ref=e515]: 
+          - generic [ref=e516]: 28_fr_median_iqr.yaml
+        - generic [ref=e517] [cursor=pointer]:
+          - generic [ref=e518]: 
+          - generic [ref=e519]: 29_fr_conf_mat_hitmap.png
+        - generic [ref=e520] [cursor=pointer]:
+          - generic [ref=e521]: 
+          - generic [ref=e522]: 29_fr_conf_mat.png
+        - generic [ref=e523] [cursor=pointer]:
+          - generic [ref=e524]: 
+          - generic [ref=e525]: 29_fr_conf_mat.yaml
+        - generic [ref=e526] [cursor=pointer]:
+          - generic [ref=e527]: 
+          - generic [ref=e528]: 30_fr_ecdf_hitmap.png
+        - generic [ref=e529] [cursor=pointer]:
+          - generic [ref=e530]: 
+          - generic [ref=e531]: 30_fr_ecdf.png
+        - generic [ref=e532] [cursor=pointer]:
+          - generic [ref=e533]: 
+          - generic [ref=e534]: 30_fr_ecdf.yaml
+        - generic [ref=e535] [cursor=pointer]:
+          - generic [ref=e536]: 
+          - generic [ref=e537]: 31_fr_raster_hitmap.png
+        - generic [ref=e538] [cursor=pointer]:
+          - generic [ref=e539]: 
+          - generic [ref=e540]: 31_fr_raster.png
+        - generic [ref=e541] [cursor=pointer]:
+          - generic [ref=e542]: 
+          - generic [ref=e543]: 31_fr_raster.yaml
+        - generic [ref=e544] [cursor=pointer]:
+          - generic [ref=e545]: 
+          - generic [ref=e546]: 32_fr_scatter_hist_hitmap.png
+        - generic [ref=e547] [cursor=pointer]:
+          - generic [ref=e548]: 
+          - generic [ref=e549]: 32_fr_scatter_hist.png
+        - generic [ref=e550] [cursor=pointer]:
+          - generic [ref=e551]: 
+          - generic [ref=e552]: 32_fr_scatter_hist.yaml
+        - generic [ref=e553] [cursor=pointer]:
+          - generic [ref=e554]: 
+          - generic [ref=e555]: 33_fr_heatmap_hitmap.png
+        - generic [ref=e556] [cursor=pointer]:
+          - generic [ref=e557]: 
+          - generic [ref=e558]: 33_fr_heatmap.png
+        - generic [ref=e559] [cursor=pointer]:
+          - generic [ref=e560]: 
+          - generic [ref=e561]: 33_fr_heatmap.yaml
+        - generic [ref=e562] [cursor=pointer]:
+          - generic [ref=e563]: 
+          - generic [ref=e564]: 34_fr_fillv_hitmap.png
+        - generic [ref=e565] [cursor=pointer]:
+          - generic [ref=e566]: 
+          - generic [ref=e567]: 34_fr_fillv.png
+        - generic [ref=e568] [cursor=pointer]:
+          - generic [ref=e569]: 
+          - generic [ref=e570]: 34_fr_fillv.yaml
+        - generic [ref=e571] [cursor=pointer]:
+          - generic [ref=e572]: 
+          - generic [ref=e573]: 35_fr_rectangle_hitmap.png
+        - generic [ref=e574] [cursor=pointer]:
+          - generic [ref=e575]: 
+          - generic [ref=e576]: 35_fr_rectangle.png
+        - generic [ref=e577] [cursor=pointer]:
+          - generic [ref=e578]: 
+          - generic [ref=e579]: 35_fr_rectangle.yaml
+        - generic [ref=e580] [cursor=pointer]:
+          - generic [ref=e581]: 
+          - generic [ref=e582]: 36_fr_image_hitmap.png
+        - generic [ref=e583] [cursor=pointer]:
+          - generic [ref=e584]: 
+          - generic [ref=e585]: 36_fr_image.png
+        - generic [ref=e586] [cursor=pointer]:
+          - generic [ref=e587]: 
+          - generic [ref=e588]: 36_fr_image.yaml
+        - generic [ref=e589] [cursor=pointer]:
+          - generic [ref=e590]: 
+          - generic [ref=e591]: 37_fr_violin_hitmap.png
+        - generic [ref=e592] [cursor=pointer]:
+          - generic [ref=e593]: 
+          - generic [ref=e594]: 37_fr_violin.png
+        - generic [ref=e595] [cursor=pointer]:
+          - generic [ref=e596]: 
+          - generic [ref=e597]: 37_fr_violin.yaml
+        - generic [ref=e598] [cursor=pointer]:
+          - generic [ref=e599]: 
+          - generic [ref=e600]: 38_stackplot_hitmap.png
+        - generic [ref=e601] [cursor=pointer]:
+          - generic [ref=e602]: 
+          - generic [ref=e603]: 38_stackplot.png
+        - generic [ref=e604] [cursor=pointer]:
+          - generic [ref=e605]: 
+          - generic [ref=e606]: 38_stackplot.yaml
+        - generic [ref=e607] [cursor=pointer]:
+          - generic [ref=e608]: 
+          - generic [ref=e609]: 39_stairs_hitmap.png
+        - generic [ref=e610] [cursor=pointer]:
+          - generic [ref=e611]: 
+          - generic [ref=e612]: 39_stairs.png
+        - generic [ref=e613] [cursor=pointer]:
+          - generic [ref=e614]: 
+          - generic [ref=e615]: 39_stairs.yaml
+        - generic [ref=e616] [cursor=pointer]:
+          - generic [ref=e617]: 
+          - generic [ref=e618]: 40_ecdf_hitmap.png
+        - generic [ref=e619] [cursor=pointer]:
+          - generic [ref=e620]: 
+          - generic [ref=e621]: 40_ecdf.png
+        - generic [ref=e622] [cursor=pointer]:
+          - generic [ref=e623]: 
+          - generic [ref=e624]: 40_ecdf.yaml
+        - generic [ref=e625] [cursor=pointer]:
+          - generic [ref=e626]: 
+          - generic [ref=e627]: 41_fill_hitmap.png
+        - generic [ref=e628] [cursor=pointer]:
+          - generic [ref=e629]: 
+          - generic [ref=e630]: 41_fill.png
+        - generic [ref=e631] [cursor=pointer]:
+          - generic [ref=e632]: 
+          - generic [ref=e633]: 41_fill.yaml
+        - generic [ref=e634] [cursor=pointer]:
+          - generic [ref=e635]: 
+          - generic [ref=e636]: 42_loglog_hitmap.png
+        - generic [ref=e637] [cursor=pointer]:
+          - generic [ref=e638]: 
+          - generic [ref=e639]: 42_loglog.png
+        - generic [ref=e640] [cursor=pointer]:
+          - generic [ref=e641]: 
+          - generic [ref=e642]: 42_loglog.yaml
+        - generic [ref=e643] [cursor=pointer]:
+          - generic [ref=e644]: 
+          - generic [ref=e645]: 43_semilogx_hitmap.png
+        - generic [ref=e646] [cursor=pointer]:
+          - generic [ref=e647]: 
+          - generic [ref=e648]: 43_semilogx.png
+        - generic [ref=e649] [cursor=pointer]:
+          - generic [ref=e650]: 
+          - generic [ref=e651]: 43_semilogx.yaml
+        - generic [ref=e652] [cursor=pointer]:
+          - generic [ref=e653]: 
+          - generic [ref=e654]: 44_semilogy_hitmap.png
+        - generic [ref=e655] [cursor=pointer]:
+          - generic [ref=e656]: 
+          - generic [ref=e657]: 44_semilogy.png
+        - generic [ref=e658] [cursor=pointer]:
+          - generic [ref=e659]: 
+          - generic [ref=e660]: 44_semilogy.yaml
+        - generic [ref=e661] [cursor=pointer]:
+          - generic [ref=e662]: 
+          - generic [ref=e663]: 45_quiver_hitmap.png
+        - generic [ref=e664] [cursor=pointer]:
+          - generic [ref=e665]: 
+          - generic [ref=e666]: 45_quiver.png
+        - generic [ref=e667] [cursor=pointer]:
+          - generic [ref=e668]: 
+          - generic [ref=e669]: 45_quiver.yaml
+        - generic [ref=e670] [cursor=pointer]:
+          - generic [ref=e671]: 
+          - generic [ref=e672]: 46_spy_hitmap.png
+        - generic [ref=e673] [cursor=pointer]:
+          - generic [ref=e674]: 
+          - generic [ref=e675]: 46_spy.png
+        - generic [ref=e676] [cursor=pointer]:
+          - generic [ref=e677]: 
+          - generic [ref=e678]: 46_spy.yaml
+        - generic [ref=e679] [cursor=pointer]:
+          - generic [ref=e680]: 
+          - generic [ref=e681]: 47_acorr_hitmap.png
+        - generic [ref=e682] [cursor=pointer]:
+          - generic [ref=e683]: 
+          - generic [ref=e684]: 47_acorr.png
+        - generic [ref=e685] [cursor=pointer]:
+          - generic [ref=e686]: 
+          - generic [ref=e687]: 47_acorr.yaml
+        - generic [ref=e688] [cursor=pointer]:
+          - generic [ref=e689]: 
+          - generic [ref=e690]: 48_xcorr_hitmap.png
+        - generic [ref=e691] [cursor=pointer]:
+          - generic [ref=e692]: 
+          - generic [ref=e693]: 48_xcorr.png
+        - generic [ref=e694] [cursor=pointer]:
+          - generic [ref=e695]: 
+          - generic [ref=e696]: 48_xcorr.yaml
+        - generic [ref=e697] [cursor=pointer]:
+          - generic [ref=e698]: 
+          - generic [ref=e699]: 49_pcolor_hitmap.png
+        - generic [ref=e700] [cursor=pointer]:
+          - generic [ref=e701]: 
+          - generic [ref=e702]: 49_pcolor.png
+        - generic [ref=e703] [cursor=pointer]:
+          - generic [ref=e704]: 
+          - generic [ref=e705]: 49_pcolor.yaml
+        - generic [ref=e706] [cursor=pointer]:
+          - generic [ref=e707]: 
+          - generic [ref=e708]: composed_hitmap.png
+        - generic [ref=e709] [cursor=pointer]:
+          - generic [ref=e710]: 
+          - generic [ref=e711]: composed.png
+        - generic [ref=e712] [cursor=pointer]:
+          - generic [ref=e713]: 
+          - generic [ref=e714]: composed.yaml
+  - generic [ref=e718]:
+    - complementary [ref=e719]:
+      - generic [ref=e720]:
+        - generic [ref=e721]:
+          - button " No tables " [ref=e722] [cursor=pointer]:
+            - generic [ref=e723]: 
+            - generic [ref=e724]: No tables
+            - generic [ref=e725]: 
+          - button "+" [ref=e726] [cursor=pointer]:
+            - generic [ref=e727]: +
+        - generic [ref=e728]: WIP
+        - generic [ref=e729]:
+          - button "" [disabled] [ref=e730]:
+            - generic [ref=e731]: 
+          - button "" [disabled] [ref=e732]:
+            - generic [ref=e733]: 
+          - button "" [disabled] [ref=e734]:
+            - generic [ref=e735]: 
+          - button "" [ref=e736] [cursor=pointer]:
+            - generic [ref=e737]: 
+      - generic [ref=e739]:
+        - generic [ref=e740]: 
+        - paragraph [ref=e741]: No data loaded
+        - paragraph [ref=e742]: Import CSV or Excel, or drag & drop files here
+    - navigation [ref=e744]:
+      - generic [ref=e746]: +
+      - generic [ref=e747]:
+        - button " Line" [ref=e748] [cursor=pointer]:
+          - generic [ref=e749]: 
+          - generic [ref=e750]: Line
+        - button " Scatter" [ref=e751] [cursor=pointer]:
+          - generic [ref=e752]: 
+          - generic [ref=e753]: Scatter
+        - button " Bar" [ref=e754] [cursor=pointer]:
+          - generic [ref=e755]: 
+          - generic [ref=e756]: Bar
+        - button " Dist" [ref=e757] [cursor=pointer]:
+          - generic [ref=e758]: 
+          - generic [ref=e759]: Dist
+        - button " Stats" [ref=e760] [cursor=pointer]:
+          - generic [ref=e761]: 
+          - generic [ref=e762]: Stats
+        - button " Grid" [ref=e763] [cursor=pointer]:
+          - generic [ref=e764]: 
+          - generic [ref=e765]: Grid
+        - button " Area" [ref=e766] [cursor=pointer]:
+          - generic [ref=e767]: 
+          - generic [ref=e768]: Area
+        - button " Contour" [ref=e769] [cursor=pointer]:
+          - generic [ref=e770]: 
+          - generic [ref=e771]: Contour
+        - button " Vector" [ref=e772] [cursor=pointer]:
+          - generic [ref=e773]: 
+          - generic [ref=e774]: Vector
+        - button " Special" [ref=e775] [cursor=pointer]:
+          - generic [ref=e776]: 
+          - generic [ref=e777]: Special
+      - generic [ref=e779]: "0"
+    - main [ref=e780]:
+      - generic [ref=e781]:
+        - button " No figures " [ref=e783] [cursor=pointer]:
+          - generic [ref=e784]: 
+          - generic [ref=e785]: No figures
+          - generic [ref=e786]: 
+        - generic [ref=e787]:
+          - button "" [ref=e788] [cursor=pointer]:
+            - generic [ref=e789]: 
+          - button "" [ref=e790] [cursor=pointer]:
+            - generic [ref=e791]: 
+          - button "" [ref=e793] [cursor=pointer]:
+            - generic [ref=e794]: 
+          - button "" [ref=e795] [cursor=pointer]:
+            - generic [ref=e796]: 
+          - button "" [ref=e798] [cursor=pointer]:
+            - generic [ref=e799]: 
+          - button "" [ref=e800] [cursor=pointer]:
+            - generic [ref=e801]: 
+          - button "" [ref=e803] [cursor=pointer]:
+            - generic [ref=e804]: 
+          - button "" [ref=e805] [cursor=pointer]:
+            - generic [ref=e806]: 
+          - button "" [ref=e807] [cursor=pointer]:
+            - generic [ref=e808]: 
+          - button "" [ref=e810] [cursor=pointer]:
+            - generic [ref=e811]: 
+      - generic [ref=e813]:
+        - generic [ref=e814]:
+          - 'generic "Units: mm (click to toggle)" [ref=e815] [cursor=pointer]': mm
+          - img [ref=e817]:
+            - generic "0mm (click to toggle inch)" [ref=e818] [cursor=pointer]: 0mm
+            - generic "10mm (click to toggle inch)" [ref=e819] [cursor=pointer]: 10mm
+            - generic "20mm (click to toggle inch)" [ref=e820] [cursor=pointer]: 20mm
+            - generic "30mm (click to toggle inch)" [ref=e821] [cursor=pointer]: 30mm
+            - generic "40mm (click to toggle inch)" [ref=e822] [cursor=pointer]: 40mm
+            - generic "50mm (click to toggle inch)" [ref=e823] [cursor=pointer]: 50mm
+            - generic "60mm (click to toggle inch)" [ref=e824] [cursor=pointer]: 60mm
+            - generic "70mm (click to toggle inch)" [ref=e825] [cursor=pointer]: 70mm
+            - generic "80mm (click to toggle inch)" [ref=e826] [cursor=pointer]: 80mm
+            - generic "90mm (click to toggle inch)" [ref=e827] [cursor=pointer]: 90mm
+            - generic "100mm (click to toggle inch)" [ref=e828] [cursor=pointer]: 100mm
+            - generic "110mm (click to toggle inch)" [ref=e829] [cursor=pointer]: 110mm
+            - generic "120mm (click to toggle inch)" [ref=e830] [cursor=pointer]: 120mm
+            - generic "130mm (click to toggle inch)" [ref=e831] [cursor=pointer]: 130mm
+            - generic "140mm (click to toggle inch)" [ref=e832] [cursor=pointer]: 140mm
+            - generic "150mm (click to toggle inch)" [ref=e833] [cursor=pointer]: 150mm
+            - generic "160mm (click to toggle inch)" [ref=e834] [cursor=pointer]: 160mm
+            - generic "170mm (click to toggle inch)" [ref=e835] [cursor=pointer]: 170mm
+            - generic [ref=e836]: 0.5 col
+            - generic [ref=e837]: 1.0 col
+            - generic [ref=e838]: 1.5 col
+          - img [ref=e841]:
+            - generic "0mm (click to toggle inch)" [ref=e842] [cursor=pointer]: 0mm
+            - generic "10mm (click to toggle inch)" [ref=e843] [cursor=pointer]: 10mm
+            - generic "20mm (click to toggle inch)" [ref=e844] [cursor=pointer]: 20mm
+            - generic "30mm (click to toggle inch)" [ref=e845] [cursor=pointer]: 30mm
+            - generic "40mm (click to toggle inch)" [ref=e846] [cursor=pointer]: 40mm
+            - generic "50mm (click to toggle inch)" [ref=e847] [cursor=pointer]: 50mm
+            - generic "60mm (click to toggle inch)" [ref=e848] [cursor=pointer]: 60mm
+            - generic "70mm (click to toggle inch)" [ref=e849] [cursor=pointer]: 70mm
+            - generic "80mm (click to toggle inch)" [ref=e850] [cursor=pointer]: 80mm
+            - generic "90mm (click to toggle inch)" [ref=e851] [cursor=pointer]: 90mm
+            - generic "100mm (click to toggle inch)" [ref=e852] [cursor=pointer]: 100mm
+            - generic "110mm (click to toggle inch)" [ref=e853] [cursor=pointer]: 110mm
+            - generic "120mm (click to toggle inch)" [ref=e854] [cursor=pointer]: 120mm
+            - generic "130mm (click to toggle inch)" [ref=e855] [cursor=pointer]: 130mm
+            - generic "140mm (click to toggle inch)" [ref=e856] [cursor=pointer]: 140mm
+            - generic "150mm (click to toggle inch)" [ref=e857] [cursor=pointer]: 150mm
+            - generic "160mm (click to toggle inch)" [ref=e858] [cursor=pointer]: 160mm
+            - generic "170mm (click to toggle inch)" [ref=e859] [cursor=pointer]: 170mm
+            - generic "180mm (click to toggle inch)" [ref=e860] [cursor=pointer]: 180mm
+            - generic "190mm (click to toggle inch)" [ref=e861] [cursor=pointer]: 190mm
+            - generic "200mm (click to toggle inch)" [ref=e862] [cursor=pointer]: 200mm
+            - generic "210mm (click to toggle inch)" [ref=e863] [cursor=pointer]: 210mm
+          - generic [ref=e865]:
+            - paragraph [ref=e866]: No figure loaded
+            - paragraph [ref=e867]: Select a file from the browser or create a new figure
+          - img [ref=e869]:
+            - generic "0mm (click to toggle inch)" [ref=e870] [cursor=pointer]: 0mm
+            - generic "10mm (click to toggle inch)" [ref=e871] [cursor=pointer]: 10mm
+            - generic "20mm (click to toggle inch)" [ref=e872] [cursor=pointer]: 20mm
+            - generic "30mm (click to toggle inch)" [ref=e873] [cursor=pointer]: 30mm
+            - generic "40mm (click to toggle inch)" [ref=e874] [cursor=pointer]: 40mm
+            - generic "50mm (click to toggle inch)" [ref=e875] [cursor=pointer]: 50mm
+            - generic "60mm (click to toggle inch)" [ref=e876] [cursor=pointer]: 60mm
+            - generic "70mm (click to toggle inch)" [ref=e877] [cursor=pointer]: 70mm
+            - generic "80mm (click to toggle inch)" [ref=e878] [cursor=pointer]: 80mm
+            - generic "90mm (click to toggle inch)" [ref=e879] [cursor=pointer]: 90mm
+            - generic "100mm (click to toggle inch)" [ref=e880] [cursor=pointer]: 100mm
+            - generic "110mm (click to toggle inch)" [ref=e881] [cursor=pointer]: 110mm
+            - generic "120mm (click to toggle inch)" [ref=e882] [cursor=pointer]: 120mm
+            - generic "130mm (click to toggle inch)" [ref=e883] [cursor=pointer]: 130mm
+            - generic "140mm (click to toggle inch)" [ref=e884] [cursor=pointer]: 140mm
+            - generic "150mm (click to toggle inch)" [ref=e885] [cursor=pointer]: 150mm
+            - generic "160mm (click to toggle inch)" [ref=e886] [cursor=pointer]: 160mm
+            - generic "170mm (click to toggle inch)" [ref=e887] [cursor=pointer]: 170mm
+            - generic "180mm (click to toggle inch)" [ref=e888] [cursor=pointer]: 180mm
+            - generic "190mm (click to toggle inch)" [ref=e889] [cursor=pointer]: 190mm
+            - generic "200mm (click to toggle inch)" [ref=e890] [cursor=pointer]: 200mm
+            - generic "210mm (click to toggle inch)" [ref=e891] [cursor=pointer]: 210mm
+          - img [ref=e894]:
+            - generic "0mm (click to toggle inch)" [ref=e895] [cursor=pointer]: 0mm
+            - generic "10mm (click to toggle inch)" [ref=e896] [cursor=pointer]: 10mm
+            - generic "20mm (click to toggle inch)" [ref=e897] [cursor=pointer]: 20mm
+            - generic "30mm (click to toggle inch)" [ref=e898] [cursor=pointer]: 30mm
+            - generic "40mm (click to toggle inch)" [ref=e899] [cursor=pointer]: 40mm
+            - generic "50mm (click to toggle inch)" [ref=e900] [cursor=pointer]: 50mm
+            - generic "60mm (click to toggle inch)" [ref=e901] [cursor=pointer]: 60mm
+            - generic "70mm (click to toggle inch)" [ref=e902] [cursor=pointer]: 70mm
+            - generic "80mm (click to toggle inch)" [ref=e903] [cursor=pointer]: 80mm
+            - generic "90mm (click to toggle inch)" [ref=e904] [cursor=pointer]: 90mm
+            - generic "100mm (click to toggle inch)" [ref=e905] [cursor=pointer]: 100mm
+            - generic "110mm (click to toggle inch)" [ref=e906] [cursor=pointer]: 110mm
+            - generic "120mm (click to toggle inch)" [ref=e907] [cursor=pointer]: 120mm
+            - generic "130mm (click to toggle inch)" [ref=e908] [cursor=pointer]: 130mm
+            - generic "140mm (click to toggle inch)" [ref=e909] [cursor=pointer]: 140mm
+            - generic "150mm (click to toggle inch)" [ref=e910] [cursor=pointer]: 150mm
+            - generic "160mm (click to toggle inch)" [ref=e911] [cursor=pointer]: 160mm
+            - generic "170mm (click to toggle inch)" [ref=e912] [cursor=pointer]: 170mm
+            - generic [ref=e913]: 0.5 col
+            - generic [ref=e914]: 1.0 col
+            - generic [ref=e915]: 1.5 col
+        - generic: 22%
+    - complementary [ref=e918]:
+      - generic [ref=e920]:
+        - generic [ref=e921]: 
+        - text: Details
+      - generic [ref=e923]:
+        - generic [ref=e924]:
+          - generic [ref=e925]:
+            - generic [ref=e926]: 
+            - text: No selection
+          - generic [ref=e927]: Select an item from the tree to view properties
+        - generic [ref=e928]:
+          - button " Current" [ref=e929] [cursor=pointer]:
+            - generic [ref=e930]: 
+            - text: Current
+          - button " Preset" [ref=e931] [cursor=pointer]:
+            - generic [ref=e932]: 
+            - text: Preset
+          - button " Layout" [ref=e933] [cursor=pointer]:
+            - generic [ref=e934]: 
+            - text: Layout
+          - button " View" [ref=e935] [cursor=pointer]:
+            - generic [ref=e936]: 
+            - text: View
+  - generic [ref=e937]:
+    - generic [ref=e938]:
+      - generic [ref=e939]: 
+      - text: Connected
+    - generic [ref=e940]: figrecipe

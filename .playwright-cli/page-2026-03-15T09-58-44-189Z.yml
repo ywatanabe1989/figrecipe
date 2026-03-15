@@ -1,0 +1,1561 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "SciTeX (Dev)" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "SciTeX (Dev)" [ref=e6]
+        - generic [ref=e7]:
+          - button "dotfiles" [ref=e8] [cursor=pointer]:
+            - generic [ref=e9]: dotfiles
+            - img [ref=e10]
+          - text:  
+      - text:  
+      - generic [ref=e13]:
+        - textbox "Search or jump to..." [ref=e14]
+        - generic: /
+      - generic [ref=e15]:
+        - 'button "Current theme: 🌙 Dark" [ref=e16] [cursor=pointer]': 🌙 Toggle light/dark theme
+        - button " Product Tour" [ref=e17] [cursor=pointer]:
+          - generic [ref=e18]: 
+          - text: Product Tour
+        - link " Keyboard Shortcuts (Alt+/ for quick view)" [ref=e19] [cursor=pointer]:
+          - /url: /keyboard-shortcuts/
+          - generic [ref=e20]: 
+          - text: Keyboard Shortcuts (Alt+/ for quick view)
+        - generic [ref=e21]:
+          - button " Notifications" [ref=e22] [cursor=pointer]:
+            - generic [ref=e23]: 
+            - text: Notifications
+          - text: 
+        - 'link " Server: degraded" [ref=e24] [cursor=pointer]':
+          - /url: /server-status/
+          - generic [ref=e26]: 
+          - text: "Server: degraded"
+        - generic [ref=e27]:
+          - 'button "Visitor #001 ⏰ 59:52" [ref=e28] [cursor=pointer]':
+            - img [ref=e29]
+            - generic [ref=e32]: "Visitor #001"
+            - generic [ref=e33]: ⏰ 59:52
+            - img [ref=e34]
+          - text:   
+  - button "Hide header":
+    - generic: 
+    - text: Hide header
+  - generic [ref=e36]:
+    - generic [ref=e38]:
+      - generic [ref=e40]:
+        - text:  
+        - generic [ref=e41]:
+          - button " Console" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 
+            - text: Console
+          - button " Chat" [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: 
+            - text: Chat
+        - button "" [ref=e47] [cursor=pointer]:
+          - generic [ref=e48]: 
+      - generic [ref=e49]:
+        - text: +                
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - button "+" [ref=e52] [cursor=pointer]:
+              - generic [ref=e53]: +
+            - generic "ai-panel-db58431f-53fa-4ced-b315-9f48dd878f69" [ref=e55] [cursor=pointer]:
+              - generic [ref=e56]: T1
+          - generic [ref=e61]:
+            - generic:
+              - textbox "Terminal input"
+          - generic [ref=e93]:
+            - generic [ref=e94]:
+              - generic [ref=e95]: 
+              - text: Connected
+            - generic [ref=e96]:
+              - button "" [ref=e97] [cursor=pointer]:
+                - generic [ref=e98]: 
+              - button "" [ref=e99] [cursor=pointer]:
+                - generic [ref=e100]: 
+              - button "" [ref=e101] [cursor=pointer]:
+                - generic [ref=e102]: 
+              - button "" [ref=e103] [cursor=pointer]:
+                - generic [ref=e104]: 
+              - button "" [ref=e105] [cursor=pointer]:
+                - generic [ref=e106]: 
+            - text:   
+          - group [ref=e107]:
+            - generic "▸  Jobs " [ref=e108] [cursor=pointer]:
+              - text: ▸
+              - generic [ref=e109]: 
+              - generic [ref=e110]: Jobs
+              - button "" [ref=e111]:
+                - generic [ref=e112]: 
+    - generic [ref=e114]:
+      - generic [ref=e116]:
+        - text:  
+        - generic [ref=e117]:
+          - generic [ref=e118]: 
+          - text: visitor-001/dotfiles
+        - button "" [ref=e120] [cursor=pointer]:
+          - generic [ref=e121]: 
+      - generic [ref=e122]:
+        - generic [ref=e124]:
+          - generic [ref=e126]:
+            - text: 
+            - generic "AGENTS.md" [ref=e127] [cursor=pointer]:
+              - text: 
+              - generic [ref=e129]: AGENTS.md
+            - generic "bash_profile" [ref=e130] [cursor=pointer]:
+              - text: 
+              - generic [ref=e132]: bash_profile
+            - generic "bashrc" [ref=e133] [cursor=pointer]:
+              - text: 
+              - generic [ref=e135]: bashrc
+            - generic "gitconfig" [ref=e136] [cursor=pointer]:
+              - text: 
+              - generic [ref=e138]: gitconfig
+            - generic "install.sh" [ref=e139] [cursor=pointer]:
+              - text: 
+              - generic [ref=e141]: install.sh
+            - generic "ipython" [ref=e142] [cursor=pointer]:
+              - button "▸" [ref=e143]:
+                - generic [ref=e144]: ▸
+                - text: 
+              - generic [ref=e145]: ipython
+            - text: 
+            - generic "README.md" [ref=e146] [cursor=pointer]:
+              - text: 
+              - generic [ref=e148]: README.md
+            - generic "scitex" [ref=e149] [cursor=pointer]:
+              - button "▸" [ref=e150]:
+                - generic [ref=e151]: ▸
+                - text: 
+              - generic [ref=e152]: scitex
+            - text:  ▸     ▸  ▸    ▸      ▸         ▸  ▸      ▸   ▸        ▸  ▸     ▸         ▸          ▸  ▸   ▸      ▸          ▸           ▸   ▸    ▸  ▸      ▸          ▸  ▸     ▸             ▸   ▸     ▸    ▸  ▸      ▸           ▸    ▸      ▸       ▸       ▸                   ▸    ▸        ▸               ▸  ▸         ▸      ▸      ▸      ▸   ▸                 ▸         ▸            ▸            ▸           ▸          ▸  ▸     ▸                ▸            ▸   ▸     ▸      ▸     ▸       ▸         ▸         ▸          ▸    ▸          ▸               ▸        ▸            ▸        ▸        ▸       ▸    ▸       ▸  ▸  ▸           ▸   ▸     ▸   ▸    ▸    ▸    ▸      ▸                            ▸            ▸  ▸  ▸                        ▸          
+            - generic "tmux.conf" [ref=e153] [cursor=pointer]:
+              - text: 
+              - generic [ref=e155]: tmux.conf
+            - generic "vimrc" [ref=e156] [cursor=pointer]:
+              - text: 
+              - generic [ref=e158]: vimrc
+          - text:  
+        - generic [ref=e161] [cursor=pointer]:
+          - generic [ref=e162]: 
+          - generic [ref=e163]: Recent
+          - generic [ref=e164]:
+            - button "" [ref=e165]:
+              - generic [ref=e166]: 
+            - button "" [ref=e167]:
+              - generic [ref=e168]: 
+            - button "" [ref=e169]:
+              - generic [ref=e170]: 
+    - generic [ref=e172] [cursor=pointer]:
+      - generic [ref=e174]:
+        - text: 
+        - generic "Viewer" [ref=e175]:
+          - generic [ref=e176]: 
+          - text: Viewer
+        - text: "  Supported formats: Text: .py .js .ts .html .css .json .md .yaml .sh .tex .bib .txt Image: .png .jpg .jpeg .gif .webp .svg .bmp .ico PDF: .pdf Table: .csv .tsv Diagram: .mmd .mermaid .dot .gv Audio: .mp3 .wav .ogg .flac .m4a .aac .wma Video: .mp4 .webm .avi .mov .mkv .ogv "
+      - text:  Click to expand
+    - navigation [ref=e180]:
+      - link "Home" [ref=e181] [cursor=pointer]:
+        - /url: /apps/home/
+        - generic [ref=e182]: 
+        - generic [ref=e183]: Home
+      - link "Writer" [ref=e184] [cursor=pointer]:
+        - /url: /apps/writer/
+        - generic [ref=e185]: 
+        - generic [ref=e186]: Writer
+      - link "Scholar" [ref=e187] [cursor=pointer]:
+        - /url: /apps/scholar/
+        - generic [ref=e188]: 
+        - generic [ref=e189]: Scholar
+      - link "FigRecipe" [ref=e190] [cursor=pointer]:
+        - /url: /apps/figrecipe/
+        - generic [ref=e191]: 
+        - generic [ref=e192]: FigRecipe
+      - link "Tools" [ref=e193] [cursor=pointer]:
+        - /url: /apps/tools/
+        - generic [ref=e194]: 
+        - generic [ref=e195]: Tools
+      - link "Discovery" [ref=e196] [cursor=pointer]:
+        - /url: /apps/discovery/
+        - generic [ref=e197]: 
+        - generic [ref=e198]: Discovery
+      - link "Docs" [ref=e199] [cursor=pointer]:
+        - /url: /apps/docs/
+        - generic [ref=e200]: 
+        - generic [ref=e201]: Docs
+      - link "Store" [ref=e202] [cursor=pointer]:
+        - /url: /apps/store/
+        - generic [ref=e203]: 
+        - generic [ref=e204]: Store
+    - main [ref=e205]:
+      - generic [ref=e207]:
+        - generic [ref=e209]:
+          - generic [ref=e210]:
+            - generic [ref=e211]:
+              - generic [ref=e212]:
+                - button " No tables " [ref=e213] [cursor=pointer]:
+                  - generic [ref=e214]: 
+                  - generic [ref=e215]: No tables
+                  - generic [ref=e216]: 
+                - text: 
+                - button "+" [ref=e217] [cursor=pointer]:
+                  - generic [ref=e218]: +
+              - generic [ref=e219]: WIP Work in Progress — not yet functional
+              - generic [ref=e220]:
+                - text: 
+                - button "" [ref=e221] [cursor=pointer]:
+                  - generic [ref=e222]: 
+                - button "" [ref=e223] [cursor=pointer]:
+                  - generic [ref=e224]: 
+                - button "" [ref=e225] [cursor=pointer]:
+                  - generic [ref=e226]: 
+                - text: 
+              - text: 
+            - table [ref=e230]:
+              - rowgroup [ref=e231]:
+                - row "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32" [ref=e232]:
+                  - columnheader [ref=e233]
+                  - columnheader "1" [ref=e234]:
+                    - generic [ref=e235]: "1"
+                  - columnheader "2" [ref=e237]:
+                    - generic [ref=e238]: "2"
+                  - columnheader "3" [ref=e240]:
+                    - generic [ref=e241]: "3"
+                  - columnheader "4" [ref=e243]:
+                    - generic [ref=e244]: "4"
+                  - columnheader "5" [ref=e246]:
+                    - generic [ref=e247]: "5"
+                  - columnheader "6" [ref=e249]:
+                    - generic [ref=e250]: "6"
+                  - columnheader "7" [ref=e252]:
+                    - generic [ref=e253]: "7"
+                  - columnheader "8" [ref=e255]:
+                    - generic [ref=e256]: "8"
+                  - columnheader "9" [ref=e258]:
+                    - generic [ref=e259]: "9"
+                  - columnheader "10" [ref=e261]:
+                    - generic [ref=e262]: "10"
+                  - columnheader "11" [ref=e264]:
+                    - generic [ref=e265]: "11"
+                  - columnheader "12" [ref=e267]:
+                    - generic [ref=e268]: "12"
+                  - columnheader "13" [ref=e270]:
+                    - generic [ref=e271]: "13"
+                  - columnheader "14" [ref=e273]:
+                    - generic [ref=e274]: "14"
+                  - columnheader "15" [ref=e276]:
+                    - generic [ref=e277]: "15"
+                  - columnheader "16" [ref=e279]:
+                    - generic [ref=e280]: "16"
+                  - columnheader "17" [ref=e282]:
+                    - generic [ref=e283]: "17"
+                  - columnheader "18" [ref=e285]:
+                    - generic [ref=e286]: "18"
+                  - columnheader "19" [ref=e288]:
+                    - generic [ref=e289]: "19"
+                  - columnheader "20" [ref=e291]:
+                    - generic [ref=e292]: "20"
+                  - columnheader "21" [ref=e294]:
+                    - generic [ref=e295]: "21"
+                  - columnheader "22" [ref=e297]:
+                    - generic [ref=e298]: "22"
+                  - columnheader "23" [ref=e300]:
+                    - generic [ref=e301]: "23"
+                  - columnheader "24" [ref=e303]:
+                    - generic [ref=e304]: "24"
+                  - columnheader "25" [ref=e306]:
+                    - generic [ref=e307]: "25"
+                  - columnheader "26" [ref=e309]:
+                    - generic [ref=e310]: "26"
+                  - columnheader "27" [ref=e312]:
+                    - generic [ref=e313]: "27"
+                  - columnheader "28" [ref=e315]:
+                    - generic [ref=e316]: "28"
+                  - columnheader "29" [ref=e318]:
+                    - generic [ref=e319]: "29"
+                  - columnheader "30" [ref=e321]:
+                    - generic [ref=e322]: "30"
+                  - columnheader "31" [ref=e324]:
+                    - generic [ref=e325]: "31"
+                  - columnheader "32" [ref=e327]:
+                    - generic [ref=e328]: "32"
+              - rowgroup [ref=e330]:
+                - row "1" [ref=e331]:
+                  - cell "1" [ref=e332]
+                  - cell [ref=e333]
+                  - cell [ref=e334]
+                  - cell [ref=e335]
+                  - cell [ref=e336]
+                  - cell [ref=e337]
+                  - cell [ref=e338]
+                  - cell [ref=e339]
+                  - cell [ref=e340]
+                  - cell [ref=e341]
+                  - cell [ref=e342]
+                  - cell [ref=e343]
+                  - cell [ref=e344]
+                  - cell [ref=e345]
+                  - cell [ref=e346]
+                  - cell [ref=e347]
+                  - cell [ref=e348]
+                  - cell [ref=e349]
+                  - cell [ref=e350]
+                  - cell [ref=e351]
+                  - cell [ref=e352]
+                  - cell [ref=e353]
+                  - cell [ref=e354]
+                  - cell [ref=e355]
+                  - cell [ref=e356]
+                  - cell [ref=e357]
+                  - cell [ref=e358]
+                  - cell [ref=e359]
+                  - cell [ref=e360]
+                  - cell [ref=e361]
+                  - cell [ref=e362]
+                  - cell [ref=e363]
+                  - cell [ref=e364]
+                - row "2" [ref=e365]:
+                  - cell "2" [ref=e366]
+                  - cell [ref=e367]
+                  - cell [ref=e368]
+                  - cell [ref=e369]
+                  - cell [ref=e370]
+                  - cell [ref=e371]
+                  - cell [ref=e372]
+                  - cell [ref=e373]
+                  - cell [ref=e374]
+                  - cell [ref=e375]
+                  - cell [ref=e376]
+                  - cell [ref=e377]
+                  - cell [ref=e378]
+                  - cell [ref=e379]
+                  - cell [ref=e380]
+                  - cell [ref=e381]
+                  - cell [ref=e382]
+                  - cell [ref=e383]
+                  - cell [ref=e384]
+                  - cell [ref=e385]
+                  - cell [ref=e386]
+                  - cell [ref=e387]
+                  - cell [ref=e388]
+                  - cell [ref=e389]
+                  - cell [ref=e390]
+                  - cell [ref=e391]
+                  - cell [ref=e392]
+                  - cell [ref=e393]
+                  - cell [ref=e394]
+                  - cell [ref=e395]
+                  - cell [ref=e396]
+                  - cell [ref=e397]
+                  - cell [ref=e398]
+                - row "3" [ref=e399]:
+                  - cell "3" [ref=e400]
+                  - cell [ref=e401]
+                  - cell [ref=e402]
+                  - cell [ref=e403]
+                  - cell [ref=e404]
+                  - cell [ref=e405]
+                  - cell [ref=e406]
+                  - cell [ref=e407]
+                  - cell [ref=e408]
+                  - cell [ref=e409]
+                  - cell [ref=e410]
+                  - cell [ref=e411]
+                  - cell [ref=e412]
+                  - cell [ref=e413]
+                  - cell [ref=e414]
+                  - cell [ref=e415]
+                  - cell [ref=e416]
+                  - cell [ref=e417]
+                  - cell [ref=e418]
+                  - cell [ref=e419]
+                  - cell [ref=e420]
+                  - cell [ref=e421]
+                  - cell [ref=e422]
+                  - cell [ref=e423]
+                  - cell [ref=e424]
+                  - cell [ref=e425]
+                  - cell [ref=e426]
+                  - cell [ref=e427]
+                  - cell [ref=e428]
+                  - cell [ref=e429]
+                  - cell [ref=e430]
+                  - cell [ref=e431]
+                  - cell [ref=e432]
+                - row "4" [ref=e433]:
+                  - cell "4" [ref=e434]
+                  - cell [ref=e435]
+                  - cell [ref=e436]
+                  - cell [ref=e437]
+                  - cell [ref=e438]
+                  - cell [ref=e439]
+                  - cell [ref=e440]
+                  - cell [ref=e441]
+                  - cell [ref=e442]
+                  - cell [ref=e443]
+                  - cell [ref=e444]
+                  - cell [ref=e445]
+                  - cell [ref=e446]
+                  - cell [ref=e447]
+                  - cell [ref=e448]
+                  - cell [ref=e449]
+                  - cell [ref=e450]
+                  - cell [ref=e451]
+                  - cell [ref=e452]
+                  - cell [ref=e453]
+                  - cell [ref=e454]
+                  - cell [ref=e455]
+                  - cell [ref=e456]
+                  - cell [ref=e457]
+                  - cell [ref=e458]
+                  - cell [ref=e459]
+                  - cell [ref=e460]
+                  - cell [ref=e461]
+                  - cell [ref=e462]
+                  - cell [ref=e463]
+                  - cell [ref=e464]
+                  - cell [ref=e465]
+                  - cell [ref=e466]
+                - row "5" [ref=e467]:
+                  - cell "5" [ref=e468]
+                  - cell [ref=e469]
+                  - cell [ref=e470]
+                  - cell [ref=e471]
+                  - cell [ref=e472]
+                  - cell [ref=e473]
+                  - cell [ref=e474]
+                  - cell [ref=e475]
+                  - cell [ref=e476]
+                  - cell [ref=e477]
+                  - cell [ref=e478]
+                  - cell [ref=e479]
+                  - cell [ref=e480]
+                  - cell [ref=e481]
+                  - cell [ref=e482]
+                  - cell [ref=e483]
+                  - cell [ref=e484]
+                  - cell [ref=e485]
+                  - cell [ref=e486]
+                  - cell [ref=e487]
+                  - cell [ref=e488]
+                  - cell [ref=e489]
+                  - cell [ref=e490]
+                  - cell [ref=e491]
+                  - cell [ref=e492]
+                  - cell [ref=e493]
+                  - cell [ref=e494]
+                  - cell [ref=e495]
+                  - cell [ref=e496]
+                  - cell [ref=e497]
+                  - cell [ref=e498]
+                  - cell [ref=e499]
+                  - cell [ref=e500]
+                - row "6" [ref=e501]:
+                  - cell "6" [ref=e502]
+                  - cell [ref=e503]
+                  - cell [ref=e504]
+                  - cell [ref=e505]
+                  - cell [ref=e506]
+                  - cell [ref=e507]
+                  - cell [ref=e508]
+                  - cell [ref=e509]
+                  - cell [ref=e510]
+                  - cell [ref=e511]
+                  - cell [ref=e512]
+                  - cell [ref=e513]
+                  - cell [ref=e514]
+                  - cell [ref=e515]
+                  - cell [ref=e516]
+                  - cell [ref=e517]
+                  - cell [ref=e518]
+                  - cell [ref=e519]
+                  - cell [ref=e520]
+                  - cell [ref=e521]
+                  - cell [ref=e522]
+                  - cell [ref=e523]
+                  - cell [ref=e524]
+                  - cell [ref=e525]
+                  - cell [ref=e526]
+                  - cell [ref=e527]
+                  - cell [ref=e528]
+                  - cell [ref=e529]
+                  - cell [ref=e530]
+                  - cell [ref=e531]
+                  - cell [ref=e532]
+                  - cell [ref=e533]
+                  - cell [ref=e534]
+                - row "7" [ref=e535]:
+                  - cell "7" [ref=e536]
+                  - cell [ref=e537]
+                  - cell [ref=e538]
+                  - cell [ref=e539]
+                  - cell [ref=e540]
+                  - cell [ref=e541]
+                  - cell [ref=e542]
+                  - cell [ref=e543]
+                  - cell [ref=e544]
+                  - cell [ref=e545]
+                  - cell [ref=e546]
+                  - cell [ref=e547]
+                  - cell [ref=e548]
+                  - cell [ref=e549]
+                  - cell [ref=e550]
+                  - cell [ref=e551]
+                  - cell [ref=e552]
+                  - cell [ref=e553]
+                  - cell [ref=e554]
+                  - cell [ref=e555]
+                  - cell [ref=e556]
+                  - cell [ref=e557]
+                  - cell [ref=e558]
+                  - cell [ref=e559]
+                  - cell [ref=e560]
+                  - cell [ref=e561]
+                  - cell [ref=e562]
+                  - cell [ref=e563]
+                  - cell [ref=e564]
+                  - cell [ref=e565]
+                  - cell [ref=e566]
+                  - cell [ref=e567]
+                  - cell [ref=e568]
+                - row "8" [ref=e569]:
+                  - cell "8" [ref=e570]
+                  - cell [ref=e571]
+                  - cell [ref=e572]
+                  - cell [ref=e573]
+                  - cell [ref=e574]
+                  - cell [ref=e575]
+                  - cell [ref=e576]
+                  - cell [ref=e577]
+                  - cell [ref=e578]
+                  - cell [ref=e579]
+                  - cell [ref=e580]
+                  - cell [ref=e581]
+                  - cell [ref=e582]
+                  - cell [ref=e583]
+                  - cell [ref=e584]
+                  - cell [ref=e585]
+                  - cell [ref=e586]
+                  - cell [ref=e587]
+                  - cell [ref=e588]
+                  - cell [ref=e589]
+                  - cell [ref=e590]
+                  - cell [ref=e591]
+                  - cell [ref=e592]
+                  - cell [ref=e593]
+                  - cell [ref=e594]
+                  - cell [ref=e595]
+                  - cell [ref=e596]
+                  - cell [ref=e597]
+                  - cell [ref=e598]
+                  - cell [ref=e599]
+                  - cell [ref=e600]
+                  - cell [ref=e601]
+                  - cell [ref=e602]
+                - row "9" [ref=e603]:
+                  - cell "9" [ref=e604]
+                  - cell [ref=e605]
+                  - cell [ref=e606]
+                  - cell [ref=e607]
+                  - cell [ref=e608]
+                  - cell [ref=e609]
+                  - cell [ref=e610]
+                  - cell [ref=e611]
+                  - cell [ref=e612]
+                  - cell [ref=e613]
+                  - cell [ref=e614]
+                  - cell [ref=e615]
+                  - cell [ref=e616]
+                  - cell [ref=e617]
+                  - cell [ref=e618]
+                  - cell [ref=e619]
+                  - cell [ref=e620]
+                  - cell [ref=e621]
+                  - cell [ref=e622]
+                  - cell [ref=e623]
+                  - cell [ref=e624]
+                  - cell [ref=e625]
+                  - cell [ref=e626]
+                  - cell [ref=e627]
+                  - cell [ref=e628]
+                  - cell [ref=e629]
+                  - cell [ref=e630]
+                  - cell [ref=e631]
+                  - cell [ref=e632]
+                  - cell [ref=e633]
+                  - cell [ref=e634]
+                  - cell [ref=e635]
+                  - cell [ref=e636]
+                - row "10" [ref=e637]:
+                  - cell "10" [ref=e638]
+                  - cell [ref=e639]
+                  - cell [ref=e640]
+                  - cell [ref=e641]
+                  - cell [ref=e642]
+                  - cell [ref=e643]
+                  - cell [ref=e644]
+                  - cell [ref=e645]
+                  - cell [ref=e646]
+                  - cell [ref=e647]
+                  - cell [ref=e648]
+                  - cell [ref=e649]
+                  - cell [ref=e650]
+                  - cell [ref=e651]
+                  - cell [ref=e652]
+                  - cell [ref=e653]
+                  - cell [ref=e654]
+                  - cell [ref=e655]
+                  - cell [ref=e656]
+                  - cell [ref=e657]
+                  - cell [ref=e658]
+                  - cell [ref=e659]
+                  - cell [ref=e660]
+                  - cell [ref=e661]
+                  - cell [ref=e662]
+                  - cell [ref=e663]
+                  - cell [ref=e664]
+                  - cell [ref=e665]
+                  - cell [ref=e666]
+                  - cell [ref=e667]
+                  - cell [ref=e668]
+                  - cell [ref=e669]
+                  - cell [ref=e670]
+                - row "11" [ref=e671]:
+                  - cell "11" [ref=e672]
+                  - cell [ref=e673]
+                  - cell [ref=e674]
+                  - cell [ref=e675]
+                  - cell [ref=e676]
+                  - cell [ref=e677]
+                  - cell [ref=e678]
+                  - cell [ref=e679]
+                  - cell [ref=e680]
+                  - cell [ref=e681]
+                  - cell [ref=e682]
+                  - cell [ref=e683]
+                  - cell [ref=e684]
+                  - cell [ref=e685]
+                  - cell [ref=e686]
+                  - cell [ref=e687]
+                  - cell [ref=e688]
+                  - cell [ref=e689]
+                  - cell [ref=e690]
+                  - cell [ref=e691]
+                  - cell [ref=e692]
+                  - cell [ref=e693]
+                  - cell [ref=e694]
+                  - cell [ref=e695]
+                  - cell [ref=e696]
+                  - cell [ref=e697]
+                  - cell [ref=e698]
+                  - cell [ref=e699]
+                  - cell [ref=e700]
+                  - cell [ref=e701]
+                  - cell [ref=e702]
+                  - cell [ref=e703]
+                  - cell [ref=e704]
+                - row "12" [ref=e705]:
+                  - cell "12" [ref=e706]
+                  - cell [ref=e707]
+                  - cell [ref=e708]
+                  - cell [ref=e709]
+                  - cell [ref=e710]
+                  - cell [ref=e711]
+                  - cell [ref=e712]
+                  - cell [ref=e713]
+                  - cell [ref=e714]
+                  - cell [ref=e715]
+                  - cell [ref=e716]
+                  - cell [ref=e717]
+                  - cell [ref=e718]
+                  - cell [ref=e719]
+                  - cell [ref=e720]
+                  - cell [ref=e721]
+                  - cell [ref=e722]
+                  - cell [ref=e723]
+                  - cell [ref=e724]
+                  - cell [ref=e725]
+                  - cell [ref=e726]
+                  - cell [ref=e727]
+                  - cell [ref=e728]
+                  - cell [ref=e729]
+                  - cell [ref=e730]
+                  - cell [ref=e731]
+                  - cell [ref=e732]
+                  - cell [ref=e733]
+                  - cell [ref=e734]
+                  - cell [ref=e735]
+                  - cell [ref=e736]
+                  - cell [ref=e737]
+                  - cell [ref=e738]
+                - row "13" [ref=e739]:
+                  - cell "13" [ref=e740]
+                  - cell [ref=e741]
+                  - cell [ref=e742]
+                  - cell [ref=e743]
+                  - cell [ref=e744]
+                  - cell [ref=e745]
+                  - cell [ref=e746]
+                  - cell [ref=e747]
+                  - cell [ref=e748]
+                  - cell [ref=e749]
+                  - cell [ref=e750]
+                  - cell [ref=e751]
+                  - cell [ref=e752]
+                  - cell [ref=e753]
+                  - cell [ref=e754]
+                  - cell [ref=e755]
+                  - cell [ref=e756]
+                  - cell [ref=e757]
+                  - cell [ref=e758]
+                  - cell [ref=e759]
+                  - cell [ref=e760]
+                  - cell [ref=e761]
+                  - cell [ref=e762]
+                  - cell [ref=e763]
+                  - cell [ref=e764]
+                  - cell [ref=e765]
+                  - cell [ref=e766]
+                  - cell [ref=e767]
+                  - cell [ref=e768]
+                  - cell [ref=e769]
+                  - cell [ref=e770]
+                  - cell [ref=e771]
+                  - cell [ref=e772]
+                - row "14" [ref=e773]:
+                  - cell "14" [ref=e774]
+                  - cell [ref=e775]
+                  - cell [ref=e776]
+                  - cell [ref=e777]
+                  - cell [ref=e778]
+                  - cell [ref=e779]
+                  - cell [ref=e780]
+                  - cell [ref=e781]
+                  - cell [ref=e782]
+                  - cell [ref=e783]
+                  - cell [ref=e784]
+                  - cell [ref=e785]
+                  - cell [ref=e786]
+                  - cell [ref=e787]
+                  - cell [ref=e788]
+                  - cell [ref=e789]
+                  - cell [ref=e790]
+                  - cell [ref=e791]
+                  - cell [ref=e792]
+                  - cell [ref=e793]
+                  - cell [ref=e794]
+                  - cell [ref=e795]
+                  - cell [ref=e796]
+                  - cell [ref=e797]
+                  - cell [ref=e798]
+                  - cell [ref=e799]
+                  - cell [ref=e800]
+                  - cell [ref=e801]
+                  - cell [ref=e802]
+                  - cell [ref=e803]
+                  - cell [ref=e804]
+                  - cell [ref=e805]
+                  - cell [ref=e806]
+                - row "15" [ref=e807]:
+                  - cell "15" [ref=e808]
+                  - cell [ref=e809]
+                  - cell [ref=e810]
+                  - cell [ref=e811]
+                  - cell [ref=e812]
+                  - cell [ref=e813]
+                  - cell [ref=e814]
+                  - cell [ref=e815]
+                  - cell [ref=e816]
+                  - cell [ref=e817]
+                  - cell [ref=e818]
+                  - cell [ref=e819]
+                  - cell [ref=e820]
+                  - cell [ref=e821]
+                  - cell [ref=e822]
+                  - cell [ref=e823]
+                  - cell [ref=e824]
+                  - cell [ref=e825]
+                  - cell [ref=e826]
+                  - cell [ref=e827]
+                  - cell [ref=e828]
+                  - cell [ref=e829]
+                  - cell [ref=e830]
+                  - cell [ref=e831]
+                  - cell [ref=e832]
+                  - cell [ref=e833]
+                  - cell [ref=e834]
+                  - cell [ref=e835]
+                  - cell [ref=e836]
+                  - cell [ref=e837]
+                  - cell [ref=e838]
+                  - cell [ref=e839]
+                  - cell [ref=e840]
+                - row "16" [ref=e841]:
+                  - cell "16" [ref=e842]
+                  - cell [ref=e843]
+                  - cell [ref=e844]
+                  - cell [ref=e845]
+                  - cell [ref=e846]
+                  - cell [ref=e847]
+                  - cell [ref=e848]
+                  - cell [ref=e849]
+                  - cell [ref=e850]
+                  - cell [ref=e851]
+                  - cell [ref=e852]
+                  - cell [ref=e853]
+                  - cell [ref=e854]
+                  - cell [ref=e855]
+                  - cell [ref=e856]
+                  - cell [ref=e857]
+                  - cell [ref=e858]
+                  - cell [ref=e859]
+                  - cell [ref=e860]
+                  - cell [ref=e861]
+                  - cell [ref=e862]
+                  - cell [ref=e863]
+                  - cell [ref=e864]
+                  - cell [ref=e865]
+                  - cell [ref=e866]
+                  - cell [ref=e867]
+                  - cell [ref=e868]
+                  - cell [ref=e869]
+                  - cell [ref=e870]
+                  - cell [ref=e871]
+                  - cell [ref=e872]
+                  - cell [ref=e873]
+                  - cell [ref=e874]
+                - row "17" [ref=e875]:
+                  - cell "17" [ref=e876]
+                  - cell [ref=e877]
+                  - cell [ref=e878]
+                  - cell [ref=e879]
+                  - cell [ref=e880]
+                  - cell [ref=e881]
+                  - cell [ref=e882]
+                  - cell [ref=e883]
+                  - cell [ref=e884]
+                  - cell [ref=e885]
+                  - cell [ref=e886]
+                  - cell [ref=e887]
+                  - cell [ref=e888]
+                  - cell [ref=e889]
+                  - cell [ref=e890]
+                  - cell [ref=e891]
+                  - cell [ref=e892]
+                  - cell [ref=e893]
+                  - cell [ref=e894]
+                  - cell [ref=e895]
+                  - cell [ref=e896]
+                  - cell [ref=e897]
+                  - cell [ref=e898]
+                  - cell [ref=e899]
+                  - cell [ref=e900]
+                  - cell [ref=e901]
+                  - cell [ref=e902]
+                  - cell [ref=e903]
+                  - cell [ref=e904]
+                  - cell [ref=e905]
+                  - cell [ref=e906]
+                  - cell [ref=e907]
+                  - cell [ref=e908]
+                - row "18" [ref=e909]:
+                  - cell "18" [ref=e910]
+                  - cell [ref=e911]
+                  - cell [ref=e912]
+                  - cell [ref=e913]
+                  - cell [ref=e914]
+                  - cell [ref=e915]
+                  - cell [ref=e916]
+                  - cell [ref=e917]
+                  - cell [ref=e918]
+                  - cell [ref=e919]
+                  - cell [ref=e920]
+                  - cell [ref=e921]
+                  - cell [ref=e922]
+                  - cell [ref=e923]
+                  - cell [ref=e924]
+                  - cell [ref=e925]
+                  - cell [ref=e926]
+                  - cell [ref=e927]
+                  - cell [ref=e928]
+                  - cell [ref=e929]
+                  - cell [ref=e930]
+                  - cell [ref=e931]
+                  - cell [ref=e932]
+                  - cell [ref=e933]
+                  - cell [ref=e934]
+                  - cell [ref=e935]
+                  - cell [ref=e936]
+                  - cell [ref=e937]
+                  - cell [ref=e938]
+                  - cell [ref=e939]
+                  - cell [ref=e940]
+                  - cell [ref=e941]
+                  - cell [ref=e942]
+                - row "19" [ref=e943]:
+                  - cell "19" [ref=e944]
+                  - cell [ref=e945]
+                  - cell [ref=e946]
+                  - cell [ref=e947]
+                  - cell [ref=e948]
+                  - cell [ref=e949]
+                  - cell [ref=e950]
+                  - cell [ref=e951]
+                  - cell [ref=e952]
+                  - cell [ref=e953]
+                  - cell [ref=e954]
+                  - cell [ref=e955]
+                  - cell [ref=e956]
+                  - cell [ref=e957]
+                  - cell [ref=e958]
+                  - cell [ref=e959]
+                  - cell [ref=e960]
+                  - cell [ref=e961]
+                  - cell [ref=e962]
+                  - cell [ref=e963]
+                  - cell [ref=e964]
+                  - cell [ref=e965]
+                  - cell [ref=e966]
+                  - cell [ref=e967]
+                  - cell [ref=e968]
+                  - cell [ref=e969]
+                  - cell [ref=e970]
+                  - cell [ref=e971]
+                  - cell [ref=e972]
+                  - cell [ref=e973]
+                  - cell [ref=e974]
+                  - cell [ref=e975]
+                  - cell [ref=e976]
+                - row "20" [ref=e977]:
+                  - cell "20" [ref=e978]
+                  - cell [ref=e979]
+                  - cell [ref=e980]
+                  - cell [ref=e981]
+                  - cell [ref=e982]
+                  - cell [ref=e983]
+                  - cell [ref=e984]
+                  - cell [ref=e985]
+                  - cell [ref=e986]
+                  - cell [ref=e987]
+                  - cell [ref=e988]
+                  - cell [ref=e989]
+                  - cell [ref=e990]
+                  - cell [ref=e991]
+                  - cell [ref=e992]
+                  - cell [ref=e993]
+                  - cell [ref=e994]
+                  - cell [ref=e995]
+                  - cell [ref=e996]
+                  - cell [ref=e997]
+                  - cell [ref=e998]
+                  - cell [ref=e999]
+                  - cell [ref=e1000]
+                  - cell [ref=e1001]
+                  - cell [ref=e1002]
+                  - cell [ref=e1003]
+                  - cell [ref=e1004]
+                  - cell [ref=e1005]
+                  - cell [ref=e1006]
+                  - cell [ref=e1007]
+                  - cell [ref=e1008]
+                  - cell [ref=e1009]
+                  - cell [ref=e1010]
+                - row "21" [ref=e1011]:
+                  - cell "21" [ref=e1012]
+                  - cell [ref=e1013]
+                  - cell [ref=e1014]
+                  - cell [ref=e1015]
+                  - cell [ref=e1016]
+                  - cell [ref=e1017]
+                  - cell [ref=e1018]
+                  - cell [ref=e1019]
+                  - cell [ref=e1020]
+                  - cell [ref=e1021]
+                  - cell [ref=e1022]
+                  - cell [ref=e1023]
+                  - cell [ref=e1024]
+                  - cell [ref=e1025]
+                  - cell [ref=e1026]
+                  - cell [ref=e1027]
+                  - cell [ref=e1028]
+                  - cell [ref=e1029]
+                  - cell [ref=e1030]
+                  - cell [ref=e1031]
+                  - cell [ref=e1032]
+                  - cell [ref=e1033]
+                  - cell [ref=e1034]
+                  - cell [ref=e1035]
+                  - cell [ref=e1036]
+                  - cell [ref=e1037]
+                  - cell [ref=e1038]
+                  - cell [ref=e1039]
+                  - cell [ref=e1040]
+                  - cell [ref=e1041]
+                  - cell [ref=e1042]
+                  - cell [ref=e1043]
+                  - cell [ref=e1044]
+                - row "22" [ref=e1045]:
+                  - cell "22" [ref=e1046]
+                  - cell [ref=e1047]
+                  - cell [ref=e1048]
+                  - cell [ref=e1049]
+                  - cell [ref=e1050]
+                  - cell [ref=e1051]
+                  - cell [ref=e1052]
+                  - cell [ref=e1053]
+                  - cell [ref=e1054]
+                  - cell [ref=e1055]
+                  - cell [ref=e1056]
+                  - cell [ref=e1057]
+                  - cell [ref=e1058]
+                  - cell [ref=e1059]
+                  - cell [ref=e1060]
+                  - cell [ref=e1061]
+                  - cell [ref=e1062]
+                  - cell [ref=e1063]
+                  - cell [ref=e1064]
+                  - cell [ref=e1065]
+                  - cell [ref=e1066]
+                  - cell [ref=e1067]
+                  - cell [ref=e1068]
+                  - cell [ref=e1069]
+                  - cell [ref=e1070]
+                  - cell [ref=e1071]
+                  - cell [ref=e1072]
+                  - cell [ref=e1073]
+                  - cell [ref=e1074]
+                  - cell [ref=e1075]
+                  - cell [ref=e1076]
+                  - cell [ref=e1077]
+                  - cell [ref=e1078]
+                - row "23" [ref=e1079]:
+                  - cell "23" [ref=e1080]
+                  - cell [ref=e1081]
+                  - cell [ref=e1082]
+                  - cell [ref=e1083]
+                  - cell [ref=e1084]
+                  - cell [ref=e1085]
+                  - cell [ref=e1086]
+                  - cell [ref=e1087]
+                  - cell [ref=e1088]
+                  - cell [ref=e1089]
+                  - cell [ref=e1090]
+                  - cell [ref=e1091]
+                  - cell [ref=e1092]
+                  - cell [ref=e1093]
+                  - cell [ref=e1094]
+                  - cell [ref=e1095]
+                  - cell [ref=e1096]
+                  - cell [ref=e1097]
+                  - cell [ref=e1098]
+                  - cell [ref=e1099]
+                  - cell [ref=e1100]
+                  - cell [ref=e1101]
+                  - cell [ref=e1102]
+                  - cell [ref=e1103]
+                  - cell [ref=e1104]
+                  - cell [ref=e1105]
+                  - cell [ref=e1106]
+                  - cell [ref=e1107]
+                  - cell [ref=e1108]
+                  - cell [ref=e1109]
+                  - cell [ref=e1110]
+                  - cell [ref=e1111]
+                  - cell [ref=e1112]
+                - row "24" [ref=e1113]:
+                  - cell "24" [ref=e1114]
+                  - cell [ref=e1115]
+                  - cell [ref=e1116]
+                  - cell [ref=e1117]
+                  - cell [ref=e1118]
+                  - cell [ref=e1119]
+                  - cell [ref=e1120]
+                  - cell [ref=e1121]
+                  - cell [ref=e1122]
+                  - cell [ref=e1123]
+                  - cell [ref=e1124]
+                  - cell [ref=e1125]
+                  - cell [ref=e1126]
+                  - cell [ref=e1127]
+                  - cell [ref=e1128]
+                  - cell [ref=e1129]
+                  - cell [ref=e1130]
+                  - cell [ref=e1131]
+                  - cell [ref=e1132]
+                  - cell [ref=e1133]
+                  - cell [ref=e1134]
+                  - cell [ref=e1135]
+                  - cell [ref=e1136]
+                  - cell [ref=e1137]
+                  - cell [ref=e1138]
+                  - cell [ref=e1139]
+                  - cell [ref=e1140]
+                  - cell [ref=e1141]
+                  - cell [ref=e1142]
+                  - cell [ref=e1143]
+                  - cell [ref=e1144]
+                  - cell [ref=e1145]
+                  - cell [ref=e1146]
+                - row "25" [ref=e1147]:
+                  - cell "25" [ref=e1148]
+                  - cell [ref=e1149]
+                  - cell [ref=e1150]
+                  - cell [ref=e1151]
+                  - cell [ref=e1152]
+                  - cell [ref=e1153]
+                  - cell [ref=e1154]
+                  - cell [ref=e1155]
+                  - cell [ref=e1156]
+                  - cell [ref=e1157]
+                  - cell [ref=e1158]
+                  - cell [ref=e1159]
+                  - cell [ref=e1160]
+                  - cell [ref=e1161]
+                  - cell [ref=e1162]
+                  - cell [ref=e1163]
+                  - cell [ref=e1164]
+                  - cell [ref=e1165]
+                  - cell [ref=e1166]
+                  - cell [ref=e1167]
+                  - cell [ref=e1168]
+                  - cell [ref=e1169]
+                  - cell [ref=e1170]
+                  - cell [ref=e1171]
+                  - cell [ref=e1172]
+                  - cell [ref=e1173]
+                  - cell [ref=e1174]
+                  - cell [ref=e1175]
+                  - cell [ref=e1176]
+                  - cell [ref=e1177]
+                  - cell [ref=e1178]
+                  - cell [ref=e1179]
+                  - cell [ref=e1180]
+                - row "26" [ref=e1181]:
+                  - cell "26" [ref=e1182]
+                  - cell [ref=e1183]
+                  - cell [ref=e1184]
+                  - cell [ref=e1185]
+                  - cell [ref=e1186]
+                  - cell [ref=e1187]
+                  - cell [ref=e1188]
+                  - cell [ref=e1189]
+                  - cell [ref=e1190]
+                  - cell [ref=e1191]
+                  - cell [ref=e1192]
+                  - cell [ref=e1193]
+                  - cell [ref=e1194]
+                  - cell [ref=e1195]
+                  - cell [ref=e1196]
+                  - cell [ref=e1197]
+                  - cell [ref=e1198]
+                  - cell [ref=e1199]
+                  - cell [ref=e1200]
+                  - cell [ref=e1201]
+                  - cell [ref=e1202]
+                  - cell [ref=e1203]
+                  - cell [ref=e1204]
+                  - cell [ref=e1205]
+                  - cell [ref=e1206]
+                  - cell [ref=e1207]
+                  - cell [ref=e1208]
+                  - cell [ref=e1209]
+                  - cell [ref=e1210]
+                  - cell [ref=e1211]
+                  - cell [ref=e1212]
+                  - cell [ref=e1213]
+                  - cell [ref=e1214]
+                - row "27" [ref=e1215]:
+                  - cell "27" [ref=e1216]
+                  - cell [ref=e1217]
+                  - cell [ref=e1218]
+                  - cell [ref=e1219]
+                  - cell [ref=e1220]
+                  - cell [ref=e1221]
+                  - cell [ref=e1222]
+                  - cell [ref=e1223]
+                  - cell [ref=e1224]
+                  - cell [ref=e1225]
+                  - cell [ref=e1226]
+                  - cell [ref=e1227]
+                  - cell [ref=e1228]
+                  - cell [ref=e1229]
+                  - cell [ref=e1230]
+                  - cell [ref=e1231]
+                  - cell [ref=e1232]
+                  - cell [ref=e1233]
+                  - cell [ref=e1234]
+                  - cell [ref=e1235]
+                  - cell [ref=e1236]
+                  - cell [ref=e1237]
+                  - cell [ref=e1238]
+                  - cell [ref=e1239]
+                  - cell [ref=e1240]
+                  - cell [ref=e1241]
+                  - cell [ref=e1242]
+                  - cell [ref=e1243]
+                  - cell [ref=e1244]
+                  - cell [ref=e1245]
+                  - cell [ref=e1246]
+                  - cell [ref=e1247]
+                  - cell [ref=e1248]
+                - row "28" [ref=e1249]:
+                  - cell "28" [ref=e1250]
+                  - cell [ref=e1251]
+                  - cell [ref=e1252]
+                  - cell [ref=e1253]
+                  - cell [ref=e1254]
+                  - cell [ref=e1255]
+                  - cell [ref=e1256]
+                  - cell [ref=e1257]
+                  - cell [ref=e1258]
+                  - cell [ref=e1259]
+                  - cell [ref=e1260]
+                  - cell [ref=e1261]
+                  - cell [ref=e1262]
+                  - cell [ref=e1263]
+                  - cell [ref=e1264]
+                  - cell [ref=e1265]
+                  - cell [ref=e1266]
+                  - cell [ref=e1267]
+                  - cell [ref=e1268]
+                  - cell [ref=e1269]
+                  - cell [ref=e1270]
+                  - cell [ref=e1271]
+                  - cell [ref=e1272]
+                  - cell [ref=e1273]
+                  - cell [ref=e1274]
+                  - cell [ref=e1275]
+                  - cell [ref=e1276]
+                  - cell [ref=e1277]
+                  - cell [ref=e1278]
+                  - cell [ref=e1279]
+                  - cell [ref=e1280]
+                  - cell [ref=e1281]
+                  - cell [ref=e1282]
+                - row "29" [ref=e1283]:
+                  - cell "29" [ref=e1284]
+                  - cell [ref=e1285]
+                  - cell [ref=e1286]
+                  - cell [ref=e1287]
+                  - cell [ref=e1288]
+                  - cell [ref=e1289]
+                  - cell [ref=e1290]
+                  - cell [ref=e1291]
+                  - cell [ref=e1292]
+                  - cell [ref=e1293]
+                  - cell [ref=e1294]
+                  - cell [ref=e1295]
+                  - cell [ref=e1296]
+                  - cell [ref=e1297]
+                  - cell [ref=e1298]
+                  - cell [ref=e1299]
+                  - cell [ref=e1300]
+                  - cell [ref=e1301]
+                  - cell [ref=e1302]
+                  - cell [ref=e1303]
+                  - cell [ref=e1304]
+                  - cell [ref=e1305]
+                  - cell [ref=e1306]
+                  - cell [ref=e1307]
+                  - cell [ref=e1308]
+                  - cell [ref=e1309]
+                  - cell [ref=e1310]
+                  - cell [ref=e1311]
+                  - cell [ref=e1312]
+                  - cell [ref=e1313]
+                  - cell [ref=e1314]
+                  - cell [ref=e1315]
+                  - cell [ref=e1316]
+          - generic [ref=e1319]:
+            - generic [ref=e1320]:
+              - text: 
+              - generic [ref=e1321]:
+                - button " No figures " [ref=e1322] [cursor=pointer]:
+                  - generic [ref=e1323]: 
+                  - generic [ref=e1324]: No figures
+                  - generic [ref=e1325]: 
+                - button "+" [ref=e1326] [cursor=pointer]:
+                  - generic [ref=e1327]: +
+              - generic [ref=e1328]: WIP Work in Progress — not yet functional
+              - generic [ref=e1329]:
+                - button " Line" [ref=e1330] [cursor=pointer]:
+                  - generic [ref=e1331]: 
+                  - generic [ref=e1332]: Line
+                - button " Scatter" [ref=e1333] [cursor=pointer]:
+                  - generic [ref=e1334]: 
+                  - generic [ref=e1335]: Scatter
+                - button " Categorical" [ref=e1336] [cursor=pointer]:
+                  - generic [ref=e1337]: 
+                  - generic [ref=e1338]: Categorical
+                - button " Distribution" [ref=e1339] [cursor=pointer]:
+                  - generic [ref=e1340]: 
+                  - generic [ref=e1341]: Distribution
+                - button " Statistical" [ref=e1342] [cursor=pointer]:
+                  - generic [ref=e1343]: 
+                  - generic [ref=e1344]: Statistical
+                - button " Grid" [ref=e1345] [cursor=pointer]:
+                  - generic [ref=e1346]: 
+                  - generic [ref=e1347]: Grid
+                - button " Area" [ref=e1348] [cursor=pointer]:
+                  - generic [ref=e1349]: 
+                  - generic [ref=e1350]: Area
+                - button " Contour" [ref=e1351] [cursor=pointer]:
+                  - generic [ref=e1352]: 
+                  - generic [ref=e1353]: Contour
+                - button " Vector" [ref=e1354] [cursor=pointer]:
+                  - generic [ref=e1355]: 
+                  - generic [ref=e1356]: Vector
+                - button " Special" [ref=e1357] [cursor=pointer]:
+                  - generic [ref=e1358]: 
+                  - generic [ref=e1359]: Special
+                - button " All" [ref=e1360] [cursor=pointer]:
+                  - generic [ref=e1361]: 
+                  - generic [ref=e1362]: All
+              - generic [ref=e1363]:
+                - button "" [ref=e1364] [cursor=pointer]:
+                  - generic [ref=e1365]: 
+                - generic [ref=e1366]:
+                  - button "" [ref=e1367] [cursor=pointer]:
+                    - generic [ref=e1368]: 
+                  - text:      
+                - button "" [ref=e1369] [cursor=pointer]:
+                  - generic [ref=e1370]: 
+                - button "🌙" [ref=e1371] [cursor=pointer]:
+                  - generic [ref=e1372]: 🌙
+                - button "" [ref=e1373] [cursor=pointer]:
+                  - generic [ref=e1374]: 
+            - generic [ref=e1376]:
+              - img [ref=e1378]:
+                - generic "0mm (click to toggle inch)" [ref=e1379] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e1380] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e1381] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e1382] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e1383] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e1384] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e1385] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e1386] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e1387] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e1388] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e1389] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e1390] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e1391] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e1392] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e1393] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e1394] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e1395] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e1396] [cursor=pointer]: 170mm
+                - generic "180mm (click to toggle inch)" [ref=e1397] [cursor=pointer]: 180mm
+                - generic [ref=e1398]: 0.5 col
+                - generic [ref=e1399]: 1.0 col
+                - generic [ref=e1400]: 1.5 col
+                - generic [ref=e1401]: 2.0 col
+              - img [ref=e1403]:
+                - generic "0mm (click to toggle inch)" [ref=e1404] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e1405] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e1406] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e1407] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e1408] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e1409] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e1410] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e1411] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e1412] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e1413] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e1414] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e1415] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e1416] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e1417] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e1418] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e1419] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e1420] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e1421] [cursor=pointer]: 170mm
+                - generic "180mm (click to toggle inch)" [ref=e1422] [cursor=pointer]: 180mm
+                - generic "190mm (click to toggle inch)" [ref=e1423] [cursor=pointer]: 190mm
+                - generic "200mm (click to toggle inch)" [ref=e1424] [cursor=pointer]: 200mm
+                - generic "210mm (click to toggle inch)" [ref=e1425] [cursor=pointer]: 210mm
+                - generic "220mm (click to toggle inch)" [ref=e1426] [cursor=pointer]: 220mm
+                - generic "230mm (click to toggle inch)" [ref=e1427] [cursor=pointer]: 230mm
+                - generic "240mm (click to toggle inch)" [ref=e1428] [cursor=pointer]: 240mm
+                - generic "250mm (click to toggle inch)" [ref=e1429] [cursor=pointer]: 250mm
+              - img [ref=e1434]:
+                - generic "0mm (click to toggle inch)" [ref=e1435] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e1436] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e1437] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e1438] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e1439] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e1440] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e1441] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e1442] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e1443] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e1444] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e1445] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e1446] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e1447] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e1448] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e1449] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e1450] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e1451] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e1452] [cursor=pointer]: 170mm
+                - generic "180mm (click to toggle inch)" [ref=e1453] [cursor=pointer]: 180mm
+                - generic "190mm (click to toggle inch)" [ref=e1454] [cursor=pointer]: 190mm
+                - generic "200mm (click to toggle inch)" [ref=e1455] [cursor=pointer]: 200mm
+                - generic "210mm (click to toggle inch)" [ref=e1456] [cursor=pointer]: 210mm
+                - generic "220mm (click to toggle inch)" [ref=e1457] [cursor=pointer]: 220mm
+                - generic "230mm (click to toggle inch)" [ref=e1458] [cursor=pointer]: 230mm
+                - generic "240mm (click to toggle inch)" [ref=e1459] [cursor=pointer]: 240mm
+                - generic "250mm (click to toggle inch)" [ref=e1460] [cursor=pointer]: 250mm
+              - img [ref=e1462]:
+                - generic "0mm (click to toggle inch)" [ref=e1463] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e1464] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e1465] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e1466] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e1467] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e1468] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e1469] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e1470] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e1471] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e1472] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e1473] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e1474] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e1475] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e1476] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e1477] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e1478] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e1479] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e1480] [cursor=pointer]: 170mm
+                - generic "180mm (click to toggle inch)" [ref=e1481] [cursor=pointer]: 180mm
+                - generic [ref=e1482]: 0.5 col
+                - generic [ref=e1483]: 1.0 col
+                - generic [ref=e1484]: 1.5 col
+                - generic [ref=e1485]: 2.0 col
+        - generic [ref=e1488]:
+          - generic [ref=e1489]:
+            - text: 
+            - generic [ref=e1490]:
+              - generic [ref=e1491]: 
+              - text: Details
+          - generic [ref=e1492]:
+            - generic [ref=e1493]:
+              - generic [ref=e1494]: 
+              - generic [ref=e1495]: No selection
+            - generic [ref=e1496]: Select an item from the tree to view properties
+          - generic [ref=e1497]:
+            - button " Current" [ref=e1498] [cursor=pointer]:
+              - generic [ref=e1499]: 
+              - text: Current
+            - button " Preset" [ref=e1500] [cursor=pointer]:
+              - generic [ref=e1501]: 
+              - text: Preset
+          - generic [ref=e1502]:          
+      - text:             
+  - button "Show footer" [ref=e1505] [cursor=pointer]:
+    - generic [ref=e1506]: 
+    - text: Show footer
+  - contentinfo [ref=e1507] [cursor=pointer]:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - heading "SciTeX" [level=3]
+            - paragraph: Research Automation for AI and Humans
+            - generic:
+              - link "":
+                - /url: https://github.com/ywatanabe1989
+                - generic: 
+              - link "":
+                - /url: https://app.slack.com/client/T08TMR9RZQR/C08TMRA20AD
+                - generic: 
+              - link "":
+                - /url: https://twitter.com/SciTeX_AI
+                - generic: 
+              - link "":
+                - /url: https://www.linkedin.com/company/scitex-ai
+                - generic: 
+              - link "":
+                - /url: https://www.linkedin.com/in/yusuke-watanabe-870953170/
+                - generic: 
+              - link "":
+                - /url: https://www.youtube.com/@SciTeX-Official
+                - generic: 
+            - paragraph:
+              - link " support@scitex.ai":
+                - /url: mailto:support@scitex.ai
+                - generic: 
+                - text: support@scitex.ai
+            - paragraph: © 2025–2026 SciTeX. All rights reserved. v0.15.3
+          - generic:
+            - heading "Community" [level=3]
+            - list:
+              - listitem:
+                - link "About":
+                  - /url: /about/
+              - listitem:
+                - link "Contributors":
+                  - /url: /contributors/
+              - listitem:
+                - link "Publications":
+                  - /url: /publications/
+              - listitem:
+                - link "Premium":
+                  - /url: /pricing/
+              - listitem:
+                - link "Self-Hosting Guide":
+                  - /url: /setup/
+          - generic:
+            - heading "Developers" [level=3]
+            - generic:
+              - list:
+                - listitem:
+                  - link "Web API Docs":
+                    - /url: /docs/web-api/
+                - listitem:
+                  - link "Web API Tests":
+                    - /url: /dev/tests/web-api/
+                - listitem:
+                  - link "Releases":
+                    - /url: /releases/
+              - list:
+                - listitem:
+                  - link "Bug Reports":
+                    - /url: /scitex-ai/scitex-cloud/issues
+                - listitem:
+                  - link "Design System":
+                    - /url: /dev/design/
+                - listitem:
+                  - link "Server Status":
+                    - /url: /server-status/
+          - generic:
+            - heading "Legal" [level=3]
+            - list:
+              - listitem:
+                - link "Terms":
+                  - /url: /terms/
+              - listitem:
+                - link "Privacy":
+                  - /url: /privacy/
+              - listitem:
+                - link "Cookies":
+                  - /url: /cookies/
+      - generic:
+        - generic: "Dev Tools:"
+        - button " Refresh":
+          - generic: 
+          - text: Refresh
+        - button " Clear Cache":
+          - generic: 
+          - text: Clear Cache
+        - button " Init Visitors":
+          - generic: 
+          - text: Init Visitors
+        - button " Fill Slots":
+          - generic: 
+          - text: Fill Slots
+        - button " Free Slots":
+          - generic: 
+          - text: Free Slots
+        - button " Cancel Jobs":
+          - generic: 
+          - text: Cancel Jobs
+  - text: "  #                                                                 "

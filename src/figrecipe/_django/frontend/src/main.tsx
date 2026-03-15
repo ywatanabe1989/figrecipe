@@ -50,6 +50,12 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/chat.css";
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/file-browser.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/data-table.css";
+// @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/utils/element-inspector.css";
+
+// Element inspector — debug overlay (Alt+I to toggle)
+// @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 
 const root = document.getElementById("root")!;
 const params = new URLSearchParams(window.location.search);
