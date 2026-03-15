@@ -67,6 +67,11 @@ class EditorState:
             self._overrides = StyleOverrides(self.style or {})
         return self._overrides
 
+    @property
+    def style_overrides(self):
+        """Alias for overrides (used by style handlers)."""
+        return self.overrides
+
     def get_effective_style(self) -> Dict[str, Any]:
         """Get the effective style with overrides."""
         if self._overrides is not None:

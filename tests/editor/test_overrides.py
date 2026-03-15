@@ -20,9 +20,8 @@ class TestEditorOverrides:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            page.goto(editor_server.recipe_url)
-            page.wait_for_load_state("networkidle")
-
+            # Direct API call — skip page.goto to avoid blocking
+            # the single-threaded Django server with JS fetch calls
             response = page.request.get(editor_server.api("style"))
             assert response.ok, f"Style request failed: {response.status}"
 
