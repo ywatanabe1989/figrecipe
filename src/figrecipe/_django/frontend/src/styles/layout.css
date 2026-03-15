@@ -52,6 +52,35 @@
   border-bottom-color: var(--accent-primary);
 }
 
+/* ── Figure Viewer (Plot tab — shows rendered figure) ─── */
+
+.figure-viewer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--vis-bg-primary);
+  position: relative;
+}
+
+.figure-viewer--empty {
+  flex-direction: column;
+  gap: 12px;
+  color: var(--vis-text-muted);
+  font-size: 13px;
+}
+
+.figure-viewer--empty i {
+  font-size: 32px;
+  opacity: 0.3;
+}
+
+.figure-viewer img {
+  transition: none;
+}
+
 .editor-body {
   display: flex;
   flex: 1;

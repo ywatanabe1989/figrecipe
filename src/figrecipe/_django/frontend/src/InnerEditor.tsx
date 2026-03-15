@@ -9,6 +9,7 @@
 import { useEffect, useState } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
+import { FigureViewer } from "./components/FigureViewer/FigureViewer";
 import { PlotTypeNav } from "./components/PlotTypeNav/PlotTypeNav";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
 import { Spinner } from "./components/common/Spinner";
@@ -131,9 +132,9 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
             {/* Plot type selector nav */}
             <PlotTypeNav />
 
-            {/* Pane 2 — Figure Viewer (flex: 1) */}
+            {/* Pane 2 — Figure Viewer (rendered image, not canvas) */}
             <main className="split-pane split-pane-center">
-              <CanvasPane />
+              <FigureViewer />
             </main>
           </>
         )}
