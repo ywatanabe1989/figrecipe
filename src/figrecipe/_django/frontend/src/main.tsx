@@ -87,9 +87,19 @@ function FigrecipeApp() {
           switchFile(node.path);
         }
       }}
-      onFileDrop={(path) => {
+      onFileDrop={async (path) => {
         if (path.endsWith(".csv") || path.endsWith(".tsv")) {
-          // TODO: load into data table
+          try {
+            const resp = await api.post<{ success: boolean }>(
+              "datatable/import",
+              { path, format: path.endsWith(".tsv") ? "tsv" : "csv" },
+            );
+            if (resp.success) {
+              useEditorStore.getState().loadDatatable();
+            }
+          } catch (e) {
+            console.warn("Drop import failed:", e);
+          }
         }
       }}
     >
