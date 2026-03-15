@@ -52,14 +52,17 @@ class TestEditorHitDetection:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            from urllib.parse import quote
+
+            recipe = quote(str(editor_server.recipe_path))
+            page.goto(f"{editor_server.url}?recipe={recipe}")
             page.wait_for_load_state("networkidle")
 
-            response = page.request.get(f"{editor_server.url}/hitmap")
+            response = page.request.get(f"{editor_server.url}/hitmap?recipe={recipe}")
             assert response.ok, f"Hitmap request failed: {response.status}"
-            assert "application/json" in response.headers.get(
-                "content-type", ""
-            ), "Hitmap endpoint should return JSON"
+            assert "application/json" in response.headers.get("content-type", ""), (
+                "Hitmap endpoint should return JSON"
+            )
 
             # Verify JSON structure
             data = response.json()
