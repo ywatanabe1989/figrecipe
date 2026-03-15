@@ -43,6 +43,8 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/workspace.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/terminal.css";
 // @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/viewer.css";
+// @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/chat.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/file-browser.css";
@@ -81,6 +83,9 @@ function FigrecipeApp() {
       terminalBackend={terminalBackend}
       chatBackend={chatBackend}
       fileTreeBackend={fileTreeBackend}
+      getFileUrl={(path, raw) =>
+        `api/file-content/${encodeURIComponent(path)}${raw ? "?raw=true" : ""}`
+      }
       highlightExtensions={[".yaml", ".yml"]}
       onFileSelect={(node) => {
         if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
