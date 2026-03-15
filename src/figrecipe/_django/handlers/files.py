@@ -11,6 +11,45 @@ from django.http import FileResponse, JsonResponse
 logger = logging.getLogger(__name__)
 
 
+def _enrich_tree(tree, working_dir, editor, files_backend):
+    """Add figrecipe-specific metadata to a generic file tree.
+
+    Filters to recipe files only (must contain figure: and axes:),
+    and adds has_image and is_current flags.
+    """
+    enriched = []
+    for item in tree:
+        if item["type"] == "directory":
+            children = _enrich_tree(
+                item.get("children", []), working_dir, editor, files_backend
+            )
+            if children:
+                enriched.append({**item, "children": children})
+        else:
+            # Skip non-recipe files and overrides
+            name = item["name"]
+            if name.endswith(".overrides.yaml") or name == "__pycache__":
+                continue
+            rel_path = item["path"]
+            full_path = working_dir / rel_path
+            # Use relative path for backend reads, absolute for fallback
+            if not _is_figrecipe_yaml_rel(rel_path, files_backend):
+                continue
+            png_path = Path(rel_path).with_suffix(".png").as_posix()
+            enriched.append(
+                {
+                    **item,
+                    "has_image": files_backend.exists(png_path),
+                    "is_current": bool(
+                        editor
+                        and getattr(editor, "recipe_path", None)
+                        and full_path.resolve() == editor.recipe_path.resolve()
+                    ),
+                }
+            )
+    return enriched
+
+
 def _find_default_working_dir():
     """Find a sensible default directory for recipe files."""
     cwd = Path.cwd()
@@ -22,19 +61,38 @@ def _find_default_working_dir():
     return cwd
 
 
-def _is_figrecipe_yaml(path: Path) -> bool:
+def _is_figrecipe_yaml(path: Path, files_backend=None) -> bool:
     """Check if a YAML file is a figrecipe recipe (has figure: and axes: keys)."""
     try:
-        text = path.read_text(errors="ignore")[:2048]  # read first 2KB only
+        if files_backend is not None:
+            text = files_backend.read(str(path))[:2048]
+        else:
+            text = path.read_text(errors="ignore")[:2048]
         return "figure:" in text and "axes:" in text
-    except (OSError, UnicodeDecodeError):
+    except (OSError, UnicodeDecodeError, FileNotFoundError):
         return False
 
 
-def handle_api_files(request, editor):
-    """List recipe files in working dir as tree + flat list."""
+def _is_figrecipe_yaml_rel(rel_path: str, files_backend) -> bool:
+    """Check if a YAML file is a figrecipe recipe using a relative path."""
+    try:
+        text = files_backend.read(rel_path)[:2048]
+        return "figure:" in text and "axes:" in text
+    except (OSError, UnicodeDecodeError, FileNotFoundError):
+        return False
+
+
+def _local_build_tree(files_backend, extensions=None):
+    """Fallback tree builder when scitex-app is not installed."""
+    tree = []
+    for f in files_backend.list("", extensions=extensions or []):
+        tree.append({"name": Path(f).name, "path": f, "type": "file"})
+    return tree
+
+
+def _get_working_dir_and_backend(request, editor):
+    """Resolve working directory and files backend from request context."""
     working_dir = getattr(editor, "working_dir", None) if editor else None
-    # Allow override from query param (embedded mode passes user's project path)
     wd_param = request.GET.get("working_dir")
     if wd_param:
         wd_path = Path(wd_param)
@@ -43,56 +101,44 @@ def handle_api_files(request, editor):
     if working_dir is None:
         working_dir = _find_default_working_dir()
 
-    def build_tree(directory, relative_base=None):
-        if relative_base is None:
-            relative_base = directory
-        items = []
+    files_backend = editor.files if editor else None
+    if files_backend is None:
         try:
-            entries = sorted(
-                directory.iterdir(),
-                key=lambda x: (not x.is_dir(), x.name.lower()),
-            )
-        except PermissionError:
-            return items
-        for entry in entries:
-            skip = (
-                entry.name.startswith(".")
-                or entry.name.endswith(".overrides.yaml")
-                or entry.name == "__pycache__"
-            )
-            if skip:
-                continue
-            rel_path = str(entry.relative_to(relative_base))
-            if entry.is_dir():
-                children = build_tree(entry, relative_base)
-                if children:
-                    items.append(
-                        {
-                            "path": rel_path,
-                            "name": entry.name,
-                            "type": "directory",
-                            "children": children,
-                        }
-                    )
-            elif entry.suffix.lower() in (".yaml", ".yml"):
-                if not _is_figrecipe_yaml(entry):
-                    continue
-                items.append(
-                    {
-                        "path": rel_path,
-                        "name": entry.name,
-                        "type": "file",
-                        "has_image": entry.with_suffix(".png").exists(),
-                        "is_current": bool(
-                            editor
-                            and getattr(editor, "recipe_path", None)
-                            and entry.resolve() == editor.recipe_path.resolve()
-                        ),
-                    }
-                )
-        return items
+            from scitex_app import get_files
 
-    tree = build_tree(working_dir)
+            files_backend = get_files(root=str(working_dir))
+        except ImportError:
+            from .._local_files import LocalFilesAdapter
+
+            files_backend = LocalFilesAdapter(working_dir)
+
+    return working_dir, files_backend
+
+
+def handle_api_tree(request, editor):
+    """List ALL files in working dir as a tree (no filtering)."""
+    try:
+        from scitex_app import build_tree as _build_tree
+    except ImportError:
+        _build_tree = _local_build_tree
+
+    working_dir, files_backend = _get_working_dir_and_backend(request, editor)
+    tree = _build_tree(files_backend)
+    return JsonResponse({"tree": tree, "working_dir": str(working_dir)})
+
+
+def handle_api_files(request, editor):
+    """List recipe files in working dir as tree + flat list."""
+    try:
+        from scitex_app import build_tree as _build_tree
+    except ImportError:
+        _build_tree = _local_build_tree
+
+    working_dir, files_backend = _get_working_dir_and_backend(request, editor)
+
+    # Use scitex-app's shared build_tree, then enrich with figrecipe-specific data
+    tree = _build_tree(files_backend, extensions=[".yaml", ".yml"])
+    tree = _enrich_tree(tree, working_dir, editor, files_backend)
 
     flat_files = []
 
@@ -196,12 +242,14 @@ def handle_api_new(request, editor):
         ax.set_title("New Figure")
 
         working_dir = getattr(editor, "working_dir", Path.cwd())
+        files = editor.files
         counter = 1
         while True:
-            file_path = working_dir / f"new_figure_{counter:03d}.yaml"
-            if not file_path.exists():
+            rel_path = f"new_figure_{counter:03d}.yaml"
+            if not files.exists(rel_path):
                 break
             counter += 1
+        file_path = working_dir / rel_path
 
         save(fig, file_path.with_suffix(".png"), validate=False, verbose=False)
         reproduced_fig, _ = reproduce(file_path)
@@ -246,29 +294,32 @@ def handle_api_delete(request, editor):
     if full_path.suffix.lower() not in (".yaml", ".yml", ".png"):
         return JsonResponse({"error": "Invalid file type"}, status=400)
 
-    base_path = full_path.with_suffix("")
+    base_name = Path(file_path).with_suffix("").as_posix()
     is_current = bool(
-        editor.recipe_path and base_path == editor.recipe_path.with_suffix("")
+        editor.recipe_path
+        and full_path.with_suffix("") == editor.recipe_path.with_suffix("")
     )
     deleted_files, errors = [], []
+    files = editor.files
 
     for ext in [".yaml", ".yml", ".png", ".overrides.yaml"]:
-        target = base_path.with_suffix(ext)
-        if target.exists():
+        rel = f"{base_name}{ext}"
+        if files.exists(rel):
             try:
-                target.unlink()
-                deleted_files.append(target.name)
+                files.delete(rel)
+                deleted_files.append(Path(rel).name)
             except Exception as e:
-                errors.append(f"{target.name}: {e}")
+                errors.append(f"{Path(rel).name}: {e}")
 
     if not deleted_files:
         return JsonResponse({"error": "No files found to delete"}, status=404)
 
     switch_to = None
     if is_current:
-        for f in sorted(working_dir.glob("*.yaml")):
-            if not f.name.startswith(".") and not f.name.endswith(".overrides.yaml"):
-                switch_to = str(f.relative_to(working_dir))
+        for f in files.list("", extensions=[".yaml"]):
+            fname = Path(f).name
+            if not fname.startswith(".") and not fname.endswith(".overrides.yaml"):
+                switch_to = f
                 break
 
     return JsonResponse(
@@ -302,31 +353,35 @@ def handle_api_rename(request, editor):
     if full_path.suffix.lower() not in (".yaml", ".yml", ".png"):
         return JsonResponse({"error": "Invalid file type"}, status=400)
 
-    old_base = full_path.with_suffix("")
-    new_base = working_dir / new_name
+    old_base = Path(old_path).with_suffix("").as_posix()
+    files = editor.files
 
     for ext in [".yaml", ".png"]:
-        if new_base.with_suffix(ext).exists():
+        if files.exists(f"{new_name}{ext}"):
             return JsonResponse(
                 {"error": f"File {new_name}{ext} already exists"}, status=400
             )
 
     renamed_files, errors = [], []
     for ext in [".yaml", ".yml", ".png", ".overrides.yaml"]:
-        old_file = old_base.with_suffix(ext)
-        new_file = new_base.with_suffix(ext)
-        if old_file.exists():
+        old_rel = f"{old_base}{ext}"
+        new_rel = f"{new_name}{ext}"
+        if files.exists(old_rel):
             try:
-                old_file.rename(new_file)
-                renamed_files.append({"from": old_file.name, "to": new_file.name})
+                files.rename(old_rel, new_rel)
+                renamed_files.append(
+                    {"from": Path(old_rel).name, "to": Path(new_rel).name}
+                )
             except Exception as e:
-                errors.append(f"{old_file.name}: {e}")
+                errors.append(f"{Path(old_rel).name}: {e}")
 
     if not renamed_files:
         return JsonResponse({"error": "No files found to rename"}, status=404)
 
-    if editor.recipe_path and old_base == editor.recipe_path.with_suffix(""):
-        editor.recipe_path = new_base.with_suffix(".yaml")
+    if editor.recipe_path and full_path.with_suffix(
+        ""
+    ) == editor.recipe_path.with_suffix(""):
+        editor.recipe_path = working_dir / f"{new_name}.yaml"
 
     return JsonResponse(
         {
@@ -340,8 +395,6 @@ def handle_api_rename(request, editor):
 
 def handle_api_duplicate(request, editor):
     """Duplicate a recipe file."""
-    import shutil
-
     data = json.loads(request.body) if request.body else {}
     file_path = data.get("path")
     if not file_path:
@@ -352,26 +405,29 @@ def handle_api_duplicate(request, editor):
     if full_path.suffix.lower() not in (".yaml", ".yml", ".png"):
         return JsonResponse({"error": "Invalid file type"}, status=400)
 
-    base_path = full_path.with_suffix("")
-    original_name = base_path.stem
+    base_name = Path(file_path).with_suffix("").as_posix()
+    original_name = Path(file_path).stem
+    files = editor.files
+
     counter = 1
     while True:
         new_name = f"{original_name}_copy_{counter:02d}"
-        new_base = base_path.parent / new_name
-        if not new_base.with_suffix(".yaml").exists():
+        if not files.exists(f"{new_name}.yaml"):
             break
         counter += 1
 
     copied_files, errors = [], []
     for ext in [".yaml", ".yml", ".png", ".overrides.yaml"]:
-        old_file = base_path.with_suffix(ext)
-        new_file = new_base.with_suffix(ext)
-        if old_file.exists():
+        old_rel = f"{base_name}{ext}"
+        new_rel = f"{new_name}{ext}"
+        if files.exists(old_rel):
             try:
-                shutil.copy2(old_file, new_file)
-                copied_files.append({"from": old_file.name, "to": new_file.name})
+                files.copy(old_rel, new_rel)
+                copied_files.append(
+                    {"from": Path(old_rel).name, "to": Path(new_rel).name}
+                )
             except Exception as e:
-                errors.append(f"{old_file.name}: {e}")
+                errors.append(f"{Path(old_rel).name}: {e}")
 
     if not copied_files:
         return JsonResponse({"error": "No files found to duplicate"}, status=404)
@@ -381,7 +437,7 @@ def handle_api_duplicate(request, editor):
             "success": True,
             "copied": copied_files,
             "new_name": new_name,
-            "new_path": str(new_base.with_suffix(".yaml").relative_to(working_dir)),
+            "new_path": f"{new_name}.yaml",
             "errors": errors or None,
         }
     )
@@ -389,23 +445,26 @@ def handle_api_duplicate(request, editor):
 
 def handle_api_download_recipe(request, editor):
     """Download the current recipe YAML file."""
+    import io
+
     file_path_str = request.GET.get("path", "")
     if not file_path_str and editor.recipe_path:
-        full_path = editor.recipe_path
+        rel_path = str(editor.recipe_path.name)
     elif file_path_str:
-        working_dir = getattr(editor, "working_dir", Path.cwd())
-        full_path = working_dir / file_path_str
-        if not full_path.suffix:
-            full_path = full_path.with_suffix(".yaml")
+        rel_path = file_path_str
+        if not rel_path.endswith((".yaml", ".yml")):
+            rel_path += ".yaml"
     else:
         return JsonResponse({"error": "No file path provided"}, status=400)
 
-    if not full_path.exists():
+    files = editor.files
+    if not files.exists(rel_path):
         return JsonResponse({"error": "File not found"}, status=404)
 
+    content = files.read(rel_path, binary=True)
     return FileResponse(
-        open(full_path, "rb"),
+        io.BytesIO(content),
         as_attachment=True,
-        filename=full_path.name,
+        filename=Path(rel_path).name,
         content_type="application/x-yaml",
     )

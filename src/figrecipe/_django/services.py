@@ -37,6 +37,41 @@ class EditorState:
     # StyleOverrides for layered style management
     _overrides: Any = None
 
+    # FilesBackend for file I/O abstraction (lazy-initialized)
+    _files_backend: Any = None
+
+    @property
+    def files(self):
+        """Get FilesBackend for file operations.
+
+        Tries scitex-app's get_files() first (supports local + cloud),
+        falls back to LocalFilesAdapter (pure pathlib, zero deps).
+        """
+        if self._files_backend is None:
+            try:
+                from scitex_app import get_files
+
+                self._files_backend = get_files(root=str(self.working_dir))
+            except ImportError:
+                from ._local_files import LocalFilesAdapter
+
+                self._files_backend = LocalFilesAdapter(self.working_dir)
+        return self._files_backend
+
+    @property
+    def overrides(self):
+        """Access the style overrides object."""
+        if self._overrides is None:
+            from figrecipe._editor._overrides import StyleOverrides
+
+            self._overrides = StyleOverrides(self.style or {})
+        return self._overrides
+
+    @property
+    def style_overrides(self):
+        """Alias for overrides (used by style handlers)."""
+        return self.overrides
+
     def get_effective_style(self) -> Dict[str, Any]:
         """Get the effective style with overrides."""
         if self._overrides is not None:
@@ -73,7 +108,7 @@ def _create_editor(
 ) -> EditorState:
     """Create an EditorState from recipe path."""
     from figrecipe._editor import _resolve_source, _resolve_style
-    from figrecipe._editor._hitmap import generate_hitmap
+    from figrecipe._editor._hitmap import generate_hitmap, hitmap_to_base64
 
     fig, resolved_path = _resolve_source(recipe_path)
     style_dict = _resolve_style(style)
@@ -89,6 +124,7 @@ def _create_editor(
         ax.set_facecolor(fc)
 
     hitmap_img, color_map = generate_hitmap(fig)
+    hitmap_base64 = hitmap_to_base64(hitmap_img)
 
     editor = EditorState(
         fig=fig,
@@ -98,6 +134,7 @@ def _create_editor(
         _color_map=color_map,
         _hitmap_generated=True,
     )
+    editor._hitmap_base64 = hitmap_base64
     logger.info("[FigRecipe] Created editor for %s", recipe_path)
     return editor
 

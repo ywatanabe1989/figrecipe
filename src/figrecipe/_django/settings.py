@@ -25,6 +25,14 @@ INSTALLED_APPS = [
     "figrecipe._django",
 ]
 
+# Optional: scitex-ui shared components (static assets served via AppDirectoriesFinder)
+try:
+    import scitex_ui  # noqa: F401
+
+    INSTALLED_APPS.append("scitex_ui")
+except ImportError:
+    pass
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",

@@ -1,59 +1,14 @@
-/** File tree — browse, switch, and manage recipe files. */
+/** File browser — browse, switch, and manage recipe files.
+ *
+ * Uses scitex-ui's FileBrowser React component for tree rendering,
+ * with figrecipe-specific toolbar and CRUD operations.
+ */
 
 import { useCallback, useState } from "react";
+import { FileBrowser as StxFileBrowser } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/file-browser";
+import type { FileNode } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/file-browser";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
-import type { FileTreeItem } from "../../types/editor";
-
-function TreeItem({ item, depth }: { item: FileTreeItem; depth: number }) {
-  const { currentFile, switchFile } = useEditorStore();
-  const [expanded, setExpanded] = useState(true);
-
-  if (item.type === "directory") {
-    return (
-      <li>
-        <div
-          className={`file-tree__entry file-tree__entry--folder${expanded ? " expanded" : ""}`}
-          style={{ paddingLeft: 8 + depth * 16 }}
-          onClick={() => setExpanded(!expanded)}
-        >
-          <span className="file-tree__toggle">
-            <i className={`fas fa-chevron-${expanded ? "down" : "right"}`} />
-          </span>
-          <span className="file-tree__icon">
-            <i className={`fas fa-folder${expanded ? "-open" : ""}`} />
-          </span>
-          <span className="file-tree__name">{item.name}</span>
-          <span className="file-tree__badge">{item.children?.length ?? 0}</span>
-        </div>
-        {expanded && item.children && (
-          <ul className="file-tree__children">
-            {item.children.map((child) => (
-              <TreeItem key={child.path} item={child} depth={depth + 1} />
-            ))}
-          </ul>
-        )}
-      </li>
-    );
-  }
-
-  const isCurrent = item.path === currentFile;
-  return (
-    <li>
-      <div
-        className={`file-tree__entry${isCurrent ? " current" : ""}${item.has_image ? " has-image" : ""}`}
-        style={{ paddingLeft: 8 + depth * 16 }}
-        onClick={() => !isCurrent && switchFile(item.path)}
-      >
-        <span className="file-tree__icon">
-          <i className={`fas ${item.has_image ? "fa-chart-bar" : "fa-file"}`} />
-        </span>
-        <span className="file-tree__name">{item.name}</span>
-        {item.has_image && <span className="file-tree__badge">PNG</span>}
-      </div>
-    </li>
-  );
-}
 
 export function FileBrowser() {
   const { files, currentFile, loadFiles, switchFile, showToast } =
@@ -61,9 +16,14 @@ export function FileBrowser() {
   const [renaming, setRenaming] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
 
-  const handleRefresh = useCallback(() => {
-    loadFiles();
-  }, [loadFiles]);
+  const handleFileSelect = useCallback(
+    (node: FileNode) => {
+      if (node.path !== currentFile) {
+        switchFile(node.path);
+      }
+    },
+    [currentFile, switchFile],
+  );
 
   const handleNew = useCallback(async () => {
     try {
@@ -127,9 +87,13 @@ export function FileBrowser() {
     }
   }, [renaming, newName, loadFiles, showToast]);
 
+  const handleRefresh = useCallback(() => {
+    loadFiles();
+  }, [loadFiles]);
+
   return (
     <div className="file-browser">
-      {/* Action toolbar — below pane-header, inside content area */}
+      {/* Figrecipe-specific toolbar */}
       <div className="file-browser__toolbar">
         <button
           className="pane-header-btn"
@@ -194,21 +158,13 @@ export function FileBrowser() {
         </div>
       )}
 
-      <ul className="file-tree">
-        {files.length === 0 ? (
-          <li className="file-tree__empty">
-            <i
-              className="fas fa-folder-open"
-              style={{ fontSize: 24, display: "block", marginBottom: 8 }}
-            />
-            <p>No recipe files</p>
-          </li>
-        ) : (
-          files.map((item) => (
-            <TreeItem key={item.path} item={item} depth={0} />
-          ))
-        )}
-      </ul>
+      {/* scitex-ui shared tree component */}
+      <StxFileBrowser
+        data={files as FileNode[]}
+        onFileSelect={handleFileSelect}
+        showImageBadge
+        showFileCount
+      />
     </div>
   );
 }

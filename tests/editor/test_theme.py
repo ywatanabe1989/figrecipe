@@ -23,7 +23,7 @@ class TestEditorTheme:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             theme_btn = page.locator(
@@ -49,7 +49,7 @@ class TestEditorTheme:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             dark_toggle = page.locator(
@@ -78,7 +78,7 @@ class TestEditorTheme:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             # Try to find and interact with theme selector

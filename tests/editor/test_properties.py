@@ -23,7 +23,7 @@ class TestEditorProperties:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             tabs = ["Figure", "Axis", "Element"]
@@ -50,7 +50,7 @@ class TestEditorProperties:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             inputs = page.locator("input[type='text'], input[type='number']")
@@ -82,7 +82,7 @@ class TestEditorProperties:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             # Try to find and click a visible color picker

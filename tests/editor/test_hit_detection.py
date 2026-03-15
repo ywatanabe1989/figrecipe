@@ -23,7 +23,7 @@ class TestEditorHitDetection:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
             time.sleep(0.5)
 
@@ -52,14 +52,11 @@ class TestEditorHitDetection:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
-            page.wait_for_load_state("networkidle")
-
-            response = page.request.get(f"{editor_server.url}/hitmap")
+            response = page.request.get(editor_server.api("hitmap"))
             assert response.ok, f"Hitmap request failed: {response.status}"
-            assert "application/json" in response.headers.get(
-                "content-type", ""
-            ), "Hitmap endpoint should return JSON"
+            assert "application/json" in response.headers.get("content-type", ""), (
+                "Hitmap endpoint should return JSON"
+            )
 
             # Verify JSON structure
             data = response.json()
@@ -83,7 +80,7 @@ class TestEditorHitDetection:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             preview = page.locator("#preview-img, .preview-img, img").first

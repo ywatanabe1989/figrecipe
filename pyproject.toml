@@ -8,7 +8,7 @@ version = "0.26.5"
 description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name = "Yusuke Watanabe", email = "ywatanabe@scitex.ai" },
 ]
@@ -31,7 +31,6 @@ classifiers = [
     "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -44,7 +43,6 @@ dependencies = [
     "scipy>=1.7.0",
     "click>=8.0.0",
     "rich>=13.0.0",
-    "scitex-app>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -61,6 +59,11 @@ imaging = [
 seaborn = [
     "seaborn>=0.12.0",
     "pandas>=1.3.0",
+]
+scitex = [
+    "scitex",
+    "scitex-app>=0.1.0",
+    "scitex-ui>=0.1.0",
 ]
 editor = [
     "django>=4.2.0",
@@ -146,6 +149,9 @@ omit = [
     "*/figrecipe/_cli/*",
     "*/figrecipe/_editor/*",
     "*/figrecipe/_dev/*",
+    "*/figrecipe/_scitex_compat/*",
+    "*/figrecipe/_mcp/*",
+    "*/figrecipe/_django/*",
 ]
 
 [tool.coverage.report]
@@ -154,11 +160,14 @@ show_missing = true
 
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/figrecipe/__init__.py" = ["E402"]
+"src/figrecipe/__init__.py" = ["E402", "F401"]
+"src/figrecipe/_scitex_compat/_csv_formatters/__init__.py" = ["F401"]
+"src/figrecipe/_scitex_compat/_csv_formatters/_export_as_csv.py" = ["E402"]
+"src/figrecipe/_scitex_compat/_csv_formatters/*.py" = ["F841", "E722"]

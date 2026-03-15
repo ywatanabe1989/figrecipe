@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Tests for figrecipe.Mermaid and figrecipe.Graphviz wrappers."""
 
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -43,8 +44,15 @@ class TestMermaidClass:
         m = Mermaid("graph TD; A-->B;")
         with tempfile.TemporaryDirectory() as tmpdir:
             out = Path(tmpdir) / "test.png"
-            result = m.render(out, backend="mermaid-cli")
-            assert result.exists()
+            try:
+                result = m.render(out, backend="mermaid-cli")
+                assert result.exists()
+            except subprocess.CalledProcessError as e:
+                if "Could not find Chrome" in (e.stderr or b"").decode(
+                    errors="replace"
+                ):
+                    pytest.skip("mmdc installed but Chrome/Puppeteer not available")
+                raise
 
     def test_render_mermaid_ink(self):
         import urllib.error

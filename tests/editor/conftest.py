@@ -59,6 +59,15 @@ class EditorServer:
         self.port = port
         self.process = None
         self.url = f"http://127.0.0.1:{port}"
+        from urllib.parse import quote
+
+        self._recipe_param = f"recipe={quote(str(recipe_path))}"
+        self.recipe_url = f"{self.url}?{self._recipe_param}"
+
+    def api(self, endpoint: str) -> str:
+        """Build API URL with recipe query param."""
+        sep = "&" if "?" in endpoint else "?"
+        return f"{self.url}/{endpoint}{sep}{self._recipe_param}"
 
     def __enter__(self):
         """Start the editor server."""

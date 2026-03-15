@@ -1,14 +1,14 @@
-/** Root layout — vis_app 4-pane: Ribbon | FileTree | DataTable | Canvas | Details.
- * Supports `?mode=embedded` for scitex-cloud integration (hides FileTree + StatusBar).
+/** InnerEditor — React editor content (without shell chrome).
+ *
+ * This is what gets mounted inside AppShell's mainContent slot.
+ * Contains: DataTable | PlotTypeNav | Canvas | Properties panes.
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
-import { FileTreePane } from "./components/FileTreePane/FileTreePane";
 import { PlotTypeNav } from "./components/PlotTypeNav/PlotTypeNav";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
-import { StatusBar } from "./components/StatusBar/StatusBar";
 import { Spinner } from "./components/common/Spinner";
 import { Toast } from "./components/common/Toast";
 import { useElementInspector } from "./hooks/useElementInspector";
@@ -19,12 +19,11 @@ import { useSessionPersistence } from "./hooks/useSessionPersistence";
 import { initUndoHistory } from "./hooks/useUndoRedo";
 import { useEditorStore } from "./store/useEditorStore";
 
-export function App() {
-  const embedded = useMemo(
-    () =>
-      new URLSearchParams(window.location.search).get("mode") === "embedded",
-    [],
-  );
+interface InnerEditorProps {
+  embedded?: boolean;
+}
+
+export function InnerEditor({ embedded = false }: InnerEditorProps) {
   const {
     loading,
     loadPreview,
@@ -59,14 +58,6 @@ export function App() {
     initUndoHistory();
   }, []);
 
-  const fileTreePanel = usePanelResize({
-    direction: "left",
-    minWidth: 40,
-    defaultWidth: 200,
-    storageKey: "figrecipe-filetree-width",
-    collapseKey: "figrecipe-filetree-collapsed",
-  });
-
   const dataPanel = usePanelResize({
     direction: "left",
     minWidth: 40,
@@ -84,22 +75,9 @@ export function App() {
   });
 
   return (
-    <div className={embedded ? "editor-root embedded" : "editor-root"}>
+    <div className="inner-editor">
       <div className="editor-body">
-        {/* Pane 1 — File Tree (recipe files) */}
-        <aside
-          className={`split-pane split-pane-left${fileTreePanel.collapsed ? " collapsed" : ""}`}
-          style={
-            fileTreePanel.collapsed ? undefined : { width: fileTreePanel.width }
-          }
-        >
-          <FileTreePane
-            onHeaderDoubleClick={fileTreePanel.headerProps.onDoubleClick}
-          />
-        </aside>
-        <div className="panel-resizer" {...fileTreePanel.resizerProps} />
-
-        {/* Pane 2 — Data Table (350px default) */}
+        {/* Pane 1 — Data Table */}
         <aside
           className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
           style={dataPanel.collapsed ? undefined : { width: dataPanel.width }}
@@ -111,17 +89,17 @@ export function App() {
 
         <div className="panel-resizer" {...dataPanel.resizerProps} />
 
-        {/* Plot type selector nav — fixed width, never collapses */}
+        {/* Plot type selector nav */}
         <PlotTypeNav />
 
-        {/* Pane 3 — Canvas (flex: 1) */}
+        {/* Pane 2 — Canvas (flex: 1) */}
         <main className="split-pane split-pane-center">
           <CanvasPane />
         </main>
 
         <div className="panel-resizer" {...rightPanel.resizerProps} />
 
-        {/* Pane 4 — Properties/Details (320px default) */}
+        {/* Pane 3 — Properties/Details */}
         <aside
           className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
           style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}
@@ -132,7 +110,6 @@ export function App() {
         </aside>
       </div>
 
-      {!embedded && <StatusBar />}
       {loading && <Spinner />}
       <Toast />
     </div>

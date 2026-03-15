@@ -1,9 +1,44 @@
+import { execSync } from "child_process";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+
+/**
+ * Discover scitex-ui static directory from the Python environment.
+ * Works for both pip-installed packages and editable (dev) installs.
+ * Falls back to SCITEX_UI_STATIC env var if Python discovery fails.
+ */
+function discoverScitexUiStatic(): string {
+  // 1. Environment variable override (for CI, Docker, custom setups)
+  if (process.env.SCITEX_UI_STATIC) {
+    return process.env.SCITEX_UI_STATIC;
+  }
+
+  // 2. Auto-discover via scitex_ui.get_static_dir() (pip-installed or editable)
+  try {
+    const pkgPath = execSync(
+      'python3 -c "import scitex_ui; print(scitex_ui.get_static_dir())"',
+      { encoding: "utf-8", timeout: 5000 },
+    ).trim();
+    if (pkgPath) return pkgPath;
+  } catch {
+    // scitex_ui not installed — fall through
+  }
+
+  throw new Error(
+    "scitex-ui not found. Install it (pip install scitex-ui) or set SCITEX_UI_STATIC env var.",
+  );
+}
+
+const SCITEX_UI_STATIC = discoverScitexUiStatic();
 
 export default defineConfig({
   plugins: [react()],
   base: "/static/figrecipe/",
+  resolve: {
+    alias: {
+      "scitex-ui": SCITEX_UI_STATIC,
+    },
+  },
   build: {
     outDir: "../static/figrecipe",
     emptyOutDir: true,
