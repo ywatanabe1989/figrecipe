@@ -47,6 +47,8 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/viewer.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/chat.css";
 // @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/ai-panel.css";
+// @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/file-browser.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/data-table.css";
