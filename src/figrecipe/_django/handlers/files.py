@@ -469,3 +469,31 @@ def handle_api_download_recipe(request, editor):
         filename=Path(rel_path).name,
         content_type="application/x-yaml",
     )
+
+
+def handle_api_file_content(request, editor, file_path):
+    """Serve raw file content for Viewer pane (image, text, etc.)."""
+    import mimetypes
+
+    working_dir = _find_default_working_dir()
+    full_path = (working_dir / file_path).resolve()
+    # Path traversal protection
+    if not str(full_path).startswith(str(working_dir.resolve())):
+        return JsonResponse({"error": "Access denied"}, status=403)
+    if not full_path.exists():
+        return JsonResponse({"error": "File not found"}, status=404)
+
+    raw = request.GET.get("raw") == "true"
+    mime, _ = mimetypes.guess_type(str(full_path))
+
+    if raw or (mime and mime.startswith("image")):
+        return FileResponse(
+            open(full_path, "rb"), content_type=mime or "application/octet-stream"
+        )
+
+    # Text content as JSON
+    try:
+        text = full_path.read_text(errors="replace")[:1_000_000]
+        return JsonResponse({"content": text})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
