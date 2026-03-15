@@ -55,8 +55,6 @@ class TestEditorHitDetection:
             from urllib.parse import quote
 
             recipe = quote(str(editor_server.recipe_path))
-            page.goto(f"{editor_server.url}?recipe={recipe}")
-            page.wait_for_load_state("networkidle")
 
             response = page.request.get(f"{editor_server.url}/hitmap?recipe={recipe}")
             assert response.ok, f"Hitmap request failed: {response.status}"
