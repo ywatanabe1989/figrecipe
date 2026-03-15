@@ -76,16 +76,11 @@
   --transition-normal: 200ms;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* Body/root styles — workspace shell controls the frame.
+ * Only set font and overflow here; colors come from theme.css. */
 body {
   font-family: var(--font);
-  background: var(--vis-bg-primary);
-  color: var(--vis-text-primary);
+  margin: 0;
   overflow: hidden;
   height: 100vh;
 }
