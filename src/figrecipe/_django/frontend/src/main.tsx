@@ -1,35 +1,28 @@
-/** FigRecipe Editor — Bootstrap.
+/** FigRecipe Editor — Bootstrap with Workspace Shell.
  *
- * Initializes scitex-ui shell components (ThemeProvider, AppShell, StatusBar,
- * FileBrowser), then mounts the React editor into the AppShell's mainContent slot.
+ * Uses scitex-ui's React Workspace shell for the universal frame:
+ * AI Chat (left) | File Tree (middle) | App Content (right) | Terminal (bottom)
  *
  * In embedded mode (?mode=embedded), skips the shell and mounts React directly.
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import ReactDOM from "react-dom/client";
 
-// scitex-ui shell components (bundled at build time)
-import { ThemeProvider } from "scitex-ui/ts/shell/theme-provider";
-import { AppShell } from "scitex-ui/ts/shell/app-shell";
-import { StatusBar } from "scitex-ui/ts/shell/status-bar";
-import { FileBrowser } from "scitex-ui/ts/app/file-browser";
+// scitex-ui React workspace shell
+import { Workspace } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace";
+import { LocalTerminalBackend } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/terminal/backends/LocalTerminalBackend";
+import type {
+  FileTreeBackend,
+  FileNode,
+} from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace/types";
 
-// Bridge: scitex-ui ↔ React
-import { onFileSelect, onThemeChange } from "./bridge/eventHandlers";
-import {
-  subscribeStatusBar,
-  subscribeFileBrowser,
-} from "./bridge/storeSubscriptions";
-
-// React app
+// React app content
 import { InnerEditor } from "./InnerEditor";
+import { api } from "./api/client";
+import { useEditorStore } from "./store/useEditorStore";
 
-// Styles: scitex-ui theme + app-specific variables
-import "scitex-ui/css/shell/theme.css";
-import "scitex-ui/css/shell/app-shell.css";
-import "scitex-ui/css/shell/status-bar.css";
-import "scitex-ui/css/app/file-browser.css";
+// Styles
 import "./styles/app-variables.css";
 import "./styles/layout.css";
 import "./styles/context-menu.css";
@@ -39,99 +32,78 @@ import "./styles/gallery.css";
 import "./styles/export-dialog.css";
 import "./styles/feedback.css";
 
+// scitex-ui CSS (shared with vanilla TS components)
+// @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/theme.css";
+// @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/workspace.css";
+// @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/terminal.css";
+// @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/chat.css";
+// @ts-ignore
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/file-browser.css";
+
 const root = document.getElementById("root")!;
-const embedded =
-  new URLSearchParams(window.location.search).get("mode") === "embedded";
+const params = new URLSearchParams(window.location.search);
+const embedded = params.get("mode") === "embedded";
+
+/** File tree backend using figrecipe's existing API */
+class FigrecipeFileTreeBackend implements FileTreeBackend {
+  async fetchTree(): Promise<FileNode[]> {
+    const data = await api.get<{ tree: FileNode[] }>("api/files");
+    return data.tree || [];
+  }
+}
+
+function FigrecipeApp() {
+  const { switchFile } = useEditorStore();
+
+  // Terminal backend — connects to pty server on port+1
+  const terminalBackend = useMemo(() => {
+    const port = parseInt(window.location.port || "5050", 10);
+    return new LocalTerminalBackend(`ws://127.0.0.1:${port + 1}/`);
+  }, []);
+
+  // File tree backend — uses figrecipe's API
+  const fileTreeBackend = useMemo(() => new FigrecipeFileTreeBackend(), []);
+
+  return (
+    <Workspace
+      appName="figrecipe"
+      accentColor="#7c5cbf"
+      terminalBackend={terminalBackend}
+      fileTreeBackend={fileTreeBackend}
+      highlightExtensions={[".yaml", ".yml"]}
+      onFileSelect={(node) => {
+        if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
+          switchFile(node.path);
+        }
+      }}
+      onFileDrop={(path) => {
+        if (path.endsWith(".csv") || path.endsWith(".tsv")) {
+          // TODO: load into data table
+        }
+      }}
+    >
+      <InnerEditor />
+    </Workspace>
+  );
+}
 
 if (embedded) {
-  // Embedded mode: no shell, mount React directly
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <InnerEditor embedded />
     </React.StrictMode>,
   );
 } else {
-  // Standalone mode: scitex-ui shell wraps React editor
+  // Apply dark theme by default
+  document.documentElement.setAttribute("data-theme", "dark");
 
-  // 1. Theme provider (light/dark, persisted to localStorage)
-  const themeProvider = new ThemeProvider({
-    defaultTheme: "dark",
-    onThemeChange,
-  });
-
-  // 2. AppShell (sidebar + main content)
-  const shell = new AppShell({
-    container: root,
-    sidebarTitle: "Files",
-    sidebarIcon: "fas fa-folder-open",
-    sidebarWidth: 200,
-    accent: "figrecipe",
-    storageKey: "figrecipe-sidebar-state",
-  });
-
-  // 3. File toolbar (React, mounted in sidebar above FileBrowser)
-  const toolbarMount = document.createElement("div");
-  shell.sidebarContent.appendChild(toolbarMount);
-
-  // Lazy import to avoid circular deps
-  import("./components/FileTreeToolbar").then(({ FileTreeToolbar }) => {
-    ReactDOM.createRoot(toolbarMount).render(
-      <React.StrictMode>
-        <FileTreeToolbar />
-      </React.StrictMode>,
-    );
-  });
-
-  // 4. FileBrowser (scitex-ui vanilla TS, in sidebar below toolbar)
-  const fileBrowserMount = document.createElement("div");
-  fileBrowserMount.style.flex = "1";
-  fileBrowserMount.style.overflow = "auto";
-  shell.sidebarContent.appendChild(fileBrowserMount);
-
-  const fileBrowser = new FileBrowser({
-    container: fileBrowserMount,
-    onFileSelect,
-    showImageBadge: true,
-  });
-
-  // 5. StatusBar (scitex-ui vanilla TS, after shell)
-  const statusBarMount = document.createElement("div");
-  root.appendChild(statusBarMount);
-
-  const statusBar = new StatusBar({
-    container: statusBarMount,
-    showThemeToggle: true,
-    items: {
-      left: [
-        { id: "figures", text: "0 figures", icon: "fas fa-images" },
-        { id: "size", text: "" },
-      ],
-      center: [{ id: "selection", text: "No selection" }],
-      right: [
-        { id: "snap", text: "Snap on", icon: "fas fa-magnet" },
-        { id: "rulers", text: "mm", icon: "fas fa-ruler" },
-      ],
-    },
-  });
-
-  // 6. Mount React editor into AppShell's main content slot
-  ReactDOM.createRoot(shell.mainContent).render(
+  ReactDOM.createRoot(root).render(
     <React.StrictMode>
-      <InnerEditor />
+      <FigrecipeApp />
     </React.StrictMode>,
   );
-
-  // 7. Wire up Zustand → scitex-ui subscriptions
-  subscribeStatusBar(statusBar);
-  subscribeFileBrowser(fileBrowser);
-
-  // Keep references alive for HMR cleanup
-  if (import.meta.hot) {
-    import.meta.hot.dispose(() => {
-      themeProvider.destroy();
-      fileBrowser.destroy();
-      statusBar.destroy();
-      shell.destroy();
-    });
-  }
 }
