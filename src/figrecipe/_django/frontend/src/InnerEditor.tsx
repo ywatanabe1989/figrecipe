@@ -1,10 +1,12 @@
 /** InnerEditor — React editor content (without shell chrome).
  *
- * This is what gets mounted inside AppShell's mainContent slot.
- * Contains: DataTable | PlotTypeNav | Canvas | Properties panes.
+ * This is what gets mounted inside Workspace's appContent slot.
+ * Two tabs:
+ *   - Plot: DataTable | PlotTypeNav | FigureViewer | Details
+ *   - Canvas: Canvas | Details
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
 import { PlotTypeNav } from "./components/PlotTypeNav/PlotTypeNav";
@@ -19,6 +21,8 @@ import { useSessionPersistence } from "./hooks/useSessionPersistence";
 import { initUndoHistory } from "./hooks/useUndoRedo";
 import { useEditorStore } from "./store/useEditorStore";
 
+type AppTab = "plot" | "canvas";
+
 interface InnerEditorProps {
   embedded?: boolean;
 }
@@ -32,6 +36,20 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     loadThemes,
     loadDatatable,
   } = useEditorStore();
+
+  const [activeTab, setActiveTab] = useState<AppTab>(() => {
+    try {
+      return (localStorage.getItem("figrecipe-app-tab") as AppTab) || "plot";
+    } catch {
+      return "plot";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("figrecipe-app-tab", activeTab);
+    } catch {}
+  }, [activeTab]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -76,30 +94,62 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
 
   return (
     <div className="inner-editor">
-      <div className="editor-body">
-        {/* Pane 1 — Data Table */}
-        <aside
-          className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
-          style={dataPanel.collapsed ? undefined : { width: dataPanel.width }}
+      {/* ── Tab Switcher ────────────────────────────── */}
+      <div className="inner-editor__tabs">
+        <button
+          className={`inner-editor__tab${activeTab === "plot" ? " inner-editor__tab--active" : ""}`}
+          onClick={() => setActiveTab("plot")}
         >
-          <DataTablePane
-            onHeaderDoubleClick={dataPanel.headerProps.onDoubleClick}
-          />
-        </aside>
+          <i className="fas fa-chart-line" /> Plot
+        </button>
+        <button
+          className={`inner-editor__tab${activeTab === "canvas" ? " inner-editor__tab--active" : ""}`}
+          onClick={() => setActiveTab("canvas")}
+        >
+          <i className="fas fa-object-group" /> Canvas
+        </button>
+      </div>
 
-        <div className="panel-resizer" {...dataPanel.resizerProps} />
+      {/* ── Tab Content ─────────────────────────────── */}
+      <div className="editor-body">
+        {activeTab === "plot" && (
+          <>
+            {/* Pane 1 — Data Table */}
+            <aside
+              className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
+              style={
+                dataPanel.collapsed ? undefined : { width: dataPanel.width }
+              }
+            >
+              <DataTablePane
+                onHeaderDoubleClick={dataPanel.headerProps.onDoubleClick}
+              />
+            </aside>
 
-        {/* Plot type selector nav */}
-        <PlotTypeNav />
+            <div className="panel-resizer" {...dataPanel.resizerProps} />
 
-        {/* Pane 2 — Canvas (flex: 1) */}
-        <main className="split-pane split-pane-center">
-          <CanvasPane />
-        </main>
+            {/* Plot type selector nav */}
+            <PlotTypeNav />
+
+            {/* Pane 2 — Figure Viewer (flex: 1) */}
+            <main className="split-pane split-pane-center">
+              <CanvasPane />
+            </main>
+          </>
+        )}
+
+        {activeTab === "canvas" && (
+          <>
+            {/* Canvas — full width */}
+            <main className="split-pane split-pane-center">
+              <CanvasPane />
+            </main>
+          </>
+        )}
 
         <div className="panel-resizer" {...rightPanel.resizerProps} />
 
-        {/* Pane 3 — Properties/Details */}
+        {/* Details panel — shared between both tabs */}
         <aside
           className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
           style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}

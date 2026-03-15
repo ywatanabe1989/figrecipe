@@ -1,12 +1,55 @@
 /* FigRecipe Editor — Layout (split-view panes inside AppShell mainContent) */
 
-/* ── Inner editor (React content inside AppShell.mainContent) ── */
+/* ── Inner editor (React content inside Workspace.appContent) ── */
 
 .inner-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+/* ── App Tab Switcher (Plot | Canvas) ─────────────────── */
+
+.inner-editor__tabs {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 8px;
+  gap: 2px;
+  background: var(--vis-bg-secondary);
+  border-bottom: 1px solid var(--vis-border);
+  flex-shrink: 0;
+}
+
+.inner-editor__tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--vis-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 150ms;
+}
+
+.inner-editor__tab i {
+  font-size: 13px;
+}
+
+.inner-editor__tab:hover {
+  color: var(--vis-text-primary);
+}
+
+.inner-editor__tab--active {
+  color: var(--vis-text-primary);
+  border-bottom-color: var(--accent-primary);
 }
 
 .editor-body {
