@@ -202,6 +202,34 @@ bootstrapContextZoom(
       min: 0.7,
       max: 1.6,
     },
+    // Viewer pane — CSS zoom
+    {
+      selector: ".stx-workspace__viewer-panel",
+      storageKey: "figrecipe-viewer-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
+    // Data table pane — CSS zoom
+    {
+      selector: ".split-pane-left",
+      storageKey: "figrecipe-table-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
+    // Center pane (figure/canvas) — CSS zoom
+    {
+      selector: ".split-pane-center",
+      storageKey: "figrecipe-center-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
+    // Properties pane — CSS zoom
+    {
+      selector: ".split-pane-right",
+      storageKey: "figrecipe-props-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
   ],
   [
     // Terminal pane — font size zoom
