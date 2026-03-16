@@ -15,7 +15,7 @@ export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
   const {
     datatableTabs,
     activeTabId,
-    highlightedDataRows,
+    highlightedDataRows: _highlightedDataRows,
     placedFigures,
     removeFigure,
     showToast,
