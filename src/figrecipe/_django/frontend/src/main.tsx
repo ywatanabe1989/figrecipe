@@ -104,6 +104,14 @@ function FigrecipeApp() {
         `api/file-content/${encodeURIComponent(path)}${raw ? "?raw=true" : ""}`
       }
       highlightExtensions={[".yaml", ".yml"]}
+      onImageCapture={(dataUrl, _mime) => {
+        console.log("[FigRecipe] Image captured, size:", dataUrl.length);
+        useEditorStore.getState().showToast?.("Image captured");
+      }}
+      onVoiceTranscript={(text) => {
+        console.log("[FigRecipe] Voice transcript:", text);
+        useEditorStore.getState().showToast?.(`Voice: ${text}`);
+      }}
       onFileSelect={(node) => {
         if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
           switchFile(node.path);
