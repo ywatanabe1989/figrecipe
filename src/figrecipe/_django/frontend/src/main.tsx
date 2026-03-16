@@ -59,6 +59,13 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/utils/element-inspector.cs
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 
+// Context-aware zoom (Ctrl+Wheel per pane)
+import {
+  initContextZoom,
+  registerFontZoom,
+  registerFontSizeZoom,
+} from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
+
 const root = document.getElementById("root")!;
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get("mode") === "embedded";
@@ -178,3 +185,29 @@ if (embedded) {
     </React.StrictMode>,
   );
 }
+
+// Initialize context-aware zoom after DOM is ready
+requestAnimationFrame(() => {
+  initContextZoom();
+
+  // Terminal pane — Ctrl+Wheel adjusts terminal font size
+  registerFontSizeZoom(
+    ".stx-shell-ai-console-terminal",
+    "figrecipe-terminal-font-size",
+    { defaultSize: 13, min: 8, max: 24, group: "terminal" },
+  );
+
+  // Chat pane — CSS zoom for entire chat area
+  registerFontZoom(".stx-shell-ai-view", "figrecipe-chat-zoom", 1, {
+    min: 0.7,
+    max: 1.6,
+  });
+
+  // File tree — font size zoom
+  registerFontSizeZoom(".stx-app-file-tree", "figrecipe-filetree-font-size", {
+    defaultSize: 13,
+    min: 9,
+    max: 20,
+    target: ".stx-app-file-tree__name",
+  });
+});
