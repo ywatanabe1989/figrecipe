@@ -172,7 +172,16 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
                   </span>
                 </div>
               ) : (
-                <FigureViewer />
+                <>
+                  <div
+                    className="pane-header pane-header--minimal"
+                    onDoubleClick={toggleCenter}
+                    title="Double-click to collapse"
+                  >
+                    <i className="fas fa-image" style={{ opacity: 0.5 }} />
+                  </div>
+                  <FigureViewer />
+                </>
               )}
             </main>
           </>
@@ -192,7 +201,19 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
                   </span>
                 </div>
               ) : (
-                <CanvasPane />
+                <>
+                  <div
+                    className="pane-header pane-header--minimal"
+                    onDoubleClick={toggleCenter}
+                    title="Double-click to collapse"
+                  >
+                    <i
+                      className="fas fa-object-group"
+                      style={{ opacity: 0.5 }}
+                    />
+                  </div>
+                  <CanvasPane />
+                </>
               )}
             </main>
           </>

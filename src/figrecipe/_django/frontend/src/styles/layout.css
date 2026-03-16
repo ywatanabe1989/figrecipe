@@ -215,6 +215,19 @@
   overflow: hidden;
 }
 
+.pane-header--minimal {
+  height: 20px;
+  padding: 0 6px;
+  cursor: pointer;
+  justify-content: center;
+  opacity: 0.4;
+}
+
+.pane-header--minimal:hover {
+  opacity: 0.8;
+  background: var(--vis-bg-hover, rgba(255, 255, 255, 0.05));
+}
+
 .pane-header-title {
   display: flex;
   align-items: center;
