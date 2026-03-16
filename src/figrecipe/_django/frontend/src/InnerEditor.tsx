@@ -246,7 +246,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
         {/* Details panel — shared between both tabs */}
         <aside
           ref={rightPanel.panelRef as React.Ref<HTMLElement>}
-          className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
+          className={`split-pane split-pane-right stx-layout-most-right${rightPanel.collapsed ? " collapsed" : ""}`}
           style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}
         >
           <PropertiesPane
