@@ -131,6 +131,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
           <>
             {/* Pane 1 — Data Table */}
             <aside
+              ref={dataPanel.panelRef as React.Ref<HTMLElement>}
               className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
               style={
                 dataPanel.collapsed ? undefined : { width: dataPanel.width }
@@ -175,6 +176,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
 
         {/* Details panel — shared between both tabs */}
         <aside
+          ref={rightPanel.panelRef as React.Ref<HTMLElement>}
           className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
           style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}
         >
