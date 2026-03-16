@@ -117,6 +117,7 @@
   width: var(--sidebar-right-width);
   flex-shrink: 1;
   min-width: 40px;
+  margin-left: auto; /* Always push to far right edge */
   background: var(--vis-bg-secondary);
   border-left: none; /* resizer handles separation */
 }
