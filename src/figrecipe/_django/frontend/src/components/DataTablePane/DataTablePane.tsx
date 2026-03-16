@@ -1,6 +1,8 @@
-/** Left pane — Data table with vis_app pane-header. */
+/** Left pane — Data table with vis_app pane-header.
+ * Uses scitex-ui's shared DataTable component (no figrecipe-original table). */
 
 import { useCallback, useRef } from "react";
+import { DataTable } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/data-table/DataTable";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
 import { getPanelColor } from "../../utils/panelColors";
@@ -167,90 +169,52 @@ export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
         }}
       />
 
-      {/* Pane content */}
+      {/* Pane content — uses shared scitex-ui DataTable */}
       <div className="pane-content">
-        {tabs.length === 0 ? (
-          <div className="datatable-empty-state">
-            <i className="fas fa-th-large datatable-empty-icon" />
-            <p className="datatable-empty-title">No data loaded</p>
-            <p className="datatable-empty-hint">
-              Import CSV or Excel, or drag &amp; drop files here
-            </p>
+        {tabs.length >= 1 && (
+          <div className="datatable-panel__tabs">
+            {tabs.map((tab, idx) => (
+              <button
+                key={tab.id}
+                className={`datatable-panel__tab${tab.id === activeTabId ? " active" : ""}`}
+                style={{
+                  borderLeft: `3px solid ${getPanelColor(idx)}`,
+                }}
+                onClick={() => useEditorStore.setState({ activeTabId: tab.id })}
+                type="button"
+              >
+                {tab.label}
+                <span
+                  className="datatable-panel__tab-close"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseTab(tab.id);
+                  }}
+                  title="Close tab and remove figure"
+                >
+                  &times;
+                </span>
+              </button>
+            ))}
           </div>
-        ) : (
-          <>
-            {tabs.length >= 1 && (
-              <div className="datatable-panel__tabs">
-                {tabs.map((tab, idx) => (
-                  <button
-                    key={tab.id}
-                    className={`datatable-panel__tab${tab.id === activeTabId ? " active" : ""}`}
-                    style={{
-                      borderLeft: `3px solid ${getPanelColor(idx)}`,
-                    }}
-                    onClick={() =>
-                      useEditorStore.setState({ activeTabId: tab.id })
-                    }
-                    type="button"
-                  >
-                    {tab.label}
-                    <span
-                      className="datatable-panel__tab-close"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCloseTab(tab.id);
-                      }}
-                      title="Close tab and remove figure"
-                    >
-                      &times;
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {activeTab && (
-              <div className="datatable-panel__table-wrapper">
-                <table className="datatable-panel__table">
-                  <thead>
-                    <tr>
-                      {activeTab.columns.map((col, i) => (
-                        <th key={i}>{col.name}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeTab.rows.slice(0, 100).map((row, ri) => (
-                      <tr
-                        key={ri}
-                        className={
-                          highlightedDataRows.includes(ri)
-                            ? "datatable-row-highlighted"
-                            : ""
-                        }
-                      >
-                        {row.map((cell, ci) => (
-                          <td key={ci}>
-                            {typeof cell === "number"
-                              ? Number.isInteger(cell)
-                                ? cell
-                                : cell.toFixed(4)
-                              : String(cell)}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {activeTab.rows.length > 100 && (
-                  <p className="datatable-panel__truncated">
-                    Showing 100 of {activeTab.rows.length} rows
-                  </p>
-                )}
-              </div>
-            )}
-          </>
         )}
+        <DataTable
+          data={
+            activeTab
+              ? {
+                  columns: activeTab.columns.map((c) => c.name),
+                  rows: activeTab.rows.map((row) => {
+                    const obj: Record<string, string | number> = {};
+                    activeTab.columns.forEach((col, ci) => {
+                      obj[col.name] = row[ci] ?? "";
+                    });
+                    return obj;
+                  }),
+                }
+              : undefined
+          }
+          style={{ flex: 1 }}
+        />
       </div>
     </>
   );
