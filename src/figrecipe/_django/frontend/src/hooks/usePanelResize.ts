@@ -142,6 +142,18 @@ export function usePanelResize(config: PanelResizeConfig): PanelResizeResult {
           : startWidth.current - delta;
       if (newWidth >= minWidth) {
         setWidth(newWidth);
+      } else {
+        // Panel at minimum — propagate force to workspace shell
+        // Custom event lets the Workspace cascade to its own panels
+        window.dispatchEvent(
+          new CustomEvent("stx-app-resize-overflow", {
+            detail: {
+              direction: direction === "left" ? "left" : "right",
+              delta: minWidth - newWidth, // how far past the edge
+              clientX: e.clientX,
+            },
+          }),
+        );
       }
     };
 
