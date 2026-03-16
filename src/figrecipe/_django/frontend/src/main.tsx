@@ -61,8 +61,8 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/media-input.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 
-// Context-aware zoom (Ctrl+Wheel per pane)
-import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
+// Context-aware zoom — app-specific panes only (shell panes auto-registered by Workspace)
+import { registerFontZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
 
 const root = document.getElementById("root")!;
 const params = new URLSearchParams(window.location.search);
@@ -192,63 +192,19 @@ if (embedded) {
   );
 }
 
-// Initialize context-aware zoom with MutationObserver for React-rendered panes
-bootstrapContextZoom(
-  [
-    // Chat pane — CSS zoom for entire chat area
-    {
-      selector: ".stx-shell-ai-view",
-      storageKey: "figrecipe-chat-zoom",
-      min: 0.7,
-      max: 1.6,
-    },
-    // Viewer pane — CSS zoom
-    {
-      selector: ".stx-workspace__viewer-panel",
-      storageKey: "figrecipe-viewer-zoom",
-      min: 0.7,
-      max: 1.6,
-    },
-    // Data table pane — CSS zoom
-    {
-      selector: ".split-pane-left",
-      storageKey: "figrecipe-table-zoom",
-      min: 0.7,
-      max: 1.6,
-    },
-    // Center pane (figure/canvas) — CSS zoom
-    {
-      selector: ".split-pane-center",
-      storageKey: "figrecipe-center-zoom",
-      min: 0.7,
-      max: 1.6,
-    },
-    // Properties pane — CSS zoom
-    {
-      selector: ".split-pane-right",
-      storageKey: "figrecipe-props-zoom",
-      min: 0.7,
-      max: 1.6,
-    },
-  ],
-  [
-    // Terminal pane — font size zoom
-    {
-      selector: ".stx-shell-ai-console-terminal",
-      storageKey: "figrecipe-terminal-font-size",
-      defaultSize: 13,
-      min: 8,
-      max: 24,
-      group: "terminal",
-    },
-    // File tree — font size zoom on item names
-    {
-      selector: ".stx-app-file-tree",
-      storageKey: "figrecipe-filetree-font-size",
-      defaultSize: 13,
-      min: 9,
-      max: 20,
-      target: ".stx-app-file-tree__name",
-    },
-  ],
-);
+// Register zoom on app-specific panes (shell panes handled by Workspace automatically)
+// Uses MutationObserver internally — safe to call before React renders
+requestAnimationFrame(() => {
+  registerFontZoom(".split-pane-left", "figrecipe-table-zoom", 1, {
+    min: 0.7,
+    max: 1.6,
+  });
+  registerFontZoom(".split-pane-center", "figrecipe-center-zoom", 1, {
+    min: 0.7,
+    max: 1.6,
+  });
+  registerFontZoom(".split-pane-right", "figrecipe-props-zoom", 1, {
+    min: 0.7,
+    max: 1.6,
+  });
+});
