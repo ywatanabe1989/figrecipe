@@ -173,8 +173,8 @@
 .split-pane.collapsed .panel-title {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 8px;
   writing-mode: vertical-lr;
   text-orientation: mixed;
   transform: rotate(180deg);
@@ -184,6 +184,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0;
+  padding-top: 12px;
   flex: 1;
 }
 
