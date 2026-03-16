@@ -235,18 +235,24 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
           </>
         )}
 
-        <div className="panel-resizer" {...rightPanel.resizerProps} />
-
-        {/* Details panel — shared between both tabs */}
-        <aside
-          ref={rightPanel.panelRef as React.Ref<HTMLElement>}
-          className={`split-pane split-pane-right stx-layout-most-right${rightPanel.collapsed ? " collapsed" : ""}`}
-          style={rightPanel.collapsed ? undefined : { width: rightPanel.width }}
+        {/* Resizer + Details grouped together and pushed to far right */}
+        <div
+          className="stx-layout-most-right"
+          style={{ display: "flex", flexShrink: 0 }}
         >
-          <PropertiesPane
-            onHeaderDoubleClick={rightPanel.headerProps.onDoubleClick}
-          />
-        </aside>
+          <div className="panel-resizer" {...rightPanel.resizerProps} />
+          <aside
+            ref={rightPanel.panelRef as React.Ref<HTMLElement>}
+            className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
+            style={
+              rightPanel.collapsed ? undefined : { width: rightPanel.width }
+            }
+          >
+            <PropertiesPane
+              onHeaderDoubleClick={rightPanel.headerProps.onDoubleClick}
+            />
+          </aside>
+        </div>
       </div>
 
       {loading && <Spinner />}
