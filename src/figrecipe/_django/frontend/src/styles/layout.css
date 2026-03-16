@@ -96,9 +96,7 @@
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
-  transition:
-    width 0.2s ease,
-    min-width 0.2s ease;
+  /* No transition — instant resize, no acceleration */
 }
 
 .split-pane-left {
@@ -110,7 +108,7 @@
 .split-pane-center {
   flex: 1;
   flex-shrink: 1;
-  min-width: 200px;
+  min-width: 80px;
   background: var(--vis-bg-primary);
   position: relative;
 }
