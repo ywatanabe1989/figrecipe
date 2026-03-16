@@ -97,6 +97,9 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     });
   };
 
+  // Create refs for cross-panel coordination (prevents pushing rightmost panel off-screen)
+  const rightPanelRef = useRef<HTMLElement | null>(null);
+
   const dataPanel = usePanelResize({
     direction: "left",
     minWidth: 40,
@@ -107,6 +110,9 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
       console.log("[resize] data panel overflow:", overflow, "px", dir);
       if (dir === "left") propagateLeft(overflow);
     },
+    // Reserve space for right panel + PlotTypeNav (fixed ~60px)
+    siblingRefs: [rightPanelRef],
+    reservedWidth: 60,
   });
 
   const rightPanel = usePanelResize({
@@ -117,25 +123,13 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     collapseKey: "figrecipe-right-collapsed",
   });
 
-  // Auto-collapse center pane when squeezed below threshold by adjacent resizers
-  const centerRef = useRef<HTMLElement | null>(null);
-  const centerAutoCollapsed = useRef(false);
+  // Sync the shared ref with rightPanel's panelRef
   useEffect(() => {
-    const el = centerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      const w = entry.contentRect.width;
-      if (w <= 60 && !centerCollapsed && !centerAutoCollapsed.current) {
-        centerAutoCollapsed.current = true;
-        setCenterCollapsed(true);
-      } else if (w > 60 && centerAutoCollapsed.current) {
-        centerAutoCollapsed.current = false;
-        setCenterCollapsed(false);
-      }
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [centerCollapsed]);
+    rightPanelRef.current = rightPanel.panelRef.current;
+  });
+
+  // Ref for center pane (used by context-zoom registration)
+  const centerRef = useRef<HTMLElement | null>(null);
 
   return (
     <div className="inner-editor">
