@@ -79,6 +79,24 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
 
   const { propagateLeft } = useWorkspaceResize();
 
+  // Center pane collapse (simple toggle, no drag resize needed)
+  const [centerCollapsed, setCenterCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("figrecipe-center-collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const toggleCenter = () => {
+    setCenterCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("figrecipe-center-collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
   const dataPanel = usePanelResize({
     direction: "left",
     minWidth: 40,
@@ -140,17 +158,39 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
             <PlotTypeNav />
 
             {/* Pane 2 — Figure Viewer (rendered image, not canvas) */}
-            <main className="split-pane split-pane-center">
-              <FigureViewer />
+            <main
+              className={`split-pane split-pane-center${centerCollapsed ? " collapsed" : ""}`}
+            >
+              {centerCollapsed ? (
+                <div className="pane-header" onDoubleClick={toggleCenter}>
+                  <span className="panel-title">
+                    <i className="fas fa-image" />
+                    Viewer
+                  </span>
+                </div>
+              ) : (
+                <FigureViewer />
+              )}
             </main>
           </>
         )}
 
         {activeTab === "canvas" && (
           <>
-            {/* Canvas — full width */}
-            <main className="split-pane split-pane-center">
-              <CanvasPane />
+            {/* Canvas pane */}
+            <main
+              className={`split-pane split-pane-center${centerCollapsed ? " collapsed" : ""}`}
+            >
+              {centerCollapsed ? (
+                <div className="pane-header" onDoubleClick={toggleCenter}>
+                  <span className="panel-title">
+                    <i className="fas fa-object-group" />
+                    Canvas
+                  </span>
+                </div>
+              ) : (
+                <CanvasPane />
+              )}
             </main>
           </>
         )}
