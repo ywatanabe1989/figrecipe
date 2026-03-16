@@ -193,18 +193,34 @@ if (embedded) {
 }
 
 // Register zoom on app-specific panes (shell panes handled by Workspace automatically)
-// Uses MutationObserver internally — safe to call before React renders
-requestAnimationFrame(() => {
-  registerFontZoom(".split-pane-left", "figrecipe-table-zoom", 1, {
-    min: 0.7,
-    max: 1.6,
-  });
-  registerFontZoom(".split-pane-center", "figrecipe-center-zoom", 1, {
-    min: 0.7,
-    max: 1.6,
-  });
-  registerFontZoom(".split-pane-right", "figrecipe-props-zoom", 1, {
-    min: 0.7,
-    max: 1.6,
-  });
-});
+// MutationObserver retries until all elements found (React renders lazily)
+{
+  const appZones = [
+    { sel: ".split-pane-left", key: "figrecipe-table-zoom" },
+    { sel: ".split-pane-center", key: "figrecipe-center-zoom" },
+    { sel: ".split-pane-right", key: "figrecipe-props-zoom" },
+  ];
+  const registered = new Set<string>();
+
+  function tryRegister() {
+    for (const z of appZones) {
+      if (registered.has(z.sel)) continue;
+      if (registerFontZoom(z.sel, z.key, 1, { min: 0.7, max: 1.6 })) {
+        registered.add(z.sel);
+        console.log("[zoom] app zone registered:", z.sel);
+      }
+    }
+    return registered.size;
+  }
+
+  // Try immediately then watch for React renders
+  tryRegister();
+  if (registered.size < appZones.length) {
+    const obs = new MutationObserver(() => {
+      tryRegister();
+      if (registered.size >= appZones.length) obs.disconnect();
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => obs.disconnect(), 30_000);
+  }
+}
