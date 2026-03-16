@@ -1,60 +1,49 @@
 /** Vertical plot-type selector nav — fixed width, never collapses.
- * Sits between DataTable and Canvas panes, matching scitex-cloud app selector pattern.
+ * Uses the shared SelectorNav from scitex-ui.
+ * Sits between DataTable and FigureViewer panes, matching scitex-cloud app selector pattern.
  */
 
 import { useState } from "react";
+import { SelectorNav } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/selector-nav";
+import type { SelectorNavItem } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/selector-nav";
 import { useEditorStore } from "../../store/useEditorStore";
 import { GalleryPanel } from "../Gallery/GalleryPanel";
 
-const PLOT_TYPES = [
-  { key: "line", icon: "fa-chart-line", label: "Line" },
-  { key: "scatter", icon: "fa-braille", label: "Scatter" },
-  { key: "categorical", icon: "fa-chart-bar", label: "Bar" },
-  { key: "distribution", icon: "fa-chart-column", label: "Dist" },
-  { key: "statistical", icon: "fa-square-root-variable", label: "Stats" },
-  { key: "grid", icon: "fa-th", label: "Grid" },
-  { key: "area", icon: "fa-chart-area", label: "Area" },
-  { key: "contour", icon: "fa-layer-group", label: "Contour" },
-  { key: "vector", icon: "fa-arrows-alt", label: "Vector" },
-  { key: "special", icon: "fa-shapes", label: "Special" },
-] as const;
+const PLOT_TYPES: SelectorNavItem[] = [
+  { id: "line", icon: "fas fa-chart-line", label: "Line" },
+  { id: "scatter", icon: "fas fa-braille", label: "Scatter" },
+  { id: "categorical", icon: "fas fa-chart-bar", label: "Bar" },
+  { id: "distribution", icon: "fas fa-chart-column", label: "Dist" },
+  { id: "statistical", icon: "fas fa-square-root-variable", label: "Stats" },
+  { id: "grid", icon: "fas fa-th", label: "Grid" },
+  { id: "area", icon: "fas fa-chart-area", label: "Area" },
+  { id: "contour", icon: "fas fa-layer-group", label: "Contour" },
+  { id: "vector", icon: "fas fa-arrows-alt", label: "Vector" },
+  { id: "special", icon: "fas fa-shapes", label: "Special" },
+];
 
 export function PlotTypeNav() {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryCategory, setGalleryCategory] = useState<string | undefined>();
   const { placedFigures } = useEditorStore();
 
-  const openGallery = (category: string) => {
-    setGalleryCategory(category);
+  const openGallery = (id: string) => {
+    setGalleryCategory(id);
     setGalleryOpen(true);
   };
 
   return (
     <>
-      <nav className="plot-type-nav">
-        <div className="plot-type-nav__header">
-          <i className="fas fa-plus" />
-        </div>
-
-        <div className="plot-type-nav__items">
-          {PLOT_TYPES.map((pt) => (
-            <button
-              key={pt.key}
-              className="plot-type-nav__item"
-              type="button"
-              title={pt.label}
-              onClick={() => openGallery(pt.key)}
-            >
-              <i className={`fas ${pt.icon}`} />
-              <span className="plot-type-nav__label">{pt.label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="plot-type-nav__footer">
+      <SelectorNav
+        items={PLOT_TYPES}
+        activeId={galleryCategory ?? null}
+        onSelect={openGallery}
+        indicator="left"
+        style={{ width: 56, minWidth: 56, maxWidth: 56 }}
+        footer={
           <span className="plot-type-nav__count">{placedFigures.length}</span>
-        </div>
-      </nav>
+        }
+      />
 
       {galleryOpen && (
         <GalleryPanel
