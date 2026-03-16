@@ -157,6 +157,9 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
             {/* Plot type selector nav — fixed width, not resizable */}
             <PlotTypeNav />
 
+            {/* Pass-through resizer — propagates to DataTable (PlotTypeNav stays fixed) */}
+            <div className="panel-resizer" {...dataPanel.resizerProps} />
+
             {/* Pane 2 — Figure Viewer (rendered image, not canvas) */}
             <main
               className={`split-pane split-pane-center${centerCollapsed ? " collapsed" : ""}`}
