@@ -17,7 +17,8 @@ import { Toast } from "./components/common/Toast";
 // Element inspector now provided by scitex-ui (imported in main.tsx)
 import { useEmbeddedMessages } from "./hooks/useEmbeddedMessages";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
-import { usePanelResize } from "./hooks/usePanelResize";
+import { usePanelResize } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/usePanelResize";
+import { useWorkspaceResize } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace/WorkspaceResizeContext";
 import { useSessionPersistence } from "./hooks/useSessionPersistence";
 import { initUndoHistory } from "./hooks/useUndoRedo";
 import { useEditorStore } from "./store/useEditorStore";
@@ -76,12 +77,18 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     initUndoHistory();
   }, []);
 
+  const { propagateLeft } = useWorkspaceResize();
+
   const dataPanel = usePanelResize({
     direction: "left",
     minWidth: 40,
     defaultWidth: 350,
     storageKey: "figrecipe-data-width",
     collapseKey: "figrecipe-data-collapsed",
+    onBoundaryOverflow: (overflow, dir) => {
+      console.log("[resize] data panel overflow:", overflow, "px", dir);
+      if (dir === "left") propagateLeft(overflow);
+    },
   });
 
   const rightPanel = usePanelResize({

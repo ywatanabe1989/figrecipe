@@ -27,6 +27,17 @@ export function DataTablePane({ onHeaderDoubleClick }: DataTablePaneProps) {
   const tabs = Object.values(datatableTabs);
   const activeTab = activeTabId ? datatableTabs[activeTabId] : null;
 
+  console.log(
+    "[DataTablePane] tabs:",
+    tabs.length,
+    "activeTabId:",
+    activeTabId,
+    "activeTab:",
+    activeTab
+      ? { cols: activeTab.columns?.length, rows: activeTab.rows?.length }
+      : null,
+  );
+
   /** Close a tab and remove the corresponding figure from canvas. */
   const handleCloseTab = useCallback(
     (tabId: string) => {
