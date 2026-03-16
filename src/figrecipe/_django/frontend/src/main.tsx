@@ -62,7 +62,7 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/media-input.css";
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 
 // Context-aware zoom — app-specific panes only (shell panes auto-registered by Workspace)
-import { registerFontZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
+import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
 
 const root = document.getElementById("root")!;
 const params = new URLSearchParams(window.location.search);
@@ -193,34 +193,27 @@ if (embedded) {
 }
 
 // Register zoom on app-specific panes (shell panes handled by Workspace automatically)
-// MutationObserver retries until all elements found (React renders lazily)
-{
-  const appZones = [
-    { sel: ".split-pane-left", key: "figrecipe-table-zoom" },
-    { sel: ".split-pane-center", key: "figrecipe-center-zoom" },
-    { sel: ".split-pane-right", key: "figrecipe-props-zoom" },
-  ];
-  const registered = new Set<string>();
-
-  function tryRegister() {
-    for (const z of appZones) {
-      if (registered.has(z.sel)) continue;
-      if (registerFontZoom(z.sel, z.key, 1, { min: 0.7, max: 1.6 })) {
-        registered.add(z.sel);
-        console.log("[zoom] app zone registered:", z.sel);
-      }
-    }
-    return registered.size;
-  }
-
-  // Try immediately then watch for React renders
-  tryRegister();
-  if (registered.size < appZones.length) {
-    const obs = new MutationObserver(() => {
-      tryRegister();
-      if (registered.size >= appZones.length) obs.disconnect();
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => obs.disconnect(), 30_000);
-  }
-}
+// bootstrapContextZoom uses MutationObserver internally for lazy React renders
+bootstrapContextZoom(
+  [
+    {
+      selector: ".split-pane-left",
+      storageKey: "figrecipe-table-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
+    {
+      selector: ".split-pane-center",
+      storageKey: "figrecipe-center-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
+    {
+      selector: ".split-pane-right",
+      storageKey: "figrecipe-props-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
+  ],
+  [],
+);
