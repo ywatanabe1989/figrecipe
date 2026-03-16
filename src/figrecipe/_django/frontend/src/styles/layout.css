@@ -172,24 +172,22 @@
 
 .split-pane.collapsed .panel-title {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-size: 11px;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 500;
   color: var(--vis-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  line-height: 1;
   margin: 0;
-  padding-top: 12px;
-  flex: 1;
+  padding-top: 4px;
 }
 
 .split-pane.collapsed .panel-title i {
-  font-size: 14px;
+  font-size: 20px;
   color: var(--vis-text-secondary);
 }
 
