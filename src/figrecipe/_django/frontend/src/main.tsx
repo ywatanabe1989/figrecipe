@@ -62,11 +62,7 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/media-input.css";
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 
 // Context-aware zoom (Ctrl+Wheel per pane)
-import {
-  initContextZoom,
-  registerFontZoom,
-  registerFontSizeZoom,
-} from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
+import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
 
 const root = document.getElementById("root")!;
 const params = new URLSearchParams(window.location.search);
@@ -196,28 +192,35 @@ if (embedded) {
   );
 }
 
-// Initialize context-aware zoom after DOM is ready
-requestAnimationFrame(() => {
-  initContextZoom();
-
-  // Terminal pane — Ctrl+Wheel adjusts terminal font size
-  registerFontSizeZoom(
-    ".stx-shell-ai-console-terminal",
-    "figrecipe-terminal-font-size",
-    { defaultSize: 13, min: 8, max: 24, group: "terminal" },
-  );
-
-  // Chat pane — CSS zoom for entire chat area
-  registerFontZoom(".stx-shell-ai-view", "figrecipe-chat-zoom", 1, {
-    min: 0.7,
-    max: 1.6,
-  });
-
-  // File tree — font size zoom
-  registerFontSizeZoom(".stx-app-file-tree", "figrecipe-filetree-font-size", {
-    defaultSize: 13,
-    min: 9,
-    max: 20,
-    target: ".stx-app-file-tree__name",
-  });
-});
+// Initialize context-aware zoom with MutationObserver for React-rendered panes
+bootstrapContextZoom(
+  [
+    // Chat pane — CSS zoom for entire chat area
+    {
+      selector: ".stx-shell-ai-view",
+      storageKey: "figrecipe-chat-zoom",
+      min: 0.7,
+      max: 1.6,
+    },
+  ],
+  [
+    // Terminal pane — font size zoom
+    {
+      selector: ".stx-shell-ai-console-terminal",
+      storageKey: "figrecipe-terminal-font-size",
+      defaultSize: 13,
+      min: 8,
+      max: 24,
+      group: "terminal",
+    },
+    // File tree — font size zoom on item names
+    {
+      selector: ".stx-app-file-tree",
+      storageKey: "figrecipe-filetree-font-size",
+      defaultSize: 13,
+      min: 9,
+      max: 20,
+      target: ".stx-app-file-tree__name",
+    },
+  ],
+);
