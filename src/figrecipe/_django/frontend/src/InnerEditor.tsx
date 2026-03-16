@@ -14,7 +14,7 @@ import { PlotTypeNav } from "./components/PlotTypeNav/PlotTypeNav";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
 import { Spinner } from "./components/common/Spinner";
 import { Toast } from "./components/common/Toast";
-import { useElementInspector } from "./hooks/useElementInspector";
+// Element inspector now provided by scitex-ui (imported in main.tsx)
 import { useEmbeddedMessages } from "./hooks/useEmbeddedMessages";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { usePanelResize } from "./hooks/usePanelResize";
@@ -66,8 +66,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     }
   }, [loadPreview, loadHitmap, loadFiles, loadThemes, loadDatatable]);
 
-  // Global hooks
-  useElementInspector();
+  // Global hooks (element inspector from scitex-ui, initialized in main.tsx)
   useKeyboardShortcuts();
   useSessionPersistence();
   useEmbeddedMessages(embedded);
