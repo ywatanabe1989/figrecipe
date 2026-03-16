@@ -79,7 +79,12 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
 
   const { propagateLeft } = useWorkspaceResize();
 
-  // Center pane collapse (simple toggle, no drag resize needed)
+  // Ref for center pane (used by auto-collapse + context-zoom)
+  const centerRef = useRef<HTMLElement | null>(null);
+
+  // Center pane collapse — supports both double-click toggle AND
+  // auto-collapse when resizer pushes width below threshold.
+  const CENTER_MIN_WIDTH = 60;
   const [centerCollapsed, setCenterCollapsed] = useState(() => {
     try {
       return localStorage.getItem("figrecipe-center-collapsed") === "true";
@@ -87,7 +92,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
       return false;
     }
   });
-  const toggleCenter = () => {
+  const toggleCenter = useCallback(() => {
     setCenterCollapsed((prev) => {
       const next = !prev;
       try {
@@ -95,7 +100,25 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
       } catch {}
       return next;
     });
-  };
+  }, []);
+
+  // Auto-collapse center pane when it gets too narrow (e.g. right panel resized)
+  useEffect(() => {
+    const el = centerRef.current;
+    if (!el || centerCollapsed) return;
+    const obs = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width < CENTER_MIN_WIDTH && !centerCollapsed) {
+          setCenterCollapsed(true);
+          try {
+            localStorage.setItem("figrecipe-center-collapsed", "true");
+          } catch {}
+        }
+      }
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [centerCollapsed]);
 
   // Create refs for cross-panel coordination (prevents pushing rightmost panel off-screen)
   const rightPanelRef = useRef<HTMLElement | null>(null);
@@ -127,9 +150,6 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
   useEffect(() => {
     rightPanelRef.current = rightPanel.panelRef.current;
   });
-
-  // Ref for center pane (used by context-zoom registration)
-  const centerRef = useRef<HTMLElement | null>(null);
 
   return (
     <div className="inner-editor">
