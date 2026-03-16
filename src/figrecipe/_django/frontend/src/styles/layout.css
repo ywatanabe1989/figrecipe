@@ -85,6 +85,8 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  max-width: 100%;
+  width: 100%;
 }
 
 /* ── Split panes (vis_app split-view.css) ──────────────── */
@@ -115,6 +117,8 @@
 
 .split-pane-right {
   width: var(--sidebar-right-width);
+  flex-shrink: 1;
+  min-width: 40px;
   background: var(--vis-bg-secondary);
   border-left: none; /* resizer handles separation */
 }
