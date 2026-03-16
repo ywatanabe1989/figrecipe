@@ -19,11 +19,20 @@ export class DjangoChatBackend implements ChatBackend {
     prompt: string,
     context?: Record<string, unknown>,
   ): AsyncIterable<ChatChunk> {
-    const response = await fetch(`${this.baseUrl}api/chat/stream`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, context, history: [] }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}api/chat/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, context, history: [] }),
+      });
+    } catch (err) {
+      yield {
+        type: "error",
+        text: `Chat unavailable: ${err instanceof Error ? err.message : "network error"}`,
+      };
+      return;
+    }
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ error: "Chat failed" }));
