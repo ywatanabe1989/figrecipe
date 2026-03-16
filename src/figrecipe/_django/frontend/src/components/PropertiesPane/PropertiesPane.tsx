@@ -26,7 +26,10 @@ export function PropertiesPane({ onHeaderDoubleClick }: PropertiesPaneProps) {
         )}
 
         {/* Vertical title (visible only when collapsed via CSS) */}
-        <span className="panel-title">Details</span>
+        <span className="panel-title">
+          <i className="fas fa-sliders-h" />
+          Details
+        </span>
       </div>
 
       {/* Pane content */}
