@@ -6,7 +6,7 @@
  *   - Canvas: Canvas | Details
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
 import { FigureViewer } from "./components/FigureViewer/FigureViewer";
@@ -117,6 +117,26 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     collapseKey: "figrecipe-right-collapsed",
   });
 
+  // Auto-collapse center pane when squeezed below threshold by adjacent resizers
+  const centerRef = useRef<HTMLElement | null>(null);
+  const centerAutoCollapsed = useRef(false);
+  useEffect(() => {
+    const el = centerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      if (w <= 60 && !centerCollapsed && !centerAutoCollapsed.current) {
+        centerAutoCollapsed.current = true;
+        setCenterCollapsed(true);
+      } else if (w > 60 && centerAutoCollapsed.current) {
+        centerAutoCollapsed.current = false;
+        setCenterCollapsed(false);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [centerCollapsed]);
+
   return (
     <div className="inner-editor">
       {/* ── Tab Switcher ────────────────────────────── */}
@@ -162,6 +182,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
 
             {/* Pane 2 — Figure Viewer (rendered image, not canvas) */}
             <main
+              ref={centerRef as React.Ref<HTMLElement>}
               className={`split-pane split-pane-center${centerCollapsed ? " collapsed" : ""}`}
             >
               {centerCollapsed ? (
@@ -191,6 +212,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
           <>
             {/* Canvas pane */}
             <main
+              ref={centerRef as React.Ref<HTMLElement>}
               className={`split-pane split-pane-center${centerCollapsed ? " collapsed" : ""}`}
             >
               {centerCollapsed ? (

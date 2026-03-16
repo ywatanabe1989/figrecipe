@@ -108,7 +108,7 @@
 .split-pane-center {
   flex: 1;
   flex-shrink: 1;
-  min-width: 80px;
+  min-width: 40px;
   background: var(--vis-bg-primary);
   position: relative;
 }
