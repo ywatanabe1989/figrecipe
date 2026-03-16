@@ -91,14 +91,6 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     },
   });
 
-  const selectorPanel = usePanelResize({
-    direction: "left",
-    minWidth: 40,
-    defaultWidth: 56,
-    storageKey: "figrecipe-selector-width",
-    collapseKey: "figrecipe-selector-collapsed",
-  });
-
   const rightPanel = usePanelResize({
     direction: "right",
     minWidth: 40,
@@ -144,18 +136,8 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
 
             <div className="panel-resizer" {...dataPanel.resizerProps} />
 
-            {/* Plot type selector nav — resizable */}
-            <div
-              ref={selectorPanel.panelRef as React.Ref<HTMLDivElement>}
-              style={
-                selectorPanel.collapsed
-                  ? { width: 40, overflow: "hidden", flexShrink: 0 }
-                  : { width: selectorPanel.width, flexShrink: 0 }
-              }
-            >
-              <PlotTypeNav />
-            </div>
-            <div className="panel-resizer" {...selectorPanel.resizerProps} />
+            {/* Plot type selector nav — fixed width, not resizable */}
+            <PlotTypeNav />
 
             {/* Pane 2 — Figure Viewer (rendered image, not canvas) */}
             <main className="split-pane split-pane-center">
