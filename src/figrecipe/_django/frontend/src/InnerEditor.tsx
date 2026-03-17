@@ -137,7 +137,8 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     return () => obs.disconnect();
   }, [centerCollapsed]);
 
-  // Create refs for cross-panel coordination (prevents pushing rightmost panel off-screen)
+  // Cross-panel refs for mutual width constraints
+  const dataPanelRef = useRef<HTMLElement | null>(null);
   const rightPanelRef = useRef<HTMLElement | null>(null);
 
   const dataPanel = usePanelResize({
@@ -161,11 +162,15 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     defaultWidth: 240,
     storageKey: "figrecipe-right-width",
     collapseKey: "figrecipe-right-collapsed",
+    // Reserve space for data panel + PlotTypeNav + center min (60px)
+    siblingRefs: [dataPanelRef],
+    reservedWidth: 120,
   });
 
-  // Sync the shared ref with rightPanel's panelRef
+  // Sync shared refs with actual panel refs
   useEffect(() => {
     rightPanelRef.current = rightPanel.panelRef.current;
+    dataPanelRef.current = dataPanel.panelRef.current;
   });
 
   return (
