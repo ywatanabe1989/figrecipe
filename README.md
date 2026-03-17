@@ -66,20 +66,49 @@ fr.gui(fig)  # Launch visual editor at http://127.0.0.1:5050
 
 ---
 
-# FigRecipe — **Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
+## Role in SciTeX Ecosystem
+
+FigRecipe is the **first app built on the SciTeX platform** -- it proves the app pattern that other apps follow. It works standalone (`figrecipe gui`) AND embedded inside scitex-cloud.
+
+```
+scitex (orchestrator) -- re-exports figrecipe as scitex.plt
+  |-- scitex-app        -- runtime SDK (FigRecipe inherits ScitexAppConfig)
+  |-- scitex-ui         -- React/TS components (FigRecipe consumes these)
+  +-- figrecipe (this package) -- reference app
+        |-- figrecipe           -- standalone Python package (pip install figrecipe)
+        +-- figrecipe._django   -- Django integration for scitex-cloud embedding
+```
+
+**What this package owns:**
+
+- Figure creation, reproduction, and composition engine
+- YAML recipe format and data provenance
+- Diagram system (box-and-arrow with mm-based coordinates)
+- GUI editor (`figrecipe gui`)
+- Django integration via `figrecipe._django` package
+
+**What this package does NOT own:**
+
+- App runtime SDK -- inherits from [scitex-app](https://github.com/ywatanabe1989/scitex-app)
+- UI components -- consumes from [scitex-ui](https://github.com/ywatanabe1989/scitex-ui)
+- Templates and scaffolding -- managed by [scitex](https://github.com/ywatanabe1989/scitex-python)
+
+---
+
+# FigRecipe -- **Reproducible, editable, publication-ready scientific figures.** Part of [**SciTeX**](https://scitex.ai).
 
 The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
 
 >Four Freedoms for Research
 >
->0. The freedom to **run** your research anywhere — your machine, your terms.
->1. The freedom to **study** how every step works — from raw data to final manuscript.
+>0. The freedom to **run** your research anywhere -- your machine, your terms.
+>1. The freedom to **study** how every step works -- from raw data to final manuscript.
 >2. The freedom to **redistribute** your workflows, not just your papers.
 >3. The freedom to **modify** any module and share improvements with the community.
 >
->AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
+>AGPL-3.0 -- because we believe research infrastructure deserves the same freedoms as the software it runs on.
 
-> **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` — they share the same API.
+> **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` -- they share the same API.
 
 ## Overview
 
@@ -137,7 +166,7 @@ For precise adjustments, GUI editor is available.
 
 <details>
 
-FigRecipe is a **drop-in replacement** for matplotlib — just change your import:
+FigRecipe is a **drop-in replacement** for matplotlib -- just change your import:
 
 ```python
 # Before
@@ -150,7 +179,7 @@ plt.savefig("fig.png")
 import figrecipe as fr
 fig, ax = fr.subplots()
 ax.plot(x, y, id="my_trace")
-fr.save(fig, "fig.png")  # → fig.png + fig.yaml + fig_data/
+fr.save(fig, "fig.png")  # -> fig.png + fig.yaml + fig_data/
 ```
 
 #### Systematic Migration
@@ -186,7 +215,7 @@ d.add_arrow("filter", "ica")
 
 d.save(
     "pipeline.png"
-)  # → pipeline.png + pipeline.yaml + pipeline_hitmap.png + pipeline_debug.png
+)  # -> pipeline.png + pipeline.yaml + pipeline_hitmap.png + pipeline_debug.png
 ```
 
 </details>
@@ -241,7 +270,7 @@ d.save("out.png", watermark=True)  # "Plotted by FigRecipe" stamp
 <br>
 
 **Shapes**: `rounded` (default), `box`, `stadium`, `cylinder`, `document`, `file`, `codeblock`.
-Use `node_class` for semantic defaults: `"code"` → codeblock, `"input"` → cylinder, `"claim"` → document.
+Use `node_class` for semantic defaults: `"code"` -> codeblock, `"input"` -> cylinder, `"claim"` -> document.
 
 **Anchors**: `top`, `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, `center`, or `auto` (default). Aliases like `n`/`s`/`e`/`w`, `tl`/`tr`/`bl`/`br` are normalized automatically.
 
@@ -272,11 +301,11 @@ All rules are enforced on render. Failed figures are saved with a `_FAILED` suff
 ## Three Interfaces
 
 <details>
-<summary><strong>🐍 Python API</strong></summary>
+<summary><strong>Python API</strong></summary>
 
 <br>
 
-**Create and save** — standard matplotlib API with auto-recording:
+**Create and save** -- standard matplotlib API with auto-recording:
 
 ```python
 import figrecipe as fr
@@ -295,7 +324,7 @@ figure_data/
   sine.csv                # Plot data (one CSV per trace)
 ```
 
-**Save / Load Formats** — from recipe or bundle:
+**Save / Load Formats** -- from recipe or bundle:
 
 ```python
 fr.save(fig, "fig.png")     # fig.png + fig.yaml
@@ -305,19 +334,19 @@ fr.load("fig.png")          # reload from any format
 
 | Format | Save | Load |
 |--------|:----:|:----:|
-| PNG / PDF / SVG | ✓ | ✓ |
-| YAML | ✓ | ✓ |
-| Directory / ZIP | ✓ | ✓ |
+| PNG / PDF / SVG | Y | Y |
+| YAML | Y | Y |
+| Directory / ZIP | Y | Y |
 
 
-**Reproduce and edit** — from recipe or bundle:
+**Reproduce and edit** -- from recipe or bundle:
 
 ```python
 fig, ax = fr.reproduce("figure.yaml")
 fr.gui(fig)  # Launch visual editor (at http://127.0.0.1:5050 by default)
 ```
 
-**Compose** — multi-panel figures:
+**Compose** -- multi-panel figures:
 
 ```python
 fr.compose(
@@ -331,7 +360,7 @@ fr.compose(
   <img src="examples/03_composition_out/composed_grid.png" alt="Composed multi-panel figure" width="100%"/>
 </p>
 
-**Statistics** — significance brackets:
+**Statistics** -- significance brackets:
 
 ```python
 ax.add_stat_annotation(x1=0, x2=1, p_value=0.01, style="stars")
@@ -342,7 +371,7 @@ ax.add_stat_annotation(x1=0, x2=1, p_value=0.01, style="stars")
 </details>
 
 <details>
-<summary><strong>🖥️ CLI Commands</strong></summary>
+<summary><strong>CLI Commands</strong></summary>
 
 <br>
 
@@ -362,7 +391,7 @@ figrecipe info fig.yaml               # Show recipe metadata
 </details>
 
 <details>
-<summary><strong>🔧 MCP Server — for AI Agents</strong></summary>
+<summary><strong>MCP Server -- for AI Agents</strong></summary>
 
 <br>
 
@@ -380,11 +409,11 @@ AI agents can create, compose, and reproduce publication-ready figures autonomou
 | `diagram_render` | Render diagram to PNG/SVG/PDF |
 | `audio_speak` | Text-to-speech relay to user's speakers |
 
-**Audio relay**: The `audio_speak` tool enables AI agents to provide auditory feedback through the user's local speakers — the agent generates text, the MCP server synthesizes speech on the host machine. This keeps the human in the loop without requiring them to watch the terminal.
+**Audio relay**: The `audio_speak` tool enables AI agents to provide auditory feedback through the user's local speakers -- the agent generates text, the MCP server synthesizes speech on the host machine. This keeps the human in the loop without requiring them to watch the terminal.
 
 #### Claude Code Setup
 
-Add `.mcp.json` to your project root. Use `SCITEX_ENV_SRC` to load all configuration from a `.src` file — this keeps `.mcp.json` static across environments:
+Add `.mcp.json` to your project root. Use `SCITEX_ENV_SRC` to load all configuration from a `.src` file -- this keeps `.mcp.json` static across environments:
 
 ```json
 {
@@ -432,20 +461,20 @@ Detected by [scitex-linter](https://github.com/ywatanabe1989/scitex-linter) when
 
 | Rule | Severity | Message |
 |------|----------|---------|
-| `STX-FM001` | warning | `figsize=` detected — inch-based figure sizing is imprecise for publications |
-| `STX-FM002` | warning | `tight_layout()` detected — layout is unpredictable across plot types |
-| `STX-FM003` | warning | `bbox_inches="tight"` detected — can crop important elements unpredictably |
-| `STX-FM004` | info | `constrained_layout=True` detected — conflicts with mm-based layout control |
-| `STX-FM005` | info | `subplots_adjust()` with hardcoded fractions — fragile across figure sizes |
-| `STX-FM006` | info | `plt.savefig()` detected — no provenance tracking |
-| `STX-FM007` | info | `rcParams` direct modification detected — hard to maintain across figures |
-| `STX-FM008` | warning | `set_size_inches()` detected — bypasses mm-based layout control |
-| `STX-FM009` | warning | `ax.set_position()` detected — conflicts with mm-based layout control |
-| `STX-P001` | info | `ax.plot()` — consider `ax.stx_line()` for automatic CSV data export |
-| `STX-P002` | info | `ax.scatter()` — consider `ax.stx_scatter()` for automatic CSV data export |
-| `STX-P003` | info | `ax.bar()` — consider `ax.stx_bar()` for automatic sample size annotation |
+| `STX-FM001` | warning | `figsize=` detected -- inch-based figure sizing is imprecise for publications |
+| `STX-FM002` | warning | `tight_layout()` detected -- layout is unpredictable across plot types |
+| `STX-FM003` | warning | `bbox_inches="tight"` detected -- can crop important elements unpredictably |
+| `STX-FM004` | info | `constrained_layout=True` detected -- conflicts with mm-based layout control |
+| `STX-FM005` | info | `subplots_adjust()` with hardcoded fractions -- fragile across figure sizes |
+| `STX-FM006` | info | `plt.savefig()` detected -- no provenance tracking |
+| `STX-FM007` | info | `rcParams` direct modification detected -- hard to maintain across figures |
+| `STX-FM008` | warning | `set_size_inches()` detected -- bypasses mm-based layout control |
+| `STX-FM009` | warning | `ax.set_position()` detected -- conflicts with mm-based layout control |
+| `STX-P001` | info | `ax.plot()` -- consider `ax.stx_line()` for automatic CSV data export |
+| `STX-P002` | info | `ax.scatter()` -- consider `ax.stx_scatter()` for automatic CSV data export |
+| `STX-P003` | info | `ax.bar()` -- consider `ax.stx_bar()` for automatic sample size annotation |
 | `STX-P004` | info | `plt.show()` is non-reproducible in batch/CI environments |
-| `STX-P005` | info | `print()` inside @stx.session — use `logger` for tracked logging |
+| `STX-P005` | info | `print()` inside @stx.session -- use `logger` for tracked logging |
 
 ## 47 matplotlib plot types supported
 
