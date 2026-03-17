@@ -22,5 +22,9 @@
   "standalone": true,
   "standalone_command": "figrecipe gui",
   "standalone_port": 5050,
-  "frontend_type": "react"
+  "frontend_type": "react",
+  "bridge": {
+    "entry": "src/bridge/bridge-init.ts",
+    "source_root": "src"
+  }
 }
