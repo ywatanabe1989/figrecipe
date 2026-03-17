@@ -82,17 +82,27 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
   // Ref for center pane (used by auto-collapse + context-zoom)
   const centerRef = useRef<HTMLElement | null>(null);
 
-  // Center pane collapse — manual double-click toggle only.
+  // Center pane collapse — two modes:
+  //   "manual"  = user double-clicked header → persisted to localStorage
+  //   "auto"    = pane too narrow → temporary, auto-expands when space returns
+  const CENTER_MIN_WIDTH = 60;
+  const CENTER_EXPAND_WIDTH = 80;
+  const collapseMode = useRef<"manual" | "auto" | null>(null);
+
   const [centerCollapsed, setCenterCollapsed] = useState(() => {
     try {
-      return localStorage.getItem("figrecipe-center-collapsed") === "true";
-    } catch {
-      return false;
-    }
+      if (localStorage.getItem("figrecipe-center-collapsed") === "true") {
+        collapseMode.current = "manual";
+        return true;
+      }
+    } catch {}
+    return false;
   });
+
   const toggleCenter = useCallback(() => {
     setCenterCollapsed((prev) => {
       const next = !prev;
+      collapseMode.current = next ? "manual" : null;
       try {
         localStorage.setItem("figrecipe-center-collapsed", String(next));
       } catch {}
@@ -100,10 +110,32 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     });
   }, []);
 
-  // Center pane collapse is manual only (double-click on header).
-  // Previously auto-collapsed via ResizeObserver when width < 60px,
-  // but this was too aggressive — triggered during normal resizing
-  // and persisted the collapsed state to localStorage.
+  // Auto-collapse when narrow, auto-expand when space returns.
+  // Only auto-collapse triggers auto-expand; manual collapse stays.
+  useEffect(() => {
+    const el = centerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width;
+        if (w < CENTER_MIN_WIDTH && !centerCollapsed) {
+          // Auto-collapse (temporary, not persisted)
+          collapseMode.current = "auto";
+          setCenterCollapsed(true);
+        } else if (
+          w >= CENTER_EXPAND_WIDTH &&
+          centerCollapsed &&
+          collapseMode.current === "auto"
+        ) {
+          // Auto-expand — only if it was auto-collapsed, not manual
+          collapseMode.current = null;
+          setCenterCollapsed(false);
+        }
+      }
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [centerCollapsed]);
 
   // Create refs for cross-panel coordination (prevents pushing rightmost panel off-screen)
   const rightPanelRef = useRef<HTMLElement | null>(null);
