@@ -151,9 +151,9 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
       console.log("[resize] data panel overflow:", overflow, "px", dir);
       if (dir === "left") propagateLeft(overflow);
     },
-    // Reserve space for right panel + PlotTypeNav (fixed ~60px)
+    // Cap: leave room for right panel (sibling) + 50px min center
     siblingRefs: [rightPanelRef],
-    reservedWidth: 60,
+    reservedWidth: 50,
   });
 
   const rightPanel = usePanelResize({
@@ -162,9 +162,9 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     defaultWidth: 240,
     storageKey: "figrecipe-right-width",
     collapseKey: "figrecipe-right-collapsed",
-    // Reserve space for data panel + PlotTypeNav + center min (60px)
+    // Cap: leave room for data panel + PlotTypeNav (sibling) + 50px min center
     siblingRefs: [dataPanelRef],
-    reservedWidth: 120,
+    reservedWidth: 50,
   });
 
   // Sync shared refs with actual panel refs
