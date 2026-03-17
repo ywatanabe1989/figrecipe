@@ -263,8 +263,14 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
             ref={rightPanel.panelRef as React.Ref<HTMLElement>}
             className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
             style={
-              rightPanel.collapsed ? undefined : { width: rightPanel.width }
+              rightPanel.collapsed
+                ? { cursor: "pointer" }
+                : { width: rightPanel.width }
             }
+            onDoubleClick={
+              rightPanel.collapsed ? rightPanel.toggleCollapse : undefined
+            }
+            title={rightPanel.collapsed ? "Double-click to expand" : undefined}
           >
             <PropertiesPane
               onHeaderDoubleClick={rightPanel.headerProps.onDoubleClick}
