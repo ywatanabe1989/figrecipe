@@ -4,12 +4,9 @@
  * Two tabs:
  *   - Plot: DataTable | PlotTypeNav | FigureViewer | Details
  *   - Canvas: Canvas | Details
- *
- * Layout is managed by PaneLayout (scitex-ui) — pure TS, no React
- * state for widths. Panes declare constraints via data attributes.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CanvasPane } from "./components/CanvasPane/CanvasPane";
 import { DataTablePane } from "./components/DataTablePane/DataTablePane";
 import { FigureViewer } from "./components/FigureViewer/FigureViewer";
@@ -17,15 +14,14 @@ import { PlotTypeNav } from "./components/PlotTypeNav/PlotTypeNav";
 import { PropertiesPane } from "./components/PropertiesPane/PropertiesPane";
 import { Spinner } from "./components/common/Spinner";
 import { Toast } from "./components/common/Toast";
+// Element inspector now provided by scitex-ui (imported in main.tsx)
 import { useEmbeddedMessages } from "./hooks/useEmbeddedMessages";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { usePanelResize } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/usePanelResize";
+import { useWorkspaceResize } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace/WorkspaceResizeContext";
 import { useSessionPersistence } from "./hooks/useSessionPersistence";
 import { initUndoHistory } from "./hooks/useUndoRedo";
 import { useEditorStore } from "./store/useEditorStore";
-import {
-  PaneLayout,
-  Pane,
-} from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/pane-layout";
 
 type AppTab = "plot" | "canvas";
 
@@ -71,13 +67,69 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     }
   }, [loadPreview, loadHitmap, loadFiles, loadThemes, loadDatatable]);
 
+  // Global hooks (element inspector from scitex-ui, initialized in main.tsx)
   useKeyboardShortcuts();
   useSessionPersistence();
   useEmbeddedMessages(embedded);
 
+  // Initialize undo history once on mount
   useEffect(() => {
     initUndoHistory();
   }, []);
+
+  const { propagateLeft } = useWorkspaceResize();
+
+  // Center pane collapse (simple toggle, no drag resize needed)
+  const [centerCollapsed, setCenterCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("figrecipe-center-collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const toggleCenter = () => {
+    setCenterCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("figrecipe-center-collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // Create refs for cross-panel coordination (prevents pushing rightmost panel off-screen)
+  const rightPanelRef = useRef<HTMLElement | null>(null);
+
+  const dataPanel = usePanelResize({
+    direction: "left",
+    minWidth: 40,
+    defaultWidth: 200,
+    storageKey: "figrecipe-data-width",
+    collapseKey: "figrecipe-data-collapsed",
+    onBoundaryOverflow: (overflow, dir) => {
+      console.log("[resize] data panel overflow:", overflow, "px", dir);
+      if (dir === "left") propagateLeft(overflow);
+    },
+    // Reserve space for right panel + PlotTypeNav (fixed ~60px)
+    siblingRefs: [rightPanelRef],
+    reservedWidth: 60,
+  });
+
+  const rightPanel = usePanelResize({
+    direction: "right",
+    minWidth: 40,
+    defaultWidth: 240,
+    storageKey: "figrecipe-right-width",
+    collapseKey: "figrecipe-right-collapsed",
+  });
+
+  // Sync the shared ref with rightPanel's panelRef
+  useEffect(() => {
+    rightPanelRef.current = rightPanel.panelRef.current;
+  });
+
+  // Ref for center pane (used by context-zoom registration)
+  const centerRef = useRef<HTMLElement | null>(null);
 
   return (
     <div className="inner-editor">
@@ -97,52 +149,111 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
         </button>
       </div>
 
-      {/* ── Tab Content — PaneLayout manages all resize/collapse ── */}
-      {activeTab === "plot" && (
-        <PaneLayout storagePrefix="figrecipe-plot" className="editor-body">
-          <Pane
-            id="data-table"
-            as="aside"
-            minWidth={40}
-            defaultWidth={200}
-            canCollapse
-          >
-            <DataTablePane />
-          </Pane>
-          <Pane id="plot-nav" as="nav" fixed width={56}>
-            <PlotTypeNav />
-          </Pane>
-          <Pane id="viewer" as="main" minWidth={60} canCollapse>
-            <FigureViewer />
-          </Pane>
-          <Pane
-            id="details"
-            as="aside"
-            minWidth={40}
-            defaultWidth={240}
-            canCollapse
-          >
-            <PropertiesPane />
-          </Pane>
-        </PaneLayout>
-      )}
+      {/* ── Tab Content ─────────────────────────────── */}
+      <div className="editor-body">
+        {activeTab === "plot" && (
+          <>
+            {/* Pane 1 — Data Table */}
+            <aside
+              ref={dataPanel.panelRef as React.Ref<HTMLElement>}
+              className={`split-pane split-pane-left${dataPanel.collapsed ? " collapsed" : ""}`}
+              style={
+                dataPanel.collapsed ? undefined : { width: dataPanel.width }
+              }
+            >
+              <DataTablePane
+                onHeaderDoubleClick={dataPanel.headerProps.onDoubleClick}
+              />
+            </aside>
 
-      {activeTab === "canvas" && (
-        <PaneLayout storagePrefix="figrecipe-canvas" className="editor-body">
-          <Pane id="canvas" as="main" minWidth={60} canCollapse>
-            <CanvasPane />
-          </Pane>
-          <Pane
-            id="details"
-            as="aside"
-            minWidth={40}
-            defaultWidth={240}
-            canCollapse
+            <div className="panel-resizer" {...dataPanel.resizerProps} />
+
+            {/* Plot type selector nav — fixed width, not resizable */}
+            <PlotTypeNav />
+
+            {/* Pass-through resizer — propagates to DataTable (PlotTypeNav stays fixed) */}
+            <div className="panel-resizer" {...dataPanel.resizerProps} />
+
+            {/* Pane 2 — Figure Viewer (rendered image, not canvas) */}
+            <main
+              ref={centerRef as React.Ref<HTMLElement>}
+              className={`split-pane split-pane-center${centerCollapsed ? " collapsed" : ""}`}
+            >
+              {centerCollapsed ? (
+                <div className="pane-header" onDoubleClick={toggleCenter}>
+                  <span className="panel-title">
+                    <i className="fas fa-image" />
+                    Viewer
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div
+                    className="pane-header pane-header--minimal"
+                    onDoubleClick={toggleCenter}
+                    title="Double-click to collapse"
+                  >
+                    <i className="fas fa-image" style={{ opacity: 0.5 }} />
+                  </div>
+                  <FigureViewer />
+                </>
+              )}
+            </main>
+          </>
+        )}
+
+        {activeTab === "canvas" && (
+          <>
+            {/* Canvas pane */}
+            <main
+              ref={centerRef as React.Ref<HTMLElement>}
+              className={`split-pane split-pane-center${centerCollapsed ? " collapsed" : ""}`}
+            >
+              {centerCollapsed ? (
+                <div className="pane-header" onDoubleClick={toggleCenter}>
+                  <span className="panel-title">
+                    <i className="fas fa-object-group" />
+                    Canvas
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div
+                    className="pane-header pane-header--minimal"
+                    onDoubleClick={toggleCenter}
+                    title="Double-click to collapse"
+                  >
+                    <i
+                      className="fas fa-object-group"
+                      style={{ opacity: 0.5 }}
+                    />
+                  </div>
+                  <CanvasPane />
+                </>
+              )}
+            </main>
+          </>
+        )}
+
+        {/* Resizer + Details grouped together and pushed to far right */}
+        <div
+          className="stx-layout-most-right"
+          style={{ display: "flex", flexShrink: 0 }}
+        >
+          <div className="panel-resizer" {...rightPanel.resizerProps} />
+          <aside
+            ref={rightPanel.panelRef as React.Ref<HTMLElement>}
+            className={`split-pane split-pane-right${rightPanel.collapsed ? " collapsed" : ""}`}
+            style={
+              rightPanel.collapsed ? undefined : { width: rightPanel.width }
+            }
           >
-            <PropertiesPane />
-          </Pane>
-        </PaneLayout>
-      )}
+            <PropertiesPane
+              onHeaderDoubleClick={rightPanel.headerProps.onDoubleClick}
+            />
+          </aside>
+        </div>
+      </div>
 
       {loading && <Spinner />}
       <Toast />
