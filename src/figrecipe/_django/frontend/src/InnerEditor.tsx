@@ -82,9 +82,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
   // Ref for center pane (used by auto-collapse + context-zoom)
   const centerRef = useRef<HTMLElement | null>(null);
 
-  // Center pane collapse — supports both double-click toggle AND
-  // auto-collapse when resizer pushes width below threshold.
-  const CENTER_MIN_WIDTH = 60;
+  // Center pane collapse — manual double-click toggle only.
   const [centerCollapsed, setCenterCollapsed] = useState(() => {
     try {
       return localStorage.getItem("figrecipe-center-collapsed") === "true";
@@ -102,23 +100,10 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     });
   }, []);
 
-  // Auto-collapse center pane when it gets too narrow (e.g. right panel resized)
-  useEffect(() => {
-    const el = centerRef.current;
-    if (!el || centerCollapsed) return;
-    const obs = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.contentRect.width < CENTER_MIN_WIDTH && !centerCollapsed) {
-          setCenterCollapsed(true);
-          try {
-            localStorage.setItem("figrecipe-center-collapsed", "true");
-          } catch {}
-        }
-      }
-    });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [centerCollapsed]);
+  // Center pane collapse is manual only (double-click on header).
+  // Previously auto-collapsed via ResizeObserver when width < 60px,
+  // but this was too aggressive — triggered during normal resizing
+  // and persisted the collapsed state to localStorage.
 
   // Create refs for cross-panel coordination (prevents pushing rightmost panel off-screen)
   const rightPanelRef = useRef<HTMLElement | null>(null);
@@ -207,16 +192,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
                   </span>
                 </div>
               ) : (
-                <>
-                  <div
-                    className="pane-header pane-header--minimal"
-                    onDoubleClick={toggleCenter}
-                    title="Double-click to collapse"
-                  >
-                    <i className="fas fa-image" style={{ opacity: 0.5 }} />
-                  </div>
-                  <FigureViewer />
-                </>
+                <FigureViewer />
               )}
             </main>
           </>
@@ -237,19 +213,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
                   </span>
                 </div>
               ) : (
-                <>
-                  <div
-                    className="pane-header pane-header--minimal"
-                    onDoubleClick={toggleCenter}
-                    title="Double-click to collapse"
-                  >
-                    <i
-                      className="fas fa-object-group"
-                      style={{ opacity: 0.5 }}
-                    />
-                  </div>
-                  <CanvasPane />
-                </>
+                <CanvasPane onHeaderDoubleClick={toggleCenter} />
               )}
             </main>
           </>
