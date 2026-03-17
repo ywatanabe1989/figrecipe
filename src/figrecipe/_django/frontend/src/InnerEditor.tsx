@@ -137,9 +137,8 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     return () => obs.disconnect();
   }, [centerCollapsed]);
 
-  // Cross-panel refs for mutual width constraints
-  const dataPanelRef = useRef<HTMLElement | null>(null);
-  const rightPanelRef = useRef<HTMLElement | null>(null);
+  // Ref to the editor-body flex container — used for max width capping
+  const editorBodyRef = useRef<HTMLElement | null>(null);
 
   const dataPanel = usePanelResize({
     direction: "left",
@@ -147,13 +146,10 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     defaultWidth: 200,
     storageKey: "figrecipe-data-width",
     collapseKey: "figrecipe-data-collapsed",
+    containerRef: editorBodyRef,
     onBoundaryOverflow: (overflow, dir) => {
-      console.log("[resize] data panel overflow:", overflow, "px", dir);
       if (dir === "left") propagateLeft(overflow);
     },
-    // Cap: leave room for right panel (sibling) + 50px min center
-    siblingRefs: [rightPanelRef],
-    reservedWidth: 50,
   });
 
   const rightPanel = usePanelResize({
@@ -162,15 +158,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     defaultWidth: 240,
     storageKey: "figrecipe-right-width",
     collapseKey: "figrecipe-right-collapsed",
-    // Cap: leave room for data panel + PlotTypeNav (sibling) + 50px min center
-    siblingRefs: [dataPanelRef],
-    reservedWidth: 50,
-  });
-
-  // Sync shared refs with actual panel refs
-  useEffect(() => {
-    rightPanelRef.current = rightPanel.panelRef.current;
-    dataPanelRef.current = dataPanel.panelRef.current;
+    containerRef: editorBodyRef,
   });
 
   return (
@@ -192,7 +180,10 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
       </div>
 
       {/* ── Tab Content ─────────────────────────────── */}
-      <div className="editor-body">
+      <div
+        className="editor-body"
+        ref={editorBodyRef as React.Ref<HTMLDivElement>}
+      >
         {activeTab === "plot" && (
           <>
             {/* Pane 1 — Data Table */}
