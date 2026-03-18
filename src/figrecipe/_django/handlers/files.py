@@ -124,8 +124,9 @@ def handle_api_tree(request, editor):
         _build_tree = _local_build_tree
 
     working_dir, files_backend = _get_working_dir_and_backend(request, editor)
+    max_depth = int(request.GET.get("depth", "2"))
     try:
-        tree = _build_tree(files_backend)
+        tree = _build_tree(files_backend, max_depth=max_depth)
     except PermissionError as exc:
         logger.warning("[api_tree] Permission denied: %s", exc)
         return JsonResponse(
