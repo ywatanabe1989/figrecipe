@@ -258,7 +258,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
         {/* Resizer + Details grouped together and pushed to far right */}
         <div
           className="stx-layout-most-right"
-          style={{ display: "flex", flexShrink: 0 }}
+          style={{ display: "flex", flexShrink: 0, marginLeft: "auto" }}
         >
           <div className="panel-resizer" {...rightPanel.resizerProps} />
           <aside
