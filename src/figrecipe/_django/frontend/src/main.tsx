@@ -46,133 +46,139 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 // Context-aware zoom — app-specific panes only (shell panes auto-registered by Workspace)
 import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
 
-const root = document.getElementById("root")!;
+const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get("mode") === "embedded";
 
-/** File tree backend — returns ALL files (general directory tree) */
-class GeneralFileTreeBackend implements FileTreeBackend {
-  async fetchTree(): Promise<FileNode[]> {
-    const data = await api.get<{ tree: FileNode[] }>("api/tree");
-    return data.tree || [];
+// If no #root element, bridge-init.ts handles mounting via #app-mount.
+// This happens in standalone shell mode where Django template owns the layout.
+if (!root) {
+  // nothing to mount — bridge-init.ts will handle it
+} else {
+  /** File tree backend — returns ALL files (general directory tree) */
+  class GeneralFileTreeBackend implements FileTreeBackend {
+    async fetchTree(): Promise<FileNode[]> {
+      const data = await api.get<{ tree: FileNode[] }>("api/tree");
+      return data.tree || [];
+    }
   }
-}
 
-function FigrecipeApp() {
-  const { switchFile } = useEditorStore();
+  function FigrecipeApp() {
+    const { switchFile } = useEditorStore();
 
-  // Terminal backend — connects to pty server on port+1
-  const terminalBackend = useMemo(() => {
-    const port = parseInt(window.location.port || "5050", 10);
-    return new LocalTerminalBackend(`ws://127.0.0.1:${port + 1}/`);
-  }, []);
+    // Terminal backend — connects to pty server on port+1
+    const terminalBackend = useMemo(() => {
+      const port = parseInt(window.location.port || "5050", 10);
+      return new LocalTerminalBackend(`ws://127.0.0.1:${port + 1}/`);
+    }, []);
 
-  // Chat backend — connects to Django SSE endpoint
-  const chatBackend = useMemo(() => new DjangoChatBackend(), []);
+    // Chat backend — connects to Django SSE endpoint
+    const chatBackend = useMemo(() => new DjangoChatBackend(), []);
 
-  // File tree backend — general directory listing
-  const fileTreeBackend = useMemo(() => new GeneralFileTreeBackend(), []);
+    // File tree backend — general directory listing
+    const fileTreeBackend = useMemo(() => new GeneralFileTreeBackend(), []);
 
-  return (
-    <Workspace
-      appName="figrecipe"
-      accentColor="#a07ae0"
-      terminalBackend={terminalBackend}
-      chatBackend={chatBackend}
-      fileTreeBackend={fileTreeBackend}
-      getFileUrl={(path, raw) =>
-        `api/file-content/${encodeURIComponent(path)}${raw ? "?raw=true" : ""}`
-      }
-      highlightExtensions={[".yaml", ".yml"]}
-      onImageCapture={(dataUrl, _mime) => {
-        console.log("[FigRecipe] Image captured, size:", dataUrl.length);
-        useEditorStore.getState().showToast?.("Image captured");
-      }}
-      onVoiceTranscript={(text) => {
-        console.log("[FigRecipe] Voice transcript:", text);
-        useEditorStore.getState().showToast?.(`Voice: ${text}`);
-      }}
-      onFileSelect={(node) => {
-        if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
-          switchFile(node.path);
+    return (
+      <Workspace
+        appName="figrecipe"
+        accentColor="#a07ae0"
+        terminalBackend={terminalBackend}
+        chatBackend={chatBackend}
+        fileTreeBackend={fileTreeBackend}
+        getFileUrl={(path, raw) =>
+          `api/file-content/${encodeURIComponent(path)}${raw ? "?raw=true" : ""}`
         }
-      }}
-      onFileDoubleClick={(node) => {
-        if (
-          node.type === "file" &&
-          (node.path.endsWith(".yaml") || node.path.endsWith(".yml"))
-        ) {
-          switchFile(node.path);
-        }
-      }}
-      onFileDrop={async (path) => {
-        if (path.endsWith(".csv") || path.endsWith(".tsv")) {
-          try {
-            const resp = await api.post<{ success: boolean }>(
-              "datatable/import",
-              { path, format: path.endsWith(".tsv") ? "tsv" : "csv" },
-            );
-            if (resp.success) {
-              useEditorStore.getState().loadDatatable();
+        highlightExtensions={[".yaml", ".yml"]}
+        onImageCapture={(dataUrl, _mime) => {
+          console.log("[FigRecipe] Image captured, size:", dataUrl.length);
+          useEditorStore.getState().showToast?.("Image captured");
+        }}
+        onVoiceTranscript={(text) => {
+          console.log("[FigRecipe] Voice transcript:", text);
+          useEditorStore.getState().showToast?.(`Voice: ${text}`);
+        }}
+        onFileSelect={(node) => {
+          if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
+            switchFile(node.path);
+          }
+        }}
+        onFileDoubleClick={(node) => {
+          if (
+            node.type === "file" &&
+            (node.path.endsWith(".yaml") || node.path.endsWith(".yml"))
+          ) {
+            switchFile(node.path);
+          }
+        }}
+        onFileDrop={async (path) => {
+          if (path.endsWith(".csv") || path.endsWith(".tsv")) {
+            try {
+              const resp = await api.post<{ success: boolean }>(
+                "datatable/import",
+                { path, format: path.endsWith(".tsv") ? "tsv" : "csv" },
+              );
+              if (resp.success) {
+                useEditorStore.getState().loadDatatable();
+              }
+            } catch (e) {
+              console.warn("Drop import failed:", e);
             }
-          } catch (e) {
-            console.warn("Drop import failed:", e);
           }
-        }
-      }}
-      onFileContextAction={async (action, node) => {
-        const { loadFiles, showToast } = useEditorStore.getState();
-        try {
-          if (action === "copy-path") {
-            await navigator.clipboard.writeText(node.path);
-            showToast?.("Path copied");
-            return;
-          }
-          if (action === "delete") {
-            await api.post("api/delete", { path: node.path });
-            loadFiles();
-          } else if (action === "duplicate") {
-            await api.post("api/duplicate", { path: node.path });
-            loadFiles();
-          } else if (action === "rename") {
-            const newName = prompt("New name:", node.name);
-            if (newName && newName !== node.name) {
-              await api.post("api/rename", {
-                path: node.path,
-                new_name: newName,
-              });
+        }}
+        onFileContextAction={async (action, node) => {
+          const { loadFiles, showToast } = useEditorStore.getState();
+          try {
+            if (action === "copy-path") {
+              await navigator.clipboard.writeText(node.path);
+              showToast?.("Path copied");
+              return;
+            }
+            if (action === "delete") {
+              await api.post("api/delete", { path: node.path });
+              loadFiles();
+            } else if (action === "duplicate") {
+              await api.post("api/duplicate", { path: node.path });
+              loadFiles();
+            } else if (action === "rename") {
+              const newName = prompt("New name:", node.name);
+              if (newName && newName !== node.name) {
+                await api.post("api/rename", {
+                  path: node.path,
+                  new_name: newName,
+                });
+                loadFiles();
+              }
+            } else if (action === "new") {
+              await api.post("api/new", {});
               loadFiles();
             }
-          } else if (action === "new") {
-            await api.post("api/new", {});
-            loadFiles();
+          } catch (e) {
+            console.warn("Context action failed:", e);
           }
-        } catch (e) {
-          console.warn("Context action failed:", e);
-        }
-      }}
-    >
-      <InnerEditor />
-    </Workspace>
-  );
-}
+        }}
+      >
+        <InnerEditor />
+      </Workspace>
+    );
+  }
 
-if (embedded) {
-  ReactDOM.createRoot(root).render(
-    <React.StrictMode>
-      <InnerEditor embedded />
-    </React.StrictMode>,
-  );
-} else {
-  // Apply dark theme by default
-  document.documentElement.setAttribute("data-theme", "dark");
+  if (embedded) {
+    ReactDOM.createRoot(root!).render(
+      <React.StrictMode>
+        <InnerEditor embedded />
+      </React.StrictMode>,
+    );
+  } else {
+    // Apply dark theme by default
+    document.documentElement.setAttribute("data-theme", "dark");
 
-  ReactDOM.createRoot(root).render(
-    <React.StrictMode>
-      <FigrecipeApp />
-    </React.StrictMode>,
-  );
-}
+    ReactDOM.createRoot(root!).render(
+      <React.StrictMode>
+        <FigrecipeApp />
+      </React.StrictMode>,
+    );
+  }
+} // end of if (root) block
 
 // Register zoom on app-specific panes (shell panes handled by Workspace automatically)
 // bootstrapContextZoom uses MutationObserver internally for lazy React renders
