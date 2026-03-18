@@ -6,8 +6,8 @@
           href="{% static 'figrecipe/assets/index-iCMbu15C.css' %}">
 {% endblock %}
 {% block app_content %}
-    <div id="root"></div>
     <div id="app-mount"
+         data-embedded="true"
          data-working-dir="{{ working_dir|default:'' }}"
          data-app-name="figrecipe"></div>
 {% endblock %}
