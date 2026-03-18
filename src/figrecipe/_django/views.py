@@ -81,13 +81,34 @@ _NO_EDITOR_ENDPOINTS = {
 
 
 def editor_page(request):
-    """Always serve the React SPA. The React app handles empty state."""
-    react_html = _STATIC_DIR / "index.html"
-    if react_html.exists():
-        return HttpResponse(react_html.read_text())
-    return HttpResponse(
-        _welcome_page("React build not found. Run: cd frontend && npm run build")
-    )
+    """Serve the React SPA inside the scitex-ui workspace shell."""
+    import os
+
+    from django.template.loader import render_to_string
+
+    # Try scitex-ui shell template first (standalone with workspace frame)
+    try:
+        working_dir = os.environ.get("FIGRECIPE_WORKING_DIR", "")
+        working_dir_name = Path(working_dir).name if working_dir else "Files"
+        html = render_to_string(
+            "figrecipe/standalone.html",
+            {
+                "app_name": "figrecipe",
+                "app_label": "FigRecipe Editor",
+                "working_dir": working_dir,
+                "working_dir_name": working_dir_name,
+            },
+            request=request,
+        )
+        return HttpResponse(html)
+    except Exception:
+        # Fallback: serve raw React SPA (no shell)
+        react_html = _STATIC_DIR / "index.html"
+        if react_html.exists():
+            return HttpResponse(react_html.read_text())
+        return HttpResponse(
+            _welcome_page("React build not found. Run: cd frontend && npm run build")
+        )
 
 
 @csrf_exempt
