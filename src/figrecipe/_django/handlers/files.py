@@ -124,7 +124,17 @@ def handle_api_tree(request, editor):
         _build_tree = _local_build_tree
 
     working_dir, files_backend = _get_working_dir_and_backend(request, editor)
-    tree = _build_tree(files_backend)
+    try:
+        tree = _build_tree(files_backend)
+    except PermissionError as exc:
+        logger.warning("[api_tree] Permission denied: %s", exc)
+        return JsonResponse(
+            {
+                "tree": [],
+                "working_dir": str(working_dir),
+                "error": f"Permission denied: {exc}",
+            },
+        )
     return JsonResponse({"tree": tree, "working_dir": str(working_dir)})
 
 
@@ -136,10 +146,11 @@ def handle_api_files(request, editor):
         _build_tree = _local_build_tree
 
     working_dir, files_backend = _get_working_dir_and_backend(request, editor)
-
-    # Use scitex-app's shared build_tree, then enrich with figrecipe-specific data
-    tree = _build_tree(files_backend, extensions=[".yaml", ".yml"])
-    tree = _enrich_tree(tree, working_dir, editor, files_backend)
+    try:
+        tree = _build_tree(files_backend, extensions=[".yaml", ".yml"])
+        tree = _enrich_tree(tree, working_dir, editor, files_backend)
+    except PermissionError:
+        return JsonResponse({"tree": [], "files": [], "working_dir": str(working_dir)})
 
     flat_files = []
 
