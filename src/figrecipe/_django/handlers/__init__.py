@@ -5,6 +5,7 @@
 Exports HANDLERS dict for the catch-all dispatcher.
 """
 
+from ..chat import api_chat_stream as _raw_chat_stream
 from .annotation import (
     handle_get_captions,
     handle_update_annotation_position,
@@ -42,6 +43,7 @@ from .files import (
     handle_api_new,
     handle_api_rename,
     handle_api_switch,
+    handle_api_tree,
 )
 from .gallery import (
     handle_gallery_add,
@@ -69,6 +71,12 @@ from .style import (
     handle_style,
     handle_switch_theme,
 )
+
+
+def handle_api_chat_stream(request, editor):
+    """Wrapper: chat handler ignores editor."""
+    return _raw_chat_stream(request)
+
 
 # fmt: off
 HANDLERS = {
@@ -122,6 +130,7 @@ HANDLERS = {
     "load_recipe":                  handle_load_recipe,
 
     # Files
+    "api/tree":                     handle_api_tree,
     "api/files":                    handle_api_files,
     "api/switch":                   handle_api_switch,
     "api/new":                      handle_api_new,
@@ -136,6 +145,9 @@ HANDLERS = {
 
     # Compose
     "api/compose":                  handle_compose_save,
+
+    # Chat
+    "api/chat/stream":              handle_api_chat_stream,
 
     # Stats annotations
     "stats/add_bracket":            handle_stats_add_bracket,

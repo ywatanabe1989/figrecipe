@@ -47,7 +47,7 @@ def handle_update(request, editor):
     from figrecipe._editor._helpers import render_with_overrides
 
     data = json.loads(request.body) if request.body else {}
-    editor.overrides.update(data.get("overrides", {}))
+    editor.overrides.update_manual_overrides(data.get("overrides", {}))
 
     new_dark = data.get("dark_mode")
     if new_dark is not None and new_dark != editor.dark_mode:

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from django.apps import AppConfig
+try:
+    from scitex_app._django import ScitexAppConfig
+except ImportError:
+    from django.apps import AppConfig as ScitexAppConfig
 
 
-class FigRecipeEditorConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
+class FigRecipeEditorConfig(ScitexAppConfig):
     name = "figrecipe._django"
     label = "figrecipe_editor"
     verbose_name = "FigRecipe Editor"

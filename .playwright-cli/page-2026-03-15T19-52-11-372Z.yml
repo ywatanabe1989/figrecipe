@@ -1,0 +1,265 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button " Console" [ref=e7] [cursor=pointer]:
+          - generic [ref=e8]: 
+          - text: Console
+        - button " Chat" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: 
+          - text: Chat
+        - button "" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: 
+      - generic [ref=e13]:
+        - button "+" [ref=e14] [cursor=pointer]
+        - button "T1" [ref=e15] [cursor=pointer]
+      - generic [ref=e21]:
+        - textbox "Terminal input" [ref=e234]
+        - generic [ref=e235]: (.env-3.11) (wsl) figrecipe $
+      - generic [ref=e48]:
+        - generic [ref=e49]: 
+        - text: Connected
+        - generic [ref=e50]:
+          - button "" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: 
+          - button "" [ref=e53] [cursor=pointer]:
+            - generic [ref=e54]: 
+          - button "" [ref=e55] [cursor=pointer]:
+            - generic [ref=e56]: 
+          - button "" [ref=e57] [cursor=pointer]:
+            - generic [ref=e58]: 
+    - generic [ref=e60]:
+      - generic [ref=e61]:
+        - generic [ref=e62]: 
+        - generic [ref=e63]: Files
+      - generic [ref=e64]:
+        - generic [ref=e65]: 6069 files
+        - navigation [ref=e66]:
+          - generic [ref=e168] [cursor=pointer]:
+            - generic [ref=e169]: 
+            - generic [ref=e170]: 
+            - generic [ref=e171]: dist
+          - generic [ref=e172] [cursor=pointer]:
+            - generic [ref=e173]: 
+            - generic [ref=e174]: 
+            - generic [ref=e175]: docs
+          - generic [ref=e176] [cursor=pointer]:
+            - generic [ref=e177]: 
+            - generic [ref=e178]: 
+            - generic [ref=e179]: examples
+          - generic [ref=e180] [cursor=pointer]:
+            - generic [ref=e181]: 
+            - generic [ref=e182]: 
+            - generic [ref=e183]: GITIGNORED
+          - generic [ref=e184] [cursor=pointer]:
+            - generic [ref=e185]: 
+            - generic [ref=e186]: 
+            - generic [ref=e187]: logs
+          - generic [ref=e188] [cursor=pointer]:
+            - generic [ref=e189]: 
+            - generic [ref=e190]: 
+            - generic [ref=e191]: plot_plot_data
+          - generic [ref=e192] [cursor=pointer]:
+            - generic [ref=e193]: 
+            - generic [ref=e194]: 
+            - generic [ref=e195]: scripts
+          - generic [ref=e196] [cursor=pointer]:
+            - generic [ref=e197]: 
+            - generic [ref=e198]: 
+            - generic [ref=e199]: src
+          - generic [ref=e200] [cursor=pointer]:
+            - generic [ref=e201]: 
+            - generic [ref=e202]: 
+            - generic [ref=e203]: tests
+          - generic [ref=e204] [cursor=pointer]:
+            - generic [ref=e205]: 
+            - generic [ref=e206]: CHANGELOG.md
+          - generic [ref=e207] [cursor=pointer]:
+            - generic [ref=e208]: 
+            - generic [ref=e209]: CLA.md
+          - generic [ref=e210] [cursor=pointer]:
+            - generic [ref=e211]: 
+            - generic [ref=e212]: CLAUDE.md
+          - generic [ref=e213] [cursor=pointer]:
+            - generic [ref=e214]: 
+            - generic [ref=e215]: CONTRIBUTING.md
+          - generic [ref=e216] [cursor=pointer]:
+            - generic [ref=e217]: 
+            - generic [ref=e218]: eslint.config.js
+          - generic [ref=e219] [cursor=pointer]:
+            - generic [ref=e220]: 
+            - generic [ref=e221]: LICENSE
+          - generic [ref=e222] [cursor=pointer]:
+            - generic [ref=e223]: 
+            - generic [ref=e224]: Makefile
+          - generic [ref=e225] [cursor=pointer]:
+            - generic [ref=e226]: 
+            - generic [ref=e227]: plot_plot.yaml
+          - generic [ref=e228] [cursor=pointer]:
+            - generic [ref=e229]: 
+            - generic [ref=e230]: pyproject.toml
+          - generic [ref=e231] [cursor=pointer]:
+            - generic [ref=e232]: 
+            - generic [ref=e233]: README.md
+    - generic [ref=e70]:
+      - generic [ref=e237]:
+        - generic "CLAUDE.md" [ref=e238]
+        - button "" [ref=e239] [cursor=pointer]:
+          - generic [ref=e240]: 
+      - code [ref=e244]:
+        - generic [ref=e245]:
+          - generic [ref=e247]:
+            - generic [ref=e250]: "1"
+            - generic [ref=e252]: "2"
+            - generic [ref=e255]: "3"
+            - generic [ref=e257]: "4"
+            - generic [ref=e260]: "5"
+            - generic [ref=e262]: "6"
+            - generic [ref=e264]: "7"
+            - generic [ref=e266]: "8"
+            - generic [ref=e268]: "9"
+            - generic [ref=e270]: "10"
+            - generic [ref=e272]: "11"
+            - generic [ref=e274]: "12"
+            - generic [ref=e278]: "13"
+            - generic [ref=e283]: "14"
+            - generic [ref=e287]: "15"
+            - generic [ref=e290]: "16"
+            - generic [ref=e292]: "17"
+            - generic [ref=e294]: "18"
+            - generic [ref=e298]: "19"
+            - generic [ref=e302]: "20"
+            - generic [ref=e306]: "21"
+          - generic [ref=e349]:
+            - generic [ref=e351]: <!-- ---
+            - generic [ref=e353]: "!-- Timestamp: 2026-02-08"
+            - generic [ref=e355]: 06:00:27
+            - generic [ref=e357]: "!-- Author: ywatanabe"
+            - generic [ref=e359]: "!-- File: /home/ywatanabe/"
+            - generic [ref=e361]: proj/figrecipe/CLAUDE.md
+            - generic [ref=e363]: "!-- --- -->"
+            - generic [ref=e366]: "# GITIGNORE THIS FILE"
+            - generic [ref=e369]: "## Workflow Orchestration"
+            - generic [ref=e372]: "### 1. Plan Mode Default"
+            - generic [ref=e374]: "- Enter plan mode for ANY"
+            - generic [ref=e376]: non-trivial task (3+ steps
+            - generic [ref=e378]: or architectural decisions)
+            - generic [ref=e380]: "- If something goes"
+            - generic [ref=e382]: sideways, STOP and re-plan
+            - generic [ref=e384]: immediately – don't keep
+            - generic [ref=e386]: pushing
+            - generic [ref=e388]: "- Use plan mode for"
+            - generic [ref=e390]: verification steps, not
+            - generic [ref=e392]: just building
+            - generic [ref=e394]: "- Write detailed specs"
+            - generic [ref=e396]: upfront to reduce ambiguity
+            - generic [ref=e399]: "### 2. Subagent Strategy"
+            - generic [ref=e401]: "- Use subagents liberally"
+            - generic [ref=e403]: to keep main context
+            - generic [ref=e405]: window clean
+            - generic [ref=e407]: "- Offload research,"
+            - generic [ref=e409]: exploration, and parallel
+            - generic [ref=e411]: analysis to subagents
+            - generic [ref=e413]: "- For complex problems,"
+            - generic [ref=e415]: throw more compute at it
+            - generic [ref=e417]: via subagents
+            - generic [ref=e419]: "- One task per subagent"
+            - generic [ref=e421]: for focused execution
+          - textbox "Editor content" [ref=e423]
+    - generic [ref=e75]:
+      - generic [ref=e76]:
+        - button " Plot" [ref=e77] [cursor=pointer]:
+          - generic [ref=e78]: 
+          - text: Plot
+        - button " Canvas" [ref=e79] [cursor=pointer]:
+          - generic [ref=e80]: 
+          - text: Canvas
+      - generic [ref=e81]:
+        - complementary [ref=e82]:
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - button " No tables " [ref=e85] [cursor=pointer]:
+                - generic [ref=e86]: 
+                - generic [ref=e87]: No tables
+                - generic [ref=e88]: 
+              - button "+" [ref=e89] [cursor=pointer]:
+                - generic [ref=e90]: +
+            - generic [ref=e91]: WIP
+            - generic [ref=e92]:
+              - button "" [disabled] [ref=e93]:
+                - generic [ref=e94]: 
+              - button "" [disabled] [ref=e95]:
+                - generic [ref=e96]: 
+              - button "" [disabled] [ref=e97]:
+                - generic [ref=e98]: 
+              - button "" [ref=e99] [cursor=pointer]:
+                - generic [ref=e100]: 
+          - generic [ref=e102]:
+            - generic [ref=e103]: 
+            - paragraph [ref=e104]: No data loaded
+            - paragraph [ref=e105]: Import CSV or Excel, or drag & drop files here
+        - navigation [ref=e107]:
+          - generic [ref=e109]: +
+          - generic [ref=e110]:
+            - button " Line" [ref=e111] [cursor=pointer]:
+              - generic [ref=e112]: 
+              - generic [ref=e113]: Line
+            - button " Scatter" [ref=e114] [cursor=pointer]:
+              - generic [ref=e115]: 
+              - generic [ref=e116]: Scatter
+            - button " Bar" [ref=e117] [cursor=pointer]:
+              - generic [ref=e118]: 
+              - generic [ref=e119]: Bar
+            - button " Dist" [ref=e120] [cursor=pointer]:
+              - generic [ref=e121]: 
+              - generic [ref=e122]: Dist
+            - button " Stats" [ref=e123] [cursor=pointer]:
+              - generic [ref=e124]: 
+              - generic [ref=e125]: Stats
+            - button " Grid" [ref=e126] [cursor=pointer]:
+              - generic [ref=e127]: 
+              - generic [ref=e128]: Grid
+            - button " Area" [ref=e129] [cursor=pointer]:
+              - generic [ref=e130]: 
+              - generic [ref=e131]: Area
+            - button " Contour" [ref=e132] [cursor=pointer]:
+              - generic [ref=e133]: 
+              - generic [ref=e134]: Contour
+            - button " Vector" [ref=e135] [cursor=pointer]:
+              - generic [ref=e136]: 
+              - generic [ref=e137]: Vector
+            - button " Special" [ref=e138] [cursor=pointer]:
+              - generic [ref=e139]: 
+              - generic [ref=e140]: Special
+          - generic [ref=e142]: "0"
+        - main [ref=e143]:
+          - generic [ref=e144]:
+            - generic [ref=e145]: 
+            - paragraph [ref=e146]: Select a recipe file to view the figure
+        - complementary [ref=e148]:
+          - generic [ref=e150]:
+            - generic [ref=e151]: 
+            - text: Details
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - generic [ref=e155]:
+                - generic [ref=e156]: 
+                - text: No selection
+              - generic [ref=e157]: Select an item from the tree to view properties
+            - generic [ref=e158]:
+              - button " Current" [ref=e159] [cursor=pointer]:
+                - generic [ref=e160]: 
+                - text: Current
+              - button " Preset" [ref=e161] [cursor=pointer]:
+                - generic [ref=e162]: 
+                - text: Preset
+              - button " Layout" [ref=e163] [cursor=pointer]:
+                - generic [ref=e164]: 
+                - text: Layout
+              - button " View" [ref=e165] [cursor=pointer]:
+                - generic [ref=e166]: 
+                - text: View
+  - generic [ref=e167]: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+  - generic [ref=e424]:
+    - alert
+    - alert

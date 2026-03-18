@@ -1,18 +1,42 @@
 /** API client for communicating with the Django backend. */
 
-const BASE = import.meta.env.VITE_API_BASE || "";
+let _base = import.meta.env.VITE_API_BASE || "";
+let _workingDir: string | null = null;
+let _recipe: string | null = null;
 
-/** Read the recipe query param from the page URL. */
+/** Set the API base URL at runtime (used by FigrecipeEditor when embedded). */
+export function setApiBase(base: string) {
+  _base = base.replace(/\/+$/, ""); // strip trailing slashes
+}
+
+/** Set the working directory for all API calls. */
+export function setWorkingDir(dir: string) {
+  _workingDir = dir;
+}
+
+/** Set the recipe path for all API calls. */
+export function setRecipe(recipe: string) {
+  _recipe = recipe;
+}
+
+/** Read the recipe — prefer runtime value, fall back to URL query param. */
 function getRecipeParam(): string {
+  if (_recipe) return _recipe;
   const params = new URLSearchParams(window.location.search);
   return params.get("recipe") || "";
 }
 
-/** Append recipe= to endpoint URL so Django can identify the editor session. */
+/** Append recipe= and working_dir= to endpoint URL. */
 function buildUrl(endpoint: string): string {
   const recipe = getRecipeParam();
   const sep = endpoint.includes("?") ? "&" : "?";
-  return `${BASE}/${endpoint}${recipe ? `${sep}recipe=${encodeURIComponent(recipe)}` : ""}`;
+  let url = `${_base}/${endpoint}`;
+  const params: string[] = [];
+  if (recipe) params.push(`recipe=${encodeURIComponent(recipe)}`);
+  if (_workingDir)
+    params.push(`working_dir=${encodeURIComponent(_workingDir)}`);
+  if (params.length) url += `${sep}${params.join("&")}`;
+  return url;
 }
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {

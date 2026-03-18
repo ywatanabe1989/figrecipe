@@ -1,6 +1,12 @@
-/** Data table panel — displays plot data with CSV import/export. */
+/** Data table panel — displays plot data with CSV import/export.
+ *
+ * Uses scitex-ui's shared DataTable for rendering.
+ * figrecipe adds: tabs, import/export, editor store integration.
+ */
 
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
+import { DataTable as StxDataTable } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/data-table";
+import type { Dataset } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/data-table";
 import { api } from "../../api/client";
 import { useEditorStore } from "../../store/useEditorStore";
 
@@ -11,6 +17,21 @@ export function DataTable() {
 
   const tabs = Object.values(datatableTabs);
   const activeTab = activeTabId ? datatableTabs[activeTabId] : null;
+
+  // Convert figrecipe tab data to scitex-ui Dataset format
+  const dataset: Dataset | undefined = useMemo(() => {
+    if (!activeTab) return undefined;
+    return {
+      columns: activeTab.columns.map((c) => c.name),
+      rows: activeTab.rows.map((row) => {
+        const obj: Record<string, string | number> = {};
+        activeTab.columns.forEach((col, i) => {
+          obj[col.name] = row[i] ?? "";
+        });
+        return obj;
+      }),
+    };
+  }, [activeTab]);
 
   const handleExportCsv = useCallback(async () => {
     try {
@@ -48,19 +69,19 @@ export function DataTable() {
         <h3>Data</h3>
         <div className="datatable-panel__actions">
           <button
-            className="file-browser__btn"
+            className="pane-header-btn"
             onClick={() => fileInputRef.current?.click()}
             title="Import CSV"
           >
-            &#x2191;
+            <i className="fas fa-upload" />
           </button>
           <button
-            className="file-browser__btn"
+            className="pane-header-btn"
             onClick={handleExportCsv}
             title="Export CSV"
             disabled={tabs.length === 0}
           >
-            &#x2193;
+            <i className="fas fa-download" />
           </button>
         </div>
         <input
@@ -97,38 +118,8 @@ export function DataTable() {
             ))}
           </div>
 
-          {activeTab && (
-            <div className="datatable-panel__table-wrapper">
-              <table className="datatable-panel__table">
-                <thead>
-                  <tr>
-                    {activeTab.columns.map((col, i) => (
-                      <th key={i}>{col.name}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeTab.rows.slice(0, 100).map((row, ri) => (
-                    <tr key={ri}>
-                      {row.map((cell, ci) => (
-                        <td key={ci}>
-                          {typeof cell === "number"
-                            ? Number.isInteger(cell)
-                              ? cell
-                              : cell.toFixed(4)
-                            : String(cell)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {activeTab.rows.length > 100 && (
-                <p className="datatable-panel__truncated">
-                  Showing 100 of {activeTab.rows.length} rows
-                </p>
-              )}
-            </div>
+          {dataset && (
+            <StxDataTable data={dataset} showRowNumbers sortable resizable />
           )}
         </>
       )}

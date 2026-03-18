@@ -4,11 +4,11 @@
 
 from typing import Any, Dict, List, Optional, Union
 
+from ._base import _create
+
 # Hardcode "fr" prefix — these are FR-family tools and must not collide
 # with base plt_* tools when scitex overrides FIGRECIPE_ALIAS to "plt".
 _BA = "fr"
-
-from ._base import _create
 
 
 def register(mcp) -> None:  # noqa: ANN001

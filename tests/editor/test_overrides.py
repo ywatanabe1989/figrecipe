@@ -20,10 +20,9 @@ class TestEditorOverrides:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            page.goto(editor_server.url)
-            page.wait_for_load_state("networkidle")
-
-            response = page.request.get(f"{editor_server.url}/style")
+            # Direct API call — skip page.goto to avoid blocking
+            # the single-threaded Django server with JS fetch calls
+            response = page.request.get(editor_server.api("style"))
             assert response.ok, f"Style request failed: {response.status}"
 
             data = response.json()
@@ -43,7 +42,7 @@ class TestEditorOverrides:
             page = browser.new_page()
             page.on("pageerror", lambda err: js_errors.append(str(err)))
 
-            page.goto(editor_server.url)
+            page.goto(editor_server.recipe_url)
             page.wait_for_load_state("networkidle")
 
             page.keyboard.press("Control+KeyS")
@@ -62,12 +61,9 @@ class TestEditorOverrides:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            page.goto(editor_server.url)
-            page.wait_for_load_state("networkidle")
-
-            # POST to update endpoint with JSON body
+            # Direct API call — skip page.goto to avoid blocking
             response = page.request.post(
-                f"{editor_server.url}/update",
+                editor_server.api("update"),
                 headers={"Content-Type": "application/json"},
                 data='{"overrides": {}}',
             )
@@ -88,14 +84,12 @@ class TestEditorOverrides:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
 
-            page.goto(editor_server.url)
-            page.wait_for_load_state("networkidle")
-
-            response = page.request.get(f"{editor_server.url}/preview")
+            # Direct API call — skip page.goto to avoid blocking
+            response = page.request.get(editor_server.api("preview"))
             assert response.ok, f"Preview request failed: {response.status}"
-            assert "application/json" in response.headers.get(
-                "content-type", ""
-            ), "Preview should return JSON"
+            assert "application/json" in response.headers.get("content-type", ""), (
+                "Preview should return JSON"
+            )
 
             # Verify JSON structure
             data = response.json()

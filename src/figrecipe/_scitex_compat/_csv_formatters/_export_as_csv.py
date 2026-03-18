@@ -13,9 +13,7 @@ __DIR__ = os.path.dirname(__FILE__)
 
 import numpy as np
 import pandas as pd
-
 from scitex import logging
-from scitex.pd import to_xyz
 
 logger = logging.getLogger(__name__)
 
@@ -259,7 +257,7 @@ def export_as_csv(history_records):
                 # Track the method that failed to format
                 method_name = record[1] if len(record) > 1 else "unknown"
                 failed_methods.add(method_name)
-        except Exception as e:
+        except Exception:
             method_name = record[1] if len(record) > 1 else "unknown"
             failed_methods.add(method_name)
 

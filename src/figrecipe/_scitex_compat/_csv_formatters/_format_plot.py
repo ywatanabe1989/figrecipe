@@ -10,8 +10,6 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
-import xarray as xr
-
 from scitex.plt.utils._csv_column_naming import get_csv_column_name
 
 

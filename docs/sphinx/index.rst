@@ -12,6 +12,24 @@ FigRecipe (``scitex-plt``) - Reproducible Scientific Figures
 
    FigRecipe separates data, style, and specification for fully reproducible scientific figures.
 
+Role in SciTeX Ecosystem
+-------------------------
+
+FigRecipe is the **first app built on the SciTeX platform** -- it proves the app pattern
+that other apps follow. It works standalone (``figrecipe gui``) AND embedded in
+scitex-cloud. The orchestrator re-exports it as ``scitex.plt``.
+
+.. code-block:: text
+
+   scitex (orchestrator) -- re-exports figrecipe as scitex.plt
+     |-- scitex-app        -- runtime SDK (FigRecipe inherits ScitexAppConfig)
+     |-- scitex-ui         -- React/TS components (FigRecipe consumes these)
+     +-- figrecipe (this package) -- reference app
+
+- **scitex** (`docs <https://scitex-python.readthedocs.io/>`_): Orchestrator that re-exports ``scitex.plt``
+- **scitex-app** (`docs <https://scitex-app.readthedocs.io/>`_): Runtime SDK providing ``ScitexAppConfig``
+- **scitex-ui** (`docs <https://scitex-ui.readthedocs.io/>`_): Shared frontend components consumed by FigRecipe
+
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started
@@ -95,12 +113,12 @@ MCP Server:
 Four Freedoms for Research
 --------------------------
 
-0. The freedom to **run** your research anywhere — your machine, your terms.
-1. The freedom to **study** how every step works — from raw data to final manuscript.
+0. The freedom to **run** your research anywhere -- your machine, your terms.
+1. The freedom to **study** how every step works -- from raw data to final manuscript.
 2. The freedom to **redistribute** your workflows, not just your papers.
 3. The freedom to **modify** any module and share improvements with the community.
 
-AGPL-3.0 — because research infrastructure deserves the same freedoms as the software it runs on.
+AGPL-3.0 -- because research infrastructure deserves the same freedoms as the software it runs on.
 
 Indices and tables
 ==================

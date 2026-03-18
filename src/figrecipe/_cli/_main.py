@@ -152,6 +152,13 @@ main.add_command(style)
 main.add_command(validate)
 main.add_command(version_cmd)
 
+try:
+    from scitex_dev.cli import docs_click_group
+
+    main.add_command(docs_click_group(package="figrecipe"))
+except ImportError:
+    pass
+
 
 if __name__ == "__main__":
     main()

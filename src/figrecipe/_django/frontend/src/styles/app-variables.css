@@ -1,0 +1,110 @@
+/* FigRecipe Editor — App-specific CSS variables.
+ * Base theme tokens come from scitex-ui theme.css.
+ * This file defines figrecipe-specific aliases and extensions. */
+
+/* ── vis-* aliases (bridge to workspace tokens) ────────── */
+:root {
+  --vis-ruler-bg: var(--workspace-bg-secondary);
+  --vis-ruler-border: var(--workspace-border-subtle);
+  --vis-bg-primary: var(--workspace-bg-primary);
+  --vis-bg-secondary: var(--workspace-bg-secondary);
+  --vis-bg-tertiary: var(--workspace-bg-tertiary);
+  --vis-bg-elevated: var(--workspace-bg-elevated);
+  --vis-bg-hover: var(--workspace-bg-hover);
+  --vis-border: var(--workspace-border-default);
+  --vis-border-subtle: var(--workspace-border-subtle);
+  --vis-border-hover: var(--workspace-border-hover);
+
+  /* ── Text (aliases from theme.css tokens) ─────────────── */
+  --vis-text-primary: var(--text-primary);
+  --vis-text-secondary: var(--text-secondary);
+  --vis-text-muted: var(--text-muted);
+
+  /* ── Accent — mapped to figrecipe app accent ──────────── */
+  --accent-primary: var(--app-accent-figrecipe);
+  --accent-hover: var(--workspace-icon-hover);
+  --accent-rgb: 124, 92, 191;
+  --vis-accent-bg: rgba(124, 92, 191, 0.1);
+
+  /* ── Status (bridge to theme.css tokens) ─────────────── */
+  --status-success-bg: rgba(107, 168, 154, 0.15);
+  --status-success-text: var(--status-success);
+  --status-success-border: rgba(107, 168, 154, 0.3);
+  --status-error-bg: rgba(192, 136, 136, 0.15);
+  --status-error-text: var(--status-error);
+  --status-error-border: rgba(192, 136, 136, 0.3);
+  --status-warning-bg: rgba(212, 168, 122, 0.15);
+  --status-warning-text: var(--status-warning);
+  --status-warning-border: rgba(212, 168, 122, 0.3);
+  --status-info-bg: rgba(143, 169, 204, 0.15);
+
+  /* ── CTA (buttons) ──────────────────────────────────── */
+  --color-cta: #3b82f6;
+  --color-cta-hover: #2563eb;
+
+  /* ── Buttons — workspace neutral ────────────────────── */
+  --color-btn-primary-bg: var(--workspace-bg-elevated);
+  --color-btn-primary-text: var(--text-primary);
+  --color-btn-primary-hover-bg: var(--workspace-border-hover);
+  --color-btn-bg: var(--workspace-bg-secondary);
+  --color-btn-text: var(--text-primary);
+  --color-btn-border: var(--workspace-border-default);
+  --color-btn-hover-bg: var(--workspace-bg-tertiary);
+
+  /* ── Layout ──────────────────────────────────────────── */
+  --sidebar-left-width: 400px;
+  --sidebar-right-width: 320px;
+  --toolbar-height: 50px;
+  --panel-header-height: 50px;
+
+  /* ── Typography ──────────────────────────────────────── */
+  --radius: 4px;
+  --font:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, Monaco,
+    monospace;
+
+  /* ── Shadows ─────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  /* ── Transitions ─────────────────────────────────────── */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+}
+
+/* Body/root styles — workspace shell controls the frame.
+ * Only set font and overflow here; colors come from theme.css. */
+body {
+  font-family: var(--font);
+  margin: 0;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+}
+
+/* ── Scrollbars ──────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vis-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vis-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vis-text-muted);
+}

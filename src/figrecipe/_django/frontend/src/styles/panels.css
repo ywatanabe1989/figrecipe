@@ -1,7 +1,6 @@
 /* FigRecipe Editor — Panels (orchestrator) */
 
 @import "./panel-resizer.css";
-@import "./panels/file-browser.css";
 @import "./panels/properties.css";
 @import "./panels/datatable.css";
 @import "./panels/data-dropdown.css";

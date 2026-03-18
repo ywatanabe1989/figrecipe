@@ -70,11 +70,13 @@ def _get_editor(request):
 _NO_EDITOR_ENDPOINTS = {
     "ping",
     "list_themes",
+    "api/tree",
     "api/files",
     "api/switch",
     "api/gallery",
     "api/gallery/add",
     "api/compose",
+    "api/chat/stream",
 }
 
 
@@ -95,7 +97,7 @@ def api_dispatch(request, endpoint):
 
     # Some endpoints require an editor
     _no_editor = endpoint in _NO_EDITOR_ENDPOINTS or endpoint.startswith(
-        ("api/compose/export/", "api/gallery/thumbnail/")
+        ("api/compose/export/", "api/gallery/thumbnail/", "api/file-content/")
     )
     if editor is None and not _no_editor:
         handler = HANDLERS.get(endpoint)
@@ -152,6 +154,16 @@ def api_dispatch(request, endpoint):
             return handle_compose_export(request, editor, fmt)
         except Exception as e:
             logger.exception("[FigRecipe] compose export/%s", fmt)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    if endpoint.startswith("api/file-content/"):
+        from .handlers.files import handle_api_file_content
+
+        file_path = endpoint[len("api/file-content/") :]
+        try:
+            return handle_api_file_content(request, editor, file_path)
+        except Exception as e:
+            logger.exception("[FigRecipe] file-content/%s", file_path)
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": f"Unknown endpoint: {endpoint}"}, status=404)

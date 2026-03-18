@@ -1,27 +1,92 @@
-/* FigRecipe Editor — Layout (vis_app 3-pane split-view) */
+/* FigRecipe Editor — Layout (split-view panes inside AppShell mainContent) */
 
-/* ── Root ──────────────────────────────────────────────── */
+/* ── Inner editor (React content inside Workspace.appContent) ── */
 
-.editor-root {
+.inner-editor {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── App Tab Switcher (Plot | Canvas) ─────────────────── */
+
+.inner-editor__tabs {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 8px;
+  gap: 2px;
+  background: var(--vis-bg-secondary);
+  border-bottom: 1px solid var(--vis-border);
+  flex-shrink: 0;
+}
+
+.inner-editor__tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--vis-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 150ms;
+}
+
+.inner-editor__tab i {
+  font-size: 13px;
+}
+
+.inner-editor__tab:hover {
+  color: var(--vis-text-primary);
+}
+
+.inner-editor__tab--active {
+  color: var(--vis-text-primary);
+  border-bottom-color: var(--accent-primary);
+}
+
+/* ── Figure Viewer (Plot tab — shows rendered figure) ─── */
+
+.figure-viewer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--vis-bg-primary);
+  position: relative;
+}
+
+.figure-viewer--empty {
+  flex-direction: column;
+  gap: 12px;
+  color: var(--vis-text-muted);
+  font-size: 13px;
+}
+
+.figure-viewer--empty i {
+  font-size: 32px;
+  opacity: 0.3;
+}
+
+.figure-viewer img {
+  transition: none;
 }
 
 .editor-body {
   display: flex;
   flex: 1;
   overflow: hidden;
-}
-
-/* ── Embedded mode (scitex-cloud integration) ──────── */
-
-.editor-root.embedded {
-  background: transparent;
-}
-
-.editor-root.embedded .editor-body {
-  height: 100%;
+  max-width: 100%;
+  width: 100%;
 }
 
 /* ── Split panes (vis_app split-view.css) ──────────────── */
@@ -31,9 +96,7 @@
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
-  transition:
-    width 0.2s ease,
-    min-width 0.2s ease;
+  /* No transition — instant resize, no acceleration */
 }
 
 .split-pane-left {
@@ -45,13 +108,15 @@
 .split-pane-center {
   flex: 1;
   flex-shrink: 1;
-  min-width: 200px;
+  min-width: 40px;
   background: var(--vis-bg-primary);
   position: relative;
 }
 
 .split-pane-right {
   width: var(--sidebar-right-width);
+  flex-shrink: 1;
+  min-width: 40px;
   background: var(--vis-bg-secondary);
   border-left: none; /* resizer handles separation */
 }
@@ -62,6 +127,7 @@
   width: 40px !important;
   min-width: 40px;
   max-width: 40px;
+  flex: 0 0 40px !important;
   cursor: pointer;
   overflow: hidden;
 }
@@ -109,17 +175,23 @@
 
 .split-pane.collapsed .panel-title {
   display: flex;
-  justify-content: center;
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-size: 11px;
-  font-weight: 600;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 500;
   color: var(--vis-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  line-height: 1;
   margin: 0;
-  flex: 1;
+  padding-top: 4px;
+}
+
+.split-pane.collapsed .panel-title i {
+  font-size: 20px;
+  color: var(--vis-text-secondary);
 }
 
 /* ── Collapsed hover ───────────────────────────────────── */
@@ -141,6 +213,19 @@
   border-bottom: 1px solid var(--vis-border);
   flex-shrink: 0;
   overflow: hidden;
+}
+
+.pane-header--minimal {
+  height: 20px;
+  padding: 0 6px;
+  cursor: pointer;
+  justify-content: center;
+  opacity: 0.4;
+}
+
+.pane-header--minimal:hover {
+  opacity: 0.8;
+  background: var(--vis-bg-hover, rgba(255, 255, 255, 0.05));
 }
 
 .pane-header-title {

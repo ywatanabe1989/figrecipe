@@ -207,7 +207,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((s) => {
       const current = s.selectedFigureIds;
       // If nothing selected yet, start multi-select from current + new
-      let base = current.length > 0 ? current : (s.selectedFigureId ? [s.selectedFigureId] : []);
+      let base =
+        current.length > 0
+          ? current
+          : s.selectedFigureId
+            ? [s.selectedFigureId]
+            : [];
       const ids = base.includes(id)
         ? base.filter((fid) => fid !== id)
         : [...base, id];
@@ -431,23 +436,32 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   // ── UI toggles ──────────────────────────────────────────
   setDarkMode: async (dark) => {
     set({ darkMode: dark });
-    const data = await api.post<PreviewResponse>("update", { dark_mode: dark });
-    if (data?.image) {
-      const { selectedFigureId } = get();
-      if (selectedFigureId) {
-        set((s) => ({
-          placedFigures: s.placedFigures.map((f) =>
-            f.id === selectedFigureId
-              ? {
-                  ...f,
-                  previewImage: data.image,
-                  bboxes: data.bboxes,
-                  imgSize: data.img_size,
-                }
-              : f,
-          ),
-        }));
+    // Only update backend if figures are loaded (avoids "No recipe loaded" error)
+    const { placedFigures } = get();
+    if (placedFigures.length === 0) return;
+    try {
+      const data = await api.post<PreviewResponse>("update", {
+        dark_mode: dark,
+      });
+      if (data?.image) {
+        const { selectedFigureId } = get();
+        if (selectedFigureId) {
+          set((s) => ({
+            placedFigures: s.placedFigures.map((f) =>
+              f.id === selectedFigureId
+                ? {
+                    ...f,
+                    previewImage: data.image,
+                    bboxes: data.bboxes,
+                    imgSize: data.img_size,
+                  }
+                : f,
+            ),
+          }));
+        }
       }
+    } catch (e) {
+      console.error("[Editor] setDarkMode API failed:", e);
     }
   },
   toggleHitmap: () => set((s) => ({ showHitmap: !s.showHitmap })),

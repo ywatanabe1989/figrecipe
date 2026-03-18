@@ -13,7 +13,8 @@
  */
 
 import { useEffect, useMemo } from "react";
-import { App } from "./App";
+import { InnerEditor } from "./InnerEditor";
+import { setApiBase, setRecipe, setWorkingDir } from "./api/client";
 import { useEditorStore } from "./store/useEditorStore";
 import type { BBox, StatBracket } from "./types/editor";
 
@@ -46,17 +47,11 @@ export function FigrecipeEditor({
   onFileSelect,
   onElementSelect,
 }: FigrecipeEditorProps) {
-  // Set API base URL via query params if provided
+  // Configure API client before first render
   useMemo(() => {
-    if (apiBaseUrl || workingDir || recipe) {
-      const params = new URLSearchParams(window.location.search);
-      if (recipe) params.set("recipe", recipe);
-      if (workingDir) params.set("working_dir", workingDir);
-      // Mode=embedded hides file tree + status bar
-      params.set("mode", "embedded");
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      window.history.replaceState(null, "", newUrl);
-    }
+    if (apiBaseUrl) setApiBase(apiBaseUrl);
+    if (workingDir) setWorkingDir(workingDir);
+    if (recipe) setRecipe(recipe);
   }, [apiBaseUrl, workingDir, recipe]);
 
   // Subscribe to store changes and forward as callbacks
@@ -87,7 +82,7 @@ export function FigrecipeEditor({
     }
   }, [darkMode]);
 
-  return <App />;
+  return <InnerEditor embedded />;
 }
 
 // Re-export types for consumers

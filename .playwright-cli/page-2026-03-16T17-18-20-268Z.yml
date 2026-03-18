@@ -1,0 +1,205 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]:
+        - button " Console" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 
+          - text: Console
+        - button " Chat" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: 
+          - text: Chat
+      - generic [ref=e12]:
+        - text: +      
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - button "+" [ref=e15] [cursor=pointer]:
+              - generic [ref=e16]: +
+            - generic [ref=e19] [cursor=pointer]: T1
+          - generic [ref=e21]:
+            - generic [ref=e22]:
+              - generic [ref=e23]: 
+              - text: Loading terminal...
+            - generic [ref=e27]:
+              - generic:
+                - textbox "Terminal input"
+          - generic [ref=e66]:
+            - button "" [disabled] [ref=e67]:
+              - generic [ref=e68]: 
+            - button "" [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]: 
+            - button "" [ref=e71] [cursor=pointer]:
+              - generic [ref=e72]: 
+            - button "" [ref=e73] [cursor=pointer]:
+              - generic [ref=e74]: 
+            - button "" [disabled] [ref=e75]:
+              - generic [ref=e76]: 
+    - generic [ref=e78]:
+      - generic [ref=e79]:
+        - generic [ref=e80]: Files
+        - button "" [ref=e82] [cursor=pointer]:
+          - generic [ref=e83]: 
+      - generic [ref=e87]: No files to display
+    - generic [ref=e90]:
+      - generic [ref=e91]: 
+      - paragraph [ref=e92]: Click a file to preview
+    - generic [ref=e95]:
+      - generic [ref=e96]:
+        - button " Plot" [ref=e97] [cursor=pointer]:
+          - generic [ref=e98]: 
+          - text: Plot
+        - button " Canvas" [ref=e99] [cursor=pointer]:
+          - generic [ref=e100]: 
+          - text: Canvas
+      - generic [ref=e101]:
+        - main [ref=e102]:
+          - generic "Double-click to collapse" [ref=e103] [cursor=pointer]:
+            - generic [ref=e104]: 
+          - generic [ref=e105]:
+            - button " No figures " [ref=e107] [cursor=pointer]:
+              - generic [ref=e108]: 
+              - generic [ref=e109]: No figures
+              - generic [ref=e110]: 
+            - generic [ref=e111]:
+              - button "" [ref=e112] [cursor=pointer]:
+                - generic [ref=e113]: 
+              - button "" [ref=e114] [cursor=pointer]:
+                - generic [ref=e115]: 
+              - button "" [ref=e117] [cursor=pointer]:
+                - generic [ref=e118]: 
+              - button "" [ref=e119] [cursor=pointer]:
+                - generic [ref=e120]: 
+              - button "" [ref=e122] [cursor=pointer]:
+                - generic [ref=e123]: 
+              - button "" [ref=e124] [cursor=pointer]:
+                - generic [ref=e125]: 
+              - button "" [ref=e127] [cursor=pointer]:
+                - generic [ref=e128]: 
+              - button "" [ref=e129] [cursor=pointer]:
+                - generic [ref=e130]: 
+              - button "" [ref=e131] [cursor=pointer]:
+                - generic [ref=e132]: 
+              - button "" [ref=e134] [cursor=pointer]:
+                - generic [ref=e135]: 
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - 'generic "Units: mm (click to toggle)" [ref=e139] [cursor=pointer]': mm
+              - img [ref=e141]:
+                - generic "0mm (click to toggle inch)" [ref=e142] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e143] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e144] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e145] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e146] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e147] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e148] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e149] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e150] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e151] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e152] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e153] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e154] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e155] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e156] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e157] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e158] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e159] [cursor=pointer]: 170mm
+                - generic [ref=e160]: 0.5 col
+                - generic [ref=e161]: 1.0 col
+                - generic [ref=e162]: 1.5 col
+              - img [ref=e165]:
+                - generic "0mm (click to toggle inch)" [ref=e166] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e167] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e168] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e169] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e170] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e171] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e172] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e173] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e174] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e175] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e176] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e177] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e178] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e179] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e180] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e181] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e182] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e183] [cursor=pointer]: 170mm
+                - generic "180mm (click to toggle inch)" [ref=e184] [cursor=pointer]: 180mm
+                - generic "190mm (click to toggle inch)" [ref=e185] [cursor=pointer]: 190mm
+                - generic "200mm (click to toggle inch)" [ref=e186] [cursor=pointer]: 200mm
+                - generic "210mm (click to toggle inch)" [ref=e187] [cursor=pointer]: 210mm
+              - generic [ref=e189]:
+                - paragraph [ref=e190]: No figure loaded
+                - paragraph [ref=e191]: Select a file from the browser or create a new figure
+              - img [ref=e193]:
+                - generic "0mm (click to toggle inch)" [ref=e194] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e195] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e196] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e197] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e198] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e199] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e200] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e201] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e202] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e203] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e204] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e205] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e206] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e207] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e208] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e209] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e210] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e211] [cursor=pointer]: 170mm
+                - generic "180mm (click to toggle inch)" [ref=e212] [cursor=pointer]: 180mm
+                - generic "190mm (click to toggle inch)" [ref=e213] [cursor=pointer]: 190mm
+                - generic "200mm (click to toggle inch)" [ref=e214] [cursor=pointer]: 200mm
+                - generic "210mm (click to toggle inch)" [ref=e215] [cursor=pointer]: 210mm
+              - img [ref=e218]:
+                - generic "0mm (click to toggle inch)" [ref=e219] [cursor=pointer]: 0mm
+                - generic "10mm (click to toggle inch)" [ref=e220] [cursor=pointer]: 10mm
+                - generic "20mm (click to toggle inch)" [ref=e221] [cursor=pointer]: 20mm
+                - generic "30mm (click to toggle inch)" [ref=e222] [cursor=pointer]: 30mm
+                - generic "40mm (click to toggle inch)" [ref=e223] [cursor=pointer]: 40mm
+                - generic "50mm (click to toggle inch)" [ref=e224] [cursor=pointer]: 50mm
+                - generic "60mm (click to toggle inch)" [ref=e225] [cursor=pointer]: 60mm
+                - generic "70mm (click to toggle inch)" [ref=e226] [cursor=pointer]: 70mm
+                - generic "80mm (click to toggle inch)" [ref=e227] [cursor=pointer]: 80mm
+                - generic "90mm (click to toggle inch)" [ref=e228] [cursor=pointer]: 90mm
+                - generic "100mm (click to toggle inch)" [ref=e229] [cursor=pointer]: 100mm
+                - generic "110mm (click to toggle inch)" [ref=e230] [cursor=pointer]: 110mm
+                - generic "120mm (click to toggle inch)" [ref=e231] [cursor=pointer]: 120mm
+                - generic "130mm (click to toggle inch)" [ref=e232] [cursor=pointer]: 130mm
+                - generic "140mm (click to toggle inch)" [ref=e233] [cursor=pointer]: 140mm
+                - generic "150mm (click to toggle inch)" [ref=e234] [cursor=pointer]: 150mm
+                - generic "160mm (click to toggle inch)" [ref=e235] [cursor=pointer]: 160mm
+                - generic "170mm (click to toggle inch)" [ref=e236] [cursor=pointer]: 170mm
+                - generic [ref=e237]: 0.5 col
+                - generic [ref=e238]: 1.0 col
+                - generic [ref=e239]: 1.5 col
+            - generic: 22%
+        - complementary [ref=e242]:
+          - generic [ref=e243]:
+            - generic [ref=e244]:
+              - generic [ref=e245]: 
+              - text: Details
+            - text: 
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - generic [ref=e250]: 
+                - text: No selection
+              - generic [ref=e251]: Select an item from the tree to view properties
+            - generic [ref=e252]:
+              - button " Current" [ref=e253] [cursor=pointer]:
+                - generic [ref=e254]: 
+                - text: Current
+              - button " Preset" [ref=e255] [cursor=pointer]:
+                - generic [ref=e256]: 
+                - text: Preset
+              - button " Layout" [ref=e257] [cursor=pointer]:
+                - generic [ref=e258]: 
+                - text: Layout
+              - button " View" [ref=e259] [cursor=pointer]:
+                - generic [ref=e260]: 
+                - text: View
+  - generic [ref=e261]: WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW

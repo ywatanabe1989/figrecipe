@@ -9,7 +9,10 @@ import shutil
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+
+if TYPE_CHECKING:
+    from ._pltz import Pltz
 
 __all__ = ["Figz"]
 

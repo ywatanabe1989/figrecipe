@@ -22,6 +22,7 @@ export interface PanelResizeConfig {
 export interface PanelResizeResult {
   width: number;
   collapsed: boolean;
+  panelRef: React.RefObject<HTMLElement | null>;
   resizerProps: {
     onMouseDown: (e: React.MouseEvent) => void;
     onDoubleClick: () => void;
@@ -132,6 +133,10 @@ export function usePanelResize(config: PanelResizeConfig): PanelResizeResult {
     [collapsed, width, minWidth, saveCollapsed],
   );
 
+  // Track live width during drag via ref (no React re-renders)
+  const liveWidth = useRef(0);
+  const panelRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       if (!dragging.current) return;
@@ -140,28 +145,46 @@ export function usePanelResize(config: PanelResizeConfig): PanelResizeResult {
         direction === "left"
           ? startWidth.current + delta
           : startWidth.current - delta;
+
       if (newWidth >= minWidth) {
-        setWidth(newWidth);
+        liveWidth.current = newWidth;
+        // Direct DOM update for smooth drag (no React re-render)
+        if (panelRef.current) {
+          panelRef.current.style.width = `${newWidth}px`;
+        }
+      } else {
+        liveWidth.current = minWidth;
+        // Panel at minimum — propagate force to workspace shell
+        window.dispatchEvent(
+          new CustomEvent("stx-app-resize-overflow", {
+            detail: {
+              direction: direction === "left" ? "left" : "right",
+              delta: minWidth - newWidth,
+              clientX: e.clientX,
+            },
+          }),
+        );
       }
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = (e: MouseEvent) => {
       if (!dragging.current) return;
+      // Apply final mouse position (fixes fast drag not reaching destination)
+      onMouseMove(e);
       dragging.current = false;
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
 
-      // Read current width from state via closure-safe ref pattern
-      setWidth((current) => {
-        if (current <= minWidth + 10) {
-          // Auto-collapse
-          setCollapsed(true);
-          saveCollapsed(true);
-          return defaultWidth; // store the default for next expand
-        }
-        saveWidth(current);
-        return current;
-      });
+      const finalWidth = liveWidth.current;
+      if (finalWidth <= minWidth + 10) {
+        // Auto-collapse
+        setCollapsed(true);
+        saveCollapsed(true);
+        setWidth(defaultWidth);
+      } else {
+        setWidth(finalWidth);
+        saveWidth(finalWidth);
+      }
 
       wasCollapsed.current = false;
     };
@@ -177,6 +200,7 @@ export function usePanelResize(config: PanelResizeConfig): PanelResizeResult {
   return {
     width,
     collapsed,
+    panelRef,
     resizerProps: { onMouseDown, onDoubleClick: toggleCollapse },
     headerProps: {
       onDoubleClick: toggleCollapse,

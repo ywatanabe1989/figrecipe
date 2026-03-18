@@ -1,0 +1,132 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]:
+        - button " Console" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 
+          - text: Console
+        - button " Chat" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: 
+          - text: Chat
+      - generic [ref=e12]:
+        - text: +      
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - button "+" [ref=e15] [cursor=pointer]:
+              - generic [ref=e16]: +
+            - generic [ref=e19] [cursor=pointer]: T1
+          - generic [ref=e3616]:
+            - textbox "Terminal input" [ref=e3617]
+            - generic [ref=e3620]: (.env-3.11) (wsl) figrecipe $
+          - generic [ref=e27]:
+            - button "" [disabled] [ref=e28]:
+              - generic [ref=e29]: 
+            - button "" [ref=e30] [cursor=pointer]:
+              - generic [ref=e31]: 
+            - button "" [ref=e32] [cursor=pointer]:
+              - generic [ref=e33]: 
+            - button "" [ref=e34] [cursor=pointer]:
+              - generic [ref=e35]: 
+            - button "" [disabled] [ref=e36]:
+              - generic [ref=e37]: 
+    - generic [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e41]: Files
+        - button "" [ref=e43] [cursor=pointer]:
+          - generic [ref=e44]: 
+      - generic [ref=e47]:
+        - generic [ref=e3661] [cursor=pointer]: canvas-initial.png
+        - generic [ref=e3664] [cursor=pointer]: CHANGELOG.md
+        - generic [ref=e3667] [cursor=pointer]: CLA.md
+        - generic [ref=e3670] [cursor=pointer]: CLAUDE.md
+        - generic [ref=e3673] [cursor=pointer]: CONTRIBUTING.md
+        - generic [ref=e3674] [cursor=pointer]:
+          - button "▸" [ref=e3675]:
+            - generic [ref=e3676]: ▸
+          - generic [ref=e3677]: dist
+        - generic [ref=e3678] [cursor=pointer]:
+          - button "▸" [ref=e3679]:
+            - generic [ref=e3680]: ▸
+          - generic [ref=e3681]: docs
+        - text: ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸
+        - generic [ref=e3684] [cursor=pointer]: eslint.config.js
+        - generic [ref=e3685] [cursor=pointer]:
+          - button "▸" [ref=e3686]:
+            - generic [ref=e3687]: ▸
+          - generic [ref=e3688]: examples
+        - text: ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸
+        - generic [ref=e3689] [cursor=pointer]:
+          - button "▸" [ref=e3690]:
+            - generic [ref=e3691]: ▸
+          - generic [ref=e3692]: GITIGNORED
+        - text: ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸
+        - generic [ref=e3695] [cursor=pointer]: LICENSE
+        - generic [ref=e3696] [cursor=pointer]:
+          - button "▸" [ref=e3697]:
+            - generic [ref=e3698]: ▸
+          - generic [ref=e3699]: logs
+        - generic [ref=e3702] [cursor=pointer]: Makefile
+        - generic [ref=e3703] [cursor=pointer]:
+          - button "▸" [ref=e3704]:
+            - generic [ref=e3705]: ▸
+          - generic [ref=e3706]: plot_plot_data
+        - generic [ref=e3709] [cursor=pointer]: plot_plot.yaml
+        - generic [ref=e3712] [cursor=pointer]: pyproject.toml
+        - generic [ref=e3715] [cursor=pointer]: README.md
+        - generic [ref=e3716] [cursor=pointer]:
+          - button "▸" [ref=e3717]:
+            - generic [ref=e3718]: ▸
+          - generic [ref=e3719]: scripts
+        - text: ▸ ▸
+        - generic [ref=e3720] [cursor=pointer]:
+          - button "▸" [ref=e3721]:
+            - generic [ref=e3722]: ▸
+          - generic [ref=e3723]: src
+        - text: ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸ ▸
+        - generic [ref=e3724] [cursor=pointer]:
+          - button "▸" [ref=e3725]:
+            - generic [ref=e3726]: ▸
+          - generic [ref=e3727]: tests
+        - text: ▸ ▸ ▸
+    - generic [ref=e51]:
+      - generic [ref=e52]: 
+      - paragraph [ref=e53]: Click a file to preview
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - button " Plot" [ref=e58] [cursor=pointer]:
+          - generic [ref=e59]: 
+          - text: Plot
+        - button " Canvas" [active] [ref=e60] [cursor=pointer]:
+          - generic [ref=e61]: 
+          - text: Canvas
+      - generic [ref=e62]:
+        - main [ref=e3728] [cursor=pointer]:
+          - generic [ref=e3730]:
+            - generic [ref=e3731]: 
+            - text: Canvas
+        - complementary [ref=e3595]:
+          - generic [ref=e3596]:
+            - generic [ref=e3597]:
+              - generic [ref=e3598]: 
+              - text: Details
+            - text: 
+          - generic [ref=e3600]:
+            - generic [ref=e3601]:
+              - generic [ref=e3602]:
+                - generic [ref=e3603]: 
+                - text: No selection
+              - generic [ref=e3604]: Select an item from the tree to view properties
+            - generic [ref=e3605]:
+              - button " Current" [ref=e3606] [cursor=pointer]:
+                - generic [ref=e3607]: 
+                - text: Current
+              - button " Preset" [ref=e3608] [cursor=pointer]:
+                - generic [ref=e3609]: 
+                - text: Preset
+              - button " Layout" [ref=e3610] [cursor=pointer]:
+                - generic [ref=e3611]: 
+                - text: Layout
+              - button " View" [ref=e3612] [cursor=pointer]:
+                - generic [ref=e3613]: 
+                - text: View
+  - generic [ref=e3732]: $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$

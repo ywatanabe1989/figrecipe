@@ -2,3 +2,4 @@ node_modules/
 dist/
 *.local
 .playwright-mcp/
+scitex-ui-types
