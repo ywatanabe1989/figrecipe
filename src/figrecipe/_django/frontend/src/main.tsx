@@ -35,31 +35,9 @@ import "./styles/gallery.css";
 import "./styles/export-dialog.css";
 import "./styles/feedback.css";
 
-// scitex-ui CSS (shared with vanilla TS components)
+// scitex-ui CSS — single bundle import (shell + app + utils)
 // @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/theme.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/workspace.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/terminal.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/viewer.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/chat.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/ai-panel.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/file-browser.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/data-table.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/app/selector-nav.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/utils/element-inspector.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/utils/layout.css";
-// @ts-ignore
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/shell/media-input.css";
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/all.css";
 
 // Element inspector — debug overlay (Alt+I to toggle)
 // @ts-ignore

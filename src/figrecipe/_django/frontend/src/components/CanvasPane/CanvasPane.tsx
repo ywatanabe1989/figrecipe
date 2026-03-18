@@ -8,7 +8,11 @@ import { useEditorStore } from "../../store/useEditorStore";
 import { Canvas } from "../Canvas/Canvas";
 import { ExportDialog } from "../ExportDialog/ExportDialog";
 
-export function CanvasPane() {
+interface CanvasPaneProps {
+  onHeaderDoubleClick?: () => void;
+}
+
+export function CanvasPane({ onHeaderDoubleClick }: CanvasPaneProps) {
   const {
     placedFigures,
     selectedFigureId,
@@ -37,7 +41,7 @@ export function CanvasPane() {
   return (
     <>
       {/* Pane header with figure dropdown + toolbar actions */}
-      <div className="pane-header">
+      <div className="pane-header" onDoubleClick={onHeaderDoubleClick}>
         {/* Figure dropdown */}
         <div className="figure-dropdown-container">
           <button className="figure-dropdown-toggle" type="button">
