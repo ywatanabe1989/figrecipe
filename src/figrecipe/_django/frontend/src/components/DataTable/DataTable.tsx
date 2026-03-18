@@ -119,13 +119,7 @@ export function DataTable() {
           </div>
 
           {dataset && (
-            <StxDataTable
-              data={dataset}
-              readOnly
-              showRowNumbers
-              sortable
-              resizable
-            />
+            <StxDataTable data={dataset} showRowNumbers sortable resizable />
           )}
         </>
       )}
