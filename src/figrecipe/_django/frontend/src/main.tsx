@@ -47,14 +47,22 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
 
 const root = document.getElementById("root");
+const appMount = document.getElementById("app-mount");
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get("mode") === "embedded";
 
-// If no #root element, bridge-init.ts handles mounting via #app-mount.
-// This happens in standalone shell mode where Django template owns the layout.
-if (!root) {
-  // nothing to mount — bridge-init.ts will handle it
-} else {
+// Standalone shell mode: Django template owns the layout (Console, FileTree, App pane).
+// Mount just the editor into #app-mount — no React Workspace wrapper.
+if (!root && appMount) {
+  const isShellEmbedded = appMount.dataset.embedded === "true";
+  if (isShellEmbedded) {
+    ReactDOM.createRoot(appMount).render(
+      <React.StrictMode>
+        <InnerEditor embedded />
+      </React.StrictMode>,
+    );
+  }
+} else if (root) {
   /** File tree backend — returns ALL files (general directory tree) */
   class GeneralFileTreeBackend implements FileTreeBackend {
     async fetchTree(): Promise<FileNode[]> {
