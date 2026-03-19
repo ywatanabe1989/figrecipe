@@ -57,10 +57,20 @@ def api_chat_stream(request):
     # Fallback: direct anthropic SDK
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
-        return JsonResponse(
-            {"error": "No AI backend. Set ANTHROPIC_API_KEY environment variable."},
-            status=503,
-        )
+        # Return SSE-formatted error so frontend shows it as a chat message
+        def _no_key():
+            msg = (
+                "AI chat requires an API key. "
+                "Set ANTHROPIC_API_KEY in your environment:\n\n"
+                "```\nexport ANTHROPIC_API_KEY=sk-ant-...\n```\n\n"
+                "Then restart: `figrecipe gui --force`"
+            )
+            yield f"data: {json.dumps({'type': 'chunk', 'text': msg})}\n\n"
+            yield "data: [DONE]\n\n"
+
+        resp = StreamingHttpResponse(_no_key(), content_type="text/event-stream")
+        resp["Cache-Control"] = "no-cache"
+        return resp
 
     try:
         import anthropic
