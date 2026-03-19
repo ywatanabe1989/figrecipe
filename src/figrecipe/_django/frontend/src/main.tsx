@@ -1,29 +1,17 @@
-/** FigRecipe Editor — Bootstrap with Workspace Shell.
+/** FigRecipe Editor — Bootstrap.
  *
- * Uses scitex-ui's React Workspace shell for the universal frame:
- * AI Chat (left) | File Tree (middle) | App Content (right) | Terminal (bottom)
+ * The workspace shell (Console/Chat | Files | Viewer | App) is provided by
+ * scitex-ui's vanilla TS system via the Django standalone_shell.html template.
+ * This file only mounts the React InnerEditor into the app content area.
  *
- * In embedded mode (?mode=embedded), skips the shell and mounts React directly.
+ * The React Workspace wrapper has been archived — see GITIGNORED/archive/
  */
 
-import React, { useMemo } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
-
-// scitex-ui React workspace shell
-import { Workspace } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace";
-import { LocalTerminalBackend } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/terminal/backends/LocalTerminalBackend";
-import type {
-  FileTreeBackend,
-  FileNode,
-} from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace/types";
-
-// Chat backend
-import { DjangoChatBackend } from "./backends/DjangoChatBackend";
 
 // React app content
 import { InnerEditor } from "./InnerEditor";
-import { api } from "./api/client";
-import { useEditorStore } from "./store/useEditorStore";
 
 // Styles
 import "./styles/app-variables.css";
@@ -43,153 +31,27 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/all.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 
-// Context-aware zoom — app-specific panes only (shell panes auto-registered by Workspace)
+// Context-aware zoom — app-specific panes only
 import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
 
+// Vanilla TS workspace shell — panel resizer initialization
+// This auto-discovers [data-panel-resizer] elements and sets up drag resize
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-panel-resizer";
+
 const root = document.getElementById("root");
-const appMount = document.getElementById("app-mount");
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get("mode") === "embedded";
 
-// Standalone shell mode: Django template owns the layout (Console, FileTree, App pane).
-// Mount just the editor into #app-mount — no React Workspace wrapper.
-if (!root && appMount) {
-  const isShellEmbedded = appMount.dataset.embedded === "true";
-  if (isShellEmbedded) {
-    ReactDOM.createRoot(appMount).render(
-      <React.StrictMode>
-        <InnerEditor embedded />
-      </React.StrictMode>,
-    );
-  }
-} else if (root) {
-  /** File tree backend — returns ALL files (general directory tree) */
-  class GeneralFileTreeBackend implements FileTreeBackend {
-    async fetchTree(): Promise<FileNode[]> {
-      const data = await api.get<{ tree: FileNode[] }>("api/tree");
-      return data.tree || [];
-    }
-  }
+if (root) {
+  document.documentElement.setAttribute("data-theme", "dark");
+  ReactDOM.createRoot(root).render(
+    <React.StrictMode>
+      <InnerEditor embedded={embedded} />
+    </React.StrictMode>,
+  );
+}
 
-  function FigrecipeApp() {
-    const { switchFile } = useEditorStore();
-
-    // Terminal backend — connects to pty server on port+1
-    const terminalBackend = useMemo(() => {
-      const port = parseInt(window.location.port || "5050", 10);
-      return new LocalTerminalBackend(`ws://127.0.0.1:${port + 1}/`);
-    }, []);
-
-    // Chat backend — connects to Django SSE endpoint
-    const chatBackend = useMemo(() => new DjangoChatBackend(), []);
-
-    // File tree backend — general directory listing
-    const fileTreeBackend = useMemo(() => new GeneralFileTreeBackend(), []);
-
-    return (
-      <Workspace
-        appName="figrecipe"
-        accentColor="#a07ae0"
-        terminalBackend={terminalBackend}
-        chatBackend={chatBackend}
-        fileTreeBackend={fileTreeBackend}
-        getFileUrl={(path, raw) =>
-          `api/file-content/${encodeURIComponent(path)}${raw ? "?raw=true" : ""}`
-        }
-        highlightExtensions={[".yaml", ".yml"]}
-        onImageCapture={(dataUrl, _mime) => {
-          console.log("[FigRecipe] Image captured, size:", dataUrl.length);
-          useEditorStore.getState().showToast?.("Image captured");
-        }}
-        onVoiceTranscript={(text) => {
-          console.log("[FigRecipe] Voice transcript:", text);
-          useEditorStore.getState().showToast?.(`Voice: ${text}`);
-        }}
-        onFileSelect={(node) => {
-          if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
-            switchFile(node.path);
-          }
-        }}
-        onFileDoubleClick={(node) => {
-          if (
-            node.type === "file" &&
-            (node.path.endsWith(".yaml") || node.path.endsWith(".yml"))
-          ) {
-            switchFile(node.path);
-          }
-        }}
-        onFileDrop={async (path) => {
-          if (path.endsWith(".csv") || path.endsWith(".tsv")) {
-            try {
-              const resp = await api.post<{ success: boolean }>(
-                "datatable/import",
-                { path, format: path.endsWith(".tsv") ? "tsv" : "csv" },
-              );
-              if (resp.success) {
-                useEditorStore.getState().loadDatatable();
-              }
-            } catch (e) {
-              console.warn("Drop import failed:", e);
-            }
-          }
-        }}
-        onFileContextAction={async (action, node) => {
-          const { loadFiles, showToast } = useEditorStore.getState();
-          try {
-            if (action === "copy-path") {
-              await navigator.clipboard.writeText(node.path);
-              showToast?.("Path copied");
-              return;
-            }
-            if (action === "delete") {
-              await api.post("api/delete", { path: node.path });
-              loadFiles();
-            } else if (action === "duplicate") {
-              await api.post("api/duplicate", { path: node.path });
-              loadFiles();
-            } else if (action === "rename") {
-              const newName = prompt("New name:", node.name);
-              if (newName && newName !== node.name) {
-                await api.post("api/rename", {
-                  path: node.path,
-                  new_name: newName,
-                });
-                loadFiles();
-              }
-            } else if (action === "new") {
-              await api.post("api/new", {});
-              loadFiles();
-            }
-          } catch (e) {
-            console.warn("Context action failed:", e);
-          }
-        }}
-      >
-        <InnerEditor />
-      </Workspace>
-    );
-  }
-
-  if (embedded) {
-    ReactDOM.createRoot(root!).render(
-      <React.StrictMode>
-        <InnerEditor embedded />
-      </React.StrictMode>,
-    );
-  } else {
-    // Apply dark theme by default
-    document.documentElement.setAttribute("data-theme", "dark");
-
-    ReactDOM.createRoot(root!).render(
-      <React.StrictMode>
-        <FigrecipeApp />
-      </React.StrictMode>,
-    );
-  }
-} // end of if (root) block
-
-// Register zoom on app-specific panes (shell panes handled by Workspace automatically)
-// bootstrapContextZoom uses MutationObserver internally for lazy React renders
+// Register zoom on app-specific panes (shell panes use vanilla TS zoom)
 bootstrapContextZoom(
   [
     {

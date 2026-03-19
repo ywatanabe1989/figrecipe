@@ -43,6 +43,14 @@ export default defineConfig({
     outDir: "../static/figrecipe",
     emptyOutDir: true,
     sourcemap: true,
+    manifest: true,
+    rollupOptions: {
+      output: {
+        entryFileNames: "assets/index.js",
+        chunkFileNames: "assets/[name].js",
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
   },
   server: {
     port: 3000,
