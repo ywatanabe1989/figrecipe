@@ -45,6 +45,12 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/standalone-terminal";
 import { ShellFileTree } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/file-tree";
 import type { FileTreeAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/file-tree";
 
+// Vanilla TS shell toolbar + keyboard shortcuts
+import {
+  ToolbarManager,
+  KeyboardShortcuts,
+} from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/toolbar";
+
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
@@ -92,6 +98,12 @@ if (hiddenToggle) {
     shellFileTree.toggleHidden();
   });
 }
+
+// Shell toolbar + keyboard shortcuts
+const toolbar = new ToolbarManager();
+toolbar.init();
+const shortcuts = new KeyboardShortcuts();
+shortcuts.init();
 
 // Register zoom on app-specific panes
 bootstrapContextZoom(
