@@ -42,9 +42,9 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-panel-resiz
 import { initTerminal } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/terminal";
 import type { TerminalConnectionAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/terminal";
 
-// Vanilla TS shell file tree — adapter-based, with hidden files toggle
-import { ShellFileTree } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/file-tree";
-import type { FileTreeAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/file-tree";
+// Vanilla TS shell file tree — WorkspaceFilesTree (full-featured, adapter-based)
+import { WorkspaceFilesTree } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-files-tree";
+import type { FileTreeAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-files-tree";
 
 // Vanilla TS shell toolbar + keyboard shortcuts
 import {
@@ -87,39 +87,44 @@ if (root) {
   );
 }
 
-// Shell file tree — connects to figrecipe's api/tree endpoint
+// Shell file tree — WorkspaceFilesTree connects to figrecipe's api/tree endpoint
 const figrecipeFileTreeAdapter: FileTreeAdapter = {
   async fetchTree() {
     const resp = await fetch("api/tree");
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    if (!resp.ok)
+      return {
+        success: false,
+        tree: [],
+        error: `HTTP ${resp.status}: ${resp.statusText}`,
+      };
     const data = await resp.json();
-    return data.tree ?? [];
+    return { success: true, tree: data.tree ?? [] };
+  },
+  getCsrfToken() {
+    const meta = document.querySelector<HTMLMetaElement>(
+      'meta[name="csrf-token"]',
+    );
+    return meta?.content ?? "";
   },
 };
 
-const shellFileTree = new ShellFileTree({
-  container: "#ws-worktree-tree",
+const fileTree = new WorkspaceFilesTree({
+  mode: "files",
+  containerId: "ws-worktree-tree",
+  ownerUsername: "figrecipe",
+  projectSlug: "figrecipe",
   adapter: figrecipeFileTreeAdapter,
-  onFileSelect: (node) => {
-    // Dispatch event for the React app to handle file selection
+  showGitStatus: false,
+  showFolderActions: false,
+  onFileSelect: (_path, item) => {
     window.dispatchEvent(
       new CustomEvent("figrecipe:file-select", {
-        detail: { path: node.path, name: node.name },
+        detail: { path: item.path, name: item.name },
       }),
     );
   },
 });
-shellFileTree.load();
-
-// Wire hidden files toggle button if it exists in shell template
-const hiddenToggle = document.getElementById("hidden-files-toggle");
-if (hiddenToggle) {
-  hiddenToggle.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    shellFileTree.toggleHidden();
-  });
-}
+fileTree.initialize();
 
 // Shell terminal — local PTY via WebSocket on port+1
 const figrecipeTerminalAdapter: TerminalConnectionAdapter = {
@@ -438,7 +443,7 @@ window.addEventListener("stx-shell:settings", () => {
 
 // Wire file tree refresh when AI modifies files
 document.addEventListener("stx-shell:files-changed", () => {
-  shellFileTree.refresh();
+  fileTree.refresh();
 });
 
 // Register zoom on app-specific panes
