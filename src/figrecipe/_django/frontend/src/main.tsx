@@ -7,11 +7,19 @@
  * The React Workspace wrapper has been archived — see GITIGNORED/archive/
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 
 // React app content
 import { InnerEditor } from "./InnerEditor";
+
+// scitex-ui React file browser (mounted into vanilla TS shell's tree container)
+import { FileBrowser } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/file-browser";
+import type { FileNode } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/file-browser/types";
+
+// figrecipe API + store
+import { api } from "./api/client";
+import { useEditorStore } from "./store/useEditorStore";
 
 // Styles
 import "./styles/app-variables.css";
@@ -50,6 +58,41 @@ if (root) {
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <InnerEditor embedded={embedded} />
+    </React.StrictMode>,
+  );
+}
+
+// Mount React FileBrowser into the vanilla TS shell's file tree container
+const treeContainer = document.getElementById("ws-worktree-tree");
+if (treeContainer) {
+  function ShellFileBrowser() {
+    const [data, setData] = useState<FileNode[]>([]);
+    const { switchFile } = useEditorStore();
+
+    useEffect(() => {
+      api
+        .get<{ tree: FileNode[] }>("api/tree")
+        .then((resp) => setData(resp.tree || []))
+        .catch(console.error);
+    }, []);
+
+    return (
+      <FileBrowser
+        data={data}
+        onFileSelect={(node) => {
+          if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
+            switchFile(node.path);
+          }
+        }}
+        searchable
+        sortMode="name"
+      />
+    );
+  }
+
+  ReactDOM.createRoot(treeContainer).render(
+    <React.StrictMode>
+      <ShellFileBrowser />
     </React.StrictMode>,
   );
 }
