@@ -174,6 +174,20 @@ def gui(
     try:
         from scitex_app._standalone import run_standalone
 
+        # Pre-configure Django with figrecipe's settings (includes DB + chat app)
+        # before run_standalone, so _standalone.py skips its own bare config.
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "figrecipe._django.settings")
+        if wd:
+            os.environ.setdefault("FIGRECIPE_WORKING_DIR", wd)
+
+        import django
+
+        django.setup()
+
+        from django.core.management import call_command
+
+        call_command("migrate", "--run-syncdb", verbosity=0)
+
         run_standalone(
             app_module="figrecipe._django",
             port=port,
@@ -199,6 +213,9 @@ def gui(
             threading.Timer(1.5, webbrowser.open, args=[url]).start()
 
         from django.core.management import call_command
+
+        # Auto-migrate database (creates tables for chat sessions on first run)
+        call_command("migrate", "--run-syncdb", verbosity=0)
 
         noreload = [] if hot_reload else ["--noreload"]
         call_command("runserver", f"{host}:{port}", *noreload)

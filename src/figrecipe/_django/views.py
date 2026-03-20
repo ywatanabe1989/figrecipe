@@ -77,6 +77,7 @@ _NO_EDITOR_ENDPOINTS = {
     "api/gallery/add",
     "api/compose",
     "api/chat/stream",
+    "api/chat/sessions/",
 }
 
 
@@ -118,7 +119,12 @@ def api_dispatch(request, endpoint):
 
     # Some endpoints require an editor
     _no_editor = endpoint in _NO_EDITOR_ENDPOINTS or endpoint.startswith(
-        ("api/compose/export/", "api/gallery/thumbnail/", "api/file-content/")
+        (
+            "api/compose/export/",
+            "api/gallery/thumbnail/",
+            "api/file-content/",
+            "api/chat/sessions/",
+        )
     )
     if editor is None and not _no_editor:
         handler = HANDLERS.get(endpoint)
@@ -185,6 +191,28 @@ def api_dispatch(request, endpoint):
             return handle_api_file_content(request, editor, file_path)
         except Exception as e:
             logger.exception("[FigRecipe] file-content/%s", file_path)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    # Chat session parameterized endpoints:
+    #   api/chat/sessions/<id>/           -> detail (GET/PATCH/DELETE)
+    #   api/chat/sessions/<id>/messages/  -> messages (GET/POST)
+    if endpoint.startswith("api/chat/sessions/"):
+        from .handlers import handle_api_session_detail, handle_api_session_messages
+
+        rest = endpoint[len("api/chat/sessions/") :]
+        # e.g. rest = "42/messages/" or "42/"
+        parts = rest.strip("/").split("/")
+        try:
+            session_id = int(parts[0])
+        except (ValueError, IndexError):
+            return JsonResponse({"error": "Invalid session ID"}, status=400)
+
+        try:
+            if len(parts) >= 2 and parts[1] == "messages":
+                return handle_api_session_messages(request, editor, session_id)
+            return handle_api_session_detail(request, editor, session_id)
+        except Exception as e:
+            logger.exception("[FigRecipe] session/%s", rest)
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": f"Unknown endpoint: {endpoint}"}, status=404)

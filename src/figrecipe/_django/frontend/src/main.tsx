@@ -66,6 +66,13 @@ import type { ViewerAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts
 import { ChatMode } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat";
 import type { ChatAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat";
 
+// Vanilla TS shell SessionsPanel — chat session management (scitex-ui)
+import { SessionsPanel } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat";
+import type {
+  SessionAdapter,
+  SessionMessage,
+} from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat";
+
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
@@ -236,6 +243,80 @@ chatMode.init(
   { adapter: figrecipeChatAdapter },
 );
 chatMode.restoreConversation();
+
+// SessionsPanel — chat session CRUD backed by scitex-app session API
+const figrecipeSessionAdapter: SessionAdapter = {
+  async listSessions() {
+    const resp = await fetch("api/chat/sessions/");
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    return data.sessions ?? [];
+  },
+  async getMessages(sessionId: number) {
+    const resp = await fetch(`api/chat/sessions/${sessionId}/messages/`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.json();
+  },
+  async createSession(title?: string) {
+    const resp = await fetch("api/chat/sessions/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: title || "New Chat" }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.json();
+  },
+  async deleteSession(sessionId: number) {
+    const resp = await fetch(`api/chat/sessions/${sessionId}/`, {
+      method: "DELETE",
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  },
+  async addMessage(sessionId: number, role: string, content: string) {
+    const resp = await fetch(`api/chat/sessions/${sessionId}/messages/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role, content }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  },
+  async renameSession(sessionId: number, title: string) {
+    const resp = await fetch(`api/chat/sessions/${sessionId}/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  },
+};
+
+const sessionsPanel = new SessionsPanel();
+const sessionsListEl = document.getElementById("stx-shell-ai-sessions-list");
+
+if (sessionsListEl) {
+  sessionsPanel.init(
+    sessionsListEl,
+    figrecipeSessionAdapter,
+    (messages: SessionMessage[], _sessionId: number) => {
+      // Switch session: use ChatMode's loadSessionMessages for proper rendering
+      chatMode.loadSessionMessages(
+        messages.map((m) => ({
+          role: m.role,
+          text: m.content,
+          tools_used: [],
+          media: [],
+        })),
+      );
+    },
+    () => {
+      // New chat: clear messages area via ChatMode
+      chatMode.clearChat();
+    },
+  );
+
+  // Wire ChatMode -> SessionsPanel for auto-saving messages
+  chatMode.setSessionsPanel(sessionsPanel);
+}
 
 // Wire Enter-to-send, C-p/C-n history, auto-resize on the chat textarea
 const chatInput = document.getElementById(

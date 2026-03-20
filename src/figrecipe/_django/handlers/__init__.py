@@ -7,6 +7,15 @@ Exports HANDLERS dict for the catch-all dispatcher.
 
 # Chat: single source of truth from scitex-app (no figrecipe-specific fallback)
 from scitex_app._chat import chat_stream_view as _raw_chat_stream
+from scitex_app._chat import (
+    session_detail_view as _raw_session_detail,
+)
+from scitex_app._chat import (
+    session_list_view as _raw_session_list,
+)
+from scitex_app._chat import (
+    session_messages_view as _raw_session_messages,
+)
 
 from .annotation import (
     handle_get_captions,
@@ -80,6 +89,21 @@ def handle_api_chat_stream(request, editor):
     return _raw_chat_stream(request)
 
 
+def handle_api_session_list(request, editor):
+    """Wrapper: session list/create — ignores editor."""
+    return _raw_session_list(request)
+
+
+def handle_api_session_detail(request, editor, session_id):
+    """Wrapper: session get/patch/delete — ignores editor."""
+    return _raw_session_detail(request, session_id)
+
+
+def handle_api_session_messages(request, editor, session_id):
+    """Wrapper: session messages get/add — ignores editor."""
+    return _raw_session_messages(request, session_id)
+
+
 # fmt: off
 HANDLERS = {
     # Core
@@ -150,6 +174,7 @@ HANDLERS = {
 
     # Chat
     "api/chat/stream":              handle_api_chat_stream,
+    "api/chat/sessions/":           handle_api_session_list,
 
     # Stats annotations
     "stats/add_bracket":            handle_stats_add_bracket,

@@ -21,8 +21,10 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0"]
 
 INSTALLED_APPS = [
+    "django.contrib.contenttypes",
     "django.contrib.staticfiles",
     "figrecipe._django",
+    "figrecipe._django.apps.ScitexAppChatConfig",
 ]
 
 # Optional: scitex-ui shared components (static assets served via AppDirectoriesFinder)
@@ -53,8 +55,17 @@ TEMPLATES = [
     },
 ]
 
-# No database needed for standalone editor
-DATABASES = {}
+# SQLite database for chat sessions (stored alongside temp files)
+_DB_DIR = Path(tempfile.gettempdir()) / "figrecipe_editor"
+_DB_DIR.mkdir(parents=True, exist_ok=True)
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": str(_DB_DIR / "db.sqlite3"),
+    }
+}
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [str(BASE_DIR / "static")]
