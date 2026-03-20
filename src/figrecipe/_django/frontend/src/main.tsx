@@ -176,7 +176,11 @@ window.addEventListener("figrecipe:file-select", ((e: CustomEvent) => {
   }
 }) as EventListener);
 
-// ChatMode — figrecipe adapter posts to api/chat/stream
+// ChatMode — figrecipe adapter posts to scitex-app's chat endpoint
+const FIGRECIPE_SYSTEM =
+  "You are a helpful AI assistant in the FigRecipe figure editor. " +
+  "Help with YAML recipes, matplotlib plots, and figure composition.";
+
 const figrecipeChatAdapter: ChatAdapter = {
   async streamChat(message, _context, images) {
     return fetch("api/chat/stream", {
@@ -185,6 +189,7 @@ const figrecipeChatAdapter: ChatAdapter = {
       body: JSON.stringify({
         prompt: message,
         history: [],
+        system_prompt: FIGRECIPE_SYSTEM,
         ...(images?.length
           ? {
               images: images.map((b64) => `data:image/png;base64,${b64}`),

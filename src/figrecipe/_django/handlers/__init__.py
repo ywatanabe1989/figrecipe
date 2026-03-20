@@ -5,7 +5,9 @@
 Exports HANDLERS dict for the catch-all dispatcher.
 """
 
-from ..chat import api_chat_stream as _raw_chat_stream
+# Chat: single source of truth from scitex-app (no figrecipe-specific fallback)
+from scitex_app._chat import chat_stream_view as _raw_chat_stream
+
 from .annotation import (
     handle_get_captions,
     handle_update_annotation_position,
