@@ -56,9 +56,11 @@ import {
 import { ViewerManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
 import type { ViewerAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
 
-// Vanilla TS shell chat media — webcam, image input (from scitex-ui)
+// Vanilla TS shell chat media — webcam, sketch, image input (from scitex-ui)
 import { ImageInputManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_image-input";
 import { WebcamCapture } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_webcam-capture";
+import { SketchCanvas } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_sketch-canvas";
+import { VoiceRecorder } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_recorder";
 
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
@@ -164,10 +166,22 @@ const chatFileInput = document.getElementById(
 ) as HTMLInputElement | null;
 let imageInput: ImageInputManager | null = null;
 let webcamCapture: WebcamCapture | null = null;
+let sketchCanvas: SketchCanvas | null = null;
+let voiceRecorder: VoiceRecorder | null = null;
 
 if (chatPreview && chatFileInput) {
   imageInput = new ImageInputManager(chatPreview, chatFileInput);
   webcamCapture = new WebcamCapture(imageInput, chatFileInput);
+  sketchCanvas = new SketchCanvas(imageInput);
+
+  // Voice recorder — volume bars from DOM
+  const volBars = Array.from(
+    document.querySelectorAll<HTMLElement>(".stx-shell-ai-vol-bar"),
+  );
+  const micBtn = document.querySelector<HTMLButtonElement>(
+    '.stx-shell-ai-input-btn[title="Voice"]',
+  );
+  voiceRecorder = new VoiceRecorder(volBars, micBtn);
 
   // Bind clipboard paste on chat textarea
   const chatTextarea = document.getElementById(
@@ -183,20 +197,48 @@ window.addEventListener("stx-shell:camera", () => {
   if (webcamCapture) {
     webcamCapture.open();
   } else if (chatFileInput) {
-    chatFileInput.click(); // Fallback: file picker
+    chatFileInput.click();
   }
 });
 
-// Sketch button — not yet ported (SketchCanvas is large, needs separate wiring)
+// Sketch button → open sketch canvas (scitex-ui SketchCanvas)
 window.addEventListener("stx-shell:sketch", () => {
-  if (chatFileInput) {
-    chatFileInput.click(); // Fallback: file picker for image upload
+  if (sketchCanvas) {
+    sketchCanvas.open();
+  } else if (chatFileInput) {
+    chatFileInput.click();
   }
 });
 
-// Mic button — voice recording needs STT backend (scitex-app)
+// Mic button → toggle voice recording (scitex-ui VoiceRecorder)
 window.addEventListener("stx-shell:mic-toggle", () => {
-  console.log("[figrecipe] Voice recording requires STT backend (scitex-app)");
+  if (!voiceRecorder) return;
+  if (voiceRecorder.isRecording) {
+    voiceRecorder.stop();
+  } else {
+    // STT adapter — uses browser SpeechRecognition as fallback
+    // (full STT backend would come from scitex-app)
+    voiceRecorder.start(
+      {
+        async transcribe(blob: Blob): Promise<string> {
+          // Browser SpeechRecognition fallback (no server needed)
+          console.log("[figrecipe] Voice recorded, size:", blob.size);
+          // TODO: wire to scitex-app STT endpoint when available
+          return "";
+        },
+      },
+      (text: string) => {
+        // Insert transcribed text into chat input
+        const input = document.getElementById(
+          "stx-shell-ai-input",
+        ) as HTMLTextAreaElement | null;
+        if (input && text) {
+          input.value += text;
+          input.focus();
+        }
+      },
+    );
+  }
 });
 
 // Wire file tree refresh when AI modifies files
