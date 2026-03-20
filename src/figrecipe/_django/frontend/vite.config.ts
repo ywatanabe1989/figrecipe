@@ -48,6 +48,8 @@ export default defineConfig({
     sourcemap: true,
     manifest: true,
     rollupOptions: {
+      // mermaid and graphviz are optional lazy-loaded viewers — not bundled
+      external: ["mermaid", "@hpcc-js/wasm-graphviz"],
       output: {
         entryFileNames: "assets/index.js",
         chunkFileNames: "assets/[name].js",
