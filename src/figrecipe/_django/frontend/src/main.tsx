@@ -69,6 +69,9 @@ import { SketchCanvas } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell
 import { VoiceRecorder } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_recorder";
 // ConfigMode class available but not needed — popover is in template HTML
 
+// Chat wiring — SSE streaming to figrecipe's api/chat/stream endpoint
+import { initChatWiring } from "./chat-wiring";
+
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
@@ -212,6 +215,9 @@ if (chatPreview && chatFileInput) {
     imageInput.bindPaste(chatTextarea);
   }
 }
+
+// Initialize chat wiring — connects textarea to SSE backend + markdown rendering
+initChatWiring({ imageInput });
 
 // Camera button → open webcam capture (scitex-ui WebcamCapture)
 window.addEventListener("stx-shell:camera", () => {
