@@ -38,6 +38,9 @@ import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/
 // This auto-discovers [data-panel-resizer] elements and sets up drag resize
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-panel-resizer";
 
+// Vanilla TS standalone terminal — xterm.js + WebSocket to local PTY
+import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/standalone-terminal";
+
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get("mode") === "embedded";
