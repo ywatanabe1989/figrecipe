@@ -59,8 +59,11 @@ try:
     from importlib.metadata import version as _get_version
 
     __version__ = _get_version("figrecipe")
-except Exception:
-    __version__ = "0.0.0"  # Fallback for development
+except Exception as e:
+    import warnings
+
+    warnings.warn(f"Failed to detect figrecipe version: {e}")
+    __version__ = "unknown"
 
 # =============================================================================
 # CORE PUBLIC API - Minimal, essential functions only

@@ -29,7 +29,7 @@
 
 ## Installation
 
-Requires Python >= 3.9.
+Requires Python >= 3.10.
 
 ```bash
 pip install figrecipe
@@ -198,7 +198,7 @@ Create publication-quality box-and-arrow diagrams with mm-based coordinates. See
 <br>
 
 ```python
-from figrecipe._diagram import Diagram
+from figrecipe import Diagram
 
 d = Diagram(title="EEG Pipeline", gap_mm=10)
 
