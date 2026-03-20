@@ -61,6 +61,7 @@ import { ImageInputManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/
 import { WebcamCapture } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_webcam-capture";
 import { SketchCanvas } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_sketch-canvas";
 import { VoiceRecorder } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_recorder";
+import { ConfigMode } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_config-mode";
 
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
@@ -238,6 +239,44 @@ window.addEventListener("stx-shell:mic-toggle", () => {
         }
       },
     );
+  }
+});
+
+// Settings button → open config panel
+const configMode = new ConfigMode();
+window.addEventListener("stx-shell:settings", () => {
+  // Toggle config view in the console pane
+  const consoleView = document.getElementById("stx-shell-ai-console-view");
+  const chatView = document.getElementById("stx-shell-ai-chat-view");
+  let configView = document.getElementById("stx-shell-ai-config-view");
+
+  if (!configView && consoleView?.parentElement) {
+    // Create config view container on first open
+    configView = document.createElement("div");
+    configView.id = "stx-shell-ai-config-view";
+    configView.className = "stx-shell-ai-view";
+    configView.style.cssText =
+      "flex-direction:column;overflow-y:auto;padding:8px;";
+    consoleView.parentElement.appendChild(configView);
+    configMode.populate(configView);
+  }
+
+  if (configView) {
+    const isActive = configView.classList.contains("active");
+    // Hide all views
+    consoleView?.classList.remove("active");
+    chatView?.classList.remove("active");
+    configView.classList.remove("active");
+    // Toggle or show console
+    if (isActive) {
+      consoleView?.classList.add("active");
+    } else {
+      configView.classList.add("active");
+    }
+    // Update mode buttons
+    document
+      .querySelectorAll(".stx-shell-ai-mode-btn")
+      .forEach((b) => b.classList.remove("active"));
   }
 });
 
