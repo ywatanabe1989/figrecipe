@@ -221,24 +221,20 @@ chatMode.init(
     ) as HTMLTextAreaElement,
     sendBtn: null,
     speakBtn: null,
-    micBtn: document.querySelector<HTMLButtonElement>(
-      '.stx-shell-ai-input-btn[title="Voice"]',
-    ),
+    micBtn: document.getElementById("stx-shell-ai-mic") as HTMLButtonElement,
     sttModelSelect: null,
-    modelBadge: document.querySelector<HTMLElement>(
-      ".stx-shell-ai-model-badge",
-    ),
+    modelBadge: document.getElementById("stx-shell-ai-model-badge"),
     volBars: Array.from(
       document.querySelectorAll<HTMLElement>(".stx-shell-ai-vol-bar"),
     ),
     imagePreviewEl: chatPreview,
     imageFileInput: chatFileInput,
-    cameraBtn: document.querySelector<HTMLButtonElement>(
-      '.stx-shell-ai-input-btn[title="Camera"]',
-    ),
-    sketchBtn: document.querySelector<HTMLButtonElement>(
-      '.stx-shell-ai-input-btn[title="Sketch"]',
-    ),
+    cameraBtn: document.getElementById(
+      "stx-shell-ai-camera",
+    ) as HTMLButtonElement,
+    sketchBtn: document.getElementById(
+      "stx-shell-ai-sketch",
+    ) as HTMLButtonElement,
   },
   { adapter: figrecipeChatAdapter },
 );
