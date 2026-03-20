@@ -61,7 +61,7 @@ import { ImageInputManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/
 import { WebcamCapture } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_webcam-capture";
 import { SketchCanvas } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_sketch-canvas";
 import { VoiceRecorder } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_recorder";
-import { ConfigMode } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_config-mode";
+// ConfigMode class available but not needed — popover is in template HTML
 
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
@@ -242,42 +242,51 @@ window.addEventListener("stx-shell:mic-toggle", () => {
   }
 });
 
-// Settings button → open config panel
-const configMode = new ConfigMode();
+// Settings — popover is in the template (standalone_shell.html).
+// On first open, populate the App Skills section with figrecipe info.
+let agentSourcesPopulated = false;
 window.addEventListener("stx-shell:settings", () => {
-  // Toggle config view in the console pane
-  const consoleView = document.getElementById("stx-shell-ai-console-view");
-  const chatView = document.getElementById("stx-shell-ai-chat-view");
-  let configView = document.getElementById("stx-shell-ai-config-view");
+  if (agentSourcesPopulated) return;
+  agentSourcesPopulated = true;
 
-  if (!configView && consoleView?.parentElement) {
-    // Create config view container on first open
-    configView = document.createElement("div");
-    configView.id = "stx-shell-ai-config-view";
-    configView.className = "stx-shell-ai-view";
-    configView.style.cssText =
-      "flex-direction:column;overflow-y:auto;padding:8px;";
-    consoleView.parentElement.appendChild(configView);
-    configMode.populate(configView);
-  }
+  const container = document.getElementById("ai-agent-sources-content");
+  if (!container) return;
 
-  if (configView) {
-    const isActive = configView.classList.contains("active");
-    // Hide all views
-    consoleView?.classList.remove("active");
-    chatView?.classList.remove("active");
-    configView.classList.remove("active");
-    // Toggle or show console
-    if (isActive) {
-      consoleView?.classList.add("active");
-    } else {
-      configView.classList.add("active");
-    }
-    // Update mode buttons
-    document
-      .querySelectorAll(".stx-shell-ai-mode-btn")
-      .forEach((b) => b.classList.remove("active"));
-  }
+  // Render figrecipe as the standalone app skill (matching scitex-cloud's format)
+  container.innerHTML = `
+    <div class="ai-config-category expanded" data-cat="App Skills">
+      <div class="ai-config-category-header">
+        <i class="fas fa-chevron-right ai-config-category-chevron"></i>
+        <span class="ai-config-category-name">App Skills</span>
+        <span class="ai-config-category-count">1/1</span>
+      </div>
+      <div class="ai-config-grid">
+        <div class="ai-config-skill" data-skill="figrecipe">
+          <div class="ai-config-card enabled">
+            <i class="fas fa-chart-line ai-config-card-icon"></i>
+            <div class="ai-config-card-info">
+              <div class="ai-config-card-name">
+                FigRecipe <span class="ai-config-active-tag">active</span>
+              </div>
+              <div class="ai-config-card-desc">Interactive figure editor — plt_*</div>
+            </div>
+            <label class="ai-config-toggle" onclick="event.stopPropagation()">
+              <input type="checkbox" checked />
+              <span class="ai-config-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Bind category expand/collapse
+  container
+    .querySelectorAll<HTMLElement>(".ai-config-category-header")
+    .forEach((header) => {
+      header.addEventListener("click", () => {
+        header.closest(".ai-config-category")?.classList.toggle("expanded");
+      });
+    });
 });
 
 // Wire file tree refresh when AI modifies files
