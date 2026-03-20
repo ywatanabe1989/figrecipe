@@ -38,8 +38,9 @@ import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/
 // Vanilla TS workspace shell — panel resizer initialization
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-panel-resizer";
 
-// Vanilla TS standalone terminal — xterm.js + WebSocket to local PTY
-import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/standalone-terminal";
+// Vanilla TS shell terminal — unified factory with adapter pattern
+import { initTerminal } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/terminal";
+import type { TerminalConnectionAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/terminal";
 
 // Vanilla TS shell file tree — adapter-based, with hidden files toggle
 import { ShellFileTree } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/file-tree";
@@ -98,6 +99,19 @@ if (hiddenToggle) {
     shellFileTree.toggleHidden();
   });
 }
+
+// Shell terminal — local PTY via WebSocket on port+1
+const figrecipeTerminalAdapter: TerminalConnectionAdapter = {
+  getWebSocketUrl() {
+    const port = parseInt(window.location.port || "5050", 10);
+    return `ws://127.0.0.1:${port + 1}/`;
+  },
+};
+initTerminal({
+  container: "#stx-shell-ai-console-terminal",
+  adapter: figrecipeTerminalAdapter,
+  clipboard: true,
+});
 
 // Shell toolbar + keyboard shortcuts
 const toolbar = new ToolbarManager();
