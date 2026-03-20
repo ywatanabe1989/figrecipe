@@ -138,77 +138,87 @@ def gui(
         Launch as native desktop window (default: False).
     """
     import os
-    import threading
-    import webbrowser
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "figrecipe._django.settings")
-
+    # Resolve working directory
     if working_dir:
-        os.environ["FIGRECIPE_WORKING_DIR"] = str(Path(working_dir).resolve())
+        wd = str(Path(working_dir).resolve())
     elif source:
         src_path = Path(source)
-        if src_path.is_dir():
-            os.environ["FIGRECIPE_WORKING_DIR"] = str(src_path.resolve())
-        else:
-            os.environ["FIGRECIPE_WORKING_DIR"] = str(src_path.parent.resolve())
+        wd = str(src_path.resolve() if src_path.is_dir() else src_path.parent.resolve())
     else:
-        os.environ["FIGRECIPE_WORKING_DIR"] = str(Path.cwd())
+        wd = str(Path.cwd())
 
-    url = f"http://{host}:{port}/"
+    os.environ["FIGRECIPE_WORKING_DIR"] = wd
+
+    # Extra env for recipe source
+    extra_env = {}
     if source:
-        url += f"?recipe={Path(source)}"
+        extra_env["FIGRECIPE_INITIAL_RECIPE"] = str(Path(source))
 
-    import django
-
-    django.setup()
-
-    # Start terminal WebSocket server on port+1
-    try:
-        from figrecipe._django.terminal import start_terminal_server
-
-        terminal_port = port + 1
-        start_terminal_server(terminal_port)
-    except Exception as e:
-        import logging
-
-        logging.getLogger(__name__).warning("Terminal server failed: %s", e)
-
-    if open_browser and not desktop:
-        threading.Timer(1.5, webbrowser.open, args=[url]).start()
-
-    if desktop:
+    # Start terminal WebSocket server on port+1 (before Django setup)
+    def _start_terminal():
         try:
-            import webview
+            from figrecipe._django.terminal import start_terminal_server
 
-            threading.Thread(
-                target=_run_django_server,
-                args=(host, port, hot_reload),
-                daemon=True,
-            ).start()
+            start_terminal_server(port + 1)
+        except Exception as e:
+            import logging
 
-            import time
+            logging.getLogger(__name__).warning("Terminal server failed: %s", e)
 
-            time.sleep(1.0)
-            webview.create_window("FigRecipe Editor", url, width=1400, height=900)
-            webview.start()
-            return
-        except ImportError:
-            print(
-                "pywebview not installed. Falling back to browser mode.\n"
-                "Install with: pip install pywebview"
-            )
-            if open_browser:
-                threading.Timer(1.5, webbrowser.open, args=[url]).start()
+    import threading
 
-    _run_django_server(host, port, hot_reload)
+    threading.Thread(target=_start_terminal, daemon=True).start()
 
+    # Use shared standalone launcher from scitex-app
+    try:
+        from scitex_app._standalone import run_standalone
 
-def _run_django_server(host: str, port: int, hot_reload: bool) -> None:
-    """Start Django development server."""
-    from django.core.management import call_command
+        # Pre-configure Django with figrecipe's settings (includes DB + chat app)
+        # before run_standalone, so _standalone.py skips its own bare config.
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "figrecipe._django.settings")
+        if wd:
+            os.environ.setdefault("FIGRECIPE_WORKING_DIR", wd)
 
-    noreload = [] if hot_reload else ["--noreload"]
-    call_command("runserver", f"{host}:{port}", *noreload)
+        import django
+
+        django.setup()
+
+        from django.core.management import call_command
+
+        call_command("migrate", "--run-syncdb", verbosity=0)
+
+        run_standalone(
+            app_module="figrecipe._django",
+            port=port,
+            host=host,
+            open_browser=open_browser,
+            hot_reload=hot_reload,
+            working_dir=wd,
+            desktop=desktop,
+            extra_env=extra_env,
+        )
+    except ImportError:
+        # Fallback: use figrecipe's own Django settings if scitex-app not installed
+        import webbrowser
+
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "figrecipe._django.settings")
+
+        import django
+
+        django.setup()
+
+        url = f"http://{host}:{port}/"
+        if open_browser:
+            threading.Timer(1.5, webbrowser.open, args=[url]).start()
+
+        from django.core.management import call_command
+
+        # Auto-migrate database (creates tables for chat sessions on first run)
+        call_command("migrate", "--run-syncdb", verbosity=0)
+
+        noreload = [] if hot_reload else ["--noreload"]
+        call_command("runserver", f"{host}:{port}", *noreload)
 
 
 __all__ = [

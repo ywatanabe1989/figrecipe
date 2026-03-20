@@ -77,17 +77,39 @@ _NO_EDITOR_ENDPOINTS = {
     "api/gallery/add",
     "api/compose",
     "api/chat/stream",
+    "api/chat/sessions/",
 }
 
 
 def editor_page(request):
-    """Always serve the React SPA. The React app handles empty state."""
-    react_html = _STATIC_DIR / "index.html"
-    if react_html.exists():
-        return HttpResponse(react_html.read_text())
-    return HttpResponse(
-        _welcome_page("React build not found. Run: cd frontend && npm run build")
-    )
+    """Serve the React SPA inside the scitex-ui workspace shell."""
+    import os
+
+    from django.template.loader import render_to_string
+
+    # Try scitex-ui shell template first (standalone with workspace frame)
+    try:
+        working_dir = os.environ.get("FIGRECIPE_WORKING_DIR", "")
+        working_dir_name = Path(working_dir).name if working_dir else "Files"
+        html = render_to_string(
+            "figrecipe/standalone.html",
+            {
+                "app_name": "figrecipe",
+                "app_label": "FigRecipe Editor",
+                "working_dir": working_dir,
+                "working_dir_name": working_dir_name,
+            },
+            request=request,
+        )
+        return HttpResponse(html)
+    except Exception:
+        # Fallback: serve raw React SPA (no shell)
+        react_html = _STATIC_DIR / "index.html"
+        if react_html.exists():
+            return HttpResponse(react_html.read_text())
+        return HttpResponse(
+            _welcome_page("React build not found. Run: cd frontend && npm run build")
+        )
 
 
 @csrf_exempt
@@ -97,7 +119,12 @@ def api_dispatch(request, endpoint):
 
     # Some endpoints require an editor
     _no_editor = endpoint in _NO_EDITOR_ENDPOINTS or endpoint.startswith(
-        ("api/compose/export/", "api/gallery/thumbnail/", "api/file-content/")
+        (
+            "api/compose/export/",
+            "api/gallery/thumbnail/",
+            "api/file-content/",
+            "api/chat/sessions/",
+        )
     )
     if editor is None and not _no_editor:
         handler = HANDLERS.get(endpoint)
@@ -164,6 +191,28 @@ def api_dispatch(request, endpoint):
             return handle_api_file_content(request, editor, file_path)
         except Exception as e:
             logger.exception("[FigRecipe] file-content/%s", file_path)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    # Chat session parameterized endpoints:
+    #   api/chat/sessions/<id>/           -> detail (GET/PATCH/DELETE)
+    #   api/chat/sessions/<id>/messages/  -> messages (GET/POST)
+    if endpoint.startswith("api/chat/sessions/"):
+        from .handlers import handle_api_session_detail, handle_api_session_messages
+
+        rest = endpoint[len("api/chat/sessions/") :]
+        # e.g. rest = "42/messages/" or "42/"
+        parts = rest.strip("/").split("/")
+        try:
+            session_id = int(parts[0])
+        except (ValueError, IndexError):
+            return JsonResponse({"error": "Invalid session ID"}, status=400)
+
+        try:
+            if len(parts) >= 2 and parts[1] == "messages":
+                return handle_api_session_messages(request, editor, session_id)
+            return handle_api_session_detail(request, editor, session_id)
+        except Exception as e:
+            logger.exception("[FigRecipe] session/%s", rest)
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": f"Unknown endpoint: {endpoint}"}, status=404)

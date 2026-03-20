@@ -36,13 +36,26 @@ export default defineConfig({
   base: "/static/figrecipe/",
   resolve: {
     alias: {
-      "scitex-ui": SCITEX_UI_STATIC,
+      "@scitex/ui": SCITEX_UI_STATIC.replace(
+        /\/src\/scitex_ui\/static\/scitex_ui$/,
+        "",
+      ),
     },
   },
   build: {
     outDir: "../static/figrecipe",
     emptyOutDir: true,
     sourcemap: true,
+    manifest: true,
+    rollupOptions: {
+      // mermaid and graphviz are optional lazy-loaded viewers — not bundled
+      external: ["mermaid", "@hpcc-js/wasm-graphviz"],
+      output: {
+        entryFileNames: "assets/index.js",
+        chunkFileNames: "assets/[name].js",
+        assetFileNames: "assets/[name][extname]",
+      },
+    },
   },
   server: {
     port: 3000,

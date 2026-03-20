@@ -159,6 +159,13 @@ try:
 except ImportError:
     pass
 
+try:
+    from scitex_dev.cli import skills_click_group
+
+    main.add_command(skills_click_group(package="figrecipe"))
+except ImportError:
+    pass
+
 
 if __name__ == "__main__":
     main()

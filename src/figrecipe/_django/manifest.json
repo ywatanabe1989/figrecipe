@@ -23,8 +23,12 @@
   "standalone_command": "figrecipe gui",
   "standalone_port": 5050,
   "frontend_type": "react",
+  "embedded_package": true,
   "bridge": {
     "entry": "src/bridge/bridge-init.ts",
     "source_root": "src"
+  },
+  "dependencies": {
+    "python": ["scitex", "scitex-app", "scitex-ui", "matplotlib", "numpy", "scipy"]
   }
 }

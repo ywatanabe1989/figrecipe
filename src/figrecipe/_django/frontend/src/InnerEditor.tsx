@@ -18,7 +18,6 @@ import { Toast } from "./components/common/Toast";
 import { useEmbeddedMessages } from "./hooks/useEmbeddedMessages";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { usePanelResize } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/usePanelResize";
-import { useWorkspaceResize } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace/WorkspaceResizeContext";
 import { useSessionPersistence } from "./hooks/useSessionPersistence";
 import { initUndoHistory } from "./hooks/useUndoRedo";
 import { useEditorStore } from "./store/useEditorStore";
@@ -77,7 +76,7 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     initUndoHistory();
   }, []);
 
-  const { propagateLeft } = useWorkspaceResize();
+  // Shell resizer handles overflow via getMaxAllowedWidth() — no React propagation needed
 
   // Ref for center pane (used by auto-collapse + context-zoom)
   const centerRef = useRef<HTMLElement | null>(null);
@@ -129,10 +128,6 @@ export function InnerEditor({ embedded = false }: InnerEditorProps) {
     defaultWidth: 200,
     storageKey: "figrecipe-data-width",
     collapseKey: "figrecipe-data-collapsed",
-    onBoundaryOverflow: (overflow, dir) => {
-      console.log("[resize] data panel overflow:", overflow, "px", dir);
-      if (dir === "left") propagateLeft(overflow);
-    },
     // Reserve space for right panel + PlotTypeNav (fixed ~60px)
     siblingRefs: [rightPanelRef],
     reservedWidth: 60,
