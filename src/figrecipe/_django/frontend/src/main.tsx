@@ -56,6 +56,10 @@ import {
 import { ViewerManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
 import type { ViewerAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
 
+// Vanilla TS shell chat media — webcam, image input (from scitex-ui)
+import { ImageInputManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_image-input";
+import { WebcamCapture } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_webcam-capture";
+
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
@@ -152,20 +156,47 @@ window.addEventListener("figrecipe:file-select", ((e: CustomEvent) => {
   }
 }) as EventListener);
 
-// Wire toolbar media buttons (camera, sketch, mic)
-// These fire from standalone-shell-init.js but need handlers
+// Wire toolbar media buttons (camera, sketch, mic) — scitex-ui UI components
+// Image input manager for chat attachments
+const chatPreview = document.getElementById("stx-shell-ai-image-preview");
+const chatFileInput = document.getElementById(
+  "stx-shell-ai-file-input",
+) as HTMLInputElement | null;
+let imageInput: ImageInputManager | null = null;
+let webcamCapture: WebcamCapture | null = null;
+
+if (chatPreview && chatFileInput) {
+  imageInput = new ImageInputManager(chatPreview, chatFileInput);
+  webcamCapture = new WebcamCapture(imageInput, chatFileInput);
+
+  // Bind clipboard paste on chat textarea
+  const chatTextarea = document.getElementById(
+    "stx-shell-ai-input",
+  ) as HTMLTextAreaElement | null;
+  if (chatTextarea) {
+    imageInput.bindPaste(chatTextarea);
+  }
+}
+
+// Camera button → open webcam capture (scitex-ui WebcamCapture)
 window.addEventListener("stx-shell:camera", () => {
-  console.log(
-    "[figrecipe] Camera button clicked — webcam capture not yet wired",
-  );
+  if (webcamCapture) {
+    webcamCapture.open();
+  } else if (chatFileInput) {
+    chatFileInput.click(); // Fallback: file picker
+  }
 });
+
+// Sketch button — not yet ported (SketchCanvas is large, needs separate wiring)
 window.addEventListener("stx-shell:sketch", () => {
-  console.log(
-    "[figrecipe] Sketch button clicked — sketch canvas not yet wired",
-  );
+  if (chatFileInput) {
+    chatFileInput.click(); // Fallback: file picker for image upload
+  }
 });
+
+// Mic button — voice recording needs STT backend (scitex-app)
 window.addEventListener("stx-shell:mic-toggle", () => {
-  console.log("[figrecipe] Mic button clicked — voice recording not yet wired");
+  console.log("[figrecipe] Voice recording requires STT backend (scitex-app)");
 });
 
 // Wire file tree refresh when AI modifies files
