@@ -52,6 +52,12 @@ import {
   KeyboardShortcuts,
 } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/toolbar";
 
+// Vanilla TS shell keyboard shortcuts + modal (Alt+A, Alt+T, pane cycling)
+import {
+  initKeyboardShortcuts,
+  registerShortcuts,
+} from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/keyboard-shortcuts";
+
 // Vanilla TS shell viewer — file viewing (images, PDFs, text)
 import { ViewerManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
 import type { ViewerAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
@@ -129,6 +135,20 @@ const toolbar = new ToolbarManager();
 toolbar.init();
 const shortcuts = new KeyboardShortcuts();
 shortcuts.init();
+
+// Shell keyboard shortcuts — Alt+A (toggle AI), Alt+T (cycle panes), etc.
+initKeyboardShortcuts();
+// Register figrecipe-specific shortcuts for the modal
+registerShortcuts("figrecipe", [
+  {
+    title: "Figure Editor",
+    shortcuts: [
+      { keys: "Ctrl+Z", description: "Undo" },
+      { keys: "Ctrl+Y", description: "Redo" },
+      { keys: "Del", description: "Delete selected" },
+    ],
+  },
+]);
 
 // Shell viewer — opens files from file tree in the viewer pane
 const figrecipeViewerAdapter: ViewerAdapter = {
