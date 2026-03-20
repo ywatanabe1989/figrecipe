@@ -1,12 +1,21 @@
 /**
  * DjangoChatBackend — connects to figrecipe's Django SSE chat endpoint.
- * Implements ChatBackend interface from scitex-ui workspace shell.
+ *
+ * Types defined locally since the React shell has been removed.
+ * These will be replaced when scitex-ui provides vanilla TS chat types.
  */
 
-import type {
-  ChatBackend,
-  ChatChunk,
-} from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/shell/workspace/types";
+export interface ChatChunk {
+  type: "text" | "error" | "done";
+  content: string;
+}
+
+export interface ChatBackend {
+  sendMessage(
+    prompt: string,
+    context?: Record<string, unknown>,
+  ): AsyncIterable<ChatChunk>;
+}
 
 export class DjangoChatBackend implements ChatBackend {
   private baseUrl: string;

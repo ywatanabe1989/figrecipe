@@ -2,26 +2,19 @@
  *
  * The workspace shell (Console/Chat | Files | Viewer | App) is provided by
  * scitex-ui's vanilla TS system via the Django standalone_shell.html template.
- * This file only mounts the React InnerEditor into the app content area.
+ * This file only mounts the React InnerEditor into the app content area (#root).
  *
- * The React Workspace wrapper has been archived — see GITIGNORED/archive/
+ * Shell features (file tree, terminal, chat, toolbar) are ALL vanilla TS from scitex-ui.
+ * React is ONLY used for the app content (DataTable, Canvas, Properties panels).
  */
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
 
-// React app content
+// React app content (Plot/Canvas editor — NOT shell)
 import { InnerEditor } from "./InnerEditor";
 
-// scitex-ui React file browser (mounted into vanilla TS shell's tree container)
-import { FileBrowser } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/file-browser";
-import type { FileNode } from "@scitex/ui/src/scitex_ui/static/scitex_ui/react/app/file-browser/types";
-
-// figrecipe API + store
-import { api } from "./api/client";
-import { useEditorStore } from "./store/useEditorStore";
-
-// Styles
+// Styles (app-specific)
 import "./styles/app-variables.css";
 import "./styles/layout.css";
 import "./styles/context-menu.css";
@@ -39,16 +32,16 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/css/all.css";
 // @ts-ignore
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/element-inspector";
 
-// Context-aware zoom — app-specific panes only
+// Context-aware zoom — app-specific panes only (shell panes use vanilla TS zoom)
 import { bootstrapContextZoom } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/utils/context-zoom";
 
 // Vanilla TS workspace shell — panel resizer initialization
-// This auto-discovers [data-panel-resizer] elements and sets up drag resize
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-panel-resizer";
 
 // Vanilla TS standalone terminal — xterm.js + WebSocket to local PTY
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/standalone-terminal";
 
+// Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get("mode") === "embedded";
@@ -62,42 +55,7 @@ if (root) {
   );
 }
 
-// Mount React FileBrowser into the vanilla TS shell's file tree container
-const treeContainer = document.getElementById("ws-worktree-tree");
-if (treeContainer) {
-  function ShellFileBrowser() {
-    const [data, setData] = useState<FileNode[]>([]);
-    const { switchFile } = useEditorStore();
-
-    useEffect(() => {
-      api
-        .get<{ tree: FileNode[] }>("api/tree")
-        .then((resp) => setData(resp.tree || []))
-        .catch(console.error);
-    }, []);
-
-    return (
-      <FileBrowser
-        data={data}
-        onFileSelect={(node) => {
-          if (node.path.endsWith(".yaml") || node.path.endsWith(".yml")) {
-            switchFile(node.path);
-          }
-        }}
-        searchable
-        sortMode="name"
-      />
-    );
-  }
-
-  ReactDOM.createRoot(treeContainer).render(
-    <React.StrictMode>
-      <ShellFileBrowser />
-    </React.StrictMode>,
-  );
-}
-
-// Register zoom on app-specific panes (shell panes use vanilla TS zoom)
+// Register zoom on app-specific panes
 bootstrapContextZoom(
   [
     {
