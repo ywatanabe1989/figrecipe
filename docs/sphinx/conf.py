@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath("../../src"))
 project = "FigRecipe"
 copyright = "2026, Yusuke Watanabe"
 author = "Yusuke Watanabe"
-release = "0.26.6"
+release = "0.27.0"
 
 # -- General configuration ---------------------------------------------------
 
