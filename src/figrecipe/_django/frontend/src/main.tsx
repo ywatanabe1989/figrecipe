@@ -62,15 +62,9 @@ import {
 import { ViewerManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
 import type { ViewerAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
 
-// Vanilla TS shell chat media — webcam, sketch, image input (from scitex-ui)
-import { ImageInputManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_image-input";
-import { WebcamCapture } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_webcam-capture";
-import { SketchCanvas } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_sketch-canvas";
-import { VoiceRecorder } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat/_recorder";
-// ConfigMode class available but not needed — popover is in template HTML
-
-// Chat wiring — SSE streaming to figrecipe's api/chat/stream endpoint
-import { initChatWiring } from "./chat-wiring";
+// Vanilla TS shell ChatMode — full chat orchestration (scitex-ui)
+import { ChatMode } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat";
+import type { ChatAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/chat";
 
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
@@ -182,90 +176,124 @@ window.addEventListener("figrecipe:file-select", ((e: CustomEvent) => {
   }
 }) as EventListener);
 
-// Wire toolbar media buttons (camera, sketch, mic) — scitex-ui UI components
-// Image input manager for chat attachments
+// ChatMode — figrecipe adapter posts to api/chat/stream
+const figrecipeChatAdapter: ChatAdapter = {
+  async streamChat(message, _context, images) {
+    return fetch("api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: message,
+        history: [],
+        ...(images?.length
+          ? {
+              images: images.map((b64) => `data:image/png;base64,${b64}`),
+            }
+          : {}),
+      }),
+    });
+  },
+};
+
 const chatPreview = document.getElementById("stx-shell-ai-image-preview");
 const chatFileInput = document.getElementById(
   "stx-shell-ai-file-input",
 ) as HTMLInputElement | null;
-let imageInput: ImageInputManager | null = null;
-let webcamCapture: WebcamCapture | null = null;
-let sketchCanvas: SketchCanvas | null = null;
-let voiceRecorder: VoiceRecorder | null = null;
 
-if (chatPreview && chatFileInput) {
-  imageInput = new ImageInputManager(chatPreview, chatFileInput);
-  webcamCapture = new WebcamCapture(imageInput, chatFileInput);
-  sketchCanvas = new SketchCanvas(imageInput);
+const chatMode = new ChatMode();
+chatMode.init(
+  {
+    messagesEl: document.getElementById("stx-shell-ai-messages"),
+    inputEl: document.getElementById(
+      "stx-shell-ai-input",
+    ) as HTMLTextAreaElement,
+    sendBtn: null,
+    speakBtn: null,
+    micBtn: document.querySelector<HTMLButtonElement>(
+      '.stx-shell-ai-input-btn[title="Voice"]',
+    ),
+    sttModelSelect: null,
+    modelBadge: document.querySelector<HTMLElement>(
+      ".stx-shell-ai-model-badge",
+    ),
+    volBars: Array.from(
+      document.querySelectorAll<HTMLElement>(".stx-shell-ai-vol-bar"),
+    ),
+    imagePreviewEl: chatPreview,
+    imageFileInput: chatFileInput,
+    cameraBtn: document.querySelector<HTMLButtonElement>(
+      '.stx-shell-ai-input-btn[title="Camera"]',
+    ),
+    sketchBtn: document.querySelector<HTMLButtonElement>(
+      '.stx-shell-ai-input-btn[title="Sketch"]',
+    ),
+  },
+  { adapter: figrecipeChatAdapter },
+);
+chatMode.restoreConversation();
 
-  // Voice recorder — volume bars from DOM
-  const volBars = Array.from(
-    document.querySelectorAll<HTMLElement>(".stx-shell-ai-vol-bar"),
-  );
-  const micBtn = document.querySelector<HTMLButtonElement>(
-    '.stx-shell-ai-input-btn[title="Voice"]',
-  );
-  voiceRecorder = new VoiceRecorder(volBars, micBtn);
-
-  // Bind clipboard paste on chat textarea
-  const chatTextarea = document.getElementById(
-    "stx-shell-ai-input",
-  ) as HTMLTextAreaElement | null;
-  if (chatTextarea) {
-    imageInput.bindPaste(chatTextarea);
-  }
+// Wire Enter-to-send, C-p/C-n history, auto-resize on the chat textarea
+const chatInput = document.getElementById(
+  "stx-shell-ai-input",
+) as HTMLTextAreaElement | null;
+if (chatInput) {
+  chatInput.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      chatMode.send();
+      return;
+    }
+    // C-p / ArrowUp — previous history
+    if (
+      (e.key === "ArrowUp" || (e.ctrlKey && e.key === "p")) &&
+      chatInput.selectionStart === 0
+    ) {
+      e.preventDefault();
+      chatMode.navigateHistory(1);
+      return;
+    }
+    // C-n / ArrowDown — next history
+    if (
+      (e.key === "ArrowDown" || (e.ctrlKey && e.key === "n")) &&
+      chatInput.selectionEnd === chatInput.value.length
+    ) {
+      e.preventDefault();
+      chatMode.navigateHistory(-1);
+      return;
+    }
+  });
+  // Auto-resize textarea
+  chatInput.addEventListener("input", () => {
+    chatInput.style.height = "auto";
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + "px";
+  });
 }
 
-// Initialize chat wiring — connects textarea to SSE backend + markdown rendering
-initChatWiring({ imageInput });
+// Clear chat on custom event (toolbar clear button)
+document.addEventListener("stx-shell:clear-chat", () => {
+  chatMode.clearChat();
+});
 
-// Camera button → open webcam capture (scitex-ui WebcamCapture)
+// Camera button → ChatMode handles via refs, also support custom event
 window.addEventListener("stx-shell:camera", () => {
-  if (webcamCapture) {
-    webcamCapture.open();
-  } else if (chatFileInput) {
-    chatFileInput.click();
-  }
+  // ChatMode wires cameraBtn click internally; this handles custom events
+  const btn = document.querySelector<HTMLButtonElement>(
+    '.stx-shell-ai-input-btn[title="Camera"]',
+  );
+  btn?.click();
 });
 
-// Sketch button → open sketch canvas (scitex-ui SketchCanvas)
+// Sketch button
 window.addEventListener("stx-shell:sketch", () => {
-  if (sketchCanvas) {
-    sketchCanvas.open();
-  } else if (chatFileInput) {
-    chatFileInput.click();
-  }
+  const btn = document.querySelector<HTMLButtonElement>(
+    '.stx-shell-ai-input-btn[title="Sketch"]',
+  );
+  btn?.click();
 });
 
-// Mic button → toggle voice recording (scitex-ui VoiceRecorder)
+// Mic button → toggle voice recording via ChatMode
 window.addEventListener("stx-shell:mic-toggle", () => {
-  if (!voiceRecorder) return;
-  if (voiceRecorder.isRecording) {
-    voiceRecorder.stop();
-  } else {
-    // STT adapter — uses browser SpeechRecognition as fallback
-    // (full STT backend would come from scitex-app)
-    voiceRecorder.start(
-      {
-        async transcribe(blob: Blob): Promise<string> {
-          // Browser SpeechRecognition fallback (no server needed)
-          console.log("[figrecipe] Voice recorded, size:", blob.size);
-          // TODO: wire to scitex-app STT endpoint when available
-          return "";
-        },
-      },
-      (text: string) => {
-        // Insert transcribed text into chat input
-        const input = document.getElementById(
-          "stx-shell-ai-input",
-        ) as HTMLTextAreaElement | null;
-        if (input && text) {
-          input.value += text;
-          input.focus();
-        }
-      },
-    );
-  }
+  chatMode.toggleRecording();
 });
 
 // Settings — popover is in the template (standalone_shell.html).
