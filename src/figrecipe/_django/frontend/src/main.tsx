@@ -52,6 +52,10 @@ import {
   KeyboardShortcuts,
 } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/toolbar";
 
+// Vanilla TS shell viewer — file viewing (images, PDFs, text)
+import { ViewerManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
+import type { ViewerAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
+
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
@@ -118,6 +122,56 @@ const toolbar = new ToolbarManager();
 toolbar.init();
 const shortcuts = new KeyboardShortcuts();
 shortcuts.init();
+
+// Shell viewer — opens files from file tree in the viewer pane
+const figrecipeViewerAdapter: ViewerAdapter = {
+  async readFile(path: string) {
+    const resp = await fetch(`api/file-content/${path}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    return { content: data.content ?? "" };
+  },
+  getFileUrl(path: string) {
+    return `api/file-content/${path}?raw=true`;
+  },
+};
+
+let shellViewer: ViewerManager | null = null;
+try {
+  shellViewer = new ViewerManager({
+    adapter: figrecipeViewerAdapter,
+  });
+} catch {
+  // Viewer pane may not exist
+}
+
+// Wire file tree → viewer: double-clicking opens files in viewer
+window.addEventListener("figrecipe:file-select", ((e: CustomEvent) => {
+  if (shellViewer && e.detail?.path) {
+    shellViewer.openFile(e.detail.path);
+  }
+}) as EventListener);
+
+// Wire toolbar media buttons (camera, sketch, mic)
+// These fire from standalone-shell-init.js but need handlers
+window.addEventListener("stx-shell:camera", () => {
+  console.log(
+    "[figrecipe] Camera button clicked — webcam capture not yet wired",
+  );
+});
+window.addEventListener("stx-shell:sketch", () => {
+  console.log(
+    "[figrecipe] Sketch button clicked — sketch canvas not yet wired",
+  );
+});
+window.addEventListener("stx-shell:mic-toggle", () => {
+  console.log("[figrecipe] Mic button clicked — voice recording not yet wired");
+});
+
+// Wire file tree refresh when AI modifies files
+document.addEventListener("stx-shell:files-changed", () => {
+  shellFileTree.refresh();
+});
 
 // Register zoom on app-specific panes
 bootstrapContextZoom(
