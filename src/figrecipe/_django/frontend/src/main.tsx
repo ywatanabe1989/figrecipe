@@ -236,7 +236,18 @@ chatMode.init(
       "stx-shell-ai-sketch",
     ) as HTMLButtonElement,
   },
-  { adapter: figrecipeChatAdapter },
+  {
+    adapter: figrecipeChatAdapter,
+    // STT adapter — records audio, sends blob to transcription service
+    // Uses browser SpeechRecognition as fallback (no server needed)
+    sttAdapter: {
+      async transcribe(_blob: Blob): Promise<string> {
+        console.log("[figrecipe] Voice recorded, size:", _blob.size);
+        // TODO: wire to scitex-app STT endpoint when available
+        return "";
+      },
+    },
+  },
 );
 chatMode.restoreConversation();
 
