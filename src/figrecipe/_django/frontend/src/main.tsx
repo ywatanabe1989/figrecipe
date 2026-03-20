@@ -1,11 +1,6 @@
 /** FigRecipe Editor — Bootstrap.
- *
- * The workspace shell (Console/Chat | Files | Viewer | App) is provided by
- * scitex-ui's vanilla TS system via the Django standalone_shell.html template.
- * This file only mounts the React InnerEditor into the app content area (#root).
- *
- * Shell features (file tree, terminal, chat, toolbar) are ALL vanilla TS from scitex-ui.
- * React is ONLY used for the app content (DataTable, Canvas, Properties panels).
+ * Shell (Console/Chat|Files|Viewer|App) from scitex-ui vanilla TS.
+ * React is ONLY used for app content (DataTable, Canvas, Properties).
  */
 
 import React from "react";
@@ -57,6 +52,13 @@ import {
   initKeyboardShortcuts,
   registerShortcuts,
 } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/keyboard-shortcuts";
+
+// Vanilla TS shell repo monitor — recent file changes (adapter-based polling)
+import {
+  initRepoMonitor,
+  initMonitorToggle,
+} from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/repo-monitor";
+import type { RepoMonitorAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/repo-monitor";
 
 // Vanilla TS shell viewer — file viewing (images, PDFs, text)
 import { ViewerManager } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/viewer";
@@ -125,6 +127,40 @@ const fileTree = new WorkspaceFilesTree({
   },
 });
 fileTree.initialize();
+
+// Shell repo monitor — polls api/files for recently modified files
+const figrecipeRepoMonitorAdapter: RepoMonitorAdapter = {
+  async fetchRecentFiles() {
+    const resp = await fetch("api/files?recent=true&limit=50");
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    // Normalize response: api/files returns { files: [...] }
+    const files = data.files ?? data ?? [];
+    return files.map(
+      (f: {
+        path: string;
+        name?: string;
+        modified_at?: string;
+        mtime?: string;
+        action?: string;
+      }) => ({
+        path: f.path,
+        name: f.name ?? f.path.split("/").pop() ?? f.path,
+        modified_at: f.modified_at ?? f.mtime ?? new Date().toISOString(),
+        action: f.action,
+      }),
+    );
+  },
+  getFileUrl(path: string) {
+    return `api/file-content/${path}?raw=true`;
+  },
+};
+
+initMonitorToggle();
+initRepoMonitor({
+  adapter: figrecipeRepoMonitorAdapter,
+  pollIntervalMs: 10_000,
+});
 
 // Shell terminal — local PTY via WebSocket on port+1
 const figrecipeTerminalAdapter: TerminalConnectionAdapter = {
