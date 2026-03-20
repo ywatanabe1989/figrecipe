@@ -36,7 +36,10 @@ export default defineConfig({
   base: "/static/figrecipe/",
   resolve: {
     alias: {
-      "scitex-ui": SCITEX_UI_STATIC,
+      "@scitex/ui": SCITEX_UI_STATIC.replace(
+        /\/src\/scitex_ui\/static\/scitex_ui$/,
+        "",
+      ),
     },
   },
   build: {

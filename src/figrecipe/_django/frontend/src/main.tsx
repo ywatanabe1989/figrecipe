@@ -41,6 +41,10 @@ import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/workspace-panel-resiz
 // Vanilla TS standalone terminal — xterm.js + WebSocket to local PTY
 import "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/standalone-terminal";
 
+// Vanilla TS shell file tree — adapter-based, with hidden files toggle
+import { ShellFileTree } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/file-tree";
+import type { FileTreeAdapter } from "@scitex/ui/src/scitex_ui/static/scitex_ui/ts/shell/file-tree";
+
 // Mount React InnerEditor into app content area ONLY
 const root = document.getElementById("root");
 const params = new URLSearchParams(window.location.search);
@@ -53,6 +57,40 @@ if (root) {
       <InnerEditor embedded={embedded} />
     </React.StrictMode>,
   );
+}
+
+// Shell file tree — connects to figrecipe's api/tree endpoint
+const figrecipeFileTreeAdapter: FileTreeAdapter = {
+  async fetchTree() {
+    const resp = await fetch("api/tree");
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    const data = await resp.json();
+    return data.tree ?? [];
+  },
+};
+
+const shellFileTree = new ShellFileTree({
+  container: "#ws-worktree-tree",
+  adapter: figrecipeFileTreeAdapter,
+  onFileSelect: (node) => {
+    // Dispatch event for the React app to handle file selection
+    window.dispatchEvent(
+      new CustomEvent("figrecipe:file-select", {
+        detail: { path: node.path, name: node.name },
+      }),
+    );
+  },
+});
+shellFileTree.load();
+
+// Wire hidden files toggle button if it exists in shell template
+const hiddenToggle = document.getElementById("hidden-files-toggle");
+if (hiddenToggle) {
+  hiddenToggle.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    shellFileTree.toggleHidden();
+  });
 }
 
 // Register zoom on app-specific panes
