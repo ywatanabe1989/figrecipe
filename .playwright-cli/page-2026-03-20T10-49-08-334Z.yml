@@ -1,0 +1,637 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "SciTeX (Dev)" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "SciTeX (Dev)" [ref=e6]
+        - generic [ref=e7]:
+          - button "dotfiles" [ref=e8] [cursor=pointer]:
+            - generic [ref=e9]: dotfiles
+            - img [ref=e10]
+          - text:  
+      - text:  
+      - generic [ref=e13]:
+        - textbox "Search or jump to..." [ref=e14]
+        - generic: /
+      - generic [ref=e15]:
+        - 'button "Current theme: 🌙 Dark" [ref=e16] [cursor=pointer]': 🌙 Toggle light/dark theme
+        - button " Product Tour" [ref=e17] [cursor=pointer]:
+          - generic [ref=e18]: 
+          - text: Product Tour
+        - link " Keyboard Shortcuts (Alt+/ for quick view)" [ref=e19] [cursor=pointer]:
+          - /url: /keyboard-shortcuts/
+          - generic [ref=e20]: 
+          - text: Keyboard Shortcuts (Alt+/ for quick view)
+        - generic [ref=e21]:
+          - button " Notifications" [ref=e22] [cursor=pointer]:
+            - generic [ref=e23]: 
+            - text: Notifications
+          - text: 
+        - 'link " Server: partial" [ref=e24] [cursor=pointer]':
+          - /url: /server-status/
+          - generic [ref=e26]: 
+          - text: "Server: partial"
+        - generic [ref=e27]:
+          - 'button "Visitor #002 ⏰ 59:54" [ref=e28] [cursor=pointer]':
+            - img [ref=e29]
+            - generic [ref=e32]: "Visitor #002"
+            - generic [ref=e33]: ⏰ 59:54
+            - img [ref=e34]
+          - text:   
+  - button "Hide header":
+    - generic: 
+    - text: Hide header
+  - generic [ref=e36]:
+    - generic [ref=e38]:
+      - generic [ref=e40]:
+        - text:  
+        - generic [ref=e41]:
+          - button " Console" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 
+            - text: Console
+          - button " Chat" [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]: 
+            - text: Chat
+        - button "" [ref=e47] [cursor=pointer]:
+          - generic [ref=e48]: 
+      - generic [ref=e49]:
+        - text: +                 
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - button "+" [ref=e52] [cursor=pointer]:
+              - generic [ref=e53]: +
+            - generic "ai-panel-bb486421-0487-4bd9-b656-552a2a7c739f" [ref=e55] [cursor=pointer]:
+              - generic [ref=e56]: T1
+          - generic [ref=e58]:
+            - generic [ref=e61]:
+              - generic:
+                - textbox "Terminal input"
+            - generic [ref=e89]:
+              - generic [ref=e90]: 
+              - text: Starting computing environment...
+          - generic [ref=e91]:
+            - generic [ref=e92]:
+              - generic [ref=e93]: 
+              - text: Disconnected
+            - generic [ref=e94]:
+              - button "" [ref=e95] [cursor=pointer]:
+                - generic [ref=e96]: 
+              - button "" [ref=e97] [cursor=pointer]:
+                - generic [ref=e98]: 
+              - button "" [ref=e99] [cursor=pointer]:
+                - generic [ref=e100]: 
+              - button "" [ref=e101] [cursor=pointer]:
+                - generic [ref=e102]: 
+              - button "" [ref=e103] [cursor=pointer]:
+                - generic [ref=e104]: 
+            - text:   
+          - group [ref=e105]:
+            - generic "▸  Jobs No jobs " [ref=e106] [cursor=pointer]:
+              - text: ▸
+              - generic [ref=e107]: 
+              - generic [ref=e108]: Jobs
+              - generic [ref=e109]: No jobs
+              - button "" [ref=e110]:
+                - generic [ref=e111]: 
+            - text: 
+    - generic [ref=e113]:
+      - generic [ref=e115]:
+        - text:  
+        - generic [ref=e116]:
+          - generic [ref=e117]: 
+          - text: visitor-002/dotfiles
+        - button "" [ref=e119] [cursor=pointer]:
+          - generic [ref=e120]: 
+      - generic [ref=e121]:
+        - generic [ref=e123]:
+          - generic [ref=e125]:
+            - text: 
+            - generic "AGENTS.md" [ref=e126] [cursor=pointer]:
+              - text: 
+              - generic [ref=e128]: AGENTS.md
+            - generic "bash_profile" [ref=e129] [cursor=pointer]:
+              - text: 
+              - generic [ref=e131]: bash_profile
+            - generic "bashrc" [ref=e132] [cursor=pointer]:
+              - text: 
+              - generic [ref=e134]: bashrc
+            - generic "gitconfig" [ref=e135] [cursor=pointer]:
+              - text: 
+              - generic [ref=e137]: gitconfig
+            - generic "install.sh" [ref=e138] [cursor=pointer]:
+              - text: 
+              - generic [ref=e140]: install.sh
+            - generic "ipython" [ref=e141] [cursor=pointer]:
+              - button "▸" [ref=e142]:
+                - generic [ref=e143]: ▸
+                - text: 
+              - generic [ref=e144]: ipython
+            - text: 
+            - generic "README.md" [ref=e145] [cursor=pointer]:
+              - text: 
+              - generic [ref=e147]: README.md
+            - generic "scitex" [ref=e148] [cursor=pointer]:
+              - button "▸" [ref=e149]:
+                - generic [ref=e150]: ▸
+                - text: 
+              - generic [ref=e151]: scitex
+            - text:  ▸     ▸  ▸    ▸      ▸         ▸  ▸      ▸   ▸        ▸  ▸     ▸         ▸          ▸  ▸   ▸      ▸          ▸           ▸   ▸    ▸  ▸      ▸          ▸  ▸     ▸             ▸   ▸     ▸    ▸  ▸      ▸           ▸    ▸      ▸       ▸       ▸                   ▸    ▸        ▸               ▸  ▸         ▸      ▸      ▸      ▸   ▸                 ▸         ▸            ▸            ▸           ▸          ▸  ▸     ▸                ▸            ▸   ▸     ▸      ▸     ▸       ▸         ▸         ▸          ▸    ▸          ▸               ▸        ▸            ▸        ▸        ▸       ▸    ▸       ▸  ▸  ▸           ▸   ▸     ▸   ▸    ▸    ▸    ▸      ▸                            ▸            ▸  ▸  ▸                        ▸          
+            - generic "tmux.conf" [ref=e152] [cursor=pointer]:
+              - text: 
+              - generic [ref=e154]: tmux.conf
+            - generic "vimrc" [ref=e155] [cursor=pointer]:
+              - text: 
+              - generic [ref=e157]: vimrc
+          - text:  
+        - generic [ref=e160] [cursor=pointer]:
+          - generic [ref=e161]: 
+          - generic [ref=e162]: Recent
+          - generic [ref=e163]:
+            - button "" [ref=e164]:
+              - generic [ref=e165]: 
+            - button "" [ref=e166]:
+              - generic [ref=e167]: 
+            - button "" [ref=e168]:
+              - generic [ref=e169]: 
+    - generic [ref=e171] [cursor=pointer]:
+      - generic [ref=e173]:
+        - text: 
+        - generic "Viewer" [ref=e174]:
+          - generic [ref=e175]: 
+          - text: Viewer
+        - text: "  Supported formats: Text: .py .js .ts .html .css .json .md .yaml .sh .tex .bib .txt Image: .png .jpg .jpeg .gif .webp .svg .bmp .ico PDF: .pdf Table: .csv .tsv Diagram: .mmd .mermaid .dot .gv Audio: .mp3 .wav .ogg .flac .m4a .aac .wma Video: .mp4 .webm .avi .mov .mkv .ogv "
+      - text:  Click to expand
+    - navigation [ref=e179]:
+      - link "Home" [ref=e180] [cursor=pointer]:
+        - /url: /apps/home/
+        - generic [ref=e181]: 
+        - generic [ref=e182]: Home
+      - link "Writer" [ref=e183] [cursor=pointer]:
+        - /url: /apps/writer/
+        - generic [ref=e184]: 
+        - generic [ref=e185]: Writer
+      - link "Scholar" [ref=e186] [cursor=pointer]:
+        - /url: /apps/scholar/
+        - generic [ref=e187]: 
+        - generic [ref=e188]: Scholar
+      - link "Clew" [ref=e189] [cursor=pointer]:
+        - /url: /apps/clew/
+        - img [ref=e190]
+        - generic [ref=e195]: Clew
+      - link "FigRecipe" [ref=e196] [cursor=pointer]:
+        - /url: /apps/figrecipe/
+        - generic [ref=e197]: 
+        - generic [ref=e198]: FigRecipe
+      - link "Tools" [ref=e199] [cursor=pointer]:
+        - /url: /apps/tools/
+        - generic [ref=e200]: 
+        - generic [ref=e201]: Tools
+      - link "Discovery" [ref=e202] [cursor=pointer]:
+        - /url: /apps/discovery/
+        - generic [ref=e203]: 
+        - generic [ref=e204]: Discovery
+      - link "Docs" [ref=e205] [cursor=pointer]:
+        - /url: /apps/docs/
+        - generic [ref=e206]: 
+        - generic [ref=e207]: Docs
+      - link "Store" [ref=e208] [cursor=pointer]:
+        - /url: /apps/store/
+        - generic [ref=e209]: 
+        - generic [ref=e210]: Store
+    - main [ref=e211]:
+      - main [ref=e213]:
+        - generic [ref=e214]:
+          - link " My" [ref=e215] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e216]: 
+            - text: My
+          - link " Settings" [ref=e217] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e218]: 
+            - text: Settings
+          - link " dotfiles" [ref=e219] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e220]: 
+            - generic [ref=e221]: dotfiles
+        - generic [ref=e223]:
+          - generic [ref=e224]:
+            - generic [ref=e225]:
+              - link "visitor-002" [ref=e226] [cursor=pointer]:
+                - /url: /visitor-002/
+              - generic [ref=e227]: /
+              - link "dotfiles" [ref=e228] [cursor=pointer]:
+                - /url: /visitor-002/dotfiles/
+              - button "main" [ref=e230] [cursor=pointer]:
+                - img [ref=e231]
+                - generic [ref=e233]: main
+                - img [ref=e234]
+              - generic [ref=e236]:
+                - link "1 Branch" [ref=e237] [cursor=pointer]:
+                  - /url: /visitor-002/dotfiles/branches/
+                  - img [ref=e238]
+                  - strong [ref=e240]: "1"
+                  - text: Branch
+                - link "0 Tags" [ref=e241] [cursor=pointer]:
+                  - /url: /visitor-002/dotfiles/tags/
+                  - img [ref=e242]
+                  - strong [ref=e244]: "0"
+                  - text: Tags
+            - generic [ref=e245]:
+              - generic [ref=e246]:
+                - button "Watch 0" [ref=e247] [cursor=pointer]:
+                  - img [ref=e248]
+                  - generic [ref=e249]: Watch
+                  - generic [ref=e250]: "0"
+                - button "Star 0" [ref=e251] [cursor=pointer]:
+                  - img [ref=e252]
+                  - generic [ref=e253]: Star
+                  - generic [ref=e254]: "0"
+                - button "Fork 0" [ref=e255] [cursor=pointer]:
+                  - img [ref=e256]
+                  - generic [ref=e257]: Fork
+                  - generic [ref=e258]: "0"
+                - generic [ref=e260]:
+                  - button "Code" [ref=e261] [cursor=pointer]:
+                    - img [ref=e262]
+                    - text: Code
+                    - img [ref=e263]
+                  - text: plaintext   plaintext  
+              - generic [ref=e264]:
+                - generic [ref=e265]: Shell configuration for visitor-002
+                - button "" [ref=e266] [cursor=pointer]:
+                  - generic [ref=e267]: 
+          - generic [ref=e268]:
+            - generic [ref=e269]:
+              - link "Files" [ref=e270] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e271]
+                - text: Files
+              - link "Issues" [ref=e273] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e274]
+                - text: Issues
+              - link "Pull requests" [ref=e277] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e278]
+                - text: Pull requests
+              - link "Settings" [ref=e280] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e281]
+                - text: Settings
+            - generic [ref=e283]:
+              - generic [ref=e284]:
+                - img
+                - textbox "Go to file" [ref=e285]
+              - button "Add file" [ref=e287] [cursor=pointer]:
+                - img [ref=e288]
+                - text: Add file
+                - img [ref=e290]
+              - generic [ref=e292]:
+                - button " Import / Export" [ref=e293] [cursor=pointer]:
+                  - generic [ref=e294]: 
+                  - text: Import / Export
+                  - img [ref=e295]
+                - text:  Work in Progress — not yet functional  Work in Progress — not yet functional  Work in Progress — not yet functional Work in Progress — not yet functional  Work in Progress — not yet functional  Work in Progress — not yet functional  Work in Progress — not yet functional Work in Progress — not yet functional
+              - generic [ref=e297]:
+                - button "Copy" [ref=e298] [cursor=pointer]:
+                  - img [ref=e299]
+                  - text: Copy
+                - button [ref=e302] [cursor=pointer]:
+                  - img [ref=e303]
+          - table [ref=e306]:
+            - rowgroup [ref=e307]:
+              - row "Git Status Name Last commit message Last commit date" [ref=e308]:
+                - columnheader "Git Status" [ref=e309]
+                - columnheader "Name" [ref=e310]
+                - columnheader "Last commit message" [ref=e311]
+                - columnheader "Last commit date" [ref=e312]
+            - rowgroup [ref=e313]:
+              - row "Directory .agents No commit message" [ref=e314] [cursor=pointer]:
+                - cell [ref=e315]
+                - cell "Directory .agents" [ref=e316]:
+                  - link "Directory .agents" [ref=e317]:
+                    - /url: /visitor-002/dotfiles/.agents/
+                    - img "Directory" [ref=e318]
+                    - generic [ref=e320]: .agents
+                - cell "No commit message" [ref=e321]
+                - cell [ref=e322]
+              - row "Directory .git No commit message" [ref=e323] [cursor=pointer]:
+                - cell [ref=e324]
+                - cell "Directory .git" [ref=e325]:
+                  - link "Directory .git" [ref=e326]:
+                    - /url: /visitor-002/dotfiles/.git/
+                    - img "Directory" [ref=e327]
+                    - generic [ref=e329]: .git
+                - cell "No commit message" [ref=e330]
+                - cell [ref=e331]
+              - row "Directory ipython No commit message" [ref=e332] [cursor=pointer]:
+                - cell [ref=e333]
+                - cell "Directory ipython" [ref=e334]:
+                  - link "Directory ipython" [ref=e335]:
+                    - /url: /visitor-002/dotfiles/ipython/
+                    - img "Directory" [ref=e336]
+                    - generic [ref=e338]: ipython
+                - cell "No commit message" [ref=e339]
+                - cell [ref=e340]
+              - row "Directory scitex No commit message" [ref=e341] [cursor=pointer]:
+                - cell [ref=e342]
+                - cell "Directory scitex" [ref=e343]:
+                  - link "Directory scitex" [ref=e344]:
+                    - /url: /visitor-002/dotfiles/scitex/
+                    - img "Directory" [ref=e345]
+                    - generic [ref=e347]: scitex
+                - cell "No commit message" [ref=e348]
+                - cell [ref=e349]
+              - row "File .gitignore No commit message" [ref=e350] [cursor=pointer]:
+                - cell [ref=e351]
+                - cell "File .gitignore" [ref=e352]:
+                  - link "File .gitignore" [ref=e353]:
+                    - /url: /visitor-002/dotfiles/blob/.gitignore
+                    - img "File" [ref=e354]
+                    - generic [ref=e356]: .gitignore
+                - cell "No commit message" [ref=e357]
+                - cell [ref=e358]
+              - row "File .mcp.json No commit message" [ref=e359] [cursor=pointer]:
+                - cell [ref=e360]
+                - cell "File .mcp.json" [ref=e361]:
+                  - link "File .mcp.json" [ref=e362]:
+                    - /url: /visitor-002/dotfiles/blob/.mcp.json
+                    - img "File" [ref=e363]
+                    - generic [ref=e365]: .mcp.json
+                - cell "No commit message" [ref=e366]
+                - cell [ref=e367]
+              - row "File AGENTS.md No commit message" [ref=e368] [cursor=pointer]:
+                - cell [ref=e369]
+                - cell "File AGENTS.md" [ref=e370]:
+                  - link "File AGENTS.md" [ref=e371]:
+                    - /url: /visitor-002/dotfiles/blob/AGENTS.md
+                    - img "File" [ref=e372]
+                    - generic [ref=e374]: AGENTS.md
+                - cell "No commit message" [ref=e375]
+                - cell [ref=e376]
+              - row "File bash_profile No commit message" [ref=e377] [cursor=pointer]:
+                - cell [ref=e378]
+                - cell "File bash_profile" [ref=e379]:
+                  - link "File bash_profile" [ref=e380]:
+                    - /url: /visitor-002/dotfiles/blob/bash_profile
+                    - img "File" [ref=e381]
+                    - generic [ref=e383]: bash_profile
+                - cell "No commit message" [ref=e384]
+                - cell [ref=e385]
+              - row "File bashrc No commit message" [ref=e386] [cursor=pointer]:
+                - cell [ref=e387]
+                - cell "File bashrc" [ref=e388]:
+                  - link "File bashrc" [ref=e389]:
+                    - /url: /visitor-002/dotfiles/blob/bashrc
+                    - img "File" [ref=e390]
+                    - generic [ref=e392]: bashrc
+                - cell "No commit message" [ref=e393]
+                - cell [ref=e394]
+              - row "File gitconfig No commit message" [ref=e395] [cursor=pointer]:
+                - cell [ref=e396]
+                - cell "File gitconfig" [ref=e397]:
+                  - link "File gitconfig" [ref=e398]:
+                    - /url: /visitor-002/dotfiles/blob/gitconfig
+                    - img "File" [ref=e399]
+                    - generic [ref=e401]: gitconfig
+                - cell "No commit message" [ref=e402]
+                - cell [ref=e403]
+              - row "File install.sh No commit message" [ref=e404] [cursor=pointer]:
+                - cell [ref=e405]
+                - cell "File install.sh" [ref=e406]:
+                  - link "File install.sh" [ref=e407]:
+                    - /url: /visitor-002/dotfiles/blob/install.sh
+                    - img "File" [ref=e408]
+                    - generic [ref=e410]: install.sh
+                - cell "No commit message" [ref=e411]
+                - cell [ref=e412]
+              - row "File README.md No commit message" [ref=e413] [cursor=pointer]:
+                - cell [ref=e414]
+                - cell "File README.md" [ref=e415]:
+                  - link "File README.md" [ref=e416]:
+                    - /url: /visitor-002/dotfiles/blob/README.md
+                    - img "File" [ref=e417]
+                    - generic [ref=e419]: README.md
+                - cell "No commit message" [ref=e420]
+                - cell [ref=e421]
+              - row "File tmux.conf No commit message" [ref=e422] [cursor=pointer]:
+                - cell [ref=e423]
+                - cell "File tmux.conf" [ref=e424]:
+                  - link "File tmux.conf" [ref=e425]:
+                    - /url: /visitor-002/dotfiles/blob/tmux.conf
+                    - img "File" [ref=e426]
+                    - generic [ref=e428]: tmux.conf
+                - cell "No commit message" [ref=e429]
+                - cell [ref=e430]
+              - row "File vimrc No commit message" [ref=e431] [cursor=pointer]:
+                - cell [ref=e432]
+                - cell "File vimrc" [ref=e433]:
+                  - link "File vimrc" [ref=e434]:
+                    - /url: /visitor-002/dotfiles/blob/vimrc
+                    - img "File" [ref=e435]
+                    - generic [ref=e437]: vimrc
+                - cell "No commit message" [ref=e438]
+                - cell [ref=e439]
+          - generic [ref=e440]:
+            - generic [ref=e441]:
+              - img [ref=e442]
+              - text: README.md
+            - generic [ref=e444]:
+              - heading "visitor-002's Dotfiles" [level=1] [ref=e445]
+              - paragraph [ref=e446]: Personal configuration files for SciTeX Cloud.
+              - heading "Usage" [level=2] [ref=e447]
+              - paragraph [ref=e448]: "Edit any file, then run:"
+              - generic [ref=e449]:
+                - text: bash
+                - button "Copy code to clipboard" [ref=e450] [cursor=pointer]:
+                  - img [ref=e451]
+                - code [ref=e454]:
+                  - table [ref=e455]:
+                    - rowgroup [ref=e456]:
+                      - row "1 ./install.sh" [ref=e457]:
+                        - cell "1" [ref=e458]:
+                          - generic [ref=e459]: "1"
+                        - cell "./install.sh" [ref=e460]
+                      - row "2 source ~/.bashrc" [ref=e461]:
+                        - cell "2" [ref=e462]:
+                          - generic [ref=e463]: "2"
+                        - cell "source ~/.bashrc" [ref=e464]
+              - heading "Files" [level=2] [ref=e465]
+              - table [ref=e466]:
+                - rowgroup [ref=e467]:
+                  - row "File Description" [ref=e468]:
+                    - columnheader "File" [ref=e469]
+                    - columnheader "Description" [ref=e470]
+                - rowgroup [ref=e471]:
+                  - row "bashrc Shell configuration, aliases, prompt" [ref=e472]:
+                    - cell "bashrc" [ref=e473]:
+                      - code [ref=e474]: bashrc
+                    - cell "Shell configuration, aliases, prompt" [ref=e475]
+                  - row "bash_profile Login shell (sources bashrc)" [ref=e476]:
+                    - cell "bash_profile" [ref=e477]:
+                      - code [ref=e478]: bash_profile
+                    - cell "Login shell (sources bashrc)" [ref=e479]
+                  - row "vimrc Vim editor settings" [ref=e480]:
+                    - cell "vimrc" [ref=e481]:
+                      - code [ref=e482]: vimrc
+                    - cell "Vim editor settings" [ref=e483]
+                  - row "gitconfig Git configuration" [ref=e484]:
+                    - cell "gitconfig" [ref=e485]:
+                      - code [ref=e486]: gitconfig
+                    - cell "Git configuration" [ref=e487]
+                  - row "tmux.conf Tmux terminal multiplexer" [ref=e488]:
+                    - cell "tmux.conf" [ref=e489]:
+                      - code [ref=e490]: tmux.conf
+                    - cell "Tmux terminal multiplexer" [ref=e491]
+                  - row "ipython/ IPython configuration" [ref=e492]:
+                    - cell "ipython/" [ref=e493]:
+                      - code [ref=e494]: ipython/
+                    - cell "IPython configuration" [ref=e495]
+              - heading "Customization" [level=2] [ref=e496]
+              - paragraph [ref=e497]: Feel free to edit any file! Your changes are version controlled.
+              - generic [ref=e498]:
+                - text: bash
+                - button "Copy code to clipboard" [ref=e499] [cursor=pointer]:
+                  - img [ref=e500]
+                - code [ref=e503]:
+                  - table [ref=e504]:
+                    - rowgroup [ref=e505]:
+                      - row "1 git add -A" [ref=e506]:
+                        - cell "1" [ref=e507]:
+                          - generic [ref=e508]: "1"
+                        - cell "git add -A" [ref=e509]
+                      - row "2 git commit -m \"Updated bashrc aliases\"" [ref=e510]:
+                        - cell "2" [ref=e511]:
+                          - generic [ref=e512]: "2"
+                        - cell "git commit -m \"Updated bashrc aliases\"" [ref=e513]
+              - heading "Sync to Local Machine" [level=2] [ref=e514]
+              - generic [ref=e515]:
+                - text: bash
+                - button "Copy code to clipboard" [ref=e516] [cursor=pointer]:
+                  - img [ref=e517]
+                - code [ref=e520]:
+                  - table [ref=e521]:
+                    - rowgroup [ref=e522]:
+                      - row "1 git clone <this-repo> ~/.dotfiles" [ref=e523]:
+                        - cell "1" [ref=e524]:
+                          - generic [ref=e525]: "1"
+                        - cell "git clone <this-repo> ~/.dotfiles" [ref=e526]
+                      - row "2 cd ~/.dotfiles" [ref=e527]:
+                        - cell "2" [ref=e528]:
+                          - generic [ref=e529]: "2"
+                        - cell "cd ~/.dotfiles" [ref=e530]
+                      - row "3 ./install.sh" [ref=e531]:
+                        - cell "3" [ref=e532]:
+                          - generic [ref=e533]: "3"
+                        - cell "./install.sh" [ref=e534]
+  - button "Show footer" [ref=e535] [cursor=pointer]:
+    - generic [ref=e536]: 
+    - text: Show footer
+  - contentinfo [ref=e537] [cursor=pointer]:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - heading "SciTeX" [level=3]
+            - paragraph: Research Automation for AI and Humans
+            - generic:
+              - link "":
+                - /url: https://github.com/ywatanabe1989
+                - generic: 
+              - link "":
+                - /url: https://app.slack.com/client/T08TMR9RZQR/C08TMRA20AD
+                - generic: 
+              - link "":
+                - /url: https://twitter.com/SciTeX_AI
+                - generic: 
+              - link "":
+                - /url: https://www.linkedin.com/company/scitex-ai
+                - generic: 
+              - link "":
+                - /url: https://www.linkedin.com/in/yusuke-watanabe-870953170/
+                - generic: 
+              - link "":
+                - /url: https://www.youtube.com/@SciTeX-Official
+                - generic: 
+            - paragraph:
+              - link " support@scitex.ai":
+                - /url: mailto:support@scitex.ai
+                - generic: 
+                - text: support@scitex.ai
+            - paragraph: © 2025–2026 SciTeX. All rights reserved. v0.15.3
+          - generic:
+            - heading "Community" [level=3]
+            - list:
+              - listitem:
+                - link "About":
+                  - /url: /about/
+              - listitem:
+                - link "Contributors":
+                  - /url: /contributors/
+              - listitem:
+                - link "Publications":
+                  - /url: /publications/
+              - listitem:
+                - link "Premium":
+                  - /url: /pricing/
+              - listitem:
+                - link "Self-Hosting Guide":
+                  - /url: /setup/
+          - generic:
+            - heading "Developers" [level=3]
+            - generic:
+              - list:
+                - listitem:
+                  - link "Web API Docs":
+                    - /url: /docs/web-api/
+                - listitem:
+                  - link "Web API Tests":
+                    - /url: /dev/tests/web-api/
+                - listitem:
+                  - link "Releases":
+                    - /url: /releases/
+              - list:
+                - listitem:
+                  - link "Bug Reports":
+                    - /url: /scitex-ai/scitex-cloud/issues
+                - listitem:
+                  - link "Design System":
+                    - /url: /dev/design/
+                - listitem:
+                  - link "Server Status":
+                    - /url: /server-status/
+          - generic:
+            - heading "Legal" [level=3]
+            - list:
+              - listitem:
+                - link "Terms":
+                  - /url: /terms/
+              - listitem:
+                - link "Privacy":
+                  - /url: /privacy/
+              - listitem:
+                - link "Cookies":
+                  - /url: /cookies/
+      - generic:
+        - generic: "Dev Tools:"
+        - button " Refresh":
+          - generic: 
+          - text: Refresh
+        - button " Clear Cache":
+          - generic: 
+          - text: Clear Cache
+        - button " Init Visitors":
+          - generic: 
+          - text: Init Visitors
+        - button " Fill Slots":
+          - generic: 
+          - text: Fill Slots
+        - button " Free Slots":
+          - generic: 
+          - text: Free Slots
+        - button " Cancel Jobs":
+          - generic: 
+          - text: Cancel Jobs
+  - generic [ref=e538]: WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
