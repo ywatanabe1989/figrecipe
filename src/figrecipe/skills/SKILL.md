@@ -155,6 +155,10 @@ figrecipe skills get plot-types
 | `plt_diagram_compile_graphviz` | Compile Graphviz diagram |
 | `plt_diagram_list_presets` | List diagram presets |
 
+## Packaging: Bridge Frontend Source
+
+figrecipe provides a workspace bridge via `_django/frontend/src/`. The `[app]` optional extra (`pip install figrecipe[app]`) provides Python deps for platform integration. The frontend TypeScript source stays in the repo (excluded from pip wheel) and is discovered by scitex-cloud via sibling-directory scanning. In CI, clone the repo as a sibling.
+
 ## Specific Topics
 
 * **Available plot types** [references/plot-types.md](references/plot-types.md)
