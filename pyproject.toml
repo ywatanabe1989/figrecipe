@@ -145,6 +145,9 @@ exclude = [
     "src/figrecipe/_django/frontend/eslint.config.js",
 ]
 
+[tool.hatch.build.targets.wheel.force-include]
+"src/figrecipe/_skills" = "figrecipe/_skills"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
