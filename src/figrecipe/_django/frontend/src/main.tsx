@@ -18,6 +18,7 @@ import "./styles/panels.css";
 import "./styles/gallery.css";
 import "./styles/export-dialog.css";
 import "./styles/feedback.css";
+import "./styles/mobile.css";
 
 // scitex-ui CSS — single bundle import (shell + app + utils)
 // @ts-ignore
