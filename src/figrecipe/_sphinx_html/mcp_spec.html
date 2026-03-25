@@ -1,0 +1,947 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP Specification Format &mdash; FigRecipe v0.26.4</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b6d3c05d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="FigRecipe API Reference" href="api/figrecipe.html" />
+    <link rel="prev" title="CLI Reference" href="cli_reference.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="index.html" class="icon icon-home">
+            FigRecipe
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#basic-installation">Basic Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#full-installation">Full Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#individual-extras">Individual Extras</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#creating-your-first-reproducible-figure">Creating Your First Reproducible Figure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#bundle-format-recommended-for-sharing">Bundle Format (Recommended for Sharing)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#saving-figures">Saving Figures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#output-files">Output Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#reproducing-a-figure">Reproducing a Figure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#cli-commands">CLI Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#mcp-server-for-ai-agents">MCP Server for AI Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#statistical-annotations">Statistical Annotations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#multi-panel-composition">Multi-Panel Composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#box-and-arrow-diagrams">Box-and-Arrow Diagrams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#auto-fix-save-options">Auto-Fix &amp; Save Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#shapes-anchors">Shapes &amp; Anchors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#diagram-validation-rules">Diagram Validation Rules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Terminology</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="terminology.html#core-hierarchy">Core Hierarchy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#figure">Figure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#axes">Axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#axis">Axis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#plot">Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#panel">Panel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#canvas">Canvas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#style">Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="terminology.html#recipe">Recipe</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="terminology.html#editor-specific-terms">Editor-Specific Terms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="terminology.html#common-confusions">Common Confusions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gallery.html">Plot Gallery</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gallery.html#basic-plots">Basic Plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#line-plot">Line Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#scatter-plot">Scatter Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#bar-plot">Bar Plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gallery.html#statistical-plots">Statistical Plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#histogram">Histogram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#box-plot">Box Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#violin-plot">Violin Plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gallery.html#d-plots">2D Plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#heatmap-imshow">Heatmap / Imshow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gallery.html#contour-plot">Contour Plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gallery.html#supported-plot-types-47">Supported Plot Types (47)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gallery.html#csv-column-workflow">CSV Column Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gallery.html#statistical-annotations">Statistical Annotations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="style_reference.html">Style Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="style_reference.html#style-anatomy">Style Anatomy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="style_reference.html#style-parameters">Style Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#figure-settings">Figure Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#axes-settings">Axes Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#labels-and-title">Labels and Title</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#ticks">Ticks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#lines-and-markers">Lines and Markers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#legend">Legend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#spines">Spines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#grid">Grid</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="style_reference.html#loading-styles">Loading Styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#python-api">Python API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#available-presets">Available Presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="style_reference.html#custom-styles">Custom Styles</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli_reference.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#figure-creation">Figure Creation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#plot">plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#reproduce">reproduce</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#compose">compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#gui">gui</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#image-processing">Image Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#convert">convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#crop">crop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#diff">diff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#hitmap">hitmap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#data-validation">Data &amp; Validation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#extract">extract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#validate">validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#info">info</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#diagram">Diagram</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#id1">diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#style-appearance">Style &amp; Appearance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#style">style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#fonts">fonts</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#integration">Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#mcp">mcp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#list-python-apis">list-python-apis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cli_reference.html#utility">Utility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#completion">completion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cli_reference.html#version">version</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MCP Specification Format</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#starting-the-mcp-server">Starting the MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-specification-structure">Basic Specification Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-types">Plot Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#line-plot">Line Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scatter-plot">Scatter Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bar-plot">Bar Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#histogram">Histogram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#box-plot">Box Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#violin-plot">Violin Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#image-heatmap">Image/Heatmap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#contour-plot">Contour Plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fill-between">Fill Between</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-bar">Error Bar</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#csv-data-input">CSV Data Input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#statistical-annotations">Statistical Annotations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#multi-panel-figures">Multi-Panel Figures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-axes-array">Using Axes Array</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mcp-tool-reference">MCP Tool Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plt-plot">plt_plot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-reproduce">plt_reproduce</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-compose">plt_compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-info">plt_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-validate">plt_validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-crop">plt_crop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-extract-data">plt_extract_data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-list-styles">plt_list_styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plt-get-plot-types">plt_get_plot_types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#diagram-tools">Diagram Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#diagram-create">diagram_create</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#diagram-render">diagram_render</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#diagram-compile-mermaid">diagram_compile_mermaid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#diagram-compile-graphviz">diagram_compile_graphviz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#diagram-list-presets">diagram_list_presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#diagram-get-backends">diagram_get_backends</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#all-mcp-tools-summary">All MCP Tools Summary</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/figrecipe.html">FigRecipe API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.subplots"><code class="docutils literal notranslate"><span class="pre">subplots()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.save"><code class="docutils literal notranslate"><span class="pre">save()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.reproduce"><code class="docutils literal notranslate"><span class="pre">reproduce()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.compose"><code class="docutils literal notranslate"><span class="pre">compose()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.align_panels"><code class="docutils literal notranslate"><span class="pre">align_panels()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.distribute_panels"><code class="docutils literal notranslate"><span class="pre">distribute_panels()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.align_smart"><code class="docutils literal notranslate"><span class="pre">align_smart()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.gui"><code class="docutils literal notranslate"><span class="pre">gui()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.crop"><code class="docutils literal notranslate"><span class="pre">crop()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.info"><code class="docutils literal notranslate"><span class="pre">info()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.validate"><code class="docutils literal notranslate"><span class="pre">validate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.extract_data"><code class="docutils literal notranslate"><span class="pre">extract_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz"><code class="docutils literal notranslate"><span class="pre">Figz</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.__init__"><code class="docutils literal notranslate"><span class="pre">Figz.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.add_panel"><code class="docutils literal notranslate"><span class="pre">Figz.add_panel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.add_panel_from_png"><code class="docutils literal notranslate"><span class="pre">Figz.add_panel_from_png()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.create"><code class="docutils literal notranslate"><span class="pre">Figz.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.get_panel"><code class="docutils literal notranslate"><span class="pre">Figz.get_panel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.get_panel_data"><code class="docutils literal notranslate"><span class="pre">Figz.get_panel_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.get_panel_pltz"><code class="docutils literal notranslate"><span class="pre">Figz.get_panel_pltz()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.list_panel_ids"><code class="docutils literal notranslate"><span class="pre">Figz.list_panel_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.remove_panel"><code class="docutils literal notranslate"><span class="pre">Figz.remove_panel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.render_preview"><code class="docutils literal notranslate"><span class="pre">Figz.render_preview()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Figz.save"><code class="docutils literal notranslate"><span class="pre">Figz.save()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz"><code class="docutils literal notranslate"><span class="pre">Pltz</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.__init__"><code class="docutils literal notranslate"><span class="pre">Pltz.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.create"><code class="docutils literal notranslate"><span class="pre">Pltz.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.from_png"><code class="docutils literal notranslate"><span class="pre">Pltz.from_png()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.get_preview"><code class="docutils literal notranslate"><span class="pre">Pltz.get_preview()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.render_preview"><code class="docutils literal notranslate"><span class="pre">Pltz.render_preview()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.reproduce"><code class="docutils literal notranslate"><span class="pre">Pltz.reproduce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.save"><code class="docutils literal notranslate"><span class="pre">Pltz.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Pltz.update_preview"><code class="docutils literal notranslate"><span class="pre">Pltz.update_preview()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.save_bundle"><code class="docutils literal notranslate"><span class="pre">save_bundle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.load_bundle"><code class="docutils literal notranslate"><span class="pre">load_bundle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.reproduce_bundle"><code class="docutils literal notranslate"><span class="pre">reproduce_bundle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.load_style"><code class="docutils literal notranslate"><span class="pre">load_style()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.unload_style"><code class="docutils literal notranslate"><span class="pre">unload_style()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.list_presets"><code class="docutils literal notranslate"><span class="pre">list_presets()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram"><code class="docutils literal notranslate"><span class="pre">Diagram</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.__init__"><code class="docutils literal notranslate"><span class="pre">Diagram.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram._auto_anchor"><code class="docutils literal notranslate"><span class="pre">Diagram._auto_anchor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram._auto_box_height"><code class="docutils literal notranslate"><span class="pre">Diagram._auto_box_height()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram._finalize_canvas_size"><code class="docutils literal notranslate"><span class="pre">Diagram._finalize_canvas_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram._get_anchor"><code class="docutils literal notranslate"><span class="pre">Diagram._get_anchor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.add_arrow"><code class="docutils literal notranslate"><span class="pre">Diagram.add_arrow()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.add_box"><code class="docutils literal notranslate"><span class="pre">Diagram.add_box()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.add_container"><code class="docutils literal notranslate"><span class="pre">Diagram.add_container()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.add_icon"><code class="docutils literal notranslate"><span class="pre">Diagram.add_icon()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.auto_layout"><code class="docutils literal notranslate"><span class="pre">Diagram.auto_layout()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.from_dict"><code class="docutils literal notranslate"><span class="pre">Diagram.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.render"><code class="docutils literal notranslate"><span class="pre">Diagram.render()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.render_to_file"><code class="docutils literal notranslate"><span class="pre">Diagram.render_to_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.save"><code class="docutils literal notranslate"><span class="pre">Diagram.save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.to_dict"><code class="docutils literal notranslate"><span class="pre">Diagram.to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.validate_containers"><code class="docutils literal notranslate"><span class="pre">Diagram.validate_containers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe.Diagram.validate_no_overlap"><code class="docutils literal notranslate"><span class="pre">Diagram.validate_no_overlap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.signature"><code class="docutils literal notranslate"><span class="pre">signature()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe.caption_with_signature"><code class="docutils literal notranslate"><span class="pre">caption_with_signature()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe._Graphviz"><code class="docutils literal notranslate"><span class="pre">_Graphviz</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe._Mermaid"><code class="docutils literal notranslate"><span class="pre">_Mermaid</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe._get_version"><code class="docutils literal notranslate"><span class="pre">_get_version()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#figrecipe._rebrand_text"><code class="docutils literal notranslate"><span class="pre">_rebrand_text()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#core-functions">Core Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id0"><code class="docutils literal notranslate"><span class="pre">subplots()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id1"><code class="docutils literal notranslate"><span class="pre">save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id2"><code class="docutils literal notranslate"><span class="pre">reproduce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id3"><code class="docutils literal notranslate"><span class="pre">compose()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id4"><code class="docutils literal notranslate"><span class="pre">validate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id5"><code class="docutils literal notranslate"><span class="pre">crop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id6"><code class="docutils literal notranslate"><span class="pre">info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id7"><code class="docutils literal notranslate"><span class="pre">extract_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#recording-classes">Recording Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure"><code class="docutils literal notranslate"><span class="pre">RecordingFigure</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.__init__"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.fig"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.fig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.axes"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.axes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.dpi"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.dpi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.draw"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.draw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.flat"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.flat</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.record"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.record</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure._get_style_fontsize"><code class="docutils literal notranslate"><span class="pre">RecordingFigure._get_style_fontsize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure._get_theme_text_color"><code class="docutils literal notranslate"><span class="pre">RecordingFigure._get_theme_text_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.suptitle"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.suptitle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.supxlabel"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.supxlabel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.supylabel"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.supylabel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.colorbar"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.colorbar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.add_panel_labels"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.add_panel_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.set_title_metadata"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.set_title_metadata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.set_caption"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.set_caption()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.title_metadata"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.title_metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.caption"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.caption</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.set_stats"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.set_stats()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.stats"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.stats</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.generate_caption"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.generate_caption()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.__getattr__"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.__getattr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.savefig"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.savefig()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.set_supxyt"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.set_supxyt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.set_supxytc"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.set_supxytc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingFigure.save_recipe"><code class="docutils literal notranslate"><span class="pre">RecordingFigure.save_recipe()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes"><code class="docutils literal notranslate"><span class="pre">RecordingAxes</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.__init__"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.ax"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.ax</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.position"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.position</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.__getattr__"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.__getattr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.__dir__"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.__dir__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes._create_recording_wrapper"><code class="docutils literal notranslate"><span class="pre">RecordingAxes._create_recording_wrapper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes._create_bar_wrapper"><code class="docutils literal notranslate"><span class="pre">RecordingAxes._create_bar_wrapper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes._create_boxplot_wrapper"><code class="docutils literal notranslate"><span class="pre">RecordingAxes._create_boxplot_wrapper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes._create_stem_wrapper"><code class="docutils literal notranslate"><span class="pre">RecordingAxes._create_stem_wrapper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes._create_legend_wrapper"><code class="docutils literal notranslate"><span class="pre">RecordingAxes._create_legend_wrapper()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.set_caption"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.set_caption()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.panel_caption"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.panel_caption</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.set_stats"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.set_stats()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.stats"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.stats</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes._no_record"><code class="docutils literal notranslate"><span class="pre">RecordingAxes._no_record()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes._record_seaborn_call"><code class="docutils literal notranslate"><span class="pre">RecordingAxes._record_seaborn_call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.figure"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.figure</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.xaxis"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.xaxis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.yaxis"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.yaxis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.get_xlim"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.get_xlim()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.get_ylim"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.get_ylim()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.get_xlabel"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.get_xlabel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.get_ylabel"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.get_ylabel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.get_title"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.get_title()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.caption"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.caption</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#figrecipe._wrappers.RecordingAxes.generate_panel_caption"><code class="docutils literal notranslate"><span class="pre">RecordingAxes.generate_panel_caption()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#style-management">Style Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id10"><code class="docutils literal notranslate"><span class="pre">load_style()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id11"><code class="docutils literal notranslate"><span class="pre">unload_style()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id12"><code class="docutils literal notranslate"><span class="pre">list_presets()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#alignment-functions">Alignment Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id13"><code class="docutils literal notranslate"><span class="pre">align_panels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id14"><code class="docutils literal notranslate"><span class="pre">align_smart()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id15"><code class="docutils literal notranslate"><span class="pre">distribute_panels()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#gui-editor">GUI Editor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id16"><code class="docutils literal notranslate"><span class="pre">gui()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/figrecipe.html#diagram-class">Diagram Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/figrecipe.html#id17"><code class="docutils literal notranslate"><span class="pre">Diagram</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id18"><code class="docutils literal notranslate"><span class="pre">Diagram.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id19"><code class="docutils literal notranslate"><span class="pre">Diagram.add_box()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id20"><code class="docutils literal notranslate"><span class="pre">Diagram.add_container()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id21"><code class="docutils literal notranslate"><span class="pre">Diagram.add_arrow()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id22"><code class="docutils literal notranslate"><span class="pre">Diagram.add_icon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id23"><code class="docutils literal notranslate"><span class="pre">Diagram.validate_containers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id24"><code class="docutils literal notranslate"><span class="pre">Diagram.validate_no_overlap()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id25"><code class="docutils literal notranslate"><span class="pre">Diagram.auto_layout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id26"><code class="docutils literal notranslate"><span class="pre">Diagram._auto_box_height()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id27"><code class="docutils literal notranslate"><span class="pre">Diagram._finalize_canvas_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id28"><code class="docutils literal notranslate"><span class="pre">Diagram._get_anchor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id29"><code class="docutils literal notranslate"><span class="pre">Diagram._auto_anchor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id30"><code class="docutils literal notranslate"><span class="pre">Diagram.render()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id31"><code class="docutils literal notranslate"><span class="pre">Diagram.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id32"><code class="docutils literal notranslate"><span class="pre">Diagram.render_to_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id33"><code class="docutils literal notranslate"><span class="pre">Diagram.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/figrecipe.html#id34"><code class="docutils literal notranslate"><span class="pre">Diagram.from_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FigRecipe</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">MCP Specification Format</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/figrecipe/blob/main/docs/sphinx/mcp_spec.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <section id="mcp-specification-format">
+<h1>MCP Specification Format<a class="headerlink" href="#mcp-specification-format" title="Link to this heading"></a></h1>
+<p>FigRecipe provides an MCP (Model Context Protocol) server that allows AI agents to create figures declaratively. This page documents the specification format.</p>
+<section id="starting-the-mcp-server">
+<h2>Starting the MCP Server<a class="headerlink" href="#starting-the-mcp-server" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start the MCP server</span>
+figrecipe<span class="w"> </span>mcp<span class="w"> </span>start
+
+<span class="c1"># Or using FastMCP directly</span>
+fastmcp<span class="w"> </span>run<span class="w"> </span>figrecipe._mcp.server:mcp
+</pre></div>
+</div>
+</section>
+<section id="basic-specification-structure">
+<h2>Basic Specification Structure<a class="headerlink" href="#basic-specification-structure" title="Link to this heading"></a></h2>
+<p>The declarative specification is a dictionary/YAML with these main sections:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Figure configuration</span>
+<span class="nt">figure</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">figsize</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">width</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">height</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># in inches</span>
+<span class="w">  </span><span class="nt">dpi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">  </span><span class="nt">facecolor</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;white&quot;</span>
+
+<span class="c1"># Plot data (list of plot specifications)</span>
+<span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;line&quot;</span><span class="w">           </span><span class="c1"># Plot type</span>
+<span class="w">    </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">]</span><span class="w">     </span><span class="c1"># X data</span>
+<span class="w">    </span><span class="nt">y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">9</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">16</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">25</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># Y data</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;quadratic&quot;</span><span class="w">     </span><span class="c1"># Legend label</span>
+<span class="w">    </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span><span class="w">          </span><span class="c1"># Line color</span>
+<span class="w">    </span><span class="nt">linewidth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">           </span><span class="c1"># Line width</span>
+
+<span class="c1"># Axis labels and title</span>
+<span class="nt">xlabel</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;X</span><span class="nv"> </span><span class="s">Axis&quot;</span>
+<span class="nt">ylabel</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Y</span><span class="nv"> </span><span class="s">Axis&quot;</span>
+<span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;My</span><span class="nv"> </span><span class="s">Plot&quot;</span>
+
+<span class="c1"># Axis limits (optional)</span>
+<span class="nt">xlim</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">10</span><span class="p p-Indicator">]</span>
+<span class="nt">ylim</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">30</span><span class="p p-Indicator">]</span>
+
+<span class="c1"># Legend configuration</span>
+<span class="nt">legend</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">loc</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;upper</span><span class="nv"> </span><span class="s">left&quot;</span>
+<span class="w">  </span><span class="nt">frameon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</section>
+<section id="plot-types">
+<h2>Plot Types<a class="headerlink" href="#plot-types" title="Link to this heading"></a></h2>
+<section id="line-plot">
+<h3>Line Plot<a class="headerlink" href="#line-plot" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">line</span>
+<span class="w">    </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">9</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">16</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span>
+<span class="w">    </span><span class="nt">linewidth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">linestyle</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;-&quot;</span><span class="w">     </span><span class="c1"># &quot;-&quot;, &quot;--&quot;, &quot;-.&quot;, &quot;:&quot;</span>
+<span class="w">    </span><span class="nt">marker</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;o&quot;</span><span class="w">        </span><span class="c1"># &quot;o&quot;, &quot;s&quot;, &quot;^&quot;, &quot;v&quot;, etc.</span>
+<span class="w">    </span><span class="nt">markersize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;data&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="scatter-plot">
+<h3>Scatter Plot<a class="headerlink" href="#scatter-plot" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scatter</span>
+<span class="w">    </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">c</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.7</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.9</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># Color values</span>
+<span class="w">    </span><span class="nt">cmap</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;viridis&quot;</span><span class="w">               </span><span class="c1"># Colormap</span>
+<span class="w">    </span><span class="nt">s</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50</span><span class="w">                         </span><span class="c1"># Marker size</span>
+<span class="w">    </span><span class="nt">alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span><span class="w">                    </span><span class="c1"># Transparency</span>
+<span class="w">    </span><span class="nt">edgecolors</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;black&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="bar-plot">
+<h3>Bar Plot<a class="headerlink" href="#bar-plot" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bar</span>
+<span class="w">    </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;A&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;D&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">height</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">10</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">20</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">15</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">25</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;steelblue&quot;</span>
+<span class="w">    </span><span class="nt">edgecolor</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;black&quot;</span>
+<span class="w">    </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span>
+<span class="w">    </span><span class="nt">yerr</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2.5</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># Error bars</span>
+<span class="w">    </span><span class="nt">capsize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+
+<span class="c1"># Horizontal bar plot</span>
+<span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">barh</span>
+<span class="w">    </span><span class="nt">y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;A&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;D&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">width</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">10</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">20</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">15</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">25</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+</section>
+<section id="histogram">
+<h3>Histogram<a class="headerlink" href="#histogram" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hist</span>
+<span class="w">    </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1.2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2.1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2.3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">...</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># Data values</span>
+<span class="w">    </span><span class="nt">bins</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span><span class="w">                       </span><span class="c1"># Number of bins</span>
+<span class="w">    </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;steelblue&quot;</span>
+<span class="w">    </span><span class="nt">edgecolor</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;white&quot;</span>
+<span class="w">    </span><span class="nt">alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7</span>
+<span class="w">    </span><span class="nt">density</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                 </span><span class="c1"># Normalize to density</span>
+</pre></div>
+</div>
+</section>
+<section id="box-plot">
+<h3>Box Plot<a class="headerlink" href="#box-plot" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boxplot</span>
+<span class="w">    </span><span class="nt">data</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="nv">3</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="nv">5</span><span class="p p-Indicator">,</span><span class="nv">6</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="nv">8</span><span class="p p-Indicator">,</span><span class="nv">9</span><span class="p p-Indicator">]]</span><span class="w">  </span><span class="c1"># List of datasets</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;A&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;B&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">notch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">    </span><span class="nt">vert</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</section>
+<section id="violin-plot">
+<h3>Violin Plot<a class="headerlink" href="#violin-plot" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">violinplot</span>
+<span class="w">    </span><span class="nt">data</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="nv">3</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="nv">5</span><span class="p p-Indicator">,</span><span class="nv">6</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="nv">8</span><span class="p p-Indicator">,</span><span class="nv">9</span><span class="p p-Indicator">]]</span>
+<span class="w">    </span><span class="nt">positions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">showmeans</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">showmedians</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</section>
+<section id="image-heatmap">
+<h3>Image/Heatmap<a class="headerlink" href="#image-heatmap" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">imshow</span>
+<span class="w">    </span><span class="nt">data</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="nv">3</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="nv">5</span><span class="p p-Indicator">,</span><span class="nv">6</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">7</span><span class="p p-Indicator">,</span><span class="nv">8</span><span class="p p-Indicator">,</span><span class="nv">9</span><span class="p p-Indicator">]]</span><span class="w">  </span><span class="c1"># 2D array</span>
+<span class="w">    </span><span class="nt">cmap</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;viridis&quot;</span>
+<span class="w">    </span><span class="nt">aspect</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;auto&quot;</span>
+<span class="w">    </span><span class="nt">vmin</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">vmax</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">interpolation</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;nearest&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="contour-plot">
+<h3>Contour Plot<a class="headerlink" href="#contour-plot" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">contourf</span>
+<span class="w">    </span><span class="nt">X</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[[</span><span class="nv">...</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]]</span><span class="w">  </span><span class="c1"># 2D meshgrid X</span>
+<span class="w">    </span><span class="nt">Y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[[</span><span class="nv">...</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]]</span><span class="w">  </span><span class="c1"># 2D meshgrid Y</span>
+<span class="w">    </span><span class="nt">Z</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[[</span><span class="nv">...</span><span class="p p-Indicator">],</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]]</span><span class="w">  </span><span class="c1"># 2D data values</span>
+<span class="w">    </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">    </span><span class="nt">cmap</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;coolwarm&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="fill-between">
+<h3>Fill Between<a class="headerlink" href="#fill-between" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fill_between</span>
+<span class="w">    </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">y1</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">y2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">                 </span><span class="c1"># Can be scalar or array</span>
+<span class="w">    </span><span class="nt">alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.3</span>
+<span class="w">    </span><span class="nt">color</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blue&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="error-bar">
+<h3>Error Bar<a class="headerlink" href="#error-bar" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">errorbar</span>
+<span class="w">    </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">10</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">20</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">15</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">25</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">18</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">yerr</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1.8</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">xerr</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">fmt</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;o&quot;</span>
+<span class="w">    </span><span class="nt">capsize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="csv-data-input">
+<h2>CSV Data Input<a class="headerlink" href="#csv-data-input" title="Link to this heading"></a></h2>
+<p>Instead of inline data, you can reference CSV columns:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scatter</span>
+<span class="w">    </span><span class="nt">data_file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;experiment_data.csv&quot;</span>
+<span class="w">    </span><span class="nt">x_column</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;time_seconds&quot;</span>
+<span class="w">    </span><span class="nt">y_column</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;signal_amplitude&quot;</span>
+<span class="w">    </span><span class="nt">c_column</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;temperature&quot;</span><span class="w">    </span><span class="c1"># Optional color column</span>
+<span class="w">    </span><span class="nt">cmap</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;coolwarm&quot;</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Experiment</span><span class="nv"> </span><span class="s">1&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="statistical-annotations">
+<h2>Statistical Annotations<a class="headerlink" href="#statistical-annotations" title="Link to this heading"></a></h2>
+<p>Add significance brackets with p-values:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">stat_annotations</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">group1_idx</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">          </span><span class="c1"># Index of first group</span>
+<span class="w">    </span><span class="nt">group2_idx</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w">          </span><span class="c1"># Index of second group</span>
+<span class="w">    </span><span class="nt">p_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.003</span><span class="w">         </span><span class="c1"># P-value to display</span>
+<span class="w">    </span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;t-test&quot;</span><span class="w">         </span><span class="c1"># Test name (optional)</span>
+<span class="w">    </span><span class="nt">stars</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">            </span><span class="c1"># Show as stars (true) or number (false)</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">group1_idx</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">    </span><span class="nt">group2_idx</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">    </span><span class="nt">p_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span>
+<span class="w">    </span><span class="nt">text</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ns&quot;</span><span class="w">             </span><span class="c1"># Custom text instead of p-value</span>
+</pre></div>
+</div>
+</section>
+<section id="multi-panel-figures">
+<h2>Multi-Panel Figures<a class="headerlink" href="#multi-panel-figures" title="Link to this heading"></a></h2>
+<section id="using-axes-array">
+<h3>Using Axes Array<a class="headerlink" href="#using-axes-array" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define subplots structure</span>
+<span class="nt">subplots</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nrows</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">ncols</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">figsize</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">10</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">8</span><span class="p p-Indicator">]</span>
+
+<span class="c1"># Per-axis specifications</span>
+<span class="nt">axes</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span><span class="w">       </span><span class="c1"># Row, column</span>
+<span class="w">    </span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">line</span>
+<span class="w">        </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">9</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">xlabel</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;X&quot;</span>
+<span class="w">    </span><span class="nt">ylabel</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Y&quot;</span>
+<span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Panel</span><span class="nv"> </span><span class="s">A&quot;</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">plots</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scatter</span>
+<span class="w">        </span><span class="nt">x</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">y</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Panel</span><span class="nv"> </span><span class="s">B&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="mcp-tool-reference">
+<h2>MCP Tool Reference<a class="headerlink" href="#mcp-tool-reference" title="Link to this heading"></a></h2>
+<section id="plt-plot">
+<h3>plt_plot<a class="headerlink" href="#plt-plot" title="Link to this heading"></a></h3>
+<p>Create a figure from specification:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">plt_plot</span><span class="p">(</span>
+    <span class="n">spec</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>           <span class="c1"># Specification dict</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;fig.png&quot;</span><span class="p">,</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+    <span class="n">save_recipe</span><span class="o">=</span><span class="kc">True</span>      <span class="c1"># Also save as .yaml</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-reproduce">
+<h3>plt_reproduce<a class="headerlink" href="#plt-reproduce" title="Link to this heading"></a></h3>
+<p>Reproduce from saved recipe:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">plt_reproduce</span><span class="p">(</span>
+    <span class="n">recipe_path</span><span class="o">=</span><span class="s2">&quot;fig.yaml&quot;</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;reproduced.png&quot;</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">,</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-compose">
+<h3>plt_compose<a class="headerlink" href="#plt-compose" title="Link to this heading"></a></h3>
+<p>Combine multiple figures:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">plt_compose</span><span class="p">(</span>
+    <span class="n">sources</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;panel_a.png&quot;</span><span class="p">,</span> <span class="s2">&quot;panel_b.png&quot;</span><span class="p">],</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;combined.png&quot;</span><span class="p">,</span>
+    <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span>   <span class="c1"># or &quot;vertical&quot;, &quot;grid&quot;</span>
+    <span class="n">gap_mm</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">panel_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">label_style</span><span class="o">=</span><span class="s2">&quot;uppercase&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-info">
+<h3>plt_info<a class="headerlink" href="#plt-info" title="Link to this heading"></a></h3>
+<p>Get recipe information:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">info</span> <span class="o">=</span> <span class="n">plt_info</span><span class="p">(</span><span class="n">recipe_path</span><span class="o">=</span><span class="s2">&quot;fig.yaml&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-validate">
+<h3>plt_validate<a class="headerlink" href="#plt-validate" title="Link to this heading"></a></h3>
+<p>Validate reproduction fidelity:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">plt_validate</span><span class="p">(</span>
+    <span class="n">recipe_path</span><span class="o">=</span><span class="s2">&quot;fig.yaml&quot;</span><span class="p">,</span>
+    <span class="n">mse_threshold</span><span class="o">=</span><span class="mf">100.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-crop">
+<h3>plt_crop<a class="headerlink" href="#plt-crop" title="Link to this heading"></a></h3>
+<p>Crop whitespace from figure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">plt_crop</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="s2">&quot;fig.png&quot;</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;fig_cropped.png&quot;</span><span class="p">,</span>
+    <span class="n">margin_mm</span><span class="o">=</span><span class="mf">1.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-extract-data">
+<h3>plt_extract_data<a class="headerlink" href="#plt-extract-data" title="Link to this heading"></a></h3>
+<p>Extract plotted data from recipe:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">plt_extract_data</span><span class="p">(</span><span class="n">recipe_path</span><span class="o">=</span><span class="s2">&quot;fig.yaml&quot;</span><span class="p">)</span>
+<span class="c1"># Returns: {call_id: {&#39;x&#39;: [...], &#39;y&#39;: [...], ...}}</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-list-styles">
+<h3>plt_list_styles<a class="headerlink" href="#plt-list-styles" title="Link to this heading"></a></h3>
+<p>List available style presets:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">styles</span> <span class="o">=</span> <span class="n">plt_list_styles</span><span class="p">()</span>
+<span class="c1"># Returns: {&quot;presets&quot;: [&quot;default&quot;, ...], &quot;count&quot;: N}</span>
+</pre></div>
+</div>
+</section>
+<section id="plt-get-plot-types">
+<h3>plt_get_plot_types<a class="headerlink" href="#plt-get-plot-types" title="Link to this heading"></a></h3>
+<p>Get supported plot types:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">types</span> <span class="o">=</span> <span class="n">plt_get_plot_types</span><span class="p">()</span>
+<span class="c1"># Returns: {&quot;plot_types&quot;: [...], &quot;categories&quot;: {...}}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="diagram-tools">
+<h2>Diagram Tools<a class="headerlink" href="#diagram-tools" title="Link to this heading"></a></h2>
+<section id="diagram-create">
+<h3>diagram_create<a class="headerlink" href="#diagram-create" title="Link to this heading"></a></h3>
+<p>Create a diagram from YAML specification:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">diagram_create</span><span class="p">(</span>
+    <span class="n">spec_dict</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>       <span class="c1"># Or spec_path=&quot;diagram.yaml&quot;</span>
+<span class="p">)</span>
+<span class="c1"># Returns: {&quot;mermaid&quot;: &quot;...&quot;, &quot;graphviz&quot;: &quot;...&quot;}</span>
+</pre></div>
+</div>
+</section>
+<section id="diagram-render">
+<h3>diagram_render<a class="headerlink" href="#diagram-render" title="Link to this heading"></a></h3>
+<p>Render diagram to image:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">diagram_render</span><span class="p">(</span>
+    <span class="n">spec_path</span><span class="o">=</span><span class="s2">&quot;diagram.yaml&quot;</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;diagram.png&quot;</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">,</span>           <span class="c1"># png, svg, pdf</span>
+    <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>         <span class="c1"># mermaid-cli, graphviz, mermaid.ink</span>
+    <span class="n">scale</span><span class="o">=</span><span class="mf">2.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="diagram-compile-mermaid">
+<h3>diagram_compile_mermaid<a class="headerlink" href="#diagram-compile-mermaid" title="Link to this heading"></a></h3>
+<p>Compile to Mermaid format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">diagram_compile_mermaid</span><span class="p">(</span>
+    <span class="n">spec_path</span><span class="o">=</span><span class="s2">&quot;diagram.yaml&quot;</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;diagram.mmd&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="diagram-compile-graphviz">
+<h3>diagram_compile_graphviz<a class="headerlink" href="#diagram-compile-graphviz" title="Link to this heading"></a></h3>
+<p>Compile to Graphviz DOT format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">diagram_compile_graphviz</span><span class="p">(</span>
+    <span class="n">spec_path</span><span class="o">=</span><span class="s2">&quot;diagram.yaml&quot;</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;diagram.dot&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="diagram-list-presets">
+<h3>diagram_list_presets<a class="headerlink" href="#diagram-list-presets" title="Link to this heading"></a></h3>
+<p>List available diagram presets:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">presets</span> <span class="o">=</span> <span class="n">diagram_list_presets</span><span class="p">()</span>
+<span class="c1"># Returns: {&quot;workflow&quot;: ..., &quot;decision&quot;: ..., &quot;pipeline&quot;: ..., &quot;scientific&quot;: ...}</span>
+</pre></div>
+</div>
+</section>
+<section id="diagram-get-backends">
+<h3>diagram_get_backends<a class="headerlink" href="#diagram-get-backends" title="Link to this heading"></a></h3>
+<p>Check rendering backend availability:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">backends</span> <span class="o">=</span> <span class="n">diagram_get_backends</span><span class="p">()</span>
+<span class="c1"># Returns availability and installation instructions</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="all-mcp-tools-summary">
+<h2>All MCP Tools Summary<a class="headerlink" href="#all-mcp-tools-summary" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>plt_plot</strong></p></td>
+<td><p>Create figure from declarative spec</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>plt_reproduce</strong></p></td>
+<td><p>Reproduce figure from recipe</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>plt_compose</strong></p></td>
+<td><p>Combine multiple figures</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>plt_info</strong></p></td>
+<td><p>Get recipe information</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>plt_validate</strong></p></td>
+<td><p>Validate reproduction fidelity</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>plt_crop</strong></p></td>
+<td><p>Crop whitespace from image</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>plt_extract_data</strong></p></td>
+<td><p>Extract plotted data arrays</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>plt_list_styles</strong></p></td>
+<td><p>List style presets</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>plt_get_plot_types</strong></p></td>
+<td><p>Get supported plot types</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>diagram_create</strong></p></td>
+<td><p>Create diagram from spec</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>diagram_render</strong></p></td>
+<td><p>Render diagram to image</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>diagram_compile_mermaid</strong></p></td>
+<td><p>Compile to Mermaid format</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>diagram_compile_graphviz</strong></p></td>
+<td><p>Compile to Graphviz format</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>diagram_list_presets</strong></p></td>
+<td><p>List diagram presets</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>diagram_get_preset</strong></p></td>
+<td><p>Get preset configuration</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>diagram_get_backends</strong></p></td>
+<td><p>Check backend availability</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>diagram_split</strong></p></td>
+<td><p>Split large diagram into parts</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>diagram_get_paper_modes</strong></p></td>
+<td><p>Get paper layout modes</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cli_reference.html" class="btn btn-neutral float-left" title="CLI Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/figrecipe.html" class="btn btn-neutral float-right" title="FigRecipe API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

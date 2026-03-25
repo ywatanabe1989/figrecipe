@@ -172,7 +172,16 @@ figrecipe fonts list              # list available fonts
 
 ```bash
 figrecipe mcp start               # start MCP server
+figrecipe mcp run                 # run MCP server (alias)
 figrecipe mcp install             # install MCP configuration
+```
+
+### figrecipe skills
+
+```bash
+figrecipe skills list             # list available skills
+figrecipe skills get SKILL        # show a specific skill
+figrecipe skills get plot-types   # example: show plot-types skill
 ```
 
 ### figrecipe list-python-apis

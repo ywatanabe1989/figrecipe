@@ -18,6 +18,7 @@ Reproducible, style-editable scientific figures via YAML recipes. Drop-in replac
 * [diagram](diagram.md) — Box-and-arrow diagrams, Mermaid, Graphviz
 * [cli-reference](cli-reference.md) — All CLI commands
 * [mcp-tools](mcp-tools.md) — MCP tool reference for AI agents
+* [return-fig](return-fig.md) — Convention: plotting functions must return fig
 
 ## MCP Tools
 
