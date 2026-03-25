@@ -1,5 +1,4 @@
 ---
-name: bundle
 description: ZIP bundle format — self-contained figures with spec.json, style.json, data.csv, and exported images.
 ---
 

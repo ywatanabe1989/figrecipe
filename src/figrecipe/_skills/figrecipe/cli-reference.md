@@ -1,5 +1,4 @@
 ---
-name: cli-reference
 description: Complete figrecipe CLI reference — all commands with options and examples.
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: diagram
 description: Box-and-arrow diagram builder and Mermaid/Graphviz diagram compilation via fr.Diagram.
 ---
 

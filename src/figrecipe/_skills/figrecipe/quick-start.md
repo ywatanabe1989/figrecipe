@@ -1,5 +1,4 @@
 ---
-name: quick-start
 description: Core figrecipe workflow — creating figures, saving YAML recipes, and reproducing them exactly.
 ---
 

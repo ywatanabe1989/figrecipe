@@ -1,5 +1,4 @@
 ---
-name: workflows
 description: Common figrecipe workflows — redirects to focused sub-skill files.
 ---
 

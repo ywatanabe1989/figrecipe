@@ -1,5 +1,4 @@
 ---
-name: plot-types
 description: All plot types supported in figrecipe declarative specs and MCP tools, with usage guidance.
 ---
 

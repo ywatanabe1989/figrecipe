@@ -1,5 +1,4 @@
 ---
-name: cropping
 description: Crop whitespace from figure images using mm or pixel margins. Requires Pillow (figrecipe[imaging]).
 ---
 
