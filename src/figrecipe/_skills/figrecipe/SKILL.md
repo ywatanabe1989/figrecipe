@@ -1,5 +1,4 @@
 ---
-name: figrecipe
 description: Reproducible matplotlib figures with mm-precision layouts, declarative specs, YAML recipes, multi-panel composition, and diagram generation. Use when creating publication-ready figures.
 allowed-tools: mcp__scitex__plt_*
 ---
