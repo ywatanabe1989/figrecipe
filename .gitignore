@@ -811,3 +811,6 @@ src/*/_docs/
 /*.yml
 # Playwright CLI snapshots
 .playwright-cli/
+
+.claude/
+.venv/
