@@ -5,6 +5,14 @@ allowed-tools: mcp__scitex__plt_*
 
 # figrecipe
 
+## Installation
+
+```bash
+pip install figrecipe
+# Development:
+pip install -e /home/ywatanabe/proj/figrecipe
+```
+
 Reproducible, style-editable scientific figures via YAML recipes. Drop-in replacement for `plt.subplots()` that records all plotting calls for exact reproduction.
 
 ## Sub-skills
