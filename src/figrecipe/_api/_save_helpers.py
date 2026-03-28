@@ -184,8 +184,12 @@ def _capture_axes_bboxes(fig, crop_offset: Optional[dict] = None) -> None:
 
 
 def _is_bundle_path(path: Path) -> bool:
-    """Check if path represents a bundle (directory or ZIP)."""
+    """Check if path represents a bundle (directory, ZIP, .fig.zip, or .plt.zip)."""
     suffix = path.suffix.lower()
+    suffixes = [s.lower() for s in path.suffixes]
+    # .fig.zip or .plt.zip
+    if suffixes[-2:] in ([".fig", ".zip"], [".plt", ".zip"]):
+        return True
     # ZIP file
     if suffix == ".zip":
         return True
