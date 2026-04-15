@@ -120,6 +120,9 @@ class FigureRecord:
     suptitle: Optional[Dict[str, Any]] = None
     supxlabel: Optional[Dict[str, Any]] = None
     supylabel: Optional[Dict[str, Any]] = None
+    # Arbitrary figure-level text annotations (fig.text() calls) —
+    # each entry is {"x", "y", "s", "kwargs"}.
+    figure_texts: List[Dict[str, Any]] = field(default_factory=list)
     # Panel labels (A, B, C, D for multi-panel figures)
     panel_labels: Optional[Dict[str, Any]] = None
     # Metadata for scientific figures (not rendered, stored in recipe)
@@ -179,6 +182,9 @@ class FigureRecord:
         # Add supylabel if set
         if self.supylabel is not None:
             result["figure"]["supylabel"] = self.supylabel
+        # Add figure-level text annotations if any
+        if self.figure_texts:
+            result["figure"]["texts"] = self.figure_texts
         # Add panel_labels if set
         if self.panel_labels is not None:
             result["figure"]["panel_labels"] = self.panel_labels
@@ -220,6 +226,7 @@ class FigureRecord:
             suptitle=fig_data.get("suptitle"),
             supxlabel=fig_data.get("supxlabel"),
             supylabel=fig_data.get("supylabel"),
+            figure_texts=list(fig_data.get("texts", [])),
             panel_labels=fig_data.get("panel_labels"),
             title_metadata=metadata.get("title"),
             caption=metadata.get("caption"),
