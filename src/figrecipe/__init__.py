@@ -146,3 +146,35 @@ __all__ = [
     # Version
     "__version__",
 ]
+
+
+def _patch_pyplot_close() -> None:
+    """Make ``matplotlib.pyplot.close`` accept ``RecordingFigure`` instances.
+
+    ``plt.close()`` uses ``isinstance(fig, Figure)`` as its type check, which
+    rejects figrecipe's ``RecordingFigure`` wrapper (composition, not
+    inheritance) with a TypeError. We wrap ``plt.close`` once at import time
+    so that passing a ``RecordingFigure`` transparently unwraps to the
+    underlying ``matplotlib.figure.Figure``.
+    """
+    import matplotlib.pyplot as _plt
+
+    if getattr(_plt.close, "_figrecipe_patched", False):
+        return
+
+    _orig_close = _plt.close
+
+    def close(fig=None):
+        from ._wrappers._figure import RecordingFigure
+
+        if isinstance(fig, RecordingFigure):
+            fig = fig._fig
+        return _orig_close(fig)
+
+    close._figrecipe_patched = True  # type: ignore[attr-defined]
+    close.__wrapped__ = _orig_close  # type: ignore[attr-defined]
+    close.__doc__ = _orig_close.__doc__
+    _plt.close = close
+
+
+_patch_pyplot_close()
