@@ -5,28 +5,34 @@ allowed-tools: mcp__scitex__plt_*
 
 # figrecipe
 
-## Installation
+## Installation & import
 
-```bash
-pip install figrecipe
-# Development:
-pip install -e /home/ywatanabe/proj/figrecipe
+`pip install figrecipe` installs the standalone:
+
+```python
+import figrecipe
 ```
 
-Reproducible, style-editable scientific figures via YAML recipes. Drop-in replacement for `plt.subplots()` that records all plotting calls for exact reproduction.
+This package does not ship as a submodule of the `scitex` umbrella.
 
 ## Sub-skills
 
-* [quick-start](quick-start.md) — Core workflow: subplots, save, reproduce
-* [plot-types](plot-types.md) — All supported plot types with examples
-* [composition](composition.md) — Multi-panel figure composition (grid and mm-based)
-* [cropping](cropping.md) — Figure cropping, whitespace removal
-* [styles](styles.md) — Style presets, SCITEX/MATPLOTLIB, custom styles
-* [bundle](bundle.md) — ZIP bundle format (spec.json + data.csv + exports)
-* [diagram](diagram.md) — Box-and-arrow diagrams, Mermaid, Graphviz
-* [cli-reference](cli-reference.md) — All CLI commands
-* [mcp-tools](mcp-tools.md) — MCP tool reference for AI agents
-* [return-fig](return-fig.md) — Convention: plotting functions must return fig
+### Core
+* [01_quick-start](01_quick-start.md) — Core workflow: subplots, save, reproduce
+* [02_plot-types](02_plot-types.md) — All supported plot types with examples
+* [03_composition](03_composition.md) — Multi-panel figure composition (grid and mm-based)
+* [04_cropping](04_cropping.md) — Figure cropping, whitespace removal
+* [05_styles](05_styles.md) — Style presets, SCITEX/MATPLOTLIB, custom styles
+* [06_bundle](06_bundle.md) — ZIP bundle format (spec.json + data.csv + exports)
+* [07_diagram](07_diagram.md) — Box-and-arrow diagrams, Mermaid, Graphviz
+
+### Workflows
+* [10_workflows](10_workflows.md) — Common figure workflows
+* [11_cli-reference](11_cli-reference.md) — All CLI commands
+* [12_mcp-tools](12_mcp-tools.md) — MCP tool reference for AI agents
+
+### Standards
+* [20_return-fig](20_return-fig.md) — Convention: plotting functions must return fig
 
 ## MCP Tools
 
