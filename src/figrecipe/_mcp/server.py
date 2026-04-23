@@ -33,7 +33,7 @@ def plt_plot(
     dpi: int = 300,
     save_recipe: bool = True,
 ) -> Dict[str, Any]:
-    """Create a matplotlib figure from a declarative specification.
+    """Create a publication-ready matplotlib figure from a single declarative spec dict — one call covers subplots, plots (line/scatter/bar/hist/box/violin/heatmap/errorbar/etc.), axis labels/limits, legend, title, stat annotations, and style. Drop-in replacement for hand-writing `fig, ax = plt.subplots(); ax.plot(...); ax.set_xlabel(...); ax.legend(); fig.savefig(...)` sequences. Use whenever the user asks to "make a plot / figure", "plot this data", "create a bar/scatter/line chart", "draw a histogram/boxplot/violin/heatmap", "save the figure as PNG/PDF/SVG", or describes a figure declaratively. Also writes a YAML recipe so the figure can be reproduced later with `plt_reproduce`.
 
     See figrecipe._api._plot module docstring for full spec format.
 
@@ -94,7 +94,7 @@ def plt_reproduce(
     format: str = "png",
     dpi: int = 300,
 ) -> Dict[str, Any]:
-    """Reproduce a figure from a saved YAML recipe.
+    """Regenerate a figure bit-for-bit from its saved YAML recipe — the core reproducibility contract of figrecipe. Use whenever the user asks to "reproduce this figure", "regenerate the plot from the recipe", "re-render the YAML", "recreate the figure at higher DPI", "export the recipe to PDF/SVG", or wants to reuse an existing plot spec. Takes a `.yaml` recipe saved by `plt_plot` / `fr.save(fig, ...)` and produces the image again — no original data arrays needed because the recipe embeds them.
 
     Parameters
     ----------
@@ -155,7 +155,7 @@ def plt_compose(
     canvas_size_mm: Optional[Tuple[float, float]] = None,
     save_recipe: bool = True,
 ) -> Dict[str, Any]:
-    """Compose multiple figures into a single figure with panel labels.
+    """Combine multiple figures or panels into a single publication-figure with automatic A/B/C/D labels, precise mm-based placement, and an editable recipe. Drop-in replacement for manual `matplotlib.gridspec.GridSpec`, `subplot2grid`, Inkscape / Illustrator panel-assembly, and ImageMagick `montage`. Use whenever the user asks to "combine these figures", "make a multi-panel figure", "panels A, B, C side by side", "lay out subfigures", "arrange panels at exact mm positions", "add panel labels", or is assembling a final manuscript figure from individual plots.
 
     Supports two modes:
     1. Grid-based layout (list sources): automatic arrangement with layout parameter
@@ -274,7 +274,7 @@ def plt_compose(
 
 @mcp.tool
 def plt_info(recipe_path: str, verbose: bool = False) -> Dict[str, Any]:
-    """Get information about a recipe file.
+    """Inspect a figrecipe `.yaml` recipe — returns figure dimensions, call counts, plot types used, and (verbose) full call log. Use when the user asks to "inspect this recipe", "what's inside this YAML?", "summarize this figure", "what plots does this recipe contain?", or is auditing a saved figure before reproducing or modifying it.
 
     Parameters
     ----------
@@ -300,7 +300,7 @@ def plt_validate(
     recipe_path: str,
     mse_threshold: float = 100.0,
 ) -> Dict[str, Any]:
-    """Validate that a recipe can reproduce its original figure.
+    """Verify a recipe regenerates a pixel-close copy of the original figure (MSE-based). Use when the user asks to "validate this recipe", "check the recipe still works", "verify reproducibility", "does this YAML still make the same figure?", or is auditing recipe health before trusting it for a paper. Returns `valid`, `mse`, and a diagnostic message.
 
     Parameters
     ----------
@@ -334,7 +334,7 @@ def plt_crop(
     margin_mm: float = 1.0,
     overwrite: bool = False,
 ) -> Dict[str, Any]:
-    """Crop whitespace from a figure image.
+    """Trim whitespace borders from a figure image with per-side mm-precision margins. Drop-in replacement for `PIL.Image.crop` + manual bbox detection, ImageMagick `-trim`, `pdfcrop`, and matplotlib's `bbox_inches='tight'` (with more control). Use whenever the user asks to "crop whitespace", "trim the figure", "remove margins", "tighten the bounding box", "crop to content", or "cut blank space around the plot". Works on PNG/JPEG/PDF.
 
     Parameters
     ----------
@@ -372,7 +372,7 @@ def plt_crop(
 
 @mcp.tool
 def plt_extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
-    """Extract plotted data arrays from a saved recipe.
+    """Pull the raw x/y/z arrays back out of a figrecipe YAML — gives you the underlying data that produced each line, scatter, bar, etc. Use whenever the user asks to "get the data out of this figure", "recover the plotted values", "export to CSV", "reuse the data for another plot", or is data-mining an old figure where source CSVs were lost. Returns a dict keyed by call_id with arrays as JSON-serializable lists.
 
     Parameters
     ----------
@@ -403,7 +403,7 @@ def plt_extract_data(recipe_path: str) -> Dict[str, Dict[str, Any]]:
 
 @mcp.tool
 def plt_list_styles() -> Dict[str, Any]:
-    """List available figure style presets.
+    """List the named figure style presets that ship with figrecipe — currently `SCITEX` (publication defaults) and `MATPLOTLIB` (stock rcParams). Use whenever the user asks "what styles are available?", "what style presets does figrecipe ship?", "list the themes", or before choosing a style name to pass to `plt_plot`.
 
     Returns
     -------
@@ -422,7 +422,7 @@ def plt_list_styles() -> Dict[str, Any]:
 
 @mcp.tool
 def plt_get_plot_types() -> Dict[str, Any]:
-    """Get list of supported plot types.
+    """Enumerate every plot type figrecipe's declarative spec understands — line/plot/step/fill/fill_between/errorbar, scatter, bar/barh, hist/hist2d/boxplot/violinplot, imshow/matshow/heatmap/pcolormesh, contour/contourf, pie/stem/eventplot/hexbin. Use when the user asks "what plot types are supported?", "can figrecipe do a heatmap / violin / hexbin?", "list all plot kinds", or before writing a declarative spec.
 
     Returns
     -------
