@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_pie, plt_hist, plt_fill_between."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -33,7 +32,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a pie chart (ax.pie).
+        """Use when the user asks for a pie chart of categorical proportions (class-balance share, budget breakdown, cohort composition). Drop-in replacement for plt.pie / ax.pie with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -118,7 +117,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a histogram (ax.hist).
+        """Use when the user asks for a histogram of a sample (reaction times, measurement noise, residuals, pixel intensities). Drop-in replacement for plt.hist / ax.hist with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -198,7 +197,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a filled region plot (ax.fill_between).
+        """Use when the user asks to shade between two y-curves (confidence bands, SEM envelopes, min/max ranges around a mean trace). Drop-in replacement for plt.fill_between / ax.fill_between with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_line, plt_scatter, plt_errorbar."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -38,7 +37,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a line plot (ax.plot).
+        """Use when the user asks to plot a line/time-series/trajectory (e.g. signal over time, fit curve, trend line). Drop-in replacement for plt.plot / ax.plot with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -129,7 +128,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a scatter plot (ax.scatter).
+        """Use when the user asks to scatter-plot paired observations or correlations (x vs y samples, cluster plots, regression diagnostics). Drop-in replacement for plt.scatter / ax.scatter with publication defaults, CSV auto-export, Clew hash tracking.
 
         Parameters
         ----------
@@ -210,7 +209,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create an error-bar plot (ax.errorbar).
+        """Use when the user asks to plot measurements with error bars (mean +/- SEM, confidence intervals, propagated errors). Drop-in replacement for plt.errorbar / ax.errorbar with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------

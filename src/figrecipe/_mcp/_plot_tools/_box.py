@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_boxplot, plt_violinplot."""
 
-
 from typing import Any, Dict, List, Optional
 
 from ._base import _create
@@ -35,7 +34,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a box plot (ax.boxplot).
+        """Use when the user asks for a box-and-whisker plot comparing distributions across groups (quartiles, medians, outliers by condition). Drop-in replacement for plt.boxplot / ax.boxplot with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -116,7 +115,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a violin plot (ax.violinplot).
+        """Use when the user asks for a violin plot showing full distribution shape by group (KDE + quartiles, multi-condition comparisons). Drop-in replacement for plt.violinplot / ax.violinplot with publication defaults, CSV auto-export, Clew tracking.
 
         Parameters
         ----------

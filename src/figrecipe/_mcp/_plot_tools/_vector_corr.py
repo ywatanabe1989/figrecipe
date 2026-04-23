@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_quiver, plt_acorr, plt_xcorr, plt_spy."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -36,7 +35,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a vector field (ax.quiver).
+        """Use when the user asks to plot a 2D vector/arrow field (fluid velocity, gradient field, optical flow, force field). Drop-in replacement for plt.quiver / ax.quiver with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -105,7 +104,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot autocorrelation (ax.acorr).
+        """Use when the user asks to plot autocorrelation of a signal at varying lags (stationarity, periodicity detection, residual whiteness). Drop-in replacement for plt.acorr / ax.acorr with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -177,7 +176,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot cross-correlation of two signals (ax.xcorr).
+        """Use when the user asks for cross-correlation of two signals at varying lags (time-lag coupling, spike-triggered lag, signal alignment). Drop-in replacement for plt.xcorr / ax.xcorr with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -242,7 +241,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Visualize sparsity of a 2D matrix (ax.spy).
+        """Use when the user asks to visualize sparsity/non-zero structure of a matrix (sparse-matrix topology, adjacency, Jacobian structure). Drop-in replacement for plt.spy / ax.spy with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------

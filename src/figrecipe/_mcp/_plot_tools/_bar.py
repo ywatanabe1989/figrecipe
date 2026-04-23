@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_bar, plt_barh."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -38,7 +37,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a bar chart (ax.bar).
+        """Use when the user asks for a bar chart of category counts or group means (condition comparisons, trial counts, accuracy by group). Drop-in replacement for plt.bar / ax.bar with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -135,7 +134,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a horizontal bar chart (ax.barh).
+        """Use when the user asks for a horizontal bar chart (long category names, ranked lists, feature-importance plots). Drop-in replacement for plt.barh / ax.barh with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------

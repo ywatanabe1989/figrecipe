@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_loglog, plt_semilogx, plt_semilogy."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -37,7 +36,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Line plot with both axes on log scale (ax.loglog).
+        """Use when the user asks to plot data on log-log axes (power laws, scaling exponents, Bode magnitude, 1/f noise). Drop-in replacement for plt.loglog / ax.loglog with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -113,7 +112,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Line plot with x-axis on log scale (ax.semilogx).
+        """Use when the user asks to plot with a logarithmic x-axis (frequency response, concentration sweeps, log-time curves). Drop-in replacement for plt.semilogx / ax.semilogx with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -189,7 +188,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Line plot with y-axis on log scale (ax.semilogy).
+        """Use when the user asks to plot with a logarithmic y-axis (exponential decay, training loss curves, log-count histograms). Drop-in replacement for plt.semilogy / ax.semilogy with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------

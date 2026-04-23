@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_imshow, plt_contourf."""
 
-
 from typing import Any, Dict, List, Optional
 
 from ._base import _create
@@ -33,7 +32,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Display a 2D array as an image / heatmap (ax.imshow).
+        """Use when the user asks to display a 2D array/matrix/heatmap/image (correlation/confusion matrix, neural activity heatmap, microscopy). Drop-in replacement for plt.imshow / ax.imshow with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -113,7 +112,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a filled contour plot (ax.contourf).
+        """Use when the user asks for filled contours of a 2D scalar field (topographic maps, probability densities, loss landscapes). Drop-in replacement for plt.contourf / ax.contourf with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
