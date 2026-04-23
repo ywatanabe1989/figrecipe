@@ -232,6 +232,15 @@ def reproduce_from_record(
         kwargs = record.supylabel.get("kwargs", {})
         fig.supylabel(text, **kwargs)
 
+    # Replay figure-level fig.text() annotations
+    for txt_entry in record.figure_texts:
+        fig.text(
+            txt_entry["x"],
+            txt_entry["y"],
+            txt_entry.get("s", ""),
+            **txt_entry.get("kwargs", {}),
+        )
+
     # Wrap in Recording types (same as subplots() returns)
     recorder = Recorder()
     recorder._figure_record = record
