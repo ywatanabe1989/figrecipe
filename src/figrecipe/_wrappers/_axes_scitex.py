@@ -61,14 +61,19 @@ class SciTexMixin:
             )
         return result
 
-    def stx_line(self, values_1d, xx=None, *, id=None, track=True, **kwargs):
-        """Plot a simple line."""
+    def stx_line(self, x, y=None, *, id=None, track=True, **kwargs):
+        """Plot a simple line (matplotlib-convention: x, y).
+
+        See figrecipe#110: signature flipped from the legacy
+        (values_1d, xx=None) form so `ax.stx_line(x, y)` matches
+        `ax.plot(x, y)`.
+        """
         from .._scitex_compat._shaded_lines import stx_line
 
         with self._no_record():
-            result = stx_line(self._ax, values_1d, xx=xx, **kwargs)
+            result = stx_line(self._ax, x, y=y, **kwargs)
         if self._track and track:
-            self._record_stx_call("stx_line", (values_1d,), {"xx": xx, **kwargs}, id)
+            self._record_stx_call("stx_line", (x,), {"y": y, **kwargs}, id)
         return result
 
     def stx_mean_std(self, values_2d, xx=None, sd=1, *, id=None, track=True, **kwargs):
