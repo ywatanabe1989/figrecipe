@@ -1,9 +1,12 @@
 ---
 description: Publication-ready matplotlib figures with mm-precision layouts, YAML recipes, declarative specs, multi-panel composition, whitespace cropping, style presets (SCITEX, MATPLOTLIB), and box-and-arrow diagrams. Supports 70+ plot types — every matplotlib kind (line/scatter/bar/hist/box/violin/heatmap/imshow/errorbar/contour/quiver/streamplot/hexbin/stackplot/loglog/ecdf/…) plus scitex-specialized ones (`fr_mean_ci`, `fr_mean_std`, `fr_median_iqr`, `fr_shaded_line`, `fr_conf_mat`, `fr_raster`, `fr_violin`, `fr_scatter_hist`, `fr_heatmap` and `stx_*` aliases). Drop-in replacement for raw `matplotlib.pyplot` (`plt.subplots`, `fig.savefig`, `ax.plot/scatter/bar/hist/boxplot/violinplot/heatmap/imshow/errorbar`), `seaborn` (`fr.sns` re-export), manual `subplot2grid` / `GridSpec` layouts, hand-rolled subplot labeling (A, B, C), and `mermaid-cli` / `graphviz` for diagrams. Use whenever the user asks to "make a figure", "plot this data", "save a figure", "create a subplot", "lay out panels at exact mm sizes", "compose panels A/B/C into one figure", "add panel labels", "crop whitespace", "reproduce a figure later", "save a figure recipe", "plot mean ± CI / std / IQR", "confusion matrix plot", "raster plot", "shaded line plot", "apply SCITEX style", or "draw a box-and-arrow diagram / flowchart / Mermaid / Graphviz diagram". Every saved figure ships a YAML recipe so the same plot can be regenerated bit-for-bit months later.
 allowed-tools: mcp__scitex__plt_*
+primary_interface: python
 ---
 
 # figrecipe
+
+> **Primary interface: Python API.** Import in scripts/notebooks — CLI & MCP are thin wrappers over the Python functions.
 
 ## Installation & import
 
