@@ -77,3 +77,8 @@ figrecipe style list               # List style presets
 figrecipe diagram render flow.mmd  # Render diagram
 figrecipe mcp start                # Start MCP server
 ```
+
+
+## Environment
+
+- [30_env-vars.md](30_env-vars.md) — SCITEX_* env vars read by figrecipe at runtime
