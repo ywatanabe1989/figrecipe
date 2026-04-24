@@ -43,6 +43,7 @@ This package does not ship as a submodule of the `scitex` umbrella.
 
 ### Standards
 * [20_return-fig](20_return-fig.md) — Convention: plotting functions must return fig
+* [21_scientific-figure-patterns](21_scientific-figure-patterns.md) — Comparison plots (shared color scale + single colorbar), shared time axes (heatmap + averaged profile), per-subject grids, PDF report assembly with bookmarks/size budget. Implements universal rules from `general/30_scientific-figures.md`.
 
 ## MCP Tools
 
