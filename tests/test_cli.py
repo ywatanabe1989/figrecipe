@@ -85,20 +85,20 @@ class TestInfoCommand:
 
     def test_info_requires_source(self, runner):
         """Test info requires source argument."""
-        result = runner.invoke(main, ["info"])
+        result = runner.invoke(main, ["show-info"])
         assert result.exit_code != 0
         assert "Missing argument" in result.output
 
     def test_info_basic(self, runner, sample_recipe):
         """Test basic info output."""
-        result = runner.invoke(main, ["info", str(sample_recipe)])
+        result = runner.invoke(main, ["show-info", str(sample_recipe)])
         assert result.exit_code == 0
         assert "Recipe Version" in result.output
         assert "Figure ID" in result.output
 
     def test_info_json(self, runner, sample_recipe):
         """Test info --json outputs valid JSON."""
-        result = runner.invoke(main, ["info", "--json", str(sample_recipe)])
+        result = runner.invoke(main, ["show-info", "--json", str(sample_recipe)])
         assert result.exit_code == 0
         # Should be valid JSON
         data = json.loads(result.output)
@@ -106,7 +106,7 @@ class TestInfoCommand:
 
     def test_info_verbose(self, runner, sample_recipe):
         """Test info -v shows detailed info."""
-        result = runner.invoke(main, ["info", "-v", str(sample_recipe)])
+        result = runner.invoke(main, ["show-info", "-v", str(sample_recipe)])
         assert result.exit_code == 0
         # Verbose mode should at least show basic info
         assert "Figure ID" in result.output or "Matplotlib" in result.output
@@ -509,7 +509,7 @@ class TestCLIIntegration:
         fig.save_recipe(recipe_path)
 
         # Info
-        result = runner.invoke(main, ["info", str(recipe_path)])
+        result = runner.invoke(main, ["show-info", str(recipe_path)])
         assert result.exit_code == 0
 
         # Reproduce
