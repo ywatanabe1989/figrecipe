@@ -11,9 +11,10 @@ __FILE__ = __file__
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
+import logging
+
 import numpy as np
 import pandas as pd
-from scitex import logging
 
 logger = logging.getLogger(__name__)
 

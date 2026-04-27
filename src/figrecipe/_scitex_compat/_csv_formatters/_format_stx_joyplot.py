@@ -11,9 +11,8 @@ __DIR__ = os.path.dirname(__FILE__)
 
 import numpy as np
 import pandas as pd
-from scitex.pd import force_df
-from scitex.plt.utils._csv_column_naming import get_csv_column_name
 
+from .._csv_column_naming import get_csv_column_name
 from ._format_plot import _parse_tracking_id
 
 
@@ -77,9 +76,11 @@ def _format_plot_joyplot(id, tracked_dict, kwargs):
 
     # Try to force to DataFrame as a last resort
     try:
+        from scitex.pd import force_df
+
         col_name = get_csv_column_name(
             "joyplot-data", ax_row, ax_col, trace_id=trace_id
         )
         return force_df({col_name: data})
-    except:
+    except Exception:
         return pd.DataFrame()
