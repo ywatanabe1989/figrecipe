@@ -31,11 +31,11 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 # Command categories for organized help display
 COMMAND_CATEGORIES = [
-    ("Figure Creation", ["plot", "reproduce", "compose", "gui"]),
-    ("Image Processing", ["convert", "crop", "diff", "hitmap"]),
-    ("Data & Validation", ["extract", "validate", "info"]),
+    ("Figure Creation", ["plot", "reproduce-figure", "compose-figures", "start-gui"]),
+    ("Image Processing", ["convert-figure", "crop", "diff-figures", "generate-hitmap"]),
+    ("Data & Validation", ["extract", "validate-figure", "show-info"]),
     ("Diagram", ["diagram"]),
-    ("Style & Appearance", ["style", "fonts"]),
+    ("Style & Appearance", ["style", "list-fonts"]),
     ("Integration", ["mcp", "list-python-apis"]),
     ("Utility", ["completion", "version"]),
 ]
@@ -131,25 +131,76 @@ def _show_recursive_help(ctx: click.Context) -> None:
         _print_command_help(cmd, f"figrecipe {name}", ctx)
 
 
-# Register commands
+# ── Renames (noun-verb convention per general/03_interface_02_cli.md §1) ──
 
-main.add_command(completion)
+
+def _dep(old: str, new: str):
+    """Hidden top-level redirect: `<old>` → `<new>`."""
+
+    @click.pass_context
+    def _impl(ctx, **_):
+        click.echo(
+            f"error: `figrecipe {old}` was renamed to `figrecipe {new}`.\n"
+            f"Re-run with: figrecipe {new} [...]",
+            err=True,
+        )
+        ctx.exit(2)
+
+    return click.command(
+        old,
+        hidden=True,
+        context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+    )(_impl)
+
+
+# Register commands with noun-verb-compliant names + hidden deprecations
+# Bare-verb → compound-leaf renames
+compose.name = "compose-figures"
 main.add_command(compose)
+main.add_command(_dep("compose", "compose-figures"))
+
+convert.name = "convert-figure"
 main.add_command(convert)
+main.add_command(_dep("convert", "convert-figure"))
+
+diff.name = "diff-figures"
+main.add_command(diff)
+main.add_command(_dep("diff", "diff-figures"))
+
+reproduce.name = "reproduce-figure"
+main.add_command(reproduce)
+main.add_command(_dep("reproduce", "reproduce-figure"))
+
+validate.name = "validate-figure"
+main.add_command(validate)
+main.add_command(_dep("validate", "validate-figure"))
+
+# Bare-noun → verb-noun compound leaves
+fonts.name = "list-fonts"
+main.add_command(fonts)
+main.add_command(_dep("fonts", "list-fonts"))
+
+gui.name = "start-gui"
+main.add_command(gui)
+main.add_command(_dep("gui", "start-gui"))
+
+hitmap.name = "generate-hitmap"
+main.add_command(hitmap)
+main.add_command(_dep("hitmap", "generate-hitmap"))
+
+info.name = "show-info"
+main.add_command(info)
+main.add_command(_dep("info", "show-info"))
+
+# Unchanged commands
+main.add_command(completion)
 main.add_command(crop)
 main.add_command(_diagram_cmd, name="diagram")
-main.add_command(diff)
 main.add_command(extract)
-main.add_command(fonts)
-main.add_command(gui)
-main.add_command(hitmap)
-main.add_command(info)
 main.add_command(list_python_apis)
 main.add_command(mcp)
 main.add_command(plot)
-main.add_command(reproduce)
 main.add_command(style)
-main.add_command(validate)
 main.add_command(version_cmd)
 
 try:

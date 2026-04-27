@@ -126,7 +126,7 @@ def install_completion(shell: str) -> None:
     click.echo(f"\nReload your shell or run: source {rc_file}")
 
 
-@completion.command("status")
+@completion.command("show-status")
 @click.option(
     "--shell",
     type=click.Choice(SHELLS),
@@ -144,19 +144,36 @@ def status_completion(shell: str) -> None:
         click.echo(f"{sh:8} {status:16} ({rc_file})")
 
 
-@completion.command("bash")
-def bash_completion() -> None:
-    """Show bash completion script."""
-    click.echo(_get_completion_script("bash"))
+@completion.command("print-script")
+@click.option(
+    "--shell",
+    type=click.Choice(SHELLS),
+    default="bash",
+    help="Target shell. Default: bash.",
+)
+def print_script(shell: str) -> None:
+    """Print the completion script for the chosen shell to stdout."""
+    click.echo(_get_completion_script(shell))
 
 
-@completion.command("zsh")
-def zsh_completion() -> None:
-    """Show zsh completion script."""
-    click.echo(_get_completion_script("zsh"))
+# Hidden deprecation redirects for the old per-shell leaf names
+for _sh in SHELLS:
 
+    def _make_dep(old_shell: str):
+        @click.pass_context
+        def _impl(ctx, **_):
+            click.echo(
+                f"error: `figrecipe completion {old_shell}` was renamed to "
+                f"`figrecipe completion print-script --shell {old_shell}`.\n"
+                f"Re-run with: figrecipe completion print-script --shell {old_shell}",
+                err=True,
+            )
+            ctx.exit(2)
 
-@completion.command("fish")
-def fish_completion() -> None:
-    """Show fish completion script."""
-    click.echo(_get_completion_script("fish"))
+        return click.command(
+            old_shell,
+            hidden=True,
+            context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+        )(_impl)
+
+    completion.add_command(_make_dep(_sh))

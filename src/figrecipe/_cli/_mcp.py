@@ -337,8 +337,8 @@ def install(claude_code: bool) -> None:
         click.echo("   figrecipe mcp doctor")
 
 
-@mcp.command("info")
-def info() -> None:
+@mcp.command("show-info")
+def show_info() -> None:
     """Show MCP server information."""
     try:
         from .._mcp.server import mcp as mcp_server

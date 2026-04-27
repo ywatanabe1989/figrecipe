@@ -119,7 +119,7 @@ def convert(input: str, output: str, output_format: Optional[str]):
     console.print(f"[green]✓[/green] Converted: {input_path} → {output_path}")
 
 
-@diagram.command("info")
+@diagram.command("show-info")
 @click.argument("path", type=click.Path(exists=True))
 def info(path: str):
     """Show information about a diagram file.
@@ -151,7 +151,7 @@ def info(path: str):
     )
 
 
-@diagram.command("presets")
+@diagram.command("list-presets")
 def presets():
     """List available diagram presets."""
     from .._diagram import list_presets as list_diagram_presets
@@ -268,7 +268,7 @@ def render(
         raise SystemExit(1)
 
 
-@diagram.command("backends")
+@diagram.command("list-backends")
 def backends():
     """Show available rendering backends and their status."""
     from .._diagram._shared._render import get_available_backends
