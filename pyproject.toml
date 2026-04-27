@@ -37,6 +37,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
+    "pandas",
     "scitex-app>=0.1.0",
     "matplotlib>=3.5.0",
     "numpy>=1.20.0",
