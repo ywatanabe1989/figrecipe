@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "figrecipe"
-version = "0.28.4"
+version = "0.28.5"
 description = "Reproducible matplotlib wrapper with mm-precision layouts"
 readme = "README.md"
 license = "AGPL-3.0"
@@ -45,6 +45,8 @@ dependencies = [
     "scipy>=1.7.0",
     "click>=8.0.0",
     "rich>=13.0.0",
+    "scitex-app>=0.2.0",
+    "scitex-linter>=0.3.0",
 ]
 
 [project.optional-dependencies]
