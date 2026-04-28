@@ -39,6 +39,7 @@ classifiers = [
 dependencies = [
     "matplotlib>=3.5.0",
     "numpy>=1.20.0",
+    "PyYAML>=6.0.0",
     "ruamel.yaml>=0.17.0",
     "scipy>=1.7.0",
     "click>=8.0.0",
