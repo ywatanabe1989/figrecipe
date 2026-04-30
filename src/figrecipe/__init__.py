@@ -58,14 +58,15 @@ __doc__ = _rebrand_text(_RAW_DOC)
 
 # Version
 try:
+    from importlib.metadata import PackageNotFoundError
     from importlib.metadata import version as _get_version
 
-    __version__ = _get_version("figrecipe")
-except Exception as e:
-    import warnings
-
-    warnings.warn(f"Failed to detect figrecipe version: {e}")
-    __version__ = "unknown"
+    try:
+        __version__ = _get_version("figrecipe")
+    except PackageNotFoundError:
+        __version__ = "0.0.0+local"
+except ImportError:  # pragma: no cover — only on ancient Pythons
+    __version__ = "0.0.0+local"
 
 # =============================================================================
 # CORE PUBLIC API - Minimal, essential functions only
