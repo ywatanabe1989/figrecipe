@@ -1,5 +1,7 @@
 ---
 description: Multi-panel figure composition — combining multiple recipe files or images into a single figure using grid-based or mm-based positioning.
+name: composition
+tags: [figrecipe, scitex-package]
 ---
 
 # Composition

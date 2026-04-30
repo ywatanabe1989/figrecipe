@@ -1,5 +1,7 @@
 ---
 description: Core figrecipe workflow — creating figures, saving YAML recipes, and reproducing them exactly.
+name: quick-start
+tags: [figrecipe, scitex-package]
 ---
 
 # Quick Start

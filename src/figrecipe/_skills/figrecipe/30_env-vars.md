@@ -1,6 +1,7 @@
 ---
 name: figrecipe-env-vars
 description: Environment variables read by figrecipe at import / runtime. Follow SCITEX_<MODULE>_* convention — see general/10_arch-environment-variables.md.
+tags: [figrecipe, scitex-package]
 ---
 
 # figrecipe — Environment Variables

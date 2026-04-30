@@ -1,5 +1,7 @@
 ---
 description: Figure style presets — loading, applying, and customizing SCITEX/MATPLOTLIB styles and dark themes.
+name: styles
+tags: [figrecipe, scitex-package]
 ---
 
 # Styles
