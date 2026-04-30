@@ -77,6 +77,13 @@ def gui(
 
     SOURCE is the optional path to a .yaml recipe file or bundle.
     If not provided, creates a new blank figure.
+
+    \b
+    Example:
+      $ figrecipe gui
+      $ figrecipe gui figure.yaml --port 8080
+      $ figrecipe gui --desktop
+      $ figrecipe gui figure.yaml --force --no-browser
     """
     from .. import gui as fr_gui
 

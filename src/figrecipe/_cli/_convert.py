@@ -30,15 +30,34 @@ import click
     default=300,
     help="DPI for raster output (default: 300).",
 )
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Print what would be written without writing.",
+)
+@click.option(
+    "-y",
+    "--yes",
+    is_flag=True,
+    help="Suppress interactive confirmation (assume yes).",
+)
 def convert(
     source: str,
     fmt: str,
     output: Optional[str],
     dpi: int,
+    dry_run: bool,
+    yes: bool,
 ) -> None:
     """Convert between figure formats.
 
     SOURCE is a .yaml recipe or image file.
+
+    \b
+    Example:
+      $ figrecipe convert figure.yaml -f png
+      $ figrecipe convert figure.yaml -f pdf -o paper/figs/main.pdf --dpi 600
+      $ figrecipe convert figure.png -f svg --dry-run
     """
     source_path = Path(source)
 
@@ -47,6 +66,12 @@ def convert(
         output_path = Path(output)
     else:
         output_path = source_path.with_suffix(f".{fmt}")
+
+    if dry_run:
+        click.echo(
+            f"DRY RUN — would convert {source_path} -> {output_path} (dpi={dpi})"
+        )
+        return
 
     # Handle different source types
     if source_path.suffix in [".yaml", ".yml"]:

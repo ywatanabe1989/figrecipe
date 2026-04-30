@@ -36,6 +36,12 @@ def crop(
     """Crop an image to its content area.
 
     IMAGE is the path to the image file (PNG, PDF, etc.).
+
+    \b
+    Example:
+      $ figrecipe crop figure.png
+      $ figrecipe crop figure.pdf -o trimmed.pdf --margin 2mm
+      $ figrecipe crop figure.png --overwrite --margin 5px
     """
     try:
         from .. import crop as fr_crop

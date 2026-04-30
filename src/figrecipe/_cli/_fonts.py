@@ -19,7 +19,14 @@ import click
     help="Search for fonts matching a pattern.",
 )
 def fonts(check: Optional[str], search: Optional[str]) -> None:
-    """List or check available fonts."""
+    """List or check available fonts.
+
+    \b
+    Example:
+      $ figrecipe fonts
+      $ figrecipe fonts --search arial
+      $ figrecipe fonts --check "DejaVu Sans"
+    """
     from ..styles._style_applier import check_font, list_available_fonts
 
     if check:

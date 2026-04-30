@@ -42,11 +42,26 @@ def style(ctx: click.Context, help_recursive: bool) -> None:
 
 
 @style.command("list")
-def list_styles() -> None:
-    """List available style presets."""
+@click.option(
+    "--json", "as_json", is_flag=True, help="Emit JSON instead of plain text."
+)
+def list_styles(as_json: bool) -> None:
+    """List available style presets.
+
+    \b
+    Example:
+      $ figrecipe style list
+      $ figrecipe style list --json
+    """
     from .. import list_presets
 
     presets = list_presets()
+
+    if as_json:
+        import json as _json
+
+        click.echo(_json.dumps({"presets": list(presets)}, indent=2))
+        return
 
     click.echo("Available style presets:")
     for preset in presets:
@@ -55,10 +70,16 @@ def list_styles() -> None:
 
 @style.command("show")
 @click.argument("name")
-def show_style(name: str) -> None:
+@click.option("--json", "as_json", is_flag=True, help="Emit JSON instead of YAML.")
+def show_style(name: str, as_json: bool) -> None:
     """Show details of a style preset.
 
     NAME is the preset name (e.g., SCITEX, MATPLOTLIB).
+
+    \b
+    Example:
+      $ figrecipe style show SCITEX
+      $ figrecipe style show MATPLOTLIB --json
     """
     from ruamel.yaml import YAML
 
@@ -68,6 +89,14 @@ def show_style(name: str) -> None:
         style_dict = load_preset(name)
     except Exception as e:
         raise click.ClickException(f"Failed to load preset '{name}': {e}") from e
+
+    if as_json:
+        import json as _json
+
+        click.echo(
+            _json.dumps({"name": name, "style": style_dict}, indent=2, default=str)
+        )
+        return
 
     yaml = YAML()
     yaml.default_flow_style = False
@@ -83,11 +112,23 @@ def show_style(name: str) -> None:
 
 @style.command("apply")
 @click.argument("name")
-def apply_style_cmd(name: str) -> None:
+@click.option("--dry-run", is_flag=True, help="Print plan without applying.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def apply_style_cmd(name: str, dry_run: bool, yes: bool) -> None:
     """Apply a style preset globally.
 
     NAME is the preset name (e.g., SCITEX, MATPLOTLIB).
+
+    \b
+    Example:
+      $ figrecipe style apply SCITEX
+      $ figrecipe style apply MATPLOTLIB --dry-run
     """
+    if dry_run:
+        click.echo(f"DRY RUN — would apply style: {name}")
+        return
     from .. import load_style
 
     try:
@@ -98,8 +139,21 @@ def apply_style_cmd(name: str) -> None:
 
 
 @style.command("reset")
-def reset_style() -> None:
-    """Reset to default matplotlib style."""
+@click.option("--dry-run", is_flag=True, help="Print plan without resetting.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def reset_style(dry_run: bool, yes: bool) -> None:
+    """Reset to default matplotlib style.
+
+    \b
+    Example:
+      $ figrecipe style reset
+      $ figrecipe style reset --dry-run
+    """
+    if dry_run:
+        click.echo("DRY RUN — would reset style to matplotlib defaults")
+        return
     from .. import unload_style
 
     unload_style()
@@ -109,5 +163,10 @@ def reset_style() -> None:
 @style.command("help-recursive", context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 def help_recursive_cmd(ctx: click.Context) -> None:
-    """Show help for all style subcommands."""
+    """Show help for all style subcommands.
+
+    \b
+    Example:
+      $ figrecipe style help-recursive
+    """
     _show_recursive_help(ctx.parent)

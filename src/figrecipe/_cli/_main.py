@@ -104,12 +104,27 @@ def _print_command_help(cmd, prefix: str, parent_ctx) -> None:
 )
 @click.option("--version", "-V", is_flag=True, help="Show version and exit.")
 @click.option("--help-recursive", is_flag=True, help="Show help for all commands.")
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="Emit structured JSON output (propagates to subcommands that honour it).",
+)
 @click.pass_context
-def main(ctx: click.Context, version: bool, help_recursive: bool) -> None:
+def main(
+    ctx: click.Context, version: bool, help_recursive: bool, as_json: bool
+) -> None:
     """FigRecipe - Reproducible, style-editable scientific figures via YAML recipes.
 
     Use 'figrecipe gui' to launch the GUI editor.
+
+    Config is loaded with the SciTeX precedence chain:
+      config.yaml -> $FIGRECIPE_CONFIG -> ~/.scitex/figrecipe/config.yaml -> defaults
     """
+    # Stash --json so subcommands can read it via ctx.obj
+    ctx.ensure_object(dict)
+    ctx.obj["as_json"] = as_json
+
     if version:
         click.echo(f"figrecipe {__version__}")
         ctx.exit(0)

@@ -44,6 +44,12 @@ def compose(
     """Compose multiple figures into one.
 
     SOURCES are paths to .yaml recipe files or bundle directories.
+
+    \b
+    Example:
+      $ figrecipe compose a.yaml b.yaml -o combined.png
+      $ figrecipe compose *.yaml -o grid.png --layout grid --cols 3
+      $ figrecipe compose top.yaml bot.yaml -o stack.pdf --layout vertical --dpi 600
     """
     from .. import compose as fr_compose
     from .. import reproduce, save

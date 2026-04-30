@@ -90,11 +90,21 @@ def completion(ctx) -> None:
     default=None,
     help="Target shell. Auto-detected if not specified.",
 )
-def install_completion(shell: str) -> None:
+@click.option("--dry-run", is_flag=True, help="Print plan without writing.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def install_completion(shell: str, dry_run: bool, yes: bool) -> None:
     """Install shell completion for figrecipe CLI.
 
     Auto-detects the current shell from $SHELL if not specified.
     Appends the completion script to the appropriate rc file.
+
+    \b
+    Example:
+      $ figrecipe completion install
+      $ figrecipe completion install --shell zsh
+      $ figrecipe completion install --shell bash --dry-run
     """
     if shell is None:
         shell = _detect_shell()
@@ -102,6 +112,11 @@ def install_completion(shell: str) -> None:
 
     rc_file = RC_FILES[shell]
     completion_line = COMPLETION_LINES[shell]
+
+    if dry_run:
+        click.echo(f"DRY RUN — would append completion to {rc_file}")
+        click.echo(f"  line: {completion_line}")
+        return
 
     # Check if already installed
     if _is_installed(shell):
@@ -133,9 +148,29 @@ def install_completion(shell: str) -> None:
     default=None,
     help="Target shell. Checks all if not specified.",
 )
-def status_completion(shell: str) -> None:
-    """Check shell completion installation status."""
+@click.option(
+    "--json", "as_json", is_flag=True, help="Emit JSON instead of plain text."
+)
+def status_completion(shell: str, as_json: bool) -> None:
+    """Check shell completion installation status.
+
+    \b
+    Example:
+      $ figrecipe completion status
+      $ figrecipe completion status --shell zsh
+      $ figrecipe completion status --json
+    """
     shells_to_check = [shell] if shell else SHELLS
+
+    if as_json:
+        import json as _json
+
+        payload = {
+            sh: {"installed": _is_installed(sh), "rc_file": str(RC_FILES[sh])}
+            for sh in shells_to_check
+        }
+        click.echo(_json.dumps(payload, indent=2))
+        return
 
     for sh in shells_to_check:
         rc_file = RC_FILES[sh]
@@ -146,17 +181,35 @@ def status_completion(shell: str) -> None:
 
 @completion.command("bash")
 def bash_completion() -> None:
-    """Show bash completion script."""
+    """Show bash completion script.
+
+    \b
+    Example:
+      $ figrecipe completion bash
+      $ figrecipe completion bash >> ~/.bashrc
+    """
     click.echo(_get_completion_script("bash"))
 
 
 @completion.command("zsh")
 def zsh_completion() -> None:
-    """Show zsh completion script."""
+    """Show zsh completion script.
+
+    \b
+    Example:
+      $ figrecipe completion zsh
+      $ figrecipe completion zsh >> ~/.zshrc
+    """
     click.echo(_get_completion_script("zsh"))
 
 
 @completion.command("fish")
 def fish_completion() -> None:
-    """Show fish completion script."""
+    """Show fish completion script.
+
+    \b
+    Example:
+      $ figrecipe completion fish
+      $ figrecipe completion fish > ~/.config/fish/completions/figrecipe.fish
+    """
     click.echo(_get_completion_script("fish"))

@@ -26,6 +26,12 @@ def info(source: str, as_json: bool, verbose: bool) -> None:
     """Show information about a recipe.
 
     SOURCE is the path to a .yaml recipe file.
+
+    \b
+    Example:
+      $ figrecipe info figure.yaml
+      $ figrecipe info figure.yaml --verbose
+      $ figrecipe info figure.yaml --json
     """
     from .. import info as fr_info
 

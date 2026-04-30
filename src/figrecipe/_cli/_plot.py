@@ -61,6 +61,12 @@ def plot(
     SPEC is a YAML or JSON file defining the plot structure.
 
     \b
+    Example:
+      $ figrecipe plot spec.yaml
+      $ figrecipe plot spec.yaml -o out.pdf -f pdf --dpi 600
+      $ figrecipe plot spec.yaml --style SCITEX --save-recipe
+
+    \b
     Example spec (YAML):
         figure:
           width_mm: 80

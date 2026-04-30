@@ -38,18 +38,31 @@ def diagram():
     default="mermaid",
     help="Output format (default: mermaid)",
 )
+@click.option("--dry-run", is_flag=True, help="Print plan without writing.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
 def create(
     output: str,
     diagram_type: str,
     title: Optional[str],
     column: str,
     output_format: str,
+    dry_run: bool,
+    yes: bool,
 ):
     """Create a new diagram from command line.
 
+    \b
     Example:
-        figrecipe diagram create workflow.mmd --type pipeline --title "Data Pipeline"
+      $ figrecipe diagram create workflow.mmd --type pipeline --title "Data Pipeline"
+      $ figrecipe diagram create plan.dot -f graphviz --dry-run
     """
+    if dry_run:
+        click.echo(
+            f"DRY RUN — would create {output} (type={diagram_type}, format={output_format})"
+        )
+        return
     from .._diagram import Diagram
 
     d = Diagram(type=diagram_type, title=title or "", column=column)
@@ -76,13 +89,26 @@ def create(
     type=click.Choice(["mermaid", "graphviz", "yaml"]),
     help="Output format (auto-detected from extension if not specified)",
 )
-def convert(input: str, output: str, output_format: Optional[str]):
+@click.option("--dry-run", is_flag=True, help="Print plan without writing.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def convert(
+    input: str, output: str, output_format: Optional[str], dry_run: bool, yes: bool
+):
     """Convert diagram between formats.
 
+    \b
     Example:
-        figrecipe diagram convert workflow.yaml workflow.mmd
-        figrecipe diagram convert workflow.mmd workflow.dot -f graphviz
+      $ figrecipe diagram convert workflow.yaml workflow.mmd
+      $ figrecipe diagram convert workflow.mmd workflow.dot -f graphviz
+      $ figrecipe diagram convert plan.yaml plan.dot --dry-run
     """
+    if dry_run:
+        click.echo(
+            f"DRY RUN — would convert {input} -> {output} (format={output_format})"
+        )
+        return
     from .._diagram import Diagram
 
     input_path = Path(input)
@@ -153,7 +179,12 @@ def info(path: str):
 
 @diagram.command("presets")
 def presets():
-    """List available diagram presets."""
+    """List available diagram presets.
+
+    \b
+    Example:
+      $ figrecipe diagram presets
+    """
     from .._diagram import list_presets as list_diagram_presets
 
     preset_info = list_diagram_presets()
@@ -270,7 +301,12 @@ def render(
 
 @diagram.command("backends")
 def backends():
-    """Show available rendering backends and their status."""
+    """Show available rendering backends and their status.
+
+    \b
+    Example:
+      $ figrecipe diagram backends
+    """
     from .._diagram._shared._render import get_available_backends
 
     backend_info = get_available_backends()

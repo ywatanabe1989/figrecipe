@@ -12,7 +12,13 @@ import click
     help="Show full version info with dependencies.",
 )
 def version(full: bool) -> None:
-    """Show version information."""
+    """Show version information.
+
+    \b
+    Example:
+      $ figrecipe version
+      $ figrecipe version --full
+    """
     from .. import __version__
 
     click.echo(f"figrecipe {__version__}")
