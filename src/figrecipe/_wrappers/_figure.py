@@ -196,6 +196,39 @@ class RecordingFigure:
         # Call the underlying figure's supylabel
         return self._fig.supylabel(t, **kwargs)
 
+    def text(self, x: float, y: float, s: str, **kwargs) -> Any:
+        """Place text on the figure and record it.
+
+        Proxy for ``matplotlib.figure.Figure.text`` that also captures the
+        call in the recipe so ``reproduce()`` can replay it. Without this,
+        ``fig.text`` annotations would be rendered in the original figure
+        but missing from the reproduction, leading to dimension mismatches
+        during reproducibility validation.
+
+        Parameters
+        ----------
+        x, y : float
+            Position in figure coordinates.
+        s : str
+            The text string.
+        **kwargs
+            Additional arguments passed to matplotlib's fig.text().
+
+        Returns
+        -------
+        Text
+            The matplotlib Text object.
+        """
+        serializable_kwargs = {
+            k: v
+            for k, v in kwargs.items()
+            if isinstance(v, (str, int, float, bool, list, tuple, type(None)))
+        }
+        self._recorder.figure_record.figure_texts.append(
+            {"x": x, "y": y, "s": s, "kwargs": serializable_kwargs}
+        )
+        return self._fig.text(x, y, s, **kwargs)
+
     def colorbar(self, mappable, ax=None, **kwargs) -> Any:
         """Add a colorbar and record it for reproduction."""
         ax_key = None

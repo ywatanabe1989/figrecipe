@@ -240,6 +240,36 @@ def save_figure(
         finalize_ticks(ax)
         finalize_special_plots(ax, style_dict)
 
+    # Check for .fig.zip (multi-panel Figz bundle) or .plt.zip (single-plot Pltz bundle)
+    suffixes = [s.lower() for s in path.suffixes]
+    if suffixes[-2:] == [".fig", ".zip"]:
+        from .._bundle._figz import Figz
+        from .._bundle._pltz import Pltz
+
+        # Create a Figz bundle with the current figure as a single panel
+        figz = Figz.create(path, name=path.stem.split(".")[0])
+        # Save figure as a temporary .plt.zip, then add as panel
+        import tempfile
+
+        tmp_pltz = Path(tempfile.mktemp(suffix=".plt.zip"))
+        try:
+            Pltz.create(tmp_pltz, fig)
+            figz.add_panel("A", tmp_pltz)
+        finally:
+            if tmp_pltz.exists():
+                tmp_pltz.unlink()
+        if verbose:
+            print(f"Saved: {path} (Figz bundle)")
+        return path, None, None
+
+    if suffixes[-2:] == [".plt", ".zip"]:
+        from .._bundle._pltz import Pltz
+
+        Pltz.create(path, fig)
+        if verbose:
+            print(f"Saved: {path} (Pltz bundle)")
+        return path, None, None
+
     # Check if saving as ZIP bundle (layered format: spec.json + style.json + data.csv)
     if path.suffix.lower() == ".zip":
         from .._bundle import save_bundle

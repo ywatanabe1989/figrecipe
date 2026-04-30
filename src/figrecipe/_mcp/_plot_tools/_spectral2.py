@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: csd, cohere, angle_spectrum, magnitude_spectrum, phase_spectrum."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -35,7 +34,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot cross-spectral density (ax.csd).
+        """Use when the user asks for cross-spectral density between two signals (frequency-domain coupling, co-spectrum of channels/sensors). Drop-in replacement for plt.csd / ax.csd with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -106,7 +105,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot coherence between two signals (ax.cohere).
+        """Use when the user asks for magnitude-squared coherence between two signals (EEG/LFP channel coupling, frequency-wise synchrony). Drop-in replacement for plt.cohere / ax.cohere with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -176,7 +175,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot angle spectrum (ax.angle_spectrum).
+        """Use when the user asks for the angle (unwrapped phase) spectrum of a signal (phase response, group-delay diagnostics). Drop-in replacement for plt.angle_spectrum / ax.angle_spectrum with publication defaults, CSV auto-export, Clew hash tracking.
 
         Parameters
         ----------
@@ -246,7 +245,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot magnitude spectrum (ax.magnitude_spectrum).
+        """Use when the user asks for the magnitude spectrum of a signal (Fourier amplitude vs frequency for audio/EEG/vibration). Drop-in replacement for plt.magnitude_spectrum / ax.magnitude_spectrum with publication defaults, CSV auto-export, Clew tracking.
 
         Parameters
         ----------
@@ -317,7 +316,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot phase spectrum (ax.phase_spectrum).
+        """Use when the user asks for the wrapped phase spectrum of a signal (Fourier phase vs frequency, filter phase response). Drop-in replacement for plt.phase_spectrum / ax.phase_spectrum with publication defaults, CSV auto-export, Clew tracking.
 
         Parameters
         ----------

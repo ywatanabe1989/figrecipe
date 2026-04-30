@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_step, plt_stem, plt_hexbin, plt_eventplot, plt_stackplot."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -37,7 +36,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a step plot (ax.step).
+        """Use when the user asks for a step plot with horizontal/vertical segments (piecewise-constant signals, digital waveforms). Drop-in replacement for plt.step / ax.step with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -111,7 +110,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a stem plot (ax.stem).
+        """Use when the user asks for a stem/lollipop plot of discrete samples (impulse responses, sparse coefficients, discrete spectra). Drop-in replacement for plt.stem / ax.stem with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -189,7 +188,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a 2D hexagonal binning plot (ax.hexbin).
+        """Use when the user asks to visualize dense 2D scatter as hexagonal bins (large-N joint density where scatter would over-plot). Drop-in replacement for plt.hexbin / ax.hexbin with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -264,7 +263,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a spike raster / event plot (ax.eventplot).
+        """Use when the user asks for a spike raster/event plot (neural spike trains, stimulus onsets, point-process events across trials). Drop-in replacement for plt.eventplot / ax.eventplot with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -342,7 +341,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a stacked area chart (ax.stackplot).
+        """Use when the user asks for a stacked area chart of additive contributions over time (population composition, cumulative shares). Drop-in replacement for plt.stackplot / ax.stackplot with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------

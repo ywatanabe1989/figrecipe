@@ -31,11 +31,18 @@ def reconstruct_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
         if key == "colors" and isinstance(value, str):
             result[key] = [value]
         elif isinstance(value, list) and len(value) > 0:
-            # Check if it's a 2D list (list of lists) - should be numpy array
-            if isinstance(value[0], list):
-                result[key] = np.array(value)
+            # Check if it's a 2D list (list of lists) - should be numpy array.
+            # Only promote to ndarray when EVERY element is a list and
+            # np.array succeeds on them; heterogeneous sequences (e.g. a
+            # mix of RGBA tuples and 'none' strings coming from per-bar
+            # color lists) must stay as plain Python lists so matplotlib
+            # can interpret each entry on its own.
+            if all(isinstance(v, list) for v in value):
+                try:
+                    result[key] = np.array(value)
+                except (ValueError, TypeError):
+                    result[key] = value
             else:
-                # 1D list - could be array or just list, try to preserve
                 result[key] = value
         else:
             result[key] = value

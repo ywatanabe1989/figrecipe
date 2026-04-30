@@ -27,6 +27,15 @@
 
 ---
 
+## Problem and Solution
+
+
+| # | Problem | Solution |
+|---|---------|----------|
+| 1 | **Figures drift from data** -- `plt.savefig(...)` produces a PNG whose source data disappears the moment the notebook closes | **Recipe + data + PNG atomic** -- each `ax.stx_*()` call records inputs; `stx.io.save(fig)` writes `.png + .csv + .yaml` so figures are replayable from the recipe |
+| 2 | **Restyling requires re-running analysis** -- changing fonts/colors/layout means rebuilding the figure from scratch | **Reproduce from recipe** -- `stx.plt.reproduce("fig.yaml", style="nature")` restyles without touching data; hashes stay valid for Clew |
+| 3 | **mm-precision layout hard** -- matplotlib uses inches/pixels; journals demand mm | **Native mm layout** -- `figure_mm()` + `figure_from_axes_mm()` give journal-grade column widths without conversion math |
+
 ## Installation
 
 Requires Python >= 3.10.
@@ -35,11 +44,7 @@ Requires Python >= 3.10.
 pip install figrecipe
 ```
 
-For the GUI editor:
-
-```bash
-pip install figrecipe[editor]
-```
+For the GUI editor: `pip install figrecipe[editor]`
 
 > **SciTeX users**: `pip install scitex[plt]` already includes FigRecipe.
 
@@ -79,19 +84,9 @@ scitex (orchestrator) -- re-exports figrecipe as scitex.plt
         +-- figrecipe._django   -- Django integration for scitex-cloud embedding
 ```
 
-**What this package owns:**
+**What this package owns:** Figure creation, reproduction, and composition engine; YAML recipe format and data provenance; Diagram system (box-and-arrow with mm-based coordinates); GUI editor; Django integration.
 
-- Figure creation, reproduction, and composition engine
-- YAML recipe format and data provenance
-- Diagram system (box-and-arrow with mm-based coordinates)
-- GUI editor (`figrecipe gui`)
-- Django integration via `figrecipe._django` package
-
-**What this package does NOT own:**
-
-- App runtime SDK -- inherits from [scitex-app](https://github.com/ywatanabe1989/scitex-app)
-- UI components -- consumes from [scitex-ui](https://github.com/ywatanabe1989/scitex-ui)
-- Templates and scaffolding -- managed by [scitex](https://github.com/ywatanabe1989/scitex-python)
+**What this package does NOT own:** App runtime SDK (inherits from [scitex-app](https://github.com/ywatanabe1989/scitex-app)); UI components (consumes from [scitex-ui](https://github.com/ywatanabe1989/scitex-ui)); Templates (managed by [scitex](https://github.com/ywatanabe1989/scitex-python)).
 
 ---
 
@@ -132,11 +127,7 @@ FigRecipe provides **millimeter-precise control** over every visual element. The
 <summary><b>Millimeter-based Layout</b></summary>
 
 ```python
-fig, ax = fr.subplots(
-    axes_width_mm=60,
-    axes_height_mm=40,
-    margin_left_mm=15,
-)
+fig, ax = fr.subplots(axes_width_mm=60, axes_height_mm=40, margin_left_mm=15)
 ```
 
 </details>
@@ -201,21 +192,12 @@ Create publication-quality box-and-arrow diagrams with mm-based coordinates. See
 from figrecipe import Diagram
 
 d = Diagram(title="EEG Pipeline", gap_mm=10)
-
-# Boxes
-d.add_box(
-    "raw", "Raw EEG", subtitle="64 ch", emphasis="muted", shape="cylinder"
-)
+d.add_box("raw", "Raw EEG", subtitle="64 ch", emphasis="muted", shape="cylinder")
 d.add_box("filter", "Bandpass", subtitle="0.5-45 Hz", emphasis="primary")
 d.add_box("ica", "ICA", subtitle="Artifact removal", emphasis="primary")
-
-# Arrows
 d.add_arrow("raw", "filter")
 d.add_arrow("filter", "ica")
-
-d.save(
-    "pipeline.png"
-)  # -> pipeline.png + pipeline.yaml + pipeline_hitmap.png + pipeline_debug.png
+d.save("pipeline.png")  # -> pipeline.png + pipeline.yaml + pipeline_hitmap.png + pipeline_debug.png
 ```
 
 </details>
@@ -225,11 +207,8 @@ d.save(
 
 <br>
 
-Use `gap_mm` on the Diagram for automatic flex layout (no manual x/y needed):
-
 ```python
 d = Diagram(title="System Overview", gap_mm=10)
-
 d.add_box("a", "Module A")
 d.add_box("b", "Module B")
 d.add_container("grp", title="Core", children=["a", "b"], direction="row")
@@ -245,22 +224,7 @@ d.save("overview.png")
 
 <br>
 
-`auto_fix=True` automatically resolves layout violations (overlaps, container enclosure, canvas bounds, arrow collisions):
-
-```python
-fig, ax = d.render(auto_fix=True)
-
-# d.save() renders, auto-crops, and optionally watermarks:
-d.save("out.png", watermark=True)  # "Plotted by FigRecipe" stamp
-```
-
-**Output files from `d.save()`**:
-| File | Content |
-|------|---------|
-| `out.png` | Auto-cropped diagram |
-| `out.yaml` | Recipe for reproduction |
-| `out_hitmap.png` | Click-target regions for GUI editing |
-| `out_debug.png` | Debug overlay showing positions and anchors |
+`auto_fix=True` automatically resolves layout violations. Output files from `d.save()`: `out.png` (auto-cropped), `out.yaml` (recipe), `out_hitmap.png` (GUI click regions), `out_debug.png` (debug overlay).
 
 </details>
 
@@ -269,10 +233,9 @@ d.save("out.png", watermark=True)  # "Plotted by FigRecipe" stamp
 
 <br>
 
-**Shapes**: `rounded` (default), `box`, `stadium`, `cylinder`, `document`, `file`, `codeblock`.
-Use `node_class` for semantic defaults: `"code"` -> codeblock, `"input"` -> cylinder, `"claim"` -> document.
+**Shapes**: `rounded` (default), `box`, `stadium`, `cylinder`, `document`, `file`, `codeblock`. Use `node_class` for semantic defaults: `"code"` -> codeblock, `"input"` -> cylinder, `"claim"` -> document.
 
-**Anchors**: `top`, `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, `center`, or `auto` (default). Aliases like `n`/`s`/`e`/`w`, `tl`/`tr`/`bl`/`br` are normalized automatically.
+**Anchors**: `top`, `bottom`, `left`, `right`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, `center`, or `auto` (default). Aliases like `n`/`s`/`e`/`w` are normalized automatically.
 
 </details>
 
@@ -280,8 +243,6 @@ Use `node_class` for semantic defaults: `"code"` -> codeblock, `"input"` -> cyli
 <summary><strong>Validation Rules</strong></summary>
 
 <br>
-
-All rules are enforced on render. Failed figures are saved with a `_FAILED` suffix for inspection.
 
 | Rule | Check | Severity |
 |------|-------|----------|
@@ -298,14 +259,12 @@ All rules are enforced on render. Failed figures are saved with a `_FAILED` suff
 
 </details>
 
-## Three Interfaces
+## Four Interfaces
 
 <details>
 <summary><strong>Python API</strong></summary>
 
 <br>
-
-**Create and save** -- standard matplotlib API with auto-recording:
 
 ```python
 import figrecipe as fr
@@ -314,55 +273,13 @@ import numpy as np
 fig, ax = fr.subplots()
 ax.plot(np.sin(np.linspace(0, 10, 100)), id="sine")
 fr.save(fig, "figure.png")  # Saves + validates pixel-identical reproduction
-```
+# Output: figure.png, figure.yaml, figure_data/sine.csv
 
-**Output**:
-```
-figure.png                # Publication-ready image
-figure.yaml               # Reproducible recipe (validated on save)
-figure_data/
-  sine.csv                # Plot data (one CSV per trace)
-```
-
-**Save / Load Formats** -- from recipe or bundle:
-
-```python
-fr.save(fig, "fig.png")     # fig.png + fig.yaml
 fr.save(fig, "fig.zip")     # self-contained zip bundle
 fr.load("fig.png")          # reload from any format
-```
-
-| Format | Save | Load |
-|--------|:----:|:----:|
-| PNG / PDF / SVG | Y | Y |
-| YAML | Y | Y |
-| Directory / ZIP | Y | Y |
-
-
-**Reproduce and edit** -- from recipe or bundle:
-
-```python
 fig, ax = fr.reproduce("figure.yaml")
-fr.gui(fig)  # Launch visual editor (at http://127.0.0.1:5050 by default)
-```
-
-**Compose** -- multi-panel figures:
-
-```python
-fr.compose(
-    sources=["panel_a.yaml", "panel_b.yaml"],
-    output_path="composed.png",
-    layout="horizontal",
-)
-```
-
-<p align="center">
-  <img src="examples/03_composition_out/composed_grid.png" alt="Composed multi-panel figure" width="100%"/>
-</p>
-
-**Statistics** -- significance brackets:
-
-```python
+fr.gui(fig)                 # Launch visual editor
+fr.compose(sources=["panel_a.yaml", "panel_b.yaml"], output_path="composed.png", layout="horizontal")
 ax.add_stat_annotation(x1=0, x2=1, p_value=0.01, style="stars")
 ```
 
@@ -409,49 +326,39 @@ AI agents can create, compose, and reproduce publication-ready figures autonomou
 | `diagram_render` | Render diagram to PNG/SVG/PDF |
 | `audio_speak` | Text-to-speech relay to user's speakers |
 
-**Audio relay**: The `audio_speak` tool enables AI agents to provide auditory feedback through the user's local speakers -- the agent generates text, the MCP server synthesizes speech on the host machine. This keeps the human in the loop without requiring them to watch the terminal.
-
-#### Claude Code Setup
-
-Add `.mcp.json` to your project root. Use `SCITEX_ENV_SRC` to load all configuration from a `.src` file -- this keeps `.mcp.json` static across environments:
+Add `.mcp.json` to your project root (use `SCITEX_ENV_SRC` for environment switching):
 
 ```json
-{
-  "mcpServers": {
-    "scitex": {
-      "command": "scitex",
-      "args": ["mcp", "start"],
-      "env": {
-        "SCITEX_ENV_SRC": "${SCITEX_ENV_SRC}"
-      }
-    }
-  }
-}
-```
-
-Then switch environments via your shell profile:
-
-```bash
-# Local machine
-export SCITEX_ENV_SRC=~/.scitex/scitex/local.src
-
-# Remote server
-export SCITEX_ENV_SRC=~/.scitex/scitex/remote.src
-```
-
-Generate a template `.src` file:
-
-```bash
-scitex env-template -o ~/.scitex/scitex/local.src
-```
-
-Or install globally:
-
-```bash
-scitex mcp install
+{"mcpServers": {"scitex": {"command": "scitex", "args": ["mcp", "start"], "env": {"SCITEX_ENV_SRC": "${SCITEX_ENV_SRC}"}}}}
 ```
 
 > **[Full MCP specification](https://figrecipe.readthedocs.io/en/latest/mcp_spec.html)**
+
+</details>
+
+<details>
+<summary><strong>Skills — for AI Agent Discovery</strong></summary>
+
+<br>
+
+Skills provide workflow-oriented guides that AI agents query to discover capabilities and usage patterns.
+
+```bash
+figrecipe skills list              # List available skill pages
+figrecipe skills get SKILL         # Show main skill page
+scitex-dev skills export --package figrecipe  # Export to Claude Code
+```
+
+| Skill | Content |
+|-------|---------|
+| `quick-start` | Core workflow: subplots, save, reproduce |
+| `plot-types` | All supported plot types with examples |
+| `composition` | Multi-panel figure composition |
+| `styles` | Style presets, SCITEX/MATPLOTLIB, custom styles |
+| `bundle` | ZIP bundle format |
+| `diagram` | Box-and-arrow diagrams, Mermaid, Graphviz |
+| `cli-reference` | All CLI commands |
+| `mcp-tools` | MCP tool reference for AI agents |
 
 </details>
 

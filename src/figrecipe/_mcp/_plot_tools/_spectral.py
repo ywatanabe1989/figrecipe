@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: plt_specgram, plt_psd."""
 
-
 from typing import Any, Dict, List, Optional
 
 from ._base import _create
@@ -37,7 +36,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a spectrogram (ax.specgram).
+        """Use when the user asks for a spectrogram / time-frequency plot of a 1D signal (audio/EEG/LFP STFT, vibration analysis). Drop-in replacement for plt.specgram / ax.specgram with publication defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -119,7 +118,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot power spectral density (ax.psd).
+        """Use when the user asks to plot a signal's power spectral density (Welch PSD of EEG/LFP/vibration/audio, 1/f fits). Drop-in replacement for plt.psd / ax.psd with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------

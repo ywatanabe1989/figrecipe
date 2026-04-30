@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """MCP plot tools: streamplot, stairs, ecdf, pcolor."""
 
-
 from typing import Any, Dict, List, Optional, Union
 
 from ._base import _create
@@ -37,7 +36,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a streamline plot of a vector field (ax.streamplot).
+        """Use when the user asks to plot streamlines of a 2D vector field (fluid flow, field lines, phase-plane). Drop-in replacement for plt.streamplot / ax.streamplot with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -114,7 +113,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a staircase (step histogram) plot (ax.stairs).
+        """Use when the user asks for a staircase/step-histogram plot from pre-binned counts (histogram outlines, PMF/CDF bars). Drop-in replacement for plt.stairs / ax.stairs with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -190,7 +189,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Plot empirical cumulative distribution function (ax.ecdf).
+        """Use when the user asks to plot an empirical CDF/ECDF (non-parametric distribution comparison, KS-test viz, survival curves). Drop-in replacement for plt.ecdf / ax.ecdf with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -261,7 +260,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a pseudocolor plot (ax.pcolor).
+        """Use when the user asks for a pseudocolor grid of a 2D array with explicit cell edges (coarse heatmaps, discrete-cell observations). Drop-in replacement for plt.pcolor / ax.pcolor with publication defaults, CSV auto-export, Clew hash tracking.
 
         Prefer plt_pcolormesh for performance; use plt_pcolor for masked arrays.
 

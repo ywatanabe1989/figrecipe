@@ -91,6 +91,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add examples/03_composition_out/gallery.jpg docs/style_granularity.jpg
+          git add -f examples/03_composition_out/gallery.jpg docs/style_granularity.jpg
           git diff --staged --quiet || git commit -m "chore: Update plot gallery [skip ci]"
           git push

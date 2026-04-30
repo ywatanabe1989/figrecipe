@@ -13,7 +13,7 @@ def register_diagram_tools(mcp):
         spec_dict: Optional[Dict[str, Any]] = None,
         spec_path: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Create a diagram from a YAML specification file or dictionary.
+        """Use when the user asks to create a workflow/pipeline/decision diagram or flowchart from a YAML spec. Drop-in scientific alternative to drawing diagrams manually, with declarative spec, presets, and publication-ready rendering.
 
         Parameters
         ----------
@@ -50,7 +50,7 @@ def register_diagram_tools(mcp):
         spec_path: Optional[str] = None,
         output_path: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Compile diagram specification to Mermaid format.
+        """Use when the user asks to convert/compile a figrecipe diagram spec to Mermaid source for Markdown/GitHub rendering. Produces Mermaid code blocks from a structured diagram specification.
 
         Parameters
         ----------
@@ -85,7 +85,7 @@ def register_diagram_tools(mcp):
         spec_path: Optional[str] = None,
         output_path: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Compile diagram specification to Graphviz DOT format.
+        """Use when the user asks to export/compile a figrecipe diagram spec to Graphviz DOT source for dot/neato layout. Produces DOT code from a structured diagram specification.
 
         Parameters
         ----------
@@ -116,7 +116,7 @@ def register_diagram_tools(mcp):
 
     @mcp.tool
     def diagram_list_presets() -> Dict[str, Any]:
-        """List available diagram presets (workflow, decision, pipeline, scientific).
+        """Use when the user asks what diagram presets/templates are available (workflow, decision, pipeline, scientific). Returns preset names usable with diagram_create/diagram_get_preset.
 
         Returns
         -------
@@ -130,7 +130,7 @@ def register_diagram_tools(mcp):
 
     @mcp.tool
     def diagram_get_preset(preset_name: str) -> Dict[str, Any]:
-        """Get a diagram preset configuration by name.
+        """Use when the user asks to fetch/inspect a named diagram preset's YAML specification (e.g. "scientific", "workflow") as a starting point for a custom diagram.
 
         Parameters
         ----------
@@ -161,7 +161,7 @@ def register_diagram_tools(mcp):
         max_nodes_per_part: int = 10,
         strategy: str = "by_groups",
     ) -> Dict[str, Any]:
-        """Split a large diagram into smaller parts for multi-column layouts.
+        """Use when the user asks to split/divide a large diagram into smaller sub-diagrams that fit multi-column paper or slide layouts without overflowing the page.
 
         Parameters
         ----------
@@ -198,7 +198,7 @@ def register_diagram_tools(mcp):
 
     @mcp.tool
     def diagram_get_paper_modes() -> Dict[str, Any]:
-        """Get available paper layout modes and their constraints.
+        """Use when the user asks which paper/journal layout modes are available (single-column, double-column, poster) and their width/height constraints for diagram sizing.
 
         Returns
         -------
@@ -231,7 +231,7 @@ def register_diagram_tools(mcp):
         backend: str = "auto",
         scale: float = 2.0,
     ) -> Dict[str, Any]:
-        """Render diagram to image file (PNG, SVG, PDF).
+        """Use when the user asks to render/export/save a figrecipe diagram to PNG, SVG, or PDF. Drop-in replacement for running mmdc/dot manually, with automatic backend selection and paper-mode sizing.
 
         Parameters
         ----------
@@ -277,7 +277,7 @@ def register_diagram_tools(mcp):
 
     @mcp.tool
     def diagram_get_backends() -> Dict[str, Any]:
-        """List available rendering backends and their status.
+        """Use when the user asks which diagram rendering backends (Mermaid CLI, Graphviz dot, etc.) are installed and available on the system, with installation status for each.
 
         Returns
         -------

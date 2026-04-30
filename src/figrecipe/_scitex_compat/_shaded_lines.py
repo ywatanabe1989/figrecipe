@@ -109,27 +109,42 @@ def stx_shaded_line(
     )
 
 
-def stx_line(ax: Axes, values_1d, xx=None, **kwargs):
-    """Plot a simple line.
+def stx_line(ax: Axes, x, y=None, **kwargs):
+    """Plot a simple line — matplotlib-convention signature.
+
+    Matches ``ax.plot(x, y)``: first positional is x, second is y.
+    If only one positional is given, it's treated as y and x defaults
+    to ``arange(len(y))`` (also matching ``ax.plot(y)``).
 
     Parameters
     ----------
     ax : Axes
-    values_1d : array-like, shape (n_points,)
-    xx : array-like, optional
-        X coordinates. Default: arange.
+    x : array-like, shape (n_points,)
+        If ``y`` is also given, x-coordinates. If ``y`` is omitted,
+        this is interpreted as y-values (arange x-coords auto-generated).
+    y : array-like, optional
+        Y-coordinates (required for explicit (x, y) form).
 
     Returns
     -------
     ax, df : Axes, DataFrame
+
+    Notes
+    -----
+    Signature flipped from the original (values_1d, xx=None) in
+    figrecipe#110 to match the matplotlib convention. The single-arg
+    "just y" form is preserved for backward-compat.
     """
-    values_1d = np.asarray(values_1d)
-    if xx is None:
-        xx = np.arange(len(values_1d))
+    first = np.asarray(x)
+    if y is None:
+        # Single-arg form: treat first arg as y, generate x via arange.
+        xs = np.arange(len(first))
+        ys = first
     else:
-        xx = np.asarray(xx)
-    ax.plot(xx, values_1d, **kwargs)
-    return ax, pd.DataFrame({"x": xx, "y": values_1d})
+        xs = first
+        ys = np.asarray(y)
+    ax.plot(xs, ys, **kwargs)
+    return ax, pd.DataFrame({"x": xs, "y": ys})
 
 
 def stx_mean_std(ax: Axes, values_2d, xx=None, sd=1, **kwargs):

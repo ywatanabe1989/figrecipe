@@ -3,7 +3,6 @@
 """MCP plot tools: plt_fill, plt_fill_betweenx, plt_contour, plt_pcolor,
 plt_pcolormesh, plt_hist2d, plt_matshow."""
 
-
 from typing import Any, Dict, List, Optional
 
 from ._base import _create
@@ -35,7 +34,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Fill a closed polygon (ax.fill).
+        """Use when the user asks to fill/shade an arbitrary closed polygon region (ROI overlays, annotation patches, stimulus windows). Drop-in replacement for plt.fill / ax.fill with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -99,7 +98,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a horizontal fill-between region (ax.fill_betweenx).
+        """Use when the user asks to shade a horizontal band between two x-curves vs y (depth profiles, vertical CI bands). Drop-in replacement for plt.fill_betweenx / ax.fill_betweenx with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -165,7 +164,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create contour lines (ax.contour).
+        """Use when the user asks to draw contour lines over a 2D field (iso-level curves, decision boundaries, topography). Drop-in replacement for plt.contour / ax.contour with publication-ready defaults, CSV data auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -236,7 +235,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a pseudocolor mesh plot (ax.pcolormesh).
+        """Use when the user asks to render a 2D field on a (possibly non-uniform) grid as colored cells (time-frequency maps, spatial fields). Drop-in replacement for plt.pcolormesh / ax.pcolormesh with publication defaults, CSV auto-export, Clew tracking.
 
         Parameters
         ----------
@@ -307,7 +306,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Create a 2D histogram (ax.hist2d).
+        """Use when the user asks for a 2D histogram/density of paired samples (joint distributions, x-y density of large datasets). Drop-in replacement for plt.hist2d / ax.hist2d with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
@@ -374,7 +373,7 @@ def register(mcp) -> None:  # noqa: ANN001
         stat_annotations: Optional[List[Dict[str, Any]]] = None,
         stats_results: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Display a 2D matrix with row/column ticks (ax.matshow).
+        """Use when the user asks to visualize a matrix with labeled rows/columns (correlation, confusion, connectivity matrices). Drop-in replacement for plt.matshow / ax.matshow with publication-ready defaults, CSV auto-export, and Clew hash tracking.
 
         Parameters
         ----------
