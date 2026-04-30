@@ -3,6 +3,8 @@
 # Module docstring is defined below after branding import
 
 # Branding support (must be imported first, before docstring is set)
+from __future__ import annotations
+
 from ._branding import rebrand_text as _rebrand_text
 
 # Define module docstring with branding applied
