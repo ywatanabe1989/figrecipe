@@ -23,6 +23,7 @@ from ._plot import plot
 from ._reproduce import reproduce
 from ._style import style
 from ._validate import validate
+from ._version import show_version
 from ._version import version as version_cmd
 
 console = Console()
@@ -166,6 +167,7 @@ main.add_command(reproduce)
 main.add_command(style)
 main.add_command(validate)
 main.add_command(version_cmd)
+main.add_command(show_version)
 
 try:
     from scitex_dev.cli import docs_click_group
