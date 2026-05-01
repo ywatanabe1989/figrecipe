@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import pytest
 
 # Add src to path for development
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import figrecipe as fr
 from figrecipe._dev import PLOTTERS, list_plotters
@@ -188,9 +188,9 @@ class TestRoundtripAllPlotters:
             )
 
         # Assert low MSE (allowing for minor rendering differences)
-        assert comparison["mse"] < threshold, (
-            f"{plot_type}: MSE {comparison['mse']:.4f} exceeds threshold {threshold}"
-        )
+        assert (
+            comparison["mse"] < threshold
+        ), f"{plot_type}: MSE {comparison['mse']:.4f} exceeds threshold {threshold}"
 
 
 def run_manual_test():

@@ -389,9 +389,9 @@ class TestBboxExtraction:
                     assert bbox["x"] >= 0, f"{plot_type}/{key}: x should be >= 0"
                     assert bbox["y"] >= 0, f"{plot_type}/{key}: y should be >= 0"
                     assert bbox["width"] > 0, f"{plot_type}/{key}: width should be > 0"
-                    assert bbox["height"] > 0, (
-                        f"{plot_type}/{key}: height should be > 0"
-                    )
+                    assert (
+                        bbox["height"] > 0
+                    ), f"{plot_type}/{key}: height should be > 0"
 
         finally:
             plt.close(fig)
