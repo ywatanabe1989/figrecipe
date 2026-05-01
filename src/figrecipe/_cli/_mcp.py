@@ -38,8 +38,22 @@ def _print_help_recursive(ctx):
 @mcp.command("start")
 @click.option("--host", default="127.0.0.1", help="Host to bind to.")
 @click.option("--port", default=8000, type=int, help="Port to bind to.")
-def start_server(host: str, port: int) -> None:
-    """Start the figrecipe MCP server."""
+@click.option("--dry-run", is_flag=True, help="Print launch plan without starting.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def start_server(host: str, port: int, dry_run: bool, yes: bool) -> None:
+    """Start the figrecipe MCP server.
+
+    \b
+    Example:
+      $ figrecipe mcp start
+      $ figrecipe mcp start --host 0.0.0.0 --port 9000
+      $ figrecipe mcp start --dry-run
+    """
+    if dry_run:
+        click.echo(f"DRY RUN — would start figrecipe MCP server on {host}:{port}")
+        return
     try:
         from .._mcp.server import mcp as mcp_server
     except ImportError as e:
@@ -172,6 +186,12 @@ def list_tools(
 
     Verbosity: (none) names, -v signatures, -vv +description, -vvv full.
     Signatures are expanded by default; use -c/--compact for single line.
+
+    \b
+    Example:
+      $ figrecipe mcp list-tools
+      $ figrecipe mcp list-tools -vv
+      $ figrecipe mcp list-tools --json --module plt
     """
     try:
         from .._mcp.server import mcp as mcp_server
@@ -286,7 +306,12 @@ def list_tools(
 
 @mcp.command("doctor")
 def doctor() -> None:
-    """Check MCP server dependencies and configuration."""
+    """Check MCP server dependencies and configuration.
+
+    \b
+    Example:
+      $ figrecipe mcp doctor
+    """
     click.echo("Checking MCP dependencies...")
 
     # Check fastmcp
@@ -314,8 +339,23 @@ def doctor() -> None:
 
 @mcp.command("install")
 @click.option("--claude-code", is_flag=True, help="Show Claude Code config.")
-def install(claude_code: bool) -> None:
-    """Show MCP server installation instructions."""
+@click.option(
+    "--dry-run", is_flag=True, help="Print install plan without performing it."
+)
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def install(claude_code: bool, dry_run: bool, yes: bool) -> None:
+    """Show MCP server installation instructions.
+
+    \b
+    Example:
+      $ figrecipe mcp install
+      $ figrecipe mcp install --claude-code
+      $ figrecipe mcp install --dry-run
+    """
+    if dry_run:
+        click.echo("DRY RUN — printing install instructions only")
     if claude_code:
         click.echo("Add to your Claude Code MCP config:")
         click.echo()
@@ -339,7 +379,12 @@ def install(claude_code: bool) -> None:
 
 @mcp.command("info")
 def info() -> None:
-    """Show MCP server information."""
+    """Show MCP server information.
+
+    \b
+    Example:
+      $ figrecipe mcp info
+    """
     try:
         from .._mcp.server import mcp as mcp_server
     except ImportError as e:

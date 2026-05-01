@@ -35,6 +35,12 @@ def validate(
     """Validate that a recipe reproduces its original figure.
 
     SOURCE is the path to a .yaml recipe file.
+
+    \b
+    Example:
+      $ figrecipe validate figure.yaml
+      $ figrecipe validate figure.yaml --threshold 10 --quiet
+      $ figrecipe validate figure.yaml --strict
     """
     from .. import validate as fr_validate
 

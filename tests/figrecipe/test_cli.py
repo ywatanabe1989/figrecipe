@@ -63,21 +63,28 @@ class TestMainCommand:
 
 
 class TestVersionCommand:
-    """Test version command."""
+    """Test show-version command (renamed from `version` per audit-cli §1b)."""
 
-    def test_version(self, runner):
-        """Test version command shows version."""
-        result = runner.invoke(main, ["version"])
+    def test_show_version(self, runner):
+        """Test show-version command shows version."""
+        result = runner.invoke(main, ["show-version"])
         assert result.exit_code == 0
         assert "figrecipe" in result.output
 
-    def test_version_full(self, runner):
-        """Test version --full shows dependencies."""
-        result = runner.invoke(main, ["version", "--full"])
+    def test_show_version_full(self, runner):
+        """Test show-version --full shows dependencies."""
+        result = runner.invoke(main, ["show-version", "--full"])
         assert result.exit_code == 0
         assert "matplotlib" in result.output
         assert "numpy" in result.output
         assert "Python" in result.output
+
+    def test_legacy_version_redirects(self, runner):
+        """Test deprecated `version` exits 2 with redirect message."""
+        result = runner.invoke(main, ["version"])
+        assert result.exit_code == 2
+        # Click captures stderr in result.output by default
+        assert "show-version" in result.output or "--version" in result.output
 
 
 class TestInfoCommand:

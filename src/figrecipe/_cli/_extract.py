@@ -39,6 +39,12 @@ def extract(
     """Extract plotted data arrays from a recipe.
 
     SOURCE is the path to a .yaml recipe file.
+
+    \b
+    Example:
+      $ figrecipe extract figure.yaml
+      $ figrecipe extract figure.yaml -f json -o extracted/
+      $ figrecipe extract figure.yaml --axes ax_0_0 -f npz
     """
 
     from .. import extract_data

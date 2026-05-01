@@ -87,9 +87,9 @@ class TestEditorOverrides:
             # Direct API call — skip page.goto to avoid blocking
             response = page.request.get(editor_server.api("preview"))
             assert response.ok, f"Preview request failed: {response.status}"
-            assert "application/json" in response.headers.get("content-type", ""), (
-                "Preview should return JSON"
-            )
+            assert "application/json" in response.headers.get(
+                "content-type", ""
+            ), "Preview should return JSON"
 
             # Verify JSON structure
             data = response.json()

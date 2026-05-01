@@ -45,6 +45,12 @@ def reproduce(
     """Reproduce a figure from a YAML recipe.
 
     SOURCE is the path to a .yaml recipe file or bundle directory.
+
+    \b
+    Example:
+      $ figrecipe reproduce figure.yaml
+      $ figrecipe reproduce figure.yaml -o out.pdf -f pdf --dpi 600
+      $ figrecipe reproduce figure.yaml --show
     """
     import matplotlib.pyplot as plt
 

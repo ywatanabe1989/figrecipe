@@ -54,9 +54,9 @@ class TestEditorHitDetection:
 
             response = page.request.get(editor_server.api("hitmap"))
             assert response.ok, f"Hitmap request failed: {response.status}"
-            assert "application/json" in response.headers.get("content-type", ""), (
-                "Hitmap endpoint should return JSON"
-            )
+            assert "application/json" in response.headers.get(
+                "content-type", ""
+            ), "Hitmap endpoint should return JSON"
 
             # Verify JSON structure
             data = response.json()
