@@ -40,47 +40,14 @@ This package does not ship as a submodule of the `scitex` umbrella.
 
 ### Workflows
 * [10_workflows](10_workflows.md) — Common figure workflows
-* [11_cli-reference](11_cli-reference.md) — All CLI commands
-* [12_mcp-tools](12_mcp-tools.md) — MCP tool reference for AI agents
+* [11_cli-reference](11_cli-reference.md) + [13_cli-extras](13_cli-extras.md) — All CLI commands
+* [12_mcp-tools](12_mcp-tools.md) + [14_mcp-tool-catalog](14_mcp-tool-catalog.md) — MCP tool reference
 
 ### Standards
 * [20_return-fig](20_return-fig.md) — Convention: plotting functions must return fig
 
-## MCP Tools
+## At a glance
 
-| Tool | Purpose |
-|------|---------|
-| `plt_plot` | Create figure from declarative spec dict |
-| `plt_reproduce` | Reproduce figure from YAML recipe |
-| `plt_compose` | Compose multi-panel figure |
-| `plt_crop` | Crop whitespace from figure image |
-| `plt_validate` | Validate recipe reproducibility |
-| `plt_extract_data` | Extract plotted data arrays |
-| `plt_info` | Get recipe metadata |
-| `plt_get_plot_types` | List all supported plot types |
-| `plt_list_styles` | List available style presets |
-| `plt_diagram_create` | Create box-and-arrow diagram |
-| `plt_diagram_render` | Render diagram to image |
-| `plt_diagram_compile_mermaid` | Compile Mermaid diagram |
-| `plt_diagram_compile_graphviz` | Compile Graphviz diagram |
-| `plt_diagram_list_presets` | List diagram presets |
-| `plt_line`, `plt_scatter`, `plt_bar`, ... | Per-type plot tools |
-
-## CLI Summary
-
-```bash
-figrecipe plot spec.yaml           # Create from spec
-figrecipe reproduce recipe.yaml    # Reproduce figure
-figrecipe compose a.yaml b.yaml -o out.png  # Compose panels
-figrecipe crop figure.png          # Crop whitespace
-figrecipe validate recipe.yaml     # Check reproducibility
-figrecipe gui recipe.yaml          # Launch GUI editor
-figrecipe style list               # List style presets
-figrecipe diagram render flow.mmd  # Render diagram
-figrecipe mcp start                # Start MCP server
-```
-
-
-## Environment
-
-- [30_env-vars.md](30_env-vars.md) — SCITEX_* env vars read by figrecipe at runtime
+- MCP tools — see [12_mcp-tools.md](12_mcp-tools.md)
+- CLI commands — see [11_cli-reference.md](11_cli-reference.md)
+- Env vars — see [30_env-vars.md](30_env-vars.md)

@@ -47,7 +47,9 @@ pip install figrecipe
 
 For the GUI editor: `pip install figrecipe[editor]`
 
-> **SciTeX users**: `pip install scitex[plt]` already includes FigRecipe.
+## Part of SciTeX
+
+figrecipe is part of [SciTeX](https://scitex.ai) — the umbrella `scitex` package re-exports it as `scitex.plt`. Both surfaces share the same API, so code written against `figrecipe` runs unchanged inside larger SciTeX pipelines.
 
 ## Quickstart
 
@@ -103,8 +105,6 @@ The SciTeX system follows the Four Freedoms for Research below, inspired by [the
 >3. The freedom to **modify** any module and share improvements with the community.
 >
 >AGPL-3.0 -- because we believe research infrastructure deserves the same freedoms as the software it runs on.
-
-> **SciTeX users**: `pip install scitex[plt]` includes FigRecipe. `scitex.plt` delegates to `figrecipe` -- they share the same API.
 
 ## Overview
 
@@ -262,7 +262,7 @@ d.save("overview.png")
 
 ## Four Interfaces
 
-<details>
+<details open>
 <summary><strong>Python API</strong></summary>
 
 <br>
@@ -284,7 +284,7 @@ fr.compose(sources=["panel_a.yaml", "panel_b.yaml"], output_path="composed.png",
 ax.add_stat_annotation(x1=0, x2=1, p_value=0.01, style="stars")
 ```
 
-> **[Full API reference](https://figrecipe.readthedocs.io/en/latest/)**
+> **[Full API reference](https://figrecipe.readthedocs.io/en/latest/api/figrecipe.html)**
 
 </details>
 

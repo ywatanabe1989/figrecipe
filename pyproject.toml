@@ -57,6 +57,15 @@ dev = [
     "pre-commit>=3.5.0",
     "pyyaml>=6.0.0",
     "scitex-dev>=0.7.0",
+    # Mirror runtime extras so `pip install -e .[dev]` runs the full suite.
+    # Tests import these unguarded; PS210 audit invariants.
+    "scitex",
+    "scitex-app>=0.1.0",
+    "scitex-ui>=0.1.0",
+    "django>=4.2.0",
+    "playwright>=1.40.0",
+    "pytesseract>=0.3.0",
+    "fastmcp>=2.0",
 ]
 imaging = [
     "Pillow>=9.0.0",
@@ -135,7 +144,7 @@ figure = "figrecipe._linter_plugin:get_plugin"
 
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/figrecipe"
-Documentation = "https://github.com/ywatanabe1989/figrecipe#readme"
+Documentation = "https://figrecipe.readthedocs.io"
 Repository = "https://github.com/ywatanabe1989/figrecipe.git"
 Issues = "https://github.com/ywatanabe1989/figrecipe/issues"
 
