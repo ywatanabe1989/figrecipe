@@ -1,8 +1,10 @@
 ---
-description: Crop whitespace from figure images using mm or pixel margins. Requires Pillow (figrecipe[imaging]).
-name: cropping
-tags: [figrecipe, scitex-package]
+description: |
+  [TOPIC] Cropping
+  [DETAILS] Crop whitespace from figure images using mm or pixel margins. Requires Pillow (figrecipe[imaging]).
+tags: [figrecipe-cropping, figrecipe]
 ---
+
 
 # Cropping
 

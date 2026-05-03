@@ -1,8 +1,10 @@
 ---
-description: Per-type plot tools, SciTeX scientific plot tools, diagram tools, and MCP resource URIs.
-name: mcp-tool-catalog
-tags: [figrecipe, scitex-package]
+description: |
+  [TOPIC] Mcp Tool Catalog
+  [DETAILS] Per-type plot tools, SciTeX scientific plot tools, diagram tools, and MCP resource URIs.
+tags: [figrecipe-mcp-tool-catalog, figrecipe]
 ---
+
 
 # MCP Tool Catalog
 

@@ -1,8 +1,10 @@
 ---
-description: Extra figrecipe CLI commands — diagram, style, fonts, MCP, skills, completion.
-name: cli-extras
-tags: [figrecipe, scitex-package]
+description: |
+  [TOPIC] Cli Extras
+  [DETAILS] diagram, style, fonts, MCP, skills, completion.
+tags: [figrecipe-cli-extras, figrecipe]
 ---
+
 
 # CLI Extras
 

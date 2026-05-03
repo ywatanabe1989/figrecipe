@@ -1,5 +1,10 @@
 ---
-description: Publication-ready matplotlib figures with mm-precision layouts, YAML recipes, declarative specs, multi-panel composition, whitespace cropping, style presets (SCITEX, MATPLOTLIB), and box-and-arrow diagrams. Supports 70+ plot types — every matplotlib kind plus scitex-specialized ones (`fr_mean_ci`, `fr_mean_std`, `fr_median_iqr`, `fr_shaded_line`, `fr_conf_mat`, `fr_raster`, `fr_violin`, `fr_scatter_hist`, `fr_heatmap` and `stx_*` aliases). Drop-in replacement for raw `matplotlib.pyplot`, `seaborn` (`fr.sns` re-export), manual `GridSpec` layouts, hand-rolled subplot labeling, and `mermaid-cli`/`graphviz`. Use when the user asks to "make a figure", "plot this data", "save a figure", "lay out panels at exact mm sizes", "compose panels A/B/C", "crop whitespace", "reproduce a figure", "plot mean ± CI", "confusion matrix", "raster plot", "apply SCITEX style", or "draw a Mermaid / Graphviz diagram". Every saved figure ships a YAML recipe so it can be regenerated bit-for-bit later.
+name: figrecipe
+description: |
+  [WHAT] Publication-ready matplotlib figures with mm-precision layouts, YAML recipes, declarative specs, multi-panel composition, whitespace cropping, style presets (SCITEX, MATPLOTLIB), and box-and-arrow diagrams.
+  [WHEN] Use when the user asks to "make a figure", "plot this data", "save a figure", "lay out panels at exact mm sizes", "compose panels A/B/C", "crop whitespace", "reproduce a figure", "plot mean ± CI", "confusion matrix", "raster plot", "apply SCITEX style".
+  [HOW] `import figrecipe` for the Python API; see leaf skills for entry points.
+tags: [figrecipe]
 allowed-tools: mcp__scitex__plt_*
 primary_interface: mixed
 interfaces:
@@ -9,9 +14,8 @@ interfaces:
   skills: 2
   hook: 0
   http: 0
-name: figrecipe
-tags: [figrecipe, scitex-package]
 ---
+
 
 # figrecipe
 

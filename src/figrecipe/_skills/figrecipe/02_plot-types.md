@@ -1,8 +1,10 @@
 ---
-description: All plot types supported in figrecipe declarative specs and MCP tools, with usage guidance.
-name: plot-types
-tags: [figrecipe, scitex-package]
+description: |
+  [TOPIC] Plot Types
+  [DETAILS] All plot types supported in figrecipe declarative specs and MCP tools, with usage guidance.
+tags: [figrecipe-plot-types, figrecipe]
 ---
+
 
 # Plot Types Reference
 

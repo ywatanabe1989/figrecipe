@@ -1,8 +1,10 @@
 ---
-description: figrecipe MCP tools for AI agents — creating, composing, cropping, validating, and extracting data from figures.
-name: mcp-tools
-tags: [figrecipe, scitex-package]
+description: |
+  [TOPIC] Mcp Tools
+  [DETAILS] figrecipe MCP tools for AI agents — creating, composing, cropping, validating, and extracting data from figures.
+tags: [figrecipe-mcp-tools, figrecipe]
 ---
+
 
 # MCP Tools
 

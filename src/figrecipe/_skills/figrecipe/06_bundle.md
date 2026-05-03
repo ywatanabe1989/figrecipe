@@ -1,8 +1,10 @@
 ---
-description: ZIP bundle format — self-contained figures with spec.json, style.json, data.csv, and exported images.
-name: bundle
-tags: [figrecipe, scitex-package]
+description: |
+  [TOPIC] Bundle
+  [DETAILS] self-contained figures with spec.json, style.json, data.csv, and exported images.
+tags: [figrecipe-bundle, figrecipe]
 ---
+
 
 # Bundle Format
 

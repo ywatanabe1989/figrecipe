@@ -1,8 +1,10 @@
 ---
-description: Complete figrecipe CLI reference — all commands with options and examples.
-name: cli-reference
-tags: [figrecipe, scitex-package]
+description: |
+  [TOPIC] Cli Reference
+  [DETAILS] all commands with options and examples.
+tags: [figrecipe-cli-reference, figrecipe]
 ---
+
 
 # CLI Reference
 
