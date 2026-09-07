@@ -2,7 +2,7 @@
   "name": "figrecipe_app",
   "slug": "figrecipe",
   "label": "Figrecipe",
-  "version": "0.1.0",
+  "pip_package": "figrecipe",
   "icon": "fas fa-palette",
   "subtitle": "Interactive figure editor for publication-ready matplotlib plots",
   "about": "Create, edit, and compose publication-ready figures with an interactive visual editor. Supports drag-and-drop layout, statistical annotations, style presets, and multi-panel composition.",
